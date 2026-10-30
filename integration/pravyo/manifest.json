@@ -1,0 +1,27 @@
+{
+  "syncedAt": "2026-09-18T07:45:08.349Z",
+  "hashes": {
+    "lib/authOptions.js": "563e45914dc5dbfc09329701db9bee4109bfe4833dd6928cfde581a7d28eef51",
+    "lib/parentAccess.js": "14f09e41a50bcb0473cd019991b4eb34c97320f698aad61b5b3a3c3cf75a14ba",
+    "lib/parentNotifications.js": "163bcb7bdd35d9346493f94276951f04f5fd03d5df24615fe70c78c84e40b13a",
+    "lib/nepaliDate.js": "0e67750bcc6dcaa17a393d8eef8d6b3b23f6e7da6e4d6b641043fa21c1e4ecf9",
+    "models/AcademicYear.js": "1df2ac1634143c8ec7b3f09745390a1d1af5b15c3f3e8c030e80008de09f121c",
+    "models/SchoolConfig.js": "96451bd7e2e8ffb88a6eb9d49387793d85936b03d339c57f63815a9ab01f0cfc",
+    "models/User.js": "59fe4a17e93683d4907b2a01a42ec3ecfe0cbf107317370026b3fec5bfec084d",
+    "models/Teacher.js": "da18345e4dfed404010b6c0160ac8e12218229c501d5ea6aefb847d1c519746a",
+    "models/Student.js": "cd6022acfa3de217cc88481939cfaac83429a59cdebb04157bc80bb57d2bb099",
+    "models/Parent.js": "29f296308e0d7c67927a6b43d6fdc061ce4046a180cff3721ae831644a07c4e1",
+    "lib/rateLimit.js": "9357924e0f01bee3646ce761aad7632e58fd62f34ca24310e57713faa21428f0",
+    "lib/parentCredentials.js": "9a3c2211320a5ad29483bc257b223c30f6592b8e990c77a7b5bc02cb2a0ee062",
+    "lib/apiResponse.js": "f920f5ae93c7349fb1c740b805a4caf73b3f36488918d809efee6efcc8f42a40",
+    "models/ParentStudentLink.js": "964b306b9a5759b20eb23205238366244654ff55c0d99cef1e4f8d0c2c369b87",
+    "models/UserNotification.js": "6e778080372fb0162adfc25299da431d56e3fd96741847ed92713cd4ee6c4259",
+    "lib/webPush.js": "dccfb718c3a57fa9ad4a434a9cdd4ac664916826ea2ddd579e95cf3234d806ca",
+    "lib/realtimeBus.js": "f15d39586c7ed9880848d2ed48dfd2ce8d84225bf44e523106e44f5c9697caea",
+    "lib/notificationChannels.js": "6ce632c6d5e17609f94ad4f89659bfafbe59287a8484b7950de3ff6bfb4b491f",
+    "lib/parentIdentity.js": "5763929a5b12f5ebd203a22cd2233826003b4d40883fbb2839f513651525f1b6",
+    "models/ParentActivation.js": "5011b327ebe5281f1dcac931720ffafd9d7bb29de8635569d38e2b669c5f04fe",
+    "models/AuditLog.js": "1c3f6b4187669c4be939a981311c8ba09b26ed0c258dafe6cadcdfc28f7a6343",
+    "models/PushSubscription.js": "9c50886e21256dbf3eb7c4acf2507c3efa61db6ea3826ec2685db4f37ccde116"
+  }
+}

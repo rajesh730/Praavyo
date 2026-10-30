@@ -1,0 +1,11 @@
+.page { max-width: 72rem; margin: 0 auto; padding: 2rem 1.25rem 3rem; }
+.header { margin-bottom: 1.5rem; }
+.header h1 { margin: 0; color: var(--brand-navy-deep); font-size: clamp(1.55rem,3vw,2rem); font-weight: 700; letter-spacing: -.035em; }
+.header > p { max-width: 42rem; margin: .45rem 0 0; color: var(--brand-muted); font-size: .9rem; }
+.years { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1rem; }
+.years a { border: 1px solid var(--brand-border); border-radius: .55rem; background: #fff; padding: .45rem .7rem; color: var(--brand-muted); font-size: .8rem; font-weight: 650; text-decoration: none; }
+.years a:hover { border-color: var(--brand-primary-border); background: var(--brand-primary-soft); color: var(--brand-primary); }
+.years a[aria-current="page"] { border-color: var(--brand-primary); background: var(--brand-primary); color: #fff; }
+.empty { border: 1px dashed #cbd9e6; border-radius: .75rem; background: #fff; padding: 2rem; color: var(--brand-muted); text-align: center; }
+.report { overflow-x: auto; color: var(--foreground); }
+@media (max-width: 639px) { .page { padding: 1.25rem 1rem 2rem; }.header h1 { font-size: 1.5rem; } }

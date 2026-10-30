@@ -1,0 +1,32 @@
+{
+  "name": "@pravyo/cas",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Continuous Assessment: curriculum, assessment, results and report cards. Rendered by the Pravyo app — this package holds the domain services and UI, not routes.",
+  "exports": {
+    "./lib/*": "./lib/*.js",
+    "./lib/client/*": "./lib/client/*.js",
+    "./components/*": "./components/*.js",
+    "./components/ui/*": "./components/ui/*.js",
+    "./components/book/*": "./components/book/*.js",
+    "./components/brand/*": "./components/brand/*.js",
+    "./components/report/*": "./components/report/*.js",
+    "./components/result/*": "./components/result/*.js",
+    "./components/navigation/*": "./components/navigation/*.js"
+  },
+  "scripts": {
+    "test": "node --test tests/*.test.mjs"
+  },
+  "dependencies": {
+    "@pravyo/auth": "*",
+    "@pravyo/core": "*",
+    "@pravyo/db": "*",
+    "@pravyo/ui": "*",
+    "clsx": "^2.1.1",
+    "html-to-image": "^1.11.13",
+    "jspdf": "^3.0.1",
+    "next-auth": "^4.24.13",
+    "react-icons": "^5.7.0",
+    "zod": "^4.4.3"
+  }
+}

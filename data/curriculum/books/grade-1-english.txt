@@ -1,0 +1,295 @@
+@grade Grade 1
+@subject ENG | English | मेरो अङ्ग्रेजी | 4
+@source grade1.pdf — My English, Student's Evaluation Record Portfolio, Grade 1 (Asmita Publication), pages 16–26
+@note Working hours are each theme page's working hours plus its assessment and project work hours, so the subject totals 128 hours (4 credit hours) as the Cumulative Assessment Record states. That record prints slightly different per-theme splits with the same total.
+
+# 1 | | Alphabet | 60 | 24
+@area Listening
+- Imitate, identify and discriminate sounds.
+- Identify words that have the same initial, medial or final sound.
+- Blend individual sounds in simple one-syllable words. (e.g. /s/ /i/ /t/ → sit)
+- Recognize, identify and produce rhyming words. (e.g. cat → bat, sat)
+- Link an initial sound to a picture of an object that begins with that sound (e.g. Show a picture of a book and identify the initial sound /b/).
+- Name a printed letter that matches with a sound (e.g. the teacher says /t/ and the student points to the /t/ letter).
+- Match spoken words to printed words (e.g. the teacher pronounces /pin/, and the student selects pin from a set of three-word cards).
+- Recognize and comprehend words and simple expressions.
+- Respond to the audio or the teacher non-verbally and verbally.
+@area Speaking
+- Imitate and produce sounds and words.
+- Blend the initial sounds with other sounds, i.e. onset with rime. (e.g. c+at)
+- Pronounce grade appropriate words correctly.
+- Ask and answer short, simple questions.
+- Sing or recite a song/chant by listening to the teacher or an audio.
+@area Reading
+- Read small and capital letters.
+- Put sounds together to read words and sentences.
+- Recognize and read familiar words accompanied by visuals.
+- Perform rhymes and chants with appropriate rhyme and rhythm.
+- Understand the meaning of grade appropriate words.
+@area Writing
+- Hold pencil correctly to gain control to draw lines, curves, circles, etc.
+- Develop hand-eye coordination through drawing lines and patterns.
+- Trace the letters and write them.
+- Form lower- and upper-case letters of regular size and shape.
+- Demonstrate good handwriting skills.
+
+# 2 | | Me and My Family | 18 | 18
+@area Listening
+- Imitate, identify and discriminate sounds.
+- Blend individual sounds in simple one-syllable words. (e.g. /s/ /i/ /t/ → sit)
+- Respond to the audio or the teacher non-verbally and verbally.
+- Perform different kinds of listening tasks (e.g. drawing, matching, etc.).
+@area Speaking
+- Imitate and produce sounds and words.
+- Pronounce grade appropriate words correctly.
+- Give basic personal information about themselves (e.g. name, address, family, nationality) using short words and phrases.
+- Ask and answer short, simple questions.
+- Sing or recite a song/chant by listening to the teacher or an audio.
+@area Reading
+- Put sounds together to read words and sentences.
+- Recognize and read familiar words accompanied by visuals.
+- Perform rhymes and chants with appropriate rhyme and rhythm.
+- Understand the meaning of grade appropriate words.
+- Read words, simple sentences and short paragraphs correctly.
+@area Writing
+- Hold pencil correctly to gain control to draw lines, curves, circles, etc.
+- Develop hand-eye coordination through drawing lines and patterns.
+- Trace the letters and write them.
+- Demonstrate good handwriting skills.
+
+# 3 | | My Daily Life | 7 | 17
+@area Listening
+- Recognize, identify and produce rhyming words. (e.g. cat → bat, sat)
+- Match spoken words to printed words (e.g. the teacher pronounces /pin/, and the student selects pin from a set of three-word cards).
+- Recognize and comprehend words and simple expressions.
+- Respond to the audio or the teacher non-verbally and verbally.
+- Perform different kinds of listening tasks (e.g. drawing, matching, etc.).
+@area Speaking
+- Imitate and produce sounds and words.
+- Pronounce grade appropriate words correctly.
+- Ask and answer short, simple questions.
+- Sing or recite a song/chant by listening to the teacher or an audio.
+@area Reading
+- Put sounds together to read words and sentences.
+- Recognize and read familiar words accompanied by visuals.
+- Perform rhymes and chants with appropriate rhyme and rhythm.
+- Understand the meaning of grade appropriate words.
+- Read words, simple sentences and short paragraphs correctly.
+@area Writing
+- Use correct spelling of the words.
+- Write simple phrases and sentences independently.
+- Demonstrate good handwriting skills.
+
+# 4 | | My School | 7 | 21
+@area Listening
+- Recognize and comprehend words and simple expressions.
+- Respond to the audio or the teacher non-verbally and verbally.
+- Respond to simple commands and questions.
+- Perform different kinds of listening tasks (e.g. drawing, matching, etc.)
+@area Speaking
+- Imitate and produce sounds and words.
+- Pronounce grade appropriate words correctly.
+- Ask and answer short, simple questions.
+- Sing or recite a song/chant by listening to the teacher or an audio.
+@area Reading
+- Put sounds together to read words and sentences.
+- Recognize and read familiar words accompanied by visuals.
+- Perform rhymes and chants with appropriate rhyme and rhythm.
+- Understand the meaning of grade appropriate words.
+- Read words, simple sentences and short paragraphs correctly.
+- Retrieve specific information from simple sentences.
+@area Writing
+- Write letters and words in a straight line from left to right with regular spacing between words.
+- Copy letters and highly frequent familiar words and phrases correctly and reproduce them.
+- Combine and recombine different letters to form words, and put the words in correct order to form simple sentences.
+- Use correct spelling of the words.
+- Write simple phrases and sentences independently.
+- Give basic personal information in writing (e.g. name, address, age, nationality).
+- Demonstrate good handwriting skills.
+
+# 5 | | Our Environment | 6 | 21
+@area Listening
+- Match spoken words to printed words (e.g. the teacher pronounces /pin/, and the student selects pin from a set of three-word cards).
+- Recognize and comprehend words and simple expressions.
+- Respond to the audio or the teacher non-verbally and verbally.
+- Perform different kinds of listening tasks (e.g. drawing, matching, etc.).
+@area Speaking
+- Pronounce grade appropriate words correctly.
+- Ask and answer short, simple questions.
+- Sing or recite a song/chant by listening to the teacher or an audio.
+- Name people, objects and places and describe them with adjectives.
+@area Reading
+- Put sounds together to read words and sentences.
+- Recognize and read familiar words accompanied by visuals.
+- Perform rhymes and chants with appropriate rhyme and rhythm.
+- Understand the meaning of grade appropriate words.
+- Read words, simple sentences and short paragraphs correctly.
+- Retrieve specific information from simple sentences.
+- Do different kinds of comprehension tasks (answering verbally, matching, action, etc.)
+@area Writing
+- Write letters and words in a straight line from left to right with regular spacing between words.
+- Copy letters and highly frequent familiar words and phrases correctly and reproduce them.
+- Combine and recombine different letters to form words, and put the words in correct order to form simple sentences.
+- Use correct spelling of the words.
+- Write simple phrases and sentences independently.
+- Demonstrate good handwriting skills.
+
+# 6 | | My Belongings | 6 | 21
+@area Listening
+- Match spoken words to printed words (e.g. the teacher pronounces /pin/, and the student selects pin from a set of three-word cards).
+- Recognize and comprehend words and simple expressions.
+- Respond to the audio or the teacher non-verbally and verbally.
+- Respond to simple commands and questions.
+- Perform different kinds of listening tasks (e.g. drawing, matching, etc.).
+@area Speaking
+- Pronounce grade appropriate words correctly.
+- Ask and answer short, simple questions.
+- Sing or recite a song/chant by listening to the teacher or an audio.
+- Name people, objects and places and describe them with adjectives.
+@area Reading
+- Recognize and read familiar words accompanied by visuals.
+- Perform rhymes and chants with appropriate rhyme and rhythm.
+- Understand the meaning of grade appropriate words.
+- Read words, simple sentences and short paragraphs correctly.
+- Retrieve specific information from simple sentences.
+- Do different kinds of comprehension tasks (answering verbally, matching, action, etc.)
+@area Writing
+- Write letters and words in a straight line from left to right with regular spacing between words.
+- Copy letters and highly frequent familiar words and phrases correctly and reproduce them.
+- Combine and recombine different letters to form words, and put the words in correct order to form simple sentences.
+- Use correct spelling of the words.
+- Write simple phrases and sentences independently.
+- Demonstrate good handwriting skills.
+
+# 7 | | Our Culture | 3 | 22
+@area Listening
+- Match spoken words to printed words (e.g. the teacher pronounces /pin/, and the student selects pin from a set of three-word cards).
+- Recognize and comprehend words and simple expressions.
+- Respond to the audio or the teacher non-verbally and verbally.
+- Respond to simple commands and questions.
+- Perform different kinds of listening tasks (e.g. drawing, matching, etc.).
+@area Speaking
+- Pronounce grade appropriate words correctly.
+- Give basic personal information about themselves (e.g. name, address, family, nationality) using short words and phrases.
+- Ask and answer short, simple questions.
+- Sing or recite a song/chant by listening to the teacher or an audio.
+@area Reading
+- Recognize and read familiar words accompanied by visuals.
+- Perform rhymes and chants with appropriate rhyme and rhythm.
+- Understand the meaning of grade appropriate words.
+- Read words, simple sentences and short paragraphs correctly.
+- Retrieve specific information from simple sentences.
+- Do different kinds of comprehension tasks (answering verbally, matching, action, etc.)
+@area Writing
+- Write letters and words in a straight line from left to right with regular spacing between words.
+- Copy letters and highly frequent familiar words and phrases correctly and reproduce them.
+- Combine and recombine different letters to form words, and put the words in correct order to form simple sentences.
+- Use correct spelling of the words.
+- Write simple phrases and sentences independently.
+- Give basic personal information in writing (e.g. name, address, age, nationality).
+- Demonstrate good handwriting skills.
+
+# 8 | | Communication Technology and Market | 5 | 21
+@area Listening
+- Match spoken words to printed words (e.g. the teacher pronounces /pin/, and the student selects pin from a set of three-word cards).
+- Recognize and comprehend words and simple expressions.
+- Respond to the audio or the teacher non-verbally and verbally.
+- Respond to simple commands and questions.
+- Perform different kinds of listening tasks (e.g. drawing, matching, etc.).
+@area Speaking
+- Pronounce grade appropriate words correctly.
+- Give basic personal information about themselves (e.g. name, address, family, nationality) using short words and phrases.
+- Ask and answer short, simple questions.
+- Sing or recite a song/chant by listening to the teacher or an audio.
+@area Reading
+- Recognize and read familiar words accompanied by visuals.
+- Perform rhymes and chants with appropriate rhyme and rhythm.
+- Understand the meaning of grade appropriate words.
+- Read words, simple sentences and short paragraphs correctly.
+- Retrieve specific information from simple sentences.
+- Do different kinds of comprehension tasks (answering verbally, matching, action, etc.)
+@area Writing
+- Write letters and words in a straight line from left to right with regular spacing between words.
+- Copy letters and highly frequent familiar words and phrases correctly and reproduce them.
+- Combine and recombine different letters to form words, and put the words in correct order to form simple sentences.
+- Use correct spelling of the words.
+- Write simple phrases and sentences independently.
+- Demonstrate good handwriting skills.
+
+# 9 | | Fruits and Vegetables | 5 | 20
+@area Listening
+- Match spoken words to printed words (e.g. the teacher pronounces /pin/, and the student selects pin from a set of three-word cards).
+- Recognize and comprehend words and simple expressions.
+- Respond to the audio or the teacher non-verbally and verbally.
+- Perform different kinds of listening tasks (e.g. drawing, matching, etc.)
+@area Speaking
+- Pronounce grade appropriate words correctly.
+- Ask and answer short, simple questions.
+- Sing or recite a song/chant by listening to the teacher or an audio.
+- Name people, objects and places and describe them with adjectives.
+@area Reading
+- Recognize and read familiar words accompanied by visuals.
+- Perform rhymes and chants with appropriate rhyme and rhythm.
+- Understand the meaning of grade appropriate words.
+- Read words, simple sentences and short paragraphs correctly.
+- Retrieve specific information from simple sentences.
+- Do different kinds of comprehension tasks (answering verbally, matching, action, etc.)
+@area Writing
+- Write letters and words in a straight line from left to right with regular spacing between words.
+- Copy letters and highly frequent familiar words and phrases correctly and reproduce them.
+- Combine and recombine different letters to form words, and put the words in correct order to form simple sentences.
+- Use correct spelling of the words.
+- Write simple phrases and sentences independently.
+- Demonstrate good handwriting skills.
+
+# 10 | | Hobbies and Interests | 3 | 18
+@area Listening
+- Recognize and comprehend words and simple expressions.
+- Respond to the audio or the teacher non-verbally and verbally.
+- Perform different kinds of listening tasks (e.g. drawing, matching, etc.).
+@area Speaking
+- Pronounce grade appropriate words correctly.
+- Ask and answer short, simple questions.
+- Sing or recite a song/chant by listening to the teacher or an audio.
+@area Reading
+- Recognize and read familiar words accompanied by visuals.
+- Perform rhymes and chants with appropriate rhyme and rhythm.
+- Understand the meaning of grade appropriate words.
+- Read words, simple sentences and short paragraphs correctly.
+- Retrieve specific information from simple sentences.
+- Do different kinds of comprehension tasks (answering verbally, matching, action, etc.)
+@area Writing
+- Write letters and words in a straight line from left to right with regular spacing between words.
+- Copy letters and highly frequent familiar words and phrases correctly and reproduce them.
+- Combine and recombine different letters to form words, and put the words in correct order to form simple sentences.
+- Use correct spelling of the words.
+- Write simple phrases and sentences independently.
+- Demonstrate good handwriting skills.
+
+# 11 | | Birds and Animals | 8 | 22
+@area Listening
+- Match spoken words to printed words (e.g. the teacher pronounces /pin/, and the student selects pin from a set of three-word cards).
+- Recognize and comprehend words and simple expressions.
+- Respond to the audio or the teacher non-verbally and verbally.
+- Respond to simple commands and questions.
+- Perform different kinds of listening tasks (e.g. drawing, matching, etc.)
+@area Speaking
+- Pronounce grade appropriate words correctly.
+- Give basic personal information about themselves (e.g. name, address, family, nationality) using short words and phrases.
+- Ask and answer short, simple questions.
+- Sing or recite a song/chant by listening to the teacher or an audio.
+- Name people, objects and places and describe them with adjectives.
+@area Reading
+- Recognize and read familiar words accompanied by visuals.
+- Perform rhymes and chants with appropriate rhyme and rhythm.
+- Understand the meaning of grade appropriate words.
+- Read words, simple sentences and short paragraphs correctly.
+- Retrieve specific information from simple sentences.
+- Do different kinds of comprehension tasks (answering verbally, matching, action, etc.)
+@area Writing
+- Write letters and words in a straight line from left to right with regular spacing between words.
+- Copy letters and highly frequent familiar words and phrases correctly and reproduce them.
+- Combine and recombine different letters to form words, and put the words in correct order to form simple sentences.
+- Use correct spelling of the words.
+- Write simple phrases and sentences independently.
+- Demonstrate good handwriting skills.

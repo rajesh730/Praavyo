@@ -1,0 +1,30 @@
+{
+  "name": "pravyo-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pravyo school platform, including the Continuous Assessment System. One app, one database, one session.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "npm run dev --workspace @pravyo/web",
+    "build": "npm run build --workspace @pravyo/web",
+    "start": "npm run start --workspace @pravyo/web",
+    "lint": "npm run lint --workspace @pravyo/web",
+    "test": "npm run test --workspace @pravyo/cas",
+    "test:pravyo": "npm run test --workspace @pravyo/web",
+    "db:inspect": "node scripts/inspect-database.cjs",
+    "seed:curriculum": "node scripts/seed-curriculum.mjs",
+    "migrate:cas-global-exams": "node scripts/migrate-cas-global-exams.mjs",
+    "cleanup:grade3": "node scripts/cleanup-grade3-pilot.mjs"
+  },
+  "engines": {
+    "node": ">=20.9"
+  },
+  "devDependencies": {
+    "dotenv": "^17.2.3",
+    "mongoose": "^9.0.0",
+    "bcryptjs": "^3.0.3"
+  }
+}

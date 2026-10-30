@@ -1,0 +1,131 @@
+@grade Grade 1
+@subject MATH | Mathematics | मेरो गणित | 4
+@source grade1.pdf — मेरो गणित, विद्यार्थी मूल्याङ्कन अभिलेख कार्यसञ्चयिका, कक्षा १ (Asmita Publication), pages 27–35
+@note Each outcome carries the book's four indicator levels (4 highest, 1 lowest) instead of assessment areas and tools.
+
+# 1 | म र मेरो परिवार | Me and My Family | 20 | 4
+- स्थानको आधारमा वस्तुहरूलाई भित्र र बाहिर, अगाडि र पछाडि, तल र माथि, दायाँ, बायाँ र बिच, नजिक र टाढा छुट्याउन || Differentiating the object according to place like in and out, front and back, below and above, left, middle and right, near and far.
+  4) स्थानको आधारमा वस्तुहरूलाई भित्र र बाहिर, अगाडि र पछाडि, तल र माथि दायाँ, बायाँ र बिच, नजिक र टाढा छुट्याउन सकेमा || Differentiating the object according to place like in and out, front and back below and above, left, middle and right, near and far
+  3) स्थानको आधारमा वस्तुहरूलाई भित्र र बाहिर वा अगाडि र पछाडि वा तल र माथि वा दायाँ, बायाँ र बिच वा नजिक र टाढामध्ये कुनै तीनओटा छुट्याउन सकेमा || Differentiating any 3 object according to place like in and out or front and back below and above or left, middle and right or near and far
+  2) स्थानको आधारमा वस्तुहरूलाई भित्र र बाहिर वा अगाडि र पछाडि वा तल र माथि वा दायाँ, बायाँ र बिच वा नजिक र टाढामध्ये कुनै दुईओटा छुट्याउन सकेमा || Differentiating any 2 object according to place like in and out or front and back or below and above or left, middle and right or near and far
+  1) स्थानको आधारमा वस्तुहरूलाई भित्र र बाहिर वा अगाडि र पछाडि वा तल र माथि वा दायाँ, बायाँ र बिच वा नजिक र टाढामध्ये कुनै एउटा छुट्याउन सकेमा || Differentiating any 1 object according to place like in and out or front and back or below and above or left, middle and right or near and far
+- देवनागरी सङ्ख्याङ्कन पद्धतिमा १० सम्म गन्ती गर्न, पढ्न, लेख्न र तुलना गर्न || Able to count, read, write and compare Devanagari numbers upto 10
+  4) देवनागरी सङ्ख्याङ्कन पद्धतिमा १० सम्म गन्ती गर्न, पढ्न, लेख्न र तुलना गर्न सकेमा || Able to count, read, write and compare in Devanagari numbers upto 10
+  3) देवनागरी सङ्ख्याङ्कन पद्धतिमा १० सम्म गन्ती गर्ने, पढ्ने, लेख्ने र तुलना गर्नेमध्ये कुनै तीनओटा कार्य गर्न सकेमा || Able to do any 3 work among to count, read, write and compare upto 10 in Devanagari numbers
+  2) देवनागरी सङ्ख्याङ्कन पद्धतिमा १० सम्म गन्ती गर्ने, पढ्ने, लेख्ने र तुलना गर्नेमध्ये कुनै दुईओटा कार्य गर्न सकेमा || Able to do any 2 work among to count, read, write and compare upto 10 in Devanagari numbers
+  1) देवनागरी सङ्ख्याङ्कन पद्धतिमा १० सम्म गन्ती गर्ने, पढ्ने, लेख्ने र तुलना गर्नेमध्ये कुनै एउटा कार्य गर्न सकेमा || Able to do any 1 work among to count, read, write and compare upto 10 in Devanagari number
+- देवनागरी सङ्ख्याङ्कन पद्धतिमा ११ देखि २० सम्म गन्ती गर्न, पढ्न, लेख्न र तुलना गर्न || Able to count, read, write and compare Devanagari numbers from 11 to 20
+  4) देवनागरी सङ्ख्याङ्कन पद्धतिमा ११ देखि २० सम्म गन्ती गर्न, पढ्न, लेख्न र तुलना गर्न सकेमा || Able to count, read, write and compare from 11 to 20 in Devanagari numbers
+  3) देवनागरी सङ्ख्याङ्कन पद्धतिमा ११ देखि २० सम्म गन्ती गर्ने, पढ्ने, लेख्ने र तुलना गर्नेमध्ये कुनै तीनओटा कार्य गर्न सकेमा || Able to do any 3 work among count, read, write and compare from 11 to 20 in Devanagari numbers
+  2) देवनागरी सङ्ख्याङ्कन पद्धतिमा ११ देखि २० सम्म गन्ती गर्ने, पढ्ने, लेख्ने र तुलना गर्नेमध्ये कुनै दुईओटा कार्य गर्न सकेमा || Able to do any 2 work among count, read, write and compare from 11 to 20 in Devanagari number system
+  1) देवनागरी सङ्ख्याङ्कन पद्धतिमा ११ देखि २० सम्म गन्ती गर्ने, पढ्ने, लेख्ने र तुलना || Able to do any 1 work among to count, read, write and compare from 11 to 20 in Devanagari numbers
+- हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिमा २० सम्म गन्ती गर्न, पढ्न, लेख्न र तुलना गर्न || Able to count, read, write and compare Hindu-Arabic numbers up to 20
+  4) हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिमा २० सम्म गन्ती गर्न, पढ्न, लेख्न र तुलना गर्न सकेमा || Able to count, read, write and compare Hindu-Arabic number upto 20 in Hindu Arabic numbers
+  3) हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिमा २० सम्म गन्ती गर्ने, पढ्ने, लेख्ने र तुलना गर्ने मध्ये कुनै तीनओटा कार्य गर्न सकेमा || Able to do any 3 work among to count, read, write and compare in Hindu Arabic number systems
+  2) हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिमा २० सम्म गन्ती गर्ने, पढ्ने, लेख्ने र तुलना गर्ने मध्ये कुनै दुईओटा कार्य गर्न सकेमा || Able to do any 2 work among to count, read, write and compare in Hindu Arabic numbers
+  1) हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिमा २० सम्म गन्ती गर्ने, पढ्ने, लेख्ने र तुलना गर्ने मध्ये कुनै एउटा कार्य गर्न सकेमा || Able to do any 1 work among to count, read, write and compare in Hindu Arabic numbers
+
+# 2 | मेरो दैनिक जीवन | My Daily Life | 5 | 2
+- दैनिक क्रियाकलापहरुका समय बताउन || Able to tell the time of daily activities
+  4) कुनै चारओटा दैनिक क्रियाकलापहरुको समय सोध्दा चारैओटाको सही समय बताउन सकेमा || Able to tell the time of 4 daily activities when to ask the 4 daily activities
+  3) कुनै चारओटा दैनिक क्रियाकलापहरुको समय सोध्दा तीनओटाको सही समय बताउन सकेमा || Able to tell the time of any 3 activities when to ask the 4 daily activities
+  2) कुनै चारओटा दैनिक क्रियाकलापहरुको समय सोध्दा दुईओटाको सही समय बताउन सकेमा || Able to tell the time of any 2 daily activities when to ask the 4 daily activities
+  1) चारओटा दैनिक क्रियाकलापहरुको समय सोध्दा एउटाको समय बताउन सकेमा || Able to tell the time of any 1 daily activity when to ask the 4 daily activities
+- हप्ताका दिनहरू भन्न र लेख्न || Able to tell and write the name of seven days
+  4) हप्ताका दिनहरू क्रमैसँग भन्न र लेख्न सकेमा || Able to tell and write name of 7 days orderly
+  3) हप्ताका दिनहरू क्रमैसँग भन्न वा लेख्न सकेमा || Able to tell or write the name of 7 days orderly
+  2) हप्ताका दिनहरू क्रम नमिलाई भन्न वा लेख्न सकेमा || Able to tell or write 7 days randomly
+  1) हप्ताका दिनहरू क्रम नमिलाई भन्न सकेमा || Able to tell 7 days randomly
+
+# 3 | हाम्रो समुदाय | Our Community | 39 | 8
+- देवनागरी सङ्ख्याङ्कन पद्धतिमा २१ देखि १०० सम्म गन्ती गर्न, पढ्न, लेख्न र तुलना गर्न || Able to count, read, write and compare Devanagari numbers from 21 to 100
+  4) २१ देखि १०० सम्म गन्ती गर्न, पढ्न, लेख्न र तुलना गर्न सकेमा || Able to count, read, write and compare from २१ to १००
+  3) २१ देखि १०० सम्म गन्ती गर्ने, पढ्ने, लेख्ने र तुलना गर्ने मध्ये कुनै तीनओटा कार्य गर्न सकेमा || Able to do any 3 work among count, read, write and compare from २१ to १००
+  2) २१ देखि १०० सम्म गन्ती गर्ने, पढ्ने, लेख्ने र तुलना गर्नेमध्ये कुनै दुईओटा कार्य गर्न सकेमा || Able to do any 2 work among count, read, write and compare from २१ to १००
+  1) २१ देखि १०० सम्म गन्ती गर्ने, पढ्ने, लेख्ने र तुलना गर्ने मध्ये कुनै एउटा कार्य गर्न सकेमा || Able to do any 1 work among count, read, write and compare from २१ to १००
+- देवनागरी सङ्ख्याङ्कन पद्धतिमा एकदेखि बीससम्म अक्षरमा पढ्न र लेख्न || Able to read and write in words of devanagari numbers from 1 to 20
+  4) देवनागरी सङ्ख्याङ्कन पद्धतिमा बिससम्म अक्षरमा पढ्न र लेख्न सकेमा || Able to read and write in words upto २० in Devanagari number system
+  3) देवनागरी सङ्ख्याङ्कन पद्धतिमा बीससम्म अक्षरमा पढ्न वा लेख्न वा पन्ध्रसम्म पढ्न र लेख्न सकेमा || Able to read or write upto 20 or read and write upto १५ in Devanagari number system
+  2) पन्ध्रसम्म पढ्न वा लेख्न वा दशसम्म अक्षरमा पढ्न र लेख्न सकेमा || Able to read or write upto 15 or read and write upto १०
+  1) एकदेखि दशसम्म अक्षरमा पढ्न वा लेख्न वा पाँचसम्म पढ्न र लेख्न सकेमा || Able to read or write upto 10 or read and write upto ५
+- हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिमा 21 देखि 100 सम्म गन्ती गर्न, पढ्न, लेख्न र तुलना गर्न || Able to count, read, write and compare Hindu-Arabic number from 21 to 100
+  4) हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिमा 21 देखि 100 सम्म गन्ती गर्न, पढ्न, लेख्न र तुलना गर्न सकेमा || Able to count, read, write and compare from 21 to 100 in Hindu Arabic number system
+  3) 21 देखि 100 सम्म गन्ती गर्ने, पढ्ने, लेख्ने र तुलना गर्नेमध्ये कुनै तीनओटा कार्य गर्न सकेमा || Able to do any 3 work among count, read, write and compare from 21 to 100
+  2) 21 देखि 100 सम्म गन्ती गर्ने, पढ्ने, लेख्ने र तुलना गर्नेमध्ये कुनै दुईओटा कार्य गर्न सकेमा || Able to do any 2 work among count, read, write and compare from 21 to 100
+  1) 21 देखि 100 सम्म गन्ती गर्ने, पढ्ने, लेख्ने र तुलना गर्नेमध्ये कुनै एउटा कार्य गर्न सकेमा || Able to do any 1 work among count, read, write and compare from 21 to 100
+- हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिमा एकदेखि बिससम्म अक्षरमा पढ्न र लेख्न || Able to read and write in words of Hindu-Arabic number
+  4) हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिमा बिससम्म अक्षरमा पढ्न र लेख्न सकेमा || Able to read and write in words upto 20 in Hindu Arabic number system
+  3) बिससम्म अक्षरमा पढ्न वा लेख्न वा पन्ध्रसम्म पढ्न र लेख्न सकेमा || Able to read or write upto 20 or read and write upto 15
+  2) पन्ध्रसम्म पढ्न वा लेख्न वा दशसम्म अक्षरमा पढ्न र लेख्न सकेमा || Able to read or write upto 15 or read and write upto 10
+  1) एकदेखि दशसम्म अक्षरमा पढ्न वा लेख्न वा पाँचसम्म पढ्न र लेख्न सकेमा || Able to read or write upto 10 or read and write upto 5
+- ठोस वस्तुको प्रयोग गरी २० सम्मका सङ्ख्याहरूलाई जोर र बिजोर सङ्ख्यामा वर्गीकरण गर्न || Able to classify the even and odd number upto 20 by using solid objects
+  4) ठोस वस्तुको प्रयोग गरी २० सम्मका सङ्ख्याहरूलाई जोर र बिजोर सङ्ख्यामा वर्गीकरण गर्न सकेमा || Able to classify the even and odd number upto 20 by using solid objects
+  3) ठोस वस्तुको प्रयोग गरी कुनै १५ सम्मका सङ्ख्याहरूलाई जोर र बिजोर सङ्ख्यामा वर्गीकरण गर्न सकेमा || Able to classify the even and odd number upto 15 by using solid objects
+  2) ठोस वस्तुको प्रयोग गरी कुनै १० सम्मका सङ्ख्याहरूलाई जोर र बिजोर सङ्ख्यामा वर्गीकरण गर्न सकेमा || Able to classify the even and odd number upto 10 by using solid objects
+  1) ठोस वस्तुको प्रयोग गरी कुनै पाँच सम्मका सङ्ख्याहरूलाई जोर र बिजोर सङ्ख्यामा वर्गीकरण गर्न सकेमा || Able to classify the even and odd number upto 5 by using solid objects
+- योगफल १० आउनेसम्मका दुईओटा सङ्ख्याहरूको जोड गर्न || Able to add two numbers upto sum 10
+  4) ठोस सामग्री, चित्र र सङ्केत प्रयोग गरेर योगफल १० आउनेसम्मका दुईओटा सङ्ख्याहरूको जोड गर्न सकेमा || Able to add two numbers having sum upto 10 by using concrete objects, picture and symbol
+  3) ठोस सामग्री वा चित्र र सङ्केत प्रयोग गरेर योगफल १० आउनेसम्मका दुईओटा सङ्ख्याहरूको जोड गर्न सकेमा || Able to add two numbers having sum upto 10 by using concrete objects or picture and symbol
+  2) ठोस सामग्री र चित्र प्रयोग गरेर योगफल १० आउनेसम्मका दुईओटा सङ्ख्याहरूको जोड गर्न सकेमा || Able to add two numbers having sum upto 10 by using concrete objects and picture
+  1) ठोस सामग्री प्रयोग गरेर योगफल १० आउनेसम्मका दुईओटा सङ्ख्याहरूको जोड गर्न सकेमा || Able to add two numbers having sum upto 10 by using concrete objects
+- योगफल २० सम्म आउने तीनओटासम्म सङ्ख्याहरूको जोड गर्न || Able to do addition of 3 numbers upto sum 20
+  4) ठोस सामग्री, चित्र र सङ्केत प्रयोग गरेर योगफल २० आउनेसम्मका तीनओटा सङ्ख्याहरूको जोड गर्न सकेमा || Able to add three numbers having sum upto 20 by using concrete objects, picture and symbol
+  3) ठोस सामग्री वा चित्र र सङ्केत प्रयोग गरेर योगफल २० आउनेसम्मका तीनओटा सङ्ख्याहरूको जोड गर्न सकेमा || Able to add three numbers having sum upto 20 by using concrete objects or picture and symbol
+  2) ठोस सामग्री र चित्र प्रयोग गरेर योगफल २० आउनेसम्मका तीनओटा सङ्ख्याहरूको जोड गर्न सकेमा || Able to add three numbers having sum upto 20 by using concrete objects and picture
+  1) ठोस सामग्री प्रयोग गरेर योगफल २० आउनेसम्मका तीनओटा सङ्ख्याहरूको जोड गर्न सकेमा || Able to add three numbers having sum upto 20 by using concrete objects
+- अप्रामाणिक नापोको प्रयोग गरी ठोस वस्तुहरू नाप्न र त्यसको आधारमा अग्लो र होचो, लामो र छोटो छुट्याउन || Able to distinguish tall and short, long and short by non-standard (local) measurement of the solid
+  4) अप्रामाणिक नापोको प्रयोग गरी आँफै ठोस वस्तुहरू नाप्न र त्यसको आधारमा अग्लो र होचो, लामो र छोटो छुट्याएर बताएमा || Able to measure the given solid objects in terms of local measurement and tell tall or short and long or short objects from this measurement by him/herself
+  3) अप्रामाणिक नापोको प्रयोग गरी ठोस वस्तुहरू नाप्न र अन्य व्यक्तिको सहयोगमा त्यसको आधारमा अग्लो र होचो, लामो र छोटो छुट्याउन सकेमा || Able to measure the given solid objects in terms of local measurement and tell tall or short and long or short from this measurement by the help of others
+  2) अप्रामाणिक नापोको प्रयोग गरी ठोस वस्तुहरू नाप्न सकेमा || Able to measure the given solid objects using local measurement
+  1) अप्रामाणिक नापोको बारेमा बताउन सकेमा || Able to tell about local measurement
+
+# 4 | हाम्रो विद्यालय | Our School | 43 | 5
+- पहिलोदेखि दसौँसम्मका स्थान पहिचान गर्न || Able to identify the position from first to tenth
+  4) पहिलोदेखि दसौँसम्मका स्थान पहिचान गर्न सकेमा || Able to identify the position from first to tenth
+  3) पहिलोदेखि दसौँसम्मका स्थानमध्ये कुनै आठ स्थान पहिचान गर्न सकेमा || Able to identify any eight position out of first to tenth position
+  2) पहिलोदेखि दसौँसम्मका स्थानमध्ये कुनै पाँच स्थान पहिचान गर्न सकेमा || Able to identify any five position out of first to tenth position
+  1) पहिलोदेखि दसौँसम्मका स्थानमध्ये कुनै तीन स्थान पहिचान गर्न सकेमा || Able to identify any three position out of first to tenth position
+- हात लागी नआउने र योगफल १०० सम्म आउने दुईओटा सङ्ख्याहरूको जोड गर्न || Able to do addition of two numbers upto sum 100 without carryover
+  4) ठोस सामग्री, चित्र र सङ्केत प्रयोग गरेर हात लागी नआउने र योगफल १०० सम्म आउने दुईओटा सङ्ख्याहरूको जोड गर्न सकेमा || Able to add two numbers whose sum is less or equal to 100 without carryover using concrete, semi-concrete and symbol
+  3) ठोस सामग्री वा चित्र र सङ्केत प्रयोग गरेर हात लागी नआउने र योगफल १०० सम्म आउने दुईओटा सङ्ख्याहरूको जोड गर्न सकेमा || Able to add two numbers whose sum is less or equal to 100 without carryover using concrete or semi-concrete and symbol
+  2) ठोस सामग्री र चित्र प्रयोग गरेर हात लागी नआउने र योगफल १०० सम्म आउने दुईओटा सङ्ख्याहरूको जोड गर्न सकेमा || Able to add two numbers whose sum is less or equal to 100 without carryover using concrete and semi-concrete
+  1) ठोस सामग्री प्रयोग गरेर हात लागी नआउने र योगफल १०० सम्म आउने दुईओटा सङ्ख्याहरूको जोड गर्न सकेमा || Able to add two numbers whose sum is less or equal to 100 without carryover using concrete
+- ठोस वस्तुको प्रयोग गरी १० सम्मका सङ्ख्याको घटाउ गर्न || Able to do subtraction less than 10 using solid
+  4) ठोस वस्तुको प्रयोग गरी आँफै १० सम्मका सङ्ख्याको घटाउ गरी प्रस्तुत गर्न सकेमा || Able to subtract one digit number using solid materials by self
+  3) ठोस वस्तुको प्रयोग गरी साथीको सहयोगमा १० सम्मका सङ्ख्याको घटाउ गर्न सकेमा || Able to subtract one digit number using solid materials by the help of friends
+  2) ठोस वस्तुको प्रयोग गरी शिक्षकको आंशिक सहयोगमा १० सम्मका सङ्ख्याको घटाउ गर्न सकेमा || Able to subtract one digit number using solid materials by the partial help of the teacher
+  1) ठोस वस्तुको प्रयोग गरी शिक्षकको पूर्ण सहयोगमा १० सम्मका सङ्ख्याको घटाउ गर्न सकेमा || Able to subtract one digit number upto 10 using solid materials by the complete help of the teacher
+- ठोस वस्तुको प्रयोग गरी २० सम्मका सङ्ख्याको घटाउ गर्न || Able to do subtraction of less than 20 number using solid
+  4) ठोस वस्तुको प्रयोग गरी आँफै २० सम्मका सङ्ख्याको घटाउ गरी प्रस्तुत गर्न सकेमा || Able to subtract less than 20 numbers using solid materials by self
+  3) ठोस वस्तुको प्रयोग गरी साथीको सहयोगमा २० सम्मका सङ्ख्याको घटाउ गर्न सकेमा || Able to subtract less than 20 numbers using solid materials by the help of friend
+  2) ठोस वस्तुको प्रयोग गरी शिक्षकको आंशिक सहयोगमा २० सम्मका सङ्ख्याको घटाउ गर्न सकेमा || Able to subtract less than 20 numbers using solid materials by the partial help of teacher
+  1) ठोस वस्तुको प्रयोग गरी शिक्षकको पूर्ण सहयोगमा २० सम्मका सङ्ख्याको घटाउ गर्न सकेमा || Able to subtract less than 20 numbers using solid materials by fully help of teacher
+- सापटी लिन नपर्ने दुई अङ्कसम्मको सङ्ख्याको घटाउ गर्न || Able to do subtraction of two digit number without borrowing
+  4) सापटी लिन नपर्ने १०० सम्मका सङ्ख्याको घटाउ आफै गरी प्रस्तुत गर्न सकेमा || Able to subtract two digit numbers him/herself i.e. less than 100 without borrowing the numbers
+  3) साथीको सहयोगमा सापटी लिन नपर्ने १०० सम्मका सङ्ख्याको घटाउ गर्न सकेमा || Able to subtract two digit numbers with the help of friends i.e. less than 100 without borrowing the numbers
+  2) शिक्षकको आंशिक सहयोगमा सापटी लिन नपर्ने १०० सम्मका सङ्ख्याको घटाउ गर्न सकेमा || Able to subtract two digit numbers with the partial help of teacher i.e. less than 100 without borrowing the numbers
+  1) शिक्षकको पूर्ण सहयोगमा सापटी लिन नपर्ने १०० सम्मका सङ्ख्याको घटाउ गर्न सकेमा || Able to subtract two digit numbers with the complete help of teacher i.e. less than 100 without borrowing the numbers
+
+# 5 | हाम्रो सिर्जना | Our Creation | 14 | 2
+- सिधा रेखा र वक्र रेखा पहिचान गर्न, ट्रेस गर्न र चित्र कोर्न || Identifying, tracing and drawing, straight and curved line
+  4) सिधा रेखा पहिचान गर्न, वक्र रेखा पहिचान गर्न, ट्रेस गर्न र चित्र कोर्न सकेमा || Identify the straight line, identify the curved line, to trace and draw the figure
+  3) माथिका कार्यमध्ये कुनै तीनओटा कार्य गर्न सकेमा || Able to do any 3 of the above work
+  2) माथिका कार्यमध्ये कुनै दुईओटा कार्य गर्न सकेमा || Able to do any 2 of the above work
+  1) माथिका कार्यमध्ये कुनै एउटा कार्य गर्न सकेमा || Able to do any 1 of the above work
+- आफ्नो वरपर पाइने ज्यामितीय आकारहरू (त्रिभुज, चतुर्भुज र वृत्त) चिन्न || Identifying the geometrical shape (like triangle, quadrilateral and circle) finding in the surrounding
+  4) आफ्नो वरपर पाइने वस्तुमा भएका ज्यामितीय आकारहरू (त्रिभुज, चतुर्भुज र वृत्त) चिन्न सकेमा || To identify proper geometrical shape like triangle, quadrilateral, circle in surrounding solid objects
+  3) आफ्नो वरपर पाइने वस्तुमा भएका ज्यामितीय आकारहरू त्रिभुज, चतुर्भुज र वृत्तमध्ये कुनै दुईओटा चिन्न सकेमा || To identify any 2 among above geometrical shape like triangle, quadrilateral, circle
+  2) आफ्नो वरपर पाइने वस्तुमा भएका ज्यामितीय आकारहरू त्रिभुज, चतुर्भुज र वृत्तमध्ये कुनै एउटा चिन्न सकेमा || To identify any 1 among above geometrical shape like triangle, quadrilateral, circle
+  1) आफ्नो वरपर पाइने वस्तुमा भएका ज्यामितीय आकारहरू त्रिभुज, चतुर्भुज र वृत्ताकारलाई आकार हो भन्ने थाहा भएको तर छुट्याउन नसकेमा || To know the geometrical shape of surrounding object like triangle, quadrilateral and circle but can't separate it
+
+# 6 | सञ्चार प्रविधि र बजार | Communication Technology and Market | 7 | 2
+- चलन चल्तीमा रहेका रु. १०० सम्मका नेपाली सिक्का तथा नोट चिन्न || Identifying the coins and paper note upto Rs. 100 which are currently in daily use
+  4) चलन चल्तीमा रहेका रु. १०० सम्मका सबै नेपाली सिक्का तथा नोट चिन्न सकेमा || Able to recognise the coin and paper note upto Rs. 100 which are currently using
+  3) चलन चल्तीमा रहेका रुपैयाँका सबै नेपाली सिक्का तथा नोट चिन्न सकेमा || Able to recognise the coin and paper note which are currently using
+  2) साथीको सहयोगमा चलन चल्तीमा रहेका रु. १०० सम्मका नेपाली सिक्का तथा नोट चिन्न सकेमा || Able to recognise the coin and paper note upto Rs. 100 which are currently using by the help of friends
+  1) शिक्षकको सहयोगमा रु. १०० सम्मका नेपाली सिक्का तथा नोट चिन्न सकेमा || Able to recognise the coin and paper note which are currently using by the help of teacher
+- चित्रग्राफबाट जानकारी लिन र दिन || Providing and receiving information through picto-graph
+  4) आफै चित्रग्राफबाट पूर्ण जानकारी लिन र दिन सकेमा || Providing and receiving information from given picto-graph by him/herself
+  3) आफै चित्रग्राफबाट आंशिक जानकारी लिन र दिन सकेमा || Providing and receiving partial information from given picto-graph by him/herself
+  2) साथीको सहयोगमा चित्रग्राफबाट आंशिक जानकारी लिन र दिन सकेमा || Providing and receiving partial information from given picto-graph by the help of friends
+  1) शिक्षकको सहयोगमा चित्रग्राफबाट आंशिक जानकारी लिन र दिन सकेमा || Providing and receiving partial information from given picto-graph by the help of teacher

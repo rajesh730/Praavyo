@@ -1,0 +1,1036 @@
+import connectDB from "@/lib/db";
+import Student from "@/models/Student";
+import Event from "@/models/Event";
+import EventSchoolInvitation from "@/models/EventSchoolInvitation";
+import ParticipationRequest from "@/models/ParticipationRequest";
+import User from "@/models/User";
+import {
+  successResponse,
+  errorResponse,
+  internalServerError,
+} from "@/lib/apiResponse";
+import { requireApiSession } from "@/lib/authz";
+import { gradeListContains } from "@/lib/schoolGrades";
+import {
+  removeStudentsFromCompetition,
+  syncApprovedRequestsToRoundOne,
+} from "@/lib/competitionFlow";
+import {
+  ACTIVE_PARTICIPATION_REQUEST_STATUSES,
+  applySchoolParticipationProjection,
+  buildSchoolParticipationPresentation,
+} from "@/lib/participationPresentation";
+import { publishEventRealtimeUpdate } from "@/lib/eventRealtime";
+import { getRegistrationLockMessage } from "@/lib/eventWorkflow";
+import { isStudentSelfRegistrationAllowed } from "@/lib/eventInvitations";
+import {
+  acquireEventCapacityLock,
+  EventCapacityBusyError,
+  releaseEventCapacityLock,
+} from "@/lib/eventCapacityLock";
+// Participation rules live in the domain layer. This route decides status codes;
+// it does not decide who may enter an event. See docs/ARCHITECTURE.md §2.
+import {
+  applyDefaultTeamNames,
+  capacityViolation,
+  countActiveTeams,
+  getPlatformInvitationBlocker,
+  normalizeParticipationFormat,
+  normalizeTeamPayload,
+  replaceTeamParticipation,
+  resolveSchoolContactInfo,
+  validateMultiTeamPayload,
+  validateTeamSelection,
+} from "@/lib/eventParticipation";
+import { buildStudentLookupForSession } from "@/lib/studentIdentity";
+
+
+export async function POST(req, { params }) {
+  let capacityLock = null;
+  let lockedEventId = null;
+  try {
+    await connectDB();
+    const { session, error: authError } = await requireApiSession();
+    if (authError) return authError;
+
+    const { id: eventId } = await params;
+
+    // Validate event exists
+    const eventExists = await Event.exists({ _id: eventId });
+    if (!eventExists) {
+      return errorResponse(404, "Event not found");
+    }
+
+    const lockResult = await acquireEventCapacityLock(eventId);
+    capacityLock = lockResult.token;
+    lockedEventId = eventId;
+    const event = lockResult.event;
+    const lockMessage = getRegistrationLockMessage(event, "join");
+    if (lockMessage) {
+      return errorResponse(400, lockMessage);
+    }
+
+    // ==========================================
+    // CASE 1: STUDENT SELF-REGISTRATION
+    // ==========================================
+    if (session.user.role === "STUDENT") {
+      if (normalizeParticipationFormat(event) === "TEAM") {
+        return errorResponse(
+          400,
+          "Team events must be registered by the school."
+        );
+      }
+
+      const student = await Student.findOne(buildStudentLookupForSession(session));
+      if (!student) {
+        return errorResponse(404, "Student not found");
+      }
+
+      const schoolId = student.school || session.user.schoolId;
+      if (!schoolId) {
+        return errorResponse(400, "Student school information not found");
+      }
+
+      if (
+        event.eventScope === "SCHOOL" &&
+        String(event.school || "") !== String(schoolId)
+      ) {
+        return errorResponse(403, "This event is not available to your school.");
+      }
+
+      // Self-registration is gated per school: school events use the event-level
+      // registrationMode; platform events require the school to have approved the
+      // invitation AND enabled student self-registration.
+      const selfRegInvitation =
+        event.eventScope === "PLATFORM"
+          ? await EventSchoolInvitation.findOne({
+              event: event._id,
+              school: schoolId,
+            }).select("status studentSelfRegistration")
+          : null;
+
+      if (!isStudentSelfRegistrationAllowed(event, selfRegInvitation)) {
+        return errorResponse(
+          403,
+          "This event is registered by the school. Please contact your teacher or school admin."
+        );
+      }
+
+      if (event.eligibleGrades && event.eligibleGrades.length > 0) {
+        if (!gradeListContains(event.eligibleGrades, student.grade)) {
+          return errorResponse(
+            403,
+            `This event is for ${event.eligibleGrades.join(", ")}.`
+          );
+        }
+      }
+
+      const existingRequest = await ParticipationRequest.findOne({
+        student: student._id,
+        event: eventId,
+        school: schoolId,
+      });
+
+      if (
+        existingRequest &&
+        ACTIVE_PARTICIPATION_REQUEST_STATUSES.includes(existingRequest.status)
+      ) {
+        return successResponse(200, "You are already enrolled in this event.", {
+          status: existingRequest.status,
+        });
+      }
+
+      if (event.maxParticipantsPerSchool) {
+        const existingSchoolCount = await ParticipationRequest.countDocuments({
+          event: eventId,
+          school: schoolId,
+          status: { $in: ACTIVE_PARTICIPATION_REQUEST_STATUSES },
+        });
+
+        if (existingSchoolCount >= event.maxParticipantsPerSchool) {
+          return errorResponse(
+            400,
+            `Your school has reached the limit of ${event.maxParticipantsPerSchool} students for this event.`
+          );
+        }
+      }
+
+      if (event.maxParticipants) {
+        const existingGlobalCount = await ParticipationRequest.countDocuments({
+          event: eventId,
+          status: { $in: ACTIVE_PARTICIPATION_REQUEST_STATUSES },
+        });
+
+        if (existingGlobalCount >= event.maxParticipants) {
+          return errorResponse(
+            400,
+            `This event has reached its limit of ${event.maxParticipants} students.`
+          );
+        }
+      }
+
+      const now = new Date();
+      const schoolContactInfo = await resolveSchoolContactInfo(schoolId);
+
+      if (existingRequest) {
+        existingRequest.status = "APPROVED";
+        existingRequest.requestedAt = now;
+        existingRequest.approvedAt = now;
+        existingRequest.approvedBy = null;
+        existingRequest.enrollmentConfirmedAt = now;
+        existingRequest.studentNotifiedAt = now;
+        existingRequest.rejectedAt = null;
+        existingRequest.rejectionReason = null;
+        existingRequest.contactPerson =
+          schoolContactInfo.contactPerson || undefined;
+        existingRequest.contactPhone = schoolContactInfo.contactPhone || undefined;
+        await existingRequest.save();
+      } else {
+        const created = await ParticipationRequest.create({
+          student: student._id,
+          event: eventId,
+          school: schoolId,
+          status: "APPROVED",
+          requestedAt: now,
+          approvedAt: now,
+          enrollmentConfirmedAt: now,
+          studentNotifiedAt: now,
+          contactPerson: schoolContactInfo.contactPerson || undefined,
+          contactPhone: schoolContactInfo.contactPhone || undefined,
+        });
+
+        // Race-safe capacity guard: the pre-checks above can both pass under
+        // concurrent self-registrations, so re-verify *after* the insert (which
+        // now counts this row) and roll back if we slipped over a limit.
+        const [schoolActive, globalActive] = await Promise.all([
+          event.maxParticipantsPerSchool
+            ? ParticipationRequest.countDocuments({
+                event: eventId,
+                school: schoolId,
+                status: { $in: ACTIVE_PARTICIPATION_REQUEST_STATUSES },
+              })
+            : Promise.resolve(0),
+          event.maxParticipants
+            ? ParticipationRequest.countDocuments({
+                event: eventId,
+                status: { $in: ACTIVE_PARTICIPATION_REQUEST_STATUSES },
+              })
+            : Promise.resolve(0),
+        ]);
+
+        const violation = capacityViolation({
+          schoolActive,
+          globalActive,
+          maxPerSchool: event.maxParticipantsPerSchool,
+          maxTotal: event.maxParticipants,
+        });
+
+        if (violation) {
+          await ParticipationRequest.deleteOne({ _id: created._id });
+          return errorResponse(400, violation);
+        }
+      }
+
+      const updatedRequests = await ParticipationRequest.find({
+        event: eventId,
+        school: schoolId,
+        status: { $in: ACTIVE_PARTICIPATION_REQUEST_STATUSES },
+      }).select(
+        "status contactPerson contactPhone teamName captainStudent notes student requestedAt approvedAt enrollmentConfirmedAt"
+      );
+      applySchoolParticipationProjection(event, schoolId, updatedRequests);
+      await event.save();
+      await syncApprovedRequestsToRoundOne({
+        eventId,
+        createdBy: session.user.id,
+      });
+
+      publishEventRealtimeUpdate("participation-updated", {
+        event,
+        schoolId,
+        studentId: student._id,
+      });
+
+      return successResponse(200, "You are enrolled in this event.", {
+        status: "APPROVED",
+      });
+    }
+
+    // ==========================================
+    // CASE 2: SCHOOL ADMIN BULK REGISTRATION
+    // ==========================================
+    if (session.user.role === "SCHOOL_ADMIN") {
+      const body = await req.json();
+      const normalizedTeams = normalizeTeamPayload(body.teams);
+      // Allow both naming conventions
+      const studentIds = body.studentIds || body.students;
+      const teamName = String(body.teamName || "").trim();
+      const captainStudentId = body.captainStudentId || null;
+
+      if (
+        normalizeParticipationFormat(event) !== "TEAM" &&
+        (!Array.isArray(studentIds) || studentIds.length === 0)
+      ) {
+        return errorResponse(400, "No students selected");
+      }
+
+      if (normalizeParticipationFormat(event) === "TEAM") {
+        const multiTeamValidationMessage = validateMultiTeamPayload(
+          event,
+          normalizedTeams
+        );
+        if (multiTeamValidationMessage) {
+          return errorResponse(400, multiTeamValidationMessage);
+        }
+      } else {
+        const teamValidationMessage = validateTeamSelection(
+          event,
+          studentIds,
+          teamName,
+          captainStudentId
+        );
+        if (teamValidationMessage) {
+          return errorResponse(400, teamValidationMessage);
+        }
+      }
+
+      const schoolId = session.user.id;
+      const schoolRecord =
+        normalizeParticipationFormat(event) === "TEAM"
+          ? await User.findById(schoolId).select("schoolName name").lean()
+          : null;
+      const schoolName =
+        schoolRecord?.schoolName || schoolRecord?.name || session.user.schoolName || session.user.name || "";
+      const schoolContactInfo = await resolveSchoolContactInfo(schoolId);
+      const resolvedTeams =
+        normalizeParticipationFormat(event) === "TEAM"
+          ? applyDefaultTeamNames(normalizedTeams, schoolName)
+          : normalizedTeams;
+      const invitationBlocker = await getPlatformInvitationBlocker(
+        event,
+        schoolId
+      );
+      if (invitationBlocker) {
+        return errorResponse(403, invitationBlocker);
+      }
+
+      if (normalizeParticipationFormat(event) === "TEAM") {
+        const replacementResult = await replaceTeamParticipation({
+          event,
+          eventId,
+          schoolId,
+          sessionUserId: session.user.id,
+          teams: resolvedTeams,
+          schoolContactInfo,
+        });
+
+        if (replacementResult?.error) {
+          return errorResponse(400, replacementResult.error);
+        }
+
+        publishEventRealtimeUpdate("participation-updated", {
+          event,
+          schoolId,
+        });
+
+        return successResponse(
+          200,
+          `Successfully registered ${replacementResult.teamCount} teams.`,
+          replacementResult
+        );
+      }
+
+      // ===== VALIDATION: Check Max Participants Per School =====
+      if (event.maxParticipantsPerSchool) {
+        if (normalizeParticipationFormat(event) === "TEAM") {
+          const existingTeamCount = await countActiveTeams(eventId, schoolId);
+          const availableTeamSlots =
+            event.maxParticipantsPerSchool - existingTeamCount;
+
+          if (availableTeamSlots <= 0) {
+            return errorResponse(
+              400,
+              `Registration failed: Your school has already reached the limit of ${event.maxParticipantsPerSchool} team entries for this event.`
+            );
+          }
+        } else {
+        // Count existing active requests (PENDING, APPROVED, ENROLLED)
+        const existingCount = await ParticipationRequest.countDocuments({
+          event: eventId,
+          school: schoolId,
+          status: { $in: ACTIVE_PARTICIPATION_REQUEST_STATUSES },
+        });
+
+        const availableSlots = event.maxParticipantsPerSchool - existingCount;
+
+        if (availableSlots <= 0) {
+          return errorResponse(
+            400,
+            `Registration failed: Your school has already reached the limit of ${event.maxParticipantsPerSchool} students for this event.`
+          );
+        }
+
+        // Filter out students who are already registered to avoid false positives
+        const alreadyRegisteredCount =
+          await ParticipationRequest.countDocuments({
+            event: eventId,
+            student: { $in: studentIds },
+            status: { $in: ACTIVE_PARTICIPATION_REQUEST_STATUSES },
+          });
+
+        const newStudentsCount = studentIds.length - alreadyRegisteredCount;
+
+        if (newStudentsCount > availableSlots) {
+          return errorResponse(
+            400,
+            `Registration failed: You are trying to register ${newStudentsCount} new students, but only ${availableSlots} slots are remaining for your school (Limit: ${event.maxParticipantsPerSchool}).`
+          );
+        }
+        }
+      }
+
+      if (event.maxParticipants) {
+        if (normalizeParticipationFormat(event) === "TEAM") {
+          const existingGlobalTeamCount = await countActiveTeams(eventId);
+          const availableGlobalTeamSlots =
+            event.maxParticipants - existingGlobalTeamCount;
+
+          if (availableGlobalTeamSlots <= 0) {
+            return errorResponse(
+              400,
+              `Registration failed: This event has already reached its limit of ${event.maxParticipants} team entries.`
+            );
+          }
+        } else {
+          const existingGlobalCount = await ParticipationRequest.countDocuments({
+            event: eventId,
+            status: { $in: ACTIVE_PARTICIPATION_REQUEST_STATUSES },
+          });
+
+          const alreadyRegisteredCount =
+            await ParticipationRequest.countDocuments({
+              event: eventId,
+              student: { $in: studentIds },
+              status: { $in: ACTIVE_PARTICIPATION_REQUEST_STATUSES },
+            });
+
+          const newStudentsCount = studentIds.length - alreadyRegisteredCount;
+          const availableGlobalSlots = event.maxParticipants - existingGlobalCount;
+
+          if (newStudentsCount > availableGlobalSlots) {
+            return errorResponse(
+              400,
+              `Registration failed: You are trying to register ${newStudentsCount} new students, but only ${availableGlobalSlots} total slots remain for this event (Limit: ${event.maxParticipants}).`
+            );
+          }
+        }
+      }
+
+      let successCount = 0;
+      let errors = [];
+      const approvedStudentIds = [];
+      const now = new Date();
+
+      // Process each student
+      for (const studentId of studentIds) {
+        try {
+          // Verify student belongs to this school
+          const student = await Student.findOne({
+            _id: studentId,
+            school: schoolId,
+            status: "ACTIVE",
+            isDeleted: { $ne: true },
+          });
+
+          if (!student) {
+            errors.push(`Student ${studentId} not found or not in your school`);
+            continue;
+          }
+
+          // Check Grade Eligibility
+          if (event.eligibleGrades && event.eligibleGrades.length > 0) {
+            if (!gradeListContains(event.eligibleGrades, student.grade)) {
+              errors.push(
+                `Student ${student.name} (Grade ${student.grade}) is not eligible for this event.`
+              );
+              continue;
+            }
+          }
+
+          // Check if request already exists
+          const existingRequest = await ParticipationRequest.findOne({
+            student: studentId,
+            event: eventId,
+          });
+
+          if (existingRequest) {
+            if (
+              existingRequest.status === "APPROVED" ||
+              existingRequest.status === "ENROLLED"
+            ) {
+              approvedStudentIds.push(studentId);
+              continue;
+            }
+            existingRequest.status = "APPROVED";
+            existingRequest.requestedAt = now;
+            existingRequest.approvedAt = now;
+            existingRequest.approvedBy = session.user.id;
+            existingRequest.enrollmentConfirmedAt = now;
+            existingRequest.studentNotifiedAt = now;
+            existingRequest.rejectedAt = null;
+            existingRequest.rejectionReason = null;
+            existingRequest.contactPerson =
+              schoolContactInfo.contactPerson || undefined;
+            existingRequest.contactPhone =
+              schoolContactInfo.contactPhone || undefined;
+            existingRequest.teamName = teamName || undefined;
+            existingRequest.captainStudent = captainStudentId || undefined;
+            await existingRequest.save();
+            approvedStudentIds.push(studentId);
+            successCount++;
+            continue;
+          }
+
+          // Create Request
+          await ParticipationRequest.create({
+            student: studentId,
+            event: eventId,
+            school: schoolId,
+            status: "APPROVED",
+            approvedAt: now,
+            approvedBy: session.user.id,
+            enrollmentConfirmedAt: now,
+            studentNotifiedAt: now,
+            contactPerson: schoolContactInfo.contactPerson || undefined,
+            contactPhone: schoolContactInfo.contactPhone || undefined,
+            teamName: teamName || undefined,
+            captainStudent: captainStudentId || undefined,
+          });
+
+          approvedStudentIds.push(studentId);
+          successCount++;
+        } catch (err) {
+          console.error(`Error processing student ${studentId}:`, err);
+          errors.push(`Error processing student ${studentId}`);
+        }
+      }
+
+      if (approvedStudentIds.length > 0) {
+      const updatedRequests = await ParticipationRequest.find({
+        event: eventId,
+        school: schoolId,
+      }).select(
+        "status contactPerson contactPhone teamName captainStudent notes student requestedAt approvedAt enrollmentConfirmedAt"
+      );
+        applySchoolParticipationProjection(event, schoolId, updatedRequests);
+        await event.save();
+        await syncApprovedRequestsToRoundOne({
+          eventId,
+          createdBy: session.user.id,
+        });
+      }
+
+      publishEventRealtimeUpdate("participation-updated", {
+        event,
+        schoolId,
+      });
+
+      return successResponse(
+        200,
+        `Successfully registered ${successCount} students.`,
+        { successCount, errors }
+      );
+    }
+
+    return errorResponse(
+      403,
+      "Only students or school admins can request participation"
+    );
+  } catch (error) {
+    if (error instanceof EventCapacityBusyError) {
+      return errorResponse(409, error.message);
+    }
+    console.error("POST /api/events/[id]/participate error:", error);
+    return internalServerError("Internal server error");
+  } finally {
+    if (capacityLock) {
+      await releaseEventCapacityLock(lockedEventId, capacityLock).catch(
+        (releaseError) => {
+          console.error("Failed to release event capacity lock:", releaseError);
+        }
+      );
+    }
+  }
+}
+
+export async function GET(req, { params }) {
+  try {
+    await connectDB();
+    const { session, error: authError } = await requireApiSession();
+    if (authError) return authError;
+
+    const { id: eventId } = await params;
+
+    // CASE 1: SCHOOL ADMIN
+    if (session.user.role === "SCHOOL_ADMIN") {
+      const requests = await ParticipationRequest.find({
+        event: eventId,
+        school: session.user.id,
+      })
+        .populate("student", "name grade")
+        .populate("captainStudent", "name")
+        .lean();
+
+      if (!requests || requests.length === 0) {
+        return successResponse(200, "No participation requests found", {
+          requests: [],
+        });
+      }
+      const participation = buildSchoolParticipationPresentation(requests);
+
+      return successResponse(200, "Participation details found", {
+        requests,
+        contactInfo: participation.myParticipation
+          ? {
+              contactPerson: participation.myParticipation.contactPerson,
+              contactPhone: participation.myParticipation.contactPhone,
+              teamName: participation.myParticipation.teamName,
+              captainStudent: participation.myParticipation.captainStudent,
+              notes: participation.myParticipation.notes,
+            }
+          : {
+              contactPerson: "",
+              contactPhone: "",
+              teamName: "",
+              captainStudent: null,
+              notes: "",
+            },
+        participation,
+      });
+    }
+
+    // CASE 2: STUDENT
+    if (session.user.role === "STUDENT") {
+      const student = await Student.findOne(buildStudentLookupForSession(session));
+      if (!student) {
+        return errorResponse(404, "Student not found");
+      }
+
+      // Check participation status
+      const request = await ParticipationRequest.findOne({
+        student: student._id,
+        event: eventId,
+        school: session.user.schoolId,
+      })
+        .populate("event", "title description")
+        .lean();
+
+      if (!request) {
+        return successResponse(200, "No participation request found", null);
+      }
+
+      return successResponse(200, "Participation request found", request);
+    }
+
+    return errorResponse(403, "Unauthorized role");
+  } catch (error) {
+    console.error("GET /api/events/[id]/participate error:", error);
+    return internalServerError("Internal server error");
+  }
+}
+
+export async function DELETE(req, { params }) {
+  try {
+    await connectDB();
+    const { session, error: authError } = await requireApiSession();
+    if (authError) return authError;
+
+    const { id: eventId } = await params;
+    const event = await Event.findById(eventId);
+    if (!event) {
+      return errorResponse(404, "Event not found");
+    }
+
+    const lockMessage = getRegistrationLockMessage(event, "withdraw");
+    if (lockMessage) {
+      return errorResponse(400, lockMessage);
+    }
+
+    // CASE 1: SCHOOL ADMIN WITHDRAWAL (ALL)
+    if (session.user.role === "SCHOOL_ADMIN") {
+      const schoolId = session.user.id;
+
+      const result = await ParticipationRequest.deleteMany({
+        event: eventId,
+        school: schoolId,
+        status: { $in: ["PENDING", "APPROVED", "ENROLLED", "REJECTED"] },
+      });
+
+      applySchoolParticipationProjection(event, schoolId, []);
+      await event.save();
+
+      if (result.deletedCount === 0) {
+        return errorResponse(404, "No active participation found to withdraw");
+      }
+
+      publishEventRealtimeUpdate("participation-withdrawn", {
+        event,
+        schoolId,
+      });
+
+      return successResponse(200, "School participation withdrawn", {
+        count: result.deletedCount,
+      });
+    }
+
+    // CASE 2: STUDENT WITHDRAWAL
+    if (session.user.role !== "STUDENT") {
+      return errorResponse(
+        403,
+        "Only students or school admins can withdraw requests"
+      );
+    }
+
+    const student = await Student.findOne(buildStudentLookupForSession(session));
+    if (!student) {
+      return errorResponse(404, "Student not found");
+    }
+
+    // Get school from student's record
+    const schoolId = student.school || session.user.schoolId;
+    if (!schoolId) {
+      return errorResponse(400, "Student school information not found");
+    }
+
+    // Find and withdraw the student's own active request.
+    const request = await ParticipationRequest.findOne({
+      student: student._id,
+      event: eventId,
+      school: schoolId,
+      status: { $in: ["PENDING", "APPROVED", "ENROLLED"] },
+    });
+
+    if (!request) {
+      return errorResponse(404, "No active request found to withdraw");
+    }
+
+    request.status = "WITHDRAWN";
+    request.studentNotifiedAt = new Date();
+    await request.save();
+
+    const remainingActiveRequests = await ParticipationRequest.find({
+      event: eventId,
+      school: schoolId,
+      status: { $in: ACTIVE_PARTICIPATION_REQUEST_STATUSES },
+    })
+      .select("student contactPerson contactPhone expectedStudents notes teamName captainStudent")
+      .lean();
+
+    applySchoolParticipationProjection(event, schoolId, remainingActiveRequests);
+    await event.save();
+
+    await removeStudentsFromCompetition({
+      eventId,
+      studentIds: [student._id],
+    });
+
+    publishEventRealtimeUpdate("participation-withdrawn", {
+      event,
+      schoolId,
+      studentId: student._id,
+    });
+
+    return successResponse(200, "Participation request withdrawn", {
+      status: "WITHDRAWN",
+    });
+  } catch (error) {
+    console.error("DELETE /api/events/[id]/participate error:", error);
+    return internalServerError("Internal server error");
+  }
+}
+
+export async function PUT(req, { params }) {
+  let capacityLock = null;
+  let lockedEventId = null;
+  try {
+    await connectDB();
+    const { session, error: authError } = await requireApiSession(["SCHOOL_ADMIN"]);
+    if (authError) return authError;
+
+    const { id: eventId } = await params;
+    const body = await req.json();
+    const normalizedTeams = normalizeTeamPayload(body.teams);
+
+    // Allow both naming conventions (frontend sends 'students' and 'contactPhone')
+    const studentIds = body.studentIds || body.students;
+    const teamName = String(body.teamName || "").trim();
+    const captainStudentId = body.captainStudentId || null;
+
+    const schoolId = session.user.id;
+    const eventExists = await Event.exists({ _id: eventId });
+    if (!eventExists) {
+      return errorResponse(404, "Event not found");
+    }
+
+    const lockResult = await acquireEventCapacityLock(eventId);
+    capacityLock = lockResult.token;
+    lockedEventId = eventId;
+    const event = lockResult.event;
+    if (
+      normalizeParticipationFormat(event) !== "TEAM" &&
+      !Array.isArray(studentIds)
+    ) {
+      return errorResponse(400, "Invalid student list");
+    }
+
+    const normalizedStudentIds = Array.isArray(studentIds)
+      ? studentIds.map((id) => String(id))
+      : [];
+    const schoolContactInfo = await resolveSchoolContactInfo(schoolId);
+
+    const lockMessage = getRegistrationLockMessage(event, "update participation");
+    if (lockMessage) {
+      return errorResponse(400, lockMessage);
+    }
+
+    const invitationBlocker = await getPlatformInvitationBlocker(
+      event,
+      schoolId
+    );
+    if (invitationBlocker) {
+      return errorResponse(403, invitationBlocker);
+    }
+
+    if (normalizeParticipationFormat(event) === "TEAM") {
+      const schoolRecord = await User.findById(schoolId).select("schoolName name").lean();
+      const schoolName =
+        schoolRecord?.schoolName || schoolRecord?.name || session.user.schoolName || session.user.name || "";
+      const schoolContactInfo = await resolveSchoolContactInfo(schoolId);
+      const resolvedTeams = applyDefaultTeamNames(normalizedTeams, schoolName);
+      const multiTeamValidationMessage = validateMultiTeamPayload(
+        event,
+        resolvedTeams
+      );
+      if (multiTeamValidationMessage) {
+        return errorResponse(400, multiTeamValidationMessage);
+      }
+
+      const replacementResult = await replaceTeamParticipation({
+        event,
+        eventId,
+        schoolId,
+        sessionUserId: session.user.id,
+        teams: resolvedTeams,
+        schoolContactInfo,
+      });
+
+      if (replacementResult?.error) {
+        return errorResponse(400, replacementResult.error);
+      }
+
+      publishEventRealtimeUpdate("participation-updated", {
+        event,
+        schoolId,
+      });
+
+      return successResponse(200, "Team participation updated successfully", replacementResult);
+    }
+
+    const teamValidationMessage = validateTeamSelection(
+      event,
+      normalizedStudentIds,
+      teamName,
+      captainStudentId
+    );
+    if (teamValidationMessage) {
+      return errorResponse(400, teamValidationMessage);
+    }
+
+    // Check Max Participants Per School
+    if (
+      normalizeParticipationFormat(event) !== "TEAM" &&
+      event.maxParticipantsPerSchool &&
+      normalizedStudentIds.length > event.maxParticipantsPerSchool
+    ) {
+      return errorResponse(
+        400,
+        `Cannot update: You selected ${normalizedStudentIds.length} students, but the limit is ${event.maxParticipantsPerSchool}.`
+      );
+    }
+
+    const selectedStudents = await Student.find({
+      _id: { $in: normalizedStudentIds },
+      school: schoolId,
+      status: "ACTIVE",
+      isDeleted: { $ne: true },
+    }).select("name grade");
+
+    if (selectedStudents.length !== normalizedStudentIds.length) {
+      return errorResponse(
+        400,
+        "One or more selected students were not found in your school."
+      );
+    }
+
+    const ineligibleStudents = selectedStudents.filter(
+      (student) => !gradeListContains(event.eligibleGrades, student.grade)
+    );
+
+    if (ineligibleStudents.length > 0) {
+      return errorResponse(
+        400,
+        `Some selected students are not eligible for this event: ${ineligibleStudents
+          .map((student) => `${student.name} (${student.grade})`)
+          .join(", ")}`
+      );
+    }
+
+    // Get existing requests
+    const existingRequests = await ParticipationRequest.find({
+      event: eventId,
+      school: schoolId,
+    });
+
+    const existingStudentIds = existingRequests.map((r) =>
+      r.student.toString()
+    );
+
+    // Determine to Add and to Remove
+    const toAdd = normalizedStudentIds.filter(
+      (id) => !existingStudentIds.includes(id)
+    );
+    const toRemove = existingStudentIds.filter(
+      (id) => !normalizedStudentIds.includes(id)
+    );
+
+    if (event.maxParticipants && normalizeParticipationFormat(event) !== "TEAM") {
+      const globalActiveCount = await ParticipationRequest.countDocuments({
+        event: eventId,
+        status: { $in: ACTIVE_PARTICIPATION_REQUEST_STATUSES },
+      });
+      const toRemoveActiveCount = existingRequests.filter(
+        (request) =>
+          toRemove.includes(request.student.toString()) &&
+          ACTIVE_PARTICIPATION_REQUEST_STATUSES.includes(request.status)
+      ).length;
+      const reactivatedCount = existingRequests.filter(
+        (request) =>
+          normalizedStudentIds.includes(request.student.toString()) &&
+          !ACTIVE_PARTICIPATION_REQUEST_STATUSES.includes(request.status)
+      ).length;
+      const projectedCount =
+        globalActiveCount - toRemoveActiveCount + toAdd.length + reactivatedCount;
+
+      if (projectedCount > event.maxParticipants) {
+        return errorResponse(
+          400,
+          `Cannot update: This change would exceed the global event limit of ${event.maxParticipants} students.`
+        );
+      }
+    }
+
+    // Remove students
+    if (toRemove.length > 0) {
+      await ParticipationRequest.deleteMany({
+        event: eventId,
+        school: schoolId,
+        student: { $in: toRemove },
+      });
+    }
+
+    // Add new students
+    const now = new Date();
+    for (const studentId of toAdd) {
+      // Verify student belongs to this school
+      const student = await Student.findOne({
+        _id: studentId,
+        school: schoolId,
+        status: "ACTIVE",
+        isDeleted: { $ne: true },
+      });
+
+      if (student) {
+        await ParticipationRequest.create({
+          student: studentId,
+          event: eventId,
+          school: schoolId,
+          status: "APPROVED",
+          approvedAt: now,
+          approvedBy: session.user.id,
+          enrollmentConfirmedAt: now,
+          studentNotifiedAt: now,
+          contactPerson: schoolContactInfo.contactPerson || undefined,
+          contactPhone: schoolContactInfo.contactPhone || undefined,
+          teamName: teamName || undefined,
+          captainStudent: captainStudentId || undefined,
+        });
+      }
+    }
+
+    // Update contact info and keep selected students approved
+    const toKeep = normalizedStudentIds.filter((id) =>
+      existingStudentIds.includes(id)
+    );
+    if (toKeep.length > 0) {
+      const updateData = {
+        status: "APPROVED",
+        approvedAt: now,
+        approvedBy: session.user.id,
+        rejectedAt: null,
+        rejectionReason: null,
+      };
+
+      if (schoolContactInfo.contactPerson) updateData.contactPerson = schoolContactInfo.contactPerson;
+      if (schoolContactInfo.contactPhone) updateData.contactPhone = schoolContactInfo.contactPhone;
+      updateData.teamName = teamName || "";
+      updateData.captainStudent = captainStudentId || null;
+      updateData.enrollmentConfirmedAt = now;
+      updateData.studentNotifiedAt = now;
+
+      await ParticipationRequest.updateMany(
+        {
+          event: eventId,
+          school: schoolId,
+          student: { $in: toKeep },
+        },
+        {
+          $set: updateData,
+        }
+      );
+    }
+
+    const updatedRequests = await ParticipationRequest.find({
+      event: eventId,
+      school: schoolId,
+    }).select(
+      "status contactPerson contactPhone teamName captainStudent notes student requestedAt approvedAt enrollmentConfirmedAt"
+    );
+    applySchoolParticipationProjection(event, schoolId, updatedRequests);
+    await event.save();
+    await syncApprovedRequestsToRoundOne({
+      eventId,
+      createdBy: session.user.id,
+    });
+
+    publishEventRealtimeUpdate("participation-updated", {
+      event,
+      schoolId,
+    });
+
+    return successResponse(200, "Participation updated successfully");
+  } catch (error) {
+    if (error instanceof EventCapacityBusyError) {
+      return errorResponse(409, error.message);
+    }
+    console.error("PUT /api/events/[id]/participate error:", error);
+    return internalServerError("Internal server error");
+  } finally {
+    if (capacityLock) {
+      await releaseEventCapacityLock(lockedEventId, capacityLock).catch(
+        (releaseError) => {
+          console.error("Failed to release event capacity lock:", releaseError);
+        }
+      );
+    }
+  }
+}

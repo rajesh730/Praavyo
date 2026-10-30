@@ -1,0 +1,58 @@
+# ── Dependencies and build output ────────────────────────────────────────
+node_modules/
+.next/
+out/
+build/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+.vercel/
+.turbo/
+
+# ── Secrets ──────────────────────────────────────────────────────────────
+# Real values live only in .env.local on each machine and in the hosting
+# provider's environment settings. Only the documented template is committed.
+.env*
+!.env.example
+*.pem
+*.key
+
+# ── Logs ─────────────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+.next-dev*.log
+eslint-out.txt
+
+# ── Operating system and editor files ────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# ── Local AI / editor tooling ────────────────────────────────────────────
+# Generated per machine. .jetro holds a local cache and credentials, and the
+# MCP files contain this computer's paths — none of it belongs in the repo.
+.jetro/
+.mcp.json
+**/.mcp.json
+.cursor/
+.agents/
+.windsurfrules
+**/.windsurfrules
+.github/copilot-instructions.md
+AGENT.md
+**/AGENT.md
+CLAUDE.md
+**/CLAUDE.md
+.claude/
+
+# ── Local working files and source material (not part of the app) ────────
+tmp/
+*.zip
+assessment theme content/
+# Demo result PDFs contain real student names.
+Pravyo_CAS_*.pdf

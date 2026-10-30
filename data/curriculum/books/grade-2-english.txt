@@ -1,0 +1,349 @@
+@grade Grade 2
+@subject ENG | English | मेरो अङ्ग्रेजी | 4
+@source grade2.pdf — My English, Student's Evaluation Record Portfolio, Grade 2 (Asmita Publication), pages 22–34
+@note Working hours are each theme page's working hours plus its assessment and project work hours, matching the Cumulative Assessment Record (page 34), which totals 128 hours (4 credit hours).
+@note Theme 2 prints "Demonstrate good handwriting skills." twice under Writing (items 5 and 9); both are kept, as the book counts 32 outcomes.
+
+# 1 | | Me and My Family | 21 | 28
+@area Listening
+- [l-disc] Identify and discriminate sounds.
+- [l-same] Identify words that have the same initial, medial or final sound.
+- [l-rhyme] Recognize, identify and produce rhyming words (e.g. cow → now).
+- [l-indiv] Identify individual sounds in words.
+- [l-comp] Comprehend words and simple expressions.
+- [l-resp] Respond to the audio or the teacher verbally and non-verbally.
+- [l-key] Identify key information from a short speech or conversation.
+- [l-follow] Follow the message in short simple conversations.
+- [l-tasks] Perform a variety of listening comprehension tasks.
+@area Speaking
+- [s-decode] Decode phonetically regular and irregular words using letter sound knowledge, e.g. rat, too, blank, house, have, said, where, etc.
+- [s-produce] Produce words, phrases, simple sentences with intelligible pronunciation.
+- [s-conv] Participate in short conversation with teachers and friends using simple English.
+- [s-ask] Ask and answer short, simple questions.
+- [s-sing] Sing or recite a song/chant by listening to the teacher or an audio.
+@area Reading
+- [r-sounds] Put sounds together to read words and sentences.
+- [r-visual] Recognize and read words with the help of the visuals.
+- [r-meaning] Understand the meaning of grade appropriate words.
+- [r-rhymes] Perform rhymes and chants with appropriate rhyme and rhythm.
+- [r-sent] Read sentences and short paragraphs correctly.
+- [r-info] Retrieve specific information (names, number, etc.) from reading texts.
+- [r-decode] Decode words correctly which have consonant diagraphs in initial positions (th, sh, ch, wh), vowel diagraphs (oo, ee, ea, oa, aw, ai, ay), initial consonant blends (sw, sn, sk, bl, br, ch, cl, cr, dr, fl, gl, ph, pl, pr, sh, sl, sm, sp, st, th, tr, tw, wh, qu), and final consonant blends (nd, nk, nt, mp).
+@area Writing
+- [w-order] Write words in correct order to form simple sentences.
+- [w-dict] Write dictated words, phrases and sentences.
+- [w-caps] Use capital letters, full stops and question marks correctly.
+- [w-personal] Give basic personal information in writing (e.g. name, address, age, nationality, family information, etc.).
+- [w-spell] Use correct spelling of words.
+- [w-coord] Connect sentences using simple coordinators (e.g. 'and' and 'but').
+- [w-hand] Demonstrate good handwriting skills.
+
+# 2 | | My Daily Life | 17 | 32
+@area Listening
+- [l-disc]
+- [l-same]
+- [l-rhyme]
+- [l-indiv]
+- [l-resp]
+- [l-key]
+- [l-follow]
+- [l-tasks]
+@area Speaking
+- [s-produce]
+- [s-conv]
+- [s-describe] Describe familiar objects, persons and events using simple adjectives and adverbs.
+- [s-ask]
+- [s-sing]
+- [s-talk] Talk about present and past.
+@area Reading
+- [r-visual]
+- [r-hf] Recognize and read high frequency words including compound words.
+- [r-meaning]
+- [r-rhymes]
+- [r-sent]
+- [r-plural] Understand plurals (-s), verb tense, contractions and simple comparatives.
+- [r-kinds] Show an understanding of different kinds of reading texts (stories, letters, etc.).
+- [r-info]
+- [r-decode]
+@area Writing
+- [w-order]
+- [w-dict]
+- [w-caps]
+- [w-ideas] Express ideas in simple sentences.
+- [w-hand]
+- [w-spell2] Use correct spelling of the words.
+- [w-verbs] Use present (with/without -s/es) and regular past (-ed) forms of verbs.
+- [w-coord]
+- [w-hand]
+
+# 3 | | My School | 17 | 28
+@area Listening
+- [l-indiv]
+- [l-comp]
+- [l-resp]
+- [l-key]
+- [l-follow]
+- [l-tasks]
+- [l-stories] Show an understanding of simple stories with visual clues.
+@area Speaking
+- [s-produce]
+- [s-conv]
+- [s-ask]
+- [s-sing]
+- [s-talk]
+@area Reading
+- [r-hf]
+- [r-meaning]
+- [r-rhymes]
+- [r-sent]
+- [r-plural]
+- [r-kinds]
+- [r-info]
+- [r-decode]
+@area Writing
+- [w-order]
+- [w-dict]
+- [w-caps]
+- [w-personal]
+- [w-ideas]
+- [w-spell2]
+- [w-coord]
+- [w-hand]
+
+# 4 | | Our Environment | 21 | 29
+@area Listening
+- [l-indiv]
+- [l-comp]
+- [l-resp]
+- [l-key]
+- [l-follow]
+- [l-tasks]
+- [l-stories]
+@area Speaking
+- [s-produce]
+- [s-conv]
+- [s-describe]
+- [s-ask]
+- [s-sing]
+- [s-talk]
+@area Reading
+- [r-hf]
+- [r-meaning]
+- [r-rhymes]
+- [r-sent]
+- [r-plural]
+- [r-kinds]
+- [r-info]
+- [r-decode]
+@area Writing
+- [w-order]
+- [w-dict]
+- [w-caps]
+- [w-personal]
+- [w-ideas]
+- [w-spell]
+- [w-coord]
+- [w-hand]
+
+# 5 | | My Belongings | 8 | 28
+@area Listening
+- [l-comp]
+- [l-resp]
+- [l-key]
+- [l-follow]
+- [l-tasks]
+- [l-stories]
+@area Speaking
+- [s-produce]
+- [s-conv]
+- [s-describe]
+- [s-ask]
+- [s-sing]
+- [s-talk]
+@area Reading
+- [r-hf]
+- [r-meaning]
+- [r-rhymes]
+- [r-sent]
+- [r-plural]
+- [r-kinds]
+- [r-info]
+- [r-decode]
+@area Writing
+- [w-order]
+- [w-dict]
+- [w-caps]
+- [w-ideas]
+- [w-spell]
+- [w-suffix] Use suffix -s/es to form plural nouns.
+- [w-coord]
+- [w-hand]
+
+# 6 | | Our Culture | 12 | 29
+@area Listening
+- [l-comp]
+- [l-resp]
+- [l-key]
+- [l-follow]
+- [l-tasks]
+- [l-stories]
+@area Speaking
+- [s-produce]
+- [s-conv]
+- [s-describe]
+- [s-ask]
+- [s-sing]
+- [s-talk]
+@area Reading
+- [r-hf]
+- [r-meaning]
+- [r-rhymes]
+- [r-sent]
+- [r-plural]
+- [r-kinds]
+- [r-info]
+- [r-decode]
+@area Writing
+- [w-order]
+- [w-dict]
+- [w-caps]
+- [w-ideas]
+- [w-spell]
+- [w-suffix]
+- [w-verbs]
+- [w-coord]
+- [w-hand]
+
+# 7 | | Communication, Technology and Market | 7 | 29
+@area Listening
+- [l-comp]
+- [l-resp]
+- [l-key]
+- [l-follow]
+- [l-tasks]
+- [l-stories]
+@area Speaking
+- [s-decode]
+- [s-produce]
+- [s-conv]
+- [s-describe]
+- [s-ask]
+- [s-sing]
+- [s-talk]
+@area Reading
+- [r-hf]
+- [r-meaning]
+- [r-rhymes]
+- [r-sent]
+- [r-plural]
+- [r-kinds]
+- [r-info]
+- [r-decode]
+@area Writing
+- [w-order]
+- [w-dict]
+- [w-caps]
+- [w-ideas]
+- [w-spell]
+- [w-suffix]
+- [w-coord]
+- [w-hand]
+
+# 8 | | Fruits and Vegetables | 7 | 27
+@area Listening
+- [l-comp]
+- [l-resp]
+- [l-key]
+- [l-follow]
+- [l-tasks]
+- [l-stories]
+@area Speaking
+- [s-produce]
+- [s-conv]
+- [s-describe]
+- [s-ask]
+- [s-sing]
+- [s-talk]
+@area Reading
+- [r-hf]
+- [r-meaning]
+- [r-rhymes]
+- [r-sent]
+- [r-plural]
+- [r-kinds]
+- [r-info]
+- [r-decode]
+@area Writing
+- [w-order]
+- [w-dict]
+- [w-caps]
+- [w-spell]
+- [w-suffix]
+- [w-coord]
+- [w-hand]
+
+# 9 | | Hobbies and Interests | 7 | 26
+@area Listening
+- [l-comp]
+- [l-resp]
+- [l-key]
+- [l-follow]
+- [l-tasks]
+- [l-stories]
+@area Speaking
+- [s-produce]
+- [s-conv]
+- [s-ask]
+- [s-sing]
+- [s-talk]
+@area Reading
+- [r-hf]
+- [r-meaning]
+- [r-rhymes]
+- [r-sent]
+- [r-plural]
+- [r-kinds]
+- [r-info]
+- [r-decode]
+@area Writing
+- [w-order]
+- [w-dict]
+- [w-caps]
+- [w-ideas]
+- [w-spell]
+- [w-coord]
+- [w-hand]
+
+# 10 | | Birds and Animals | 11 | 28
+@area Listening
+- [l-comp]
+- [l-resp]
+- [l-key]
+- [l-follow]
+- [l-tasks]
+- [l-stories]
+@area Speaking
+- [s-produce]
+- [s-conv]
+- [s-describe]
+- [s-ask]
+- [s-sing]
+- [s-talk]
+@area Reading
+- [r-hf]
+- [r-meaning]
+- [r-rhymes]
+- [r-sent]
+- [r-plural]
+- [r-kinds]
+- [r-info]
+- [r-decode]
+@area Writing
+- [w-order]
+- [w-dict]
+- [w-caps]
+- [w-ideas]
+- [w-spell]
+- [w-suffix]
+- [w-coord]
+- [w-hand]

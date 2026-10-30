@@ -1,0 +1,130 @@
+import { NextResponse } from "next/server";
+import mongoose from "mongoose";
+import { requireApiSession } from "@/lib/authz";
+import connectDB from "@/lib/db";
+import Student from "@/models/Student";
+import SchoolMagazineArticle from "@/models/SchoolMagazineArticle";
+import "@/models/MagazineIssue";
+import { serializeMagazineIssue } from "@/lib/magazineIssues";
+import { serializeAuthoredEra } from "@/lib/writingProvenance";
+import { buildStudentLookupForSession } from "@/lib/studentIdentity";
+
+function buildStudentLookup(session) {
+  return {
+    ...buildStudentLookupForSession(session),
+  };
+}
+
+function serializeArticle(article) {
+  return {
+    id: String(article._id),
+    title: article.title,
+    content: article.content,
+    images: article.images || [],
+    coverImage: article.coverImage || null,
+    tags: article.tags || [],
+    category: article.category,
+    publishedAt: article.publishedAt,
+    ...serializeAuthoredEra(article),
+    magazineIssue: serializeMagazineIssue(article.magazineIssue),
+    authorStudent: article.authorStudent
+      ? {
+          id: String(article.authorStudent._id),
+          name: article.authorStudent.name,
+          grade: article.authorStudent.grade,
+          rollNumber: article.authorStudent.rollNumber,
+        }
+      : null,
+  };
+}
+
+export async function GET(_request, props) {
+  try {
+    const { session, error: authError } = await requireApiSession();
+    if (authError) return authError;
+
+    if (!session || session.user.role !== "STUDENT") {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    await connectDB();
+
+    const student = await Student.findOne(buildStudentLookup(session))
+      .select("_id school name grade rollNumber")
+      .lean();
+
+    if (!student) {
+      return NextResponse.json(
+        { message: "Student profile not found" },
+        { status: 404 }
+      );
+    }
+
+    const params = await props.params;
+    if (!mongoose.Types.ObjectId.isValid(params.id)) {
+      return NextResponse.json(
+        { message: "Magazine article not found" },
+        { status: 404 }
+      );
+    }
+
+    const article = await SchoolMagazineArticle.findOne({
+      _id: params.id,
+      school: student.school,
+      $or: [
+        { isMagazinePublished: true },
+        {
+          status: { $in: ["SUBMITTED", "APPROVED"] },
+          showOnSchoolWall: { $ne: false },
+        },
+      ],
+      isDeleted: { $ne: true },
+    })
+      .populate("authorStudent", "name grade rollNumber")
+      .populate("magazineIssue")
+      .lean();
+
+    if (!article) {
+      return NextResponse.json(
+        { message: "Magazine article not found" },
+        { status: 404 }
+      );
+    }
+
+    const relatedArticles = await SchoolMagazineArticle.find({
+      _id: { $ne: article._id },
+      school: student.school,
+      category: article.category,
+      $or: [
+        { isMagazinePublished: true },
+        {
+          status: { $in: ["SUBMITTED", "APPROVED"] },
+          showOnSchoolWall: { $ne: false },
+        },
+      ],
+      isDeleted: { $ne: true },
+    })
+      .populate("authorStudent", "name grade rollNumber")
+      .populate("magazineIssue")
+      .sort({ publishedAt: -1, updatedAt: -1 })
+      .limit(3)
+      .lean();
+
+    return NextResponse.json({
+      article: serializeArticle(article),
+      relatedArticles: relatedArticles.map(serializeArticle),
+      student: {
+        id: String(student._id),
+        name: student.name,
+        grade: student.grade,
+        rollNumber: student.rollNumber,
+      },
+    });
+  } catch (error) {
+    console.error("GET /api/student/magazine/[id] error:", error);
+    return NextResponse.json(
+      { message: "Failed to load magazine article" },
+      { status: 500 }
+    );
+  }
+}

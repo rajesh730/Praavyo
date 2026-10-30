@@ -1,0 +1,104 @@
+import mongoose from "mongoose";
+
+const ParticipationRequestSchema = new mongoose.Schema(
+  {
+    student: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Student",
+      required: true,
+    },
+    event: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Event",
+      required: true,
+    },
+    school: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    status: {
+      type: String,
+      enum: ["PENDING", "APPROVED", "REJECTED", "WITHDRAWN", "ENROLLED"],
+      default: "PENDING",
+    },
+    // Contact details for this specific request/group
+    contactPerson: String,
+    contactPhone: String,
+    teamName: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    captainStudent: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Student",
+      default: null,
+    },
+    notes: String,
+    requestedAt: {
+      type: Date,
+      default: Date.now,
+    },
+    approvedAt: {
+      type: Date,
+      default: null,
+    },
+    rejectedAt: {
+      type: Date,
+      default: null,
+    },
+    rejectableUntil: {
+      type: Date,
+      default: null,
+    },
+    enrollmentConfirmedAt: {
+      type: Date,
+      default: null,
+    },
+    studentNotifiedAt: {
+      type: Date,
+      default: null,
+    },
+    approvedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
+    rejectionReason: {
+      type: String,
+      default: null,
+    },
+    notes: {
+      type: String,
+      default: null,
+    },
+    // Force enrollment override tracking
+    forceEnrolled: {
+      type: Boolean,
+      default: false,
+    },
+    // Track validation errors if force enrolled
+    validationErrors: [
+      {
+        type: String,
+      },
+    ],
+  },
+  { timestamps: true }
+);
+
+// Ensure unique request per student per event per school
+ParticipationRequestSchema.index(
+  { student: 1, event: 1, school: 1 },
+  { unique: true }
+);
+ParticipationRequestSchema.index({ event: 1, status: 1, requestedAt: -1 });
+ParticipationRequestSchema.index({ event: 1, school: 1, status: 1 });
+ParticipationRequestSchema.index({ school: 1, event: 1, status: 1 });
+ParticipationRequestSchema.index({ school: 1, status: 1, requestedAt: -1 });
+ParticipationRequestSchema.index({ event: 1, teamName: 1, status: 1 });
+ParticipationRequestSchema.index({ event: 1, captainStudent: 1 });
+
+export default mongoose.models.ParticipationRequest ||
+  mongoose.model("ParticipationRequest", ParticipationRequestSchema);

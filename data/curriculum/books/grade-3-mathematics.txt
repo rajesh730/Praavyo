@@ -1,0 +1,205 @@
+@grade Grade 3
+@subject MATH | Mathematics | मेरो गणित | 4
+@source grade3.pdf — मेरो गणित, विद्यार्थी मूल्याङ्कन अभिलेख कार्यसञ्चयिका, कक्षा ३ (Asmita Publication), pages 34–45
+@note Each outcome carries the book's four indicator levels (4 highest, 1 lowest) instead of assessment areas and tools.
+@note Theme 2 row 3 level 1 prints "कुनै एउटा" (any one) in Nepali but "any two" in English; both are kept as printed.
+@note Theme 5 row 4 level 1 prints "देवनागरी सङ्ख्याङ्कन पद्धतिमा" in Nepali but "Hindu Arabic" in English; it is stored as Hindu Arabic, matching the outcome.
+
+# 1 | मेरो दैनिक जीवन | My Daily Life | 8 | 3
+- घडी हेरी घण्टा, मिनेट र सेकेण्डमा समय भन्न र लेख्न || Able to tell and write the time in hour, minute and second watching the clock
+  4) आफैँ घडी हेरी घण्टा, मिनेट र सेकेण्डमा समय भन्न र लेख्न सकेमा || Able to tell and write the time in hour, minute and second watching the clock one self
+  3) साथीको सहयोगमा घडी हेरी घण्टा, मिनेट र सेकेण्डमा समय भन्न र लेख्न सकेमा || Able to tell and write the time in hour, minute and second watching the clock with the help of friend
+  2) शिक्षकको आंशिक सहयोगमा घडी हेरी घण्टा, मिनेट र सेकेण्डमा समय भन्न र लेख्न सकेमा || Able to tell and write the time in hour, minute and second watching the clock with the partial help of teacher
+  1) शिक्षकको पूर्ण सहयोगमा घडी हेरी घण्टा, मिनेट र सेकेण्डमा समय भन्न र लेख्न सकेमा || Able to tell and write the time in hour, minute and second watching the clock with fully help of teacher
+- समयका एकाइहरूबिचको सम्बन्ध भन्न र लेख्न (वर्ष, महिना, हप्ता, दिन, घण्टा, मिनेट र सेकेण्ड) || Able to tell and write the relation among the units (like year, month, week, day, hour, minute, second) of time
+  4) वर्ष र महिना, महिना र हप्ता, हप्ता र दिन, दिन र घण्टा, घण्टा र मिनेट, मिनेट र सेकेण्डबिचको सम्बन्ध भन्न र लेख्न सकेमा || Able to tell and write the relation between year and month, month and week, week and day, day and hour, hour and minute and minute and second
+  3) वर्ष र महिना, महिना र हप्ता, हप्ता र दिन, दिन र घण्टा, घण्टा र मिनेट, मिनेट र सेकेण्डबिचको सम्बन्धमध्ये कुनै चारओटा सम्बन्ध भन्न र लेख्न सकेमा || Able to tell and write any four relations between year and month, month and week, week and day, day and hour, hour and minute and minute and second
+  2) वर्ष र महिना, महिना र हप्ता, हप्ता र दिन, दिन र घण्टा, घण्टा र मिनेट, मिनेट र सेकेण्डबिचको सम्बन्धमध्ये कुनै तीनओटा सम्बन्ध भन्न र लेख्न सकेमा || Able to tell and write any three relations between year and month, month and week, week and day, day and hour, hour and minute and minute and second
+  1) वर्ष र महिना, महिना र हप्ता, हप्ता र दिन, दिन र घण्टा, घण्टा र मिनेट, मिनेट र सेकेण्डबिचको सम्बन्धमध्ये कुनै दुईओटा सम्बन्ध भन्न र लेख्न सकेमा || Able to tell and write any two relations between year and month, month and week, week and day, day and hour, hour and minute and minute and second
+- कुनै काममा लागेको समय पत्ता लगाउन || To find time taken to do any work
+  4) आफैँ कुनै काममा लागेको समय पत्ता लगाउन सकेमा || To find time taken to do any work by one self
+  3) साथीको सहयोगमा कुनै काममा लागेको समय पत्ता लगाउन सकेमा || To find time taken to do any work with the help of friends
+  2) शिक्षकको आंशिक सहयोगमा कुनै काममा लागेको समय पत्ता लगाउन सकेमा || To find time taken to do any work with partial help of teacher
+  1) शिक्षकको पूर्ण सहयोगमा कुनै काममा लागेको समय पत्ता लगाउन सकेमा || To find time taken to do any work with fully help of teacher
+
+# 2 | हाम्रो समुदाय | Our Community | 20 | 6
+- चार अङ्कसम्मका सङ्ख्याहरूलाई बढ्दो वा घट्दो क्रममा पढ्न र लेख्न || To read and write the 4 digit number in ascending or descending order
+  4) चार अङ्कसम्मका सङ्ख्याहरूलाई तुलना गरी बढ्दो वा घट्दो क्रममा पढ्न र लेख्न सकेमा || To read and write the numbers according to ascending or descending order by comparing given number upto 4 digits
+  3) ७००० सम्मका सङ्ख्याहरूलाई तुलना गरी बढ्दो वा घट्दो क्रममा पढ्न र लेख्न सकेमा वा साथीको सहयोगमा ९९९९ सम्मका सङ्ख्याहरूलाई तुलना गरी बढ्दो वा घट्दो क्रममा पढ्न र लेख्न सकेमा || To read and write the numbers in ascending or descending order by comparing given numbers upto 7000, or upto 9999 with the help of friend
+  2) आफैँ ५००० सम्मका सङ्ख्याहरूलाई तुलना गरी बढ्दो वा घट्दो क्रममा पढ्न र लेख्न सकेमा वा शिक्षकको आंशिक सहयोगमा ९९९९ सम्मका सङ्ख्याहरूलाई तुलना गरी बढ्दो वा घट्दो क्रममा पढ्न र लेख्न सकेमा || To read and write the numbers in ascending or descending order by comparing given numbers upto 5000, or upto 9999 with partial help of teacher
+  1) आफैँ ३००० सम्मका सङ्ख्याहरूलाई तुलना गरी बढ्दो वा घट्दो क्रममा पढ्न र लेख्न सकेमा वा शिक्षकको पूर्ण सहयोगमा ९९९९ सम्मका सङ्ख्याहरूलाई तुलना गरी बढ्दो वा घट्दो क्रममा पढ्न र लेख्न सकेमा || To read and write the numbers in ascending or descending order by comparing given numbers upto 3000, or upto 9999 with full help of teacher
+- स्थानीय सङ्ख्याङ्कन पद्धतिमा २० सम्म पढ्न र लेख्न || To read and write local numerals system upto 20
+  4) स्थानीय सङ्ख्याङ्कन पद्धतिमा २० सम्म पढ्न र लेख्न सकेमा || Able to read and write local numerals system upto 20
+  3) स्थानीय सङ्ख्याङ्कन पद्धतिमा २० सम्म पढ्न वा लेख्न वा पन्ध्रसम्म पढ्न र लेख्न सकेमा || Able to read or write local numeral system upto 20 or read and write upto 15
+  2) स्थानीय सङ्ख्याङ्कन पद्धतिमा १५ सम्म पढ्न वा लेख्न वा दशसम्म पढ्न र लेख्न सकेमा || Able to read or write local numeral system upto 15 or read and write upto 10
+  1) स्थानीय सङ्ख्याङ्कन पद्धतिमा दशसम्म पढ्न वा लेख्न वा पाँचसम्म पढ्न र लेख्न सकेमा || Able to read or write local numeral system upto 10 or read and write upto 5
+- आधा, एक चौथाइ, तीन चौथाइ, एक तिहाइ र दुई तिहाइलाई भिन्नको रूपमा लेख्न || Able to write half, one fourth, three fourth, one third and two third in terms of fraction
+  4) आधा, एक चौथाइ, तीन चौथाइ, एक तिहाइ र दुई तिहाइलाई भिन्नको रूपमा लेख्न सकेमा || Able to write half, one fourth, three fourth, one third and two third in terms of fraction
+  3) आधा, एक चौथाइ, तीन चौथाइ, एक तिहाइ र दुई तिहाइमध्ये कुनै चारओटालाई भिन्नको रूपमा लेख्न सकेमा || Able to write any four amount of half, one fourth, three fourth, one third and two third in terms of fraction
+  2) आधा, एक चौथाइ, तीन चौथाइ, एक तिहाइ र दुई तिहाइमध्ये कुनै तीनओटालाई भिन्नको रूपमा लेख्न सकेमा || Able to write any three amount of half, one fourth, three fourth, one third and two third in terms of fraction
+  1) आधा, एक चौथाइ, तीन चौथाइ, एक तिहाइ र दुई तिहाइमध्ये कुनै एउटालाई भिन्नको रूपमा लेख्न सकेमा || Able to write any two amount of half, one fourth, three fourth, one third and two third in terms of fraction
+- भिन्नहरू 1/2, 1/4, 3/4, 1/3, 2/3 लाई सामग्री प्रयोग गरी देखाउन || To demonstrate the fraction 1/2, 1/4, 3/4, 1/3, 2/3 using materials
+  4) भिन्नहरू 1/2, 1/4, 3/4, 1/3, 2/3 लाई सामग्री प्रयोग गरी देखाउन सकेमा || To demonstrate the fraction 1/2, 1/4, 3/4, 1/3, 2/3 using materials
+  3) भिन्नहरू 1/2, 1/4, 3/4, 1/3, 2/3 मध्ये कुनै चारओटालाई सामग्री प्रयोग गरी देखाउन सकेमा || To demonstrate any four given fraction 1/2, 1/4, 3/4, 1/3, 2/3 using materials
+  2) भिन्नहरू 1/2, 1/4, 3/4, 1/3, 2/3 मध्ये कुनै तीनओटालाई सामग्री प्रयोग गरी देखाउन सकेमा || To demonstrate any three given fraction 1/2, 1/4, 3/4, 1/3, 2/3 using materials
+  1) भिन्नहरू 1/2, 1/4, 3/4, 1/3, 2/3 मध्ये कुनै दुईओटालाई सामग्री प्रयोग गरी देखाउन सकेमा || To demonstrate any two given fraction 1/2, 1/4, 3/4, 1/3, 2/3 using materials
+- चित्रद्वारा माथिका भिन्नहरूमध्ये कुनै दुईओटा भिन्नहरू तुलना गर्न || To compare any two fraction of among above fraction by semi-concrete
+  4) आफैँ चित्रद्वारा माथिका भिन्नहरूमध्ये कुनै दुईओटा भिन्नहरू तुलना गर्न सकेमा || To compare any two fraction of among above fraction by using semi-concrete material by one self
+  3) साथीको सहयोगमा चित्रद्वारा माथिका भिन्नहरूमध्ये कुनै दुईओटा भिन्नहरू तुलना गर्न सकेमा || To compare any two fraction of among above fraction by using semi-concrete material with the help of friend
+  2) शिक्षकको आंशिक सहयोगमा चित्रद्वारा माथिका भिन्नहरूमध्ये कुनै दुईओटा भिन्नहरू तुलना गर्न सकेमा || To compare any two fraction of among above fraction by using semi-concrete material with the partial help of teacher
+  1) शिक्षकको पूर्ण सहयोगमा चित्रद्वारा माथिका भिन्नहरूमध्ये कुनै दुईओटा भिन्नहरू तुलना गर्न सकेमा || To compare any two fraction of among above fraction by using semi-concrete material with the fully help of teacher
+- विभिन्न वस्तुको लम्बाइ मिटर वा सेन्टिमिटर स्केलमा अनुमान गर्न, नाप्न र पुष्टि गर्न || Estimate, measure and prove the length of different objects in the meter and centimeter
+  4) विभिन्न वस्तुको लम्बाइ मिटर वा सेन्टिमिटर स्केलमा अनुमान गर्न, नाप्न र पुष्टि गर्न सकेमा || Estimate, measure and prove the length of different objects in the meter and centimeter
+  3) विभिन्न वस्तुको लम्बाइ मिटर वा सेन्टिमिटर स्केलमा अनुमान गर्न र नाप्न वा नाप्न र पुष्टि गर्न सकेमा || Estimate and measure, or measure and prove the length of different objects in the meter or centimeter
+  2) विभिन्न वस्तुको लम्बाइ मिटर वा सेन्टिमिटर स्केलमा अनुमान गर्न वा नाप्न सकेमा || Estimate or measure the length of different objects in the meter and centimeter
+  1) शिक्षकको सहयोगमा विभिन्न वस्तुको लम्बाइ मिटर वा सेन्टिमिटर स्केलमा अनुमान गर्न, नाप्न र पुष्टि गर्न सकेमा || Estimate, measure and prove the length of different objects in the meter and centimetre with the help of teacher
+
+# 3 | मेरो सिर्जना | My Creation | 16 | 6
+- दिइएको वस्तुको किनारा वा रेखाखण्डको नाप लिन र दिइएको नापको रेखाखण्ड खिच्न || Able to measure the length of line segment or edge of given object and draw line segment of given measurement
+  4) दिइएको वस्तुको किनारा वा रेखाखण्डको नाप लिन र दिइएको नापको रेखाखण्ड खिच्न सकेमा || Able to measure the length of line segment or edge of given object and draw line segment of given measurement
+  3) दिइएको वस्तुको किनारा वा रेखाखण्डको नाप लिन वा दिइएको नापको रेखाखण्ड खिच्न सकेमा वा साथीको सहयोगमा दिइएको वस्तुको किनारा वा रेखाखण्डको नाप लिन र दिइएको नापको रेखाखण्ड खिच्न सकेमा || Able to measure the length of line segment or edge of given object or draw line segment of given measurement, or do both with the help of friend
+  2) शिक्षकको आंशिक सहयोगमा दिइएको वस्तुको किनारा वा रेखाखण्डको नाप लिन र दिइएको नापको रेखाखण्ड खिच्न सकेमा || Able to measure the length of line segment or edge of given object or draw line segment of given measurement with the partial help of teacher
+  1) शिक्षकको पूर्ण सहयोगमा दिइएको वस्तुको किनारा वा रेखाखण्डको नाप लिन र दिइएको नापको रेखाखण्ड खिच्न सकेमा || Able to measure the length of line segment or edge of given object or draw line segment of given measurement with the fully help of teacher
+- वरपर पाइने ठोस वस्तुमा बनेका कोणहरू देखाउन || To show the angles in solid surface
+  4) आफैँ वरपर पाइने ठोस वस्तुमा बनेका कोणहरू देखाउन सकेमा || To show the angles in solid surface by one self
+  3) साथीको सहयोगमा वरपर पाइने ठोस वस्तुमा बनेका कोणहरू देखाउन सकेमा || To show the angles in solid surface with the help of friend
+  2) शिक्षकको आंशिक सहयोगमा वरपर पाइने ठोस वस्तुमा बनेका कोणहरू देखाउन सकेमा || To show the angles in solid surface with partial help of teacher
+  1) शिक्षकको पूर्ण सहयोगमा वरपर पाइने ठोस वस्तुमा बनेका कोणहरू देखाउन सकेमा || To show the angles in solid surface with fully help of teacher
+- रुलरको प्रयोग गरी कोणहरू खिच्न, नाम लेख्न र तुलना गर्न || Able to draw angle by using scale, to write name and compare
+  4) रुलरको प्रयोग गरी कोणहरू खिच्न, नाम लेख्न र सानो ठुलो छुट्याउन सकेमा || Able to draw angles, write the name of the angles and compare these angles in size
+  3) रुलरको प्रयोग गरी कोणहरू खिच्न र नाम लेख्न वा सानो ठुलो छुट्याउन सकेमा || Able to draw angles and write the name of the angles or compare these angles in size
+  2) रुलरको प्रयोग गरी कोणहरू खिच्न वा नाम लेख्न वा सानो ठुलो छुट्याउन सकेमा || Able to draw angles or write the name of the angles or compare these angles in size
+  1) शिक्षकको सहयोगमा रुलरको प्रयोग गरी कोणहरू खिच्न, नाम लेख्न र सानो ठुलो छुट्याउन सकेमा || Able to draw angles, write the name of the angles and compare these angles in size with the help of teacher
+- समकोण पहिचान गर्न || To identify the right angle
+  4) आफैँ समकोण पहिचान गर्न सकेमा || Able to identify the right angle by one self
+  3) साथीको सहयोगमा समकोण पहिचान गर्न सकेमा || Able to identify the right angle with the help of friend
+  2) शिक्षकको आंशिक सहयोगमा समकोण पहिचान गर्न सकेमा || Able to identify the right angle with the partial help of teacher
+  1) शिक्षकको पूर्ण सहयोगमा समकोण पहिचान गर्न सकेमा || Able to identify the right angle with the fully help of teacher
+- सिधा किनारा भएको वस्तु र सिसाकलम प्रयोग गरी त्रिभुज र चतुर्भुज खिच्न र नाम लेख्न || To draw and to write its name of triangle and quadrilateral by using pencil and straight edge object
+  4) सिधा किनारा भएको वस्तु र सिसाकलम प्रयोग गरी त्रिभुज र चतुर्भुज खिच्न र नाम लेख्न सकेमा || Able to draw and write the name of triangle and quadrilateral by using straight edge object and pencil
+  3) सिधा किनारा भएको वस्तु र सिसाकलम प्रयोग गरी त्रिभुज र चतुर्भुजमध्ये एक खिचेर नाम लेख्न सकेमा वा त्रिभुज र चतुर्भुज दुवै खिचेको तर नाम लेख्न नसकेमा वा दुवै खिच्न नसकेको तर दिइएको दुवै चित्रको नाम लेख्न सकेमा || Able to draw the triangle or quadrilateral and write its name, or draw both without naming them, or name both given figures without drawing them
+  2) सिधा किनारा भएको वस्तु र सिसाकलम प्रयोग गरी त्रिभुज र चतुर्भुजमध्ये एक खिच्न सकेमा || Able to draw the triangle or quadrilateral by using straight edge object and pencil
+  1) सिधा किनारा भएको वस्तु र सिसाकलम प्रयोग गरी शिक्षकको पूर्ण सहयोगमा मात्र त्रिभुज र चतुर्भुज खिच्न वा नाम लेख्न सकेमा || Able to draw the triangle or quadrilateral or to give the name of it with the fully help of teacher
+- आयताकार र वर्गाकार सतह पहिचान गर्न || To identify the rectangular and square surface
+  4) आयताकार र वर्गाकार सतह पहिचान गर्न सकेमा || Able to identify the rectangular and square surface
+  3) आयताकार वा वर्गाकार सतह पहिचान गर्न सकेमा || Able to identify the rectangular or square surface
+  2) साथीको सहयोगमा आयताकार र वर्गाकार सतह पहिचान गर्न सकेमा || Able to identify the rectangular or square surface with the help of friend
+  1) शिक्षकको पूर्ण सहयोगमा आयताकार र वर्गाकार सतह पहिचान गर्न सकेमा || Able to identify the rectangular or square surface with the fully help of teacher
+
+# 4 | सञ्चार प्रविधि र बजार | Communication Technology and Market | 27 | 10
+- रुपियाँलाई पैसामा र पैसालाई रुपियाँमा रूपान्तर गर्न || To convert rupees into paisa and paisa into rupee
+  4) रुपियाँलाई पैसामा र पैसालाई रुपियाँमा रूपान्तर गर्न सकेमा || Able to convert rupees into paisa and paisa into rupee
+  3) रुपियाँलाई पैसामा वा पैसालाई रुपियाँमा रूपान्तर गर्न सकेमा || Able to convert rupees into paisa or paisa into rupee
+  2) रुपियाँलाई पैसामा रूपान्तर गर्न सकेमा || Able to convert rupees into paisa
+  1) शिक्षकको सहयोगमा रुपियाँलाई पैसामा र पैसालाई रुपियाँमा रूपान्तर गर्न सकेमा || Able to convert rupees into paisa and paisa into rupee with the help of teacher
+- मुद्रासम्बन्धी जोड र घटाउ गर्न || To add and subtract related to currency
+  4) रूपान्तर गर्न नपर्ने र पर्ने मुद्रासम्बन्धी जोड र घटाउ गर्न सकेमा || Able to add and subtract related currency both with and without conversion
+  3) रूपान्तर गर्न नपर्ने र पर्ने मुद्रासम्बन्धी जोड वा घटाउ गर्न सकेमा || Able to add or subtract related currency both with and without conversion
+  2) रूपान्तर गर्न नपर्ने जोड र घटाउ गर्न सकेमा || Able to add and subtract related currency which do not need to convert
+  1) रूपान्तर गर्न नपर्ने जोड वा घटाउ गर्न सकेमा || Able to add or subtract related currency which do not need to convert
+- मिटर, सेन्टिमिटर र मिलिमिटरको सम्बन्ध बताउन || To tell the relation of meter, centimetre and millimetre
+  4) आफैँ मिटर, सेन्टिमिटर र मिलिमिटरको सम्बन्ध बताउन सकेमा || Able to tell the relationship among meter, centimetre and millimetre by one self
+  3) साथीको सहयोगमा मिटर, सेन्टिमिटर र मिलिमिटरको सम्बन्ध बताउन सकेमा || Able to tell the relationship among meter, centimetre and millimetre with the help of friend
+  2) शिक्षकको आंशिक सहयोगमा मिटर, सेन्टिमिटर र मिलिमिटरको सम्बन्ध बताउन सकेमा || Able to tell the relationship among meter, centimetre and millimetre with the partial help of teacher
+  1) शिक्षकको पूर्ण सहयोगमा मिटर, सेन्टिमिटर र मिलिमिटरको सम्बन्ध बताउन सकेमा || Able to tell the relationship among meter, centimetre and millimetre with the fully help of teacher
+- मिटरलाई सेन्टिमिटर र सेन्टिमिटरलाई मिलिमिटरमा रूपान्तर गर्न || Able to convert meter to centimetre and centimetre to millimetre
+  4) मिटरलाई सेन्टिमिटर र सेन्टिमिटरलाई मिलिमिटरमा रूपान्तर गर्न सकेमा || Able to convert meter to centimetre and centimetre to millimetre
+  3) मिटरलाई सेन्टिमिटर वा सेन्टिमिटरलाई मिलिमिटरमा रूपान्तर गर्न सकेमा || Able to convert meter to centimetre or centimetre to millimetre
+  2) साथीको सहयोगमा मिटरलाई सेन्टिमिटर र सेन्टिमिटरलाई मिलिमिटरमा रूपान्तर गर्न सकेमा || Able to convert meter to centimetre and centimetre to millimetre with the help of friend
+  1) शिक्षकको सहयोगमा मिटरलाई सेन्टिमिटर र सेन्टिमिटरलाई मिलिमिटरमा रूपान्तर गर्न सकेमा || Able to convert meter to centimetre and centimetre to millimetre with the help of teacher
+- वस्तुहरूको तौलको अनुमान गर्न र नापद्वारा यकिन गर्न || To estimate the weight and verify it
+  4) वस्तुहरूको तौलको अनुमान गर्न, नाप्न र पुष्टि गर्न सकेमा || Able to estimate, measure and justify the weight of the object
+  3) वस्तुहरूको तौलको अनुमान गर्न र नाप्न वा नाप्न र पुष्टि गर्न सकेमा || Able to estimate and measure, or measure and justify the weight of the object
+  2) वस्तुहरूको तौलको अनुमान गर्न वा नाप्न सकेमा || Able to estimate or measure the weight of the object
+  1) शिक्षकको सहयोगमा वस्तुहरूको तौलको अनुमान गर्न, नाप्न र पुष्टि गर्न सकेमा || Able to estimate, measure and justify the weight of the object with the help of teacher
+- किलोग्रामलाई ग्राममा रूपान्तर गर्न || To convert kilogram into gram
+  4) आफैँ किलोग्रामलाई ग्राममा रूपान्तर गर्न सकेमा || Able to convert kilogram into gram by one self
+  3) साथीको सहयोगमा किलोग्रामलाई ग्राममा रूपान्तर गर्न सकेमा || Able to convert kilogram into gram with the help of friend
+  2) शिक्षकको आंशिक सहयोगमा किलोग्रामलाई ग्राममा रूपान्तर गर्न सकेमा || Able to convert kilogram into gram with the partial help of teacher
+  1) शिक्षकको पूर्ण सहयोगमा किलोग्रामलाई ग्राममा रूपान्तर गर्न सकेमा || Able to convert kilogram into gram with the fully help of teacher
+- लिटर र मिलिलिटरको सम्बन्ध बताउन || Able to tell the relation between litres and millilitres
+  4) आफैँ लिटर र मिलिलिटरको सम्बन्ध बताउन सकेमा || Able to tell the relation between litres and millilitres by one self
+  3) साथीको सहयोगमा लिटर र मिलिलिटरको सम्बन्ध बताउन सकेमा || Able to tell the relation between litres and millilitres with the help of friend
+  2) शिक्षकको आंशिक सहयोगमा लिटर र मिलिलिटरको सम्बन्ध बताउन सकेमा || Able to tell the relation between litres and millilitres with the partial help of teacher
+  1) शिक्षकको पूर्ण सहयोगमा लिटर र मिलिलिटरको सम्बन्ध बताउन सकेमा || Able to tell the relation between litres and millilitres with the fully help of teacher
+- विभिन्न क्षमताका भाँडाहरूको क्षमता लिटर र मिलिलिटर एकाइमा नाप लिन || Able to measure the capacity of pots in the litre and millilitre
+  4) आफैँ विभिन्न क्षमताका भाँडाहरूको क्षमता लिटर र मिलिलिटर एकाइमा नाप लिन सकेमा || Able to measure the capacity of pots in the litre and millilitre by one self
+  3) साथीको सहयोगमा विभिन्न क्षमताका भाँडाहरूको क्षमता लिटर र मिलिलिटर एकाइमा नाप लिन सकेमा || Able to measure the capacity of pots in the litre and millilitre with the help of friend
+  2) शिक्षकको आंशिक सहयोगमा विभिन्न क्षमताका भाँडाहरूको क्षमता लिटर र मिलिलिटर एकाइमा नाप लिन सकेमा || Able to measure the capacity of pots in the litre and millilitre with the partial help of teacher
+  1) शिक्षकको पूर्ण सहयोगमा विभिन्न क्षमताका भाँडाहरूको क्षमता लिटर र मिलिलिटर एकाइमा नाप लिन सकेमा || Able to measure the capacity of pots in the litre and millilitre with the fully help of teacher
+- लिटर र मिलिलिटरसम्बन्धी जोड र घटाउ गर्न || Able to add and subtract the litre and millilitre related problem
+  4) आफैँ लिटर र मिलिलिटरसम्बन्धी जोड र घटाउ गर्न सकेमा || Able to add and subtract the litre and millilitre related problem by one self
+  3) साथीको सहयोगमा लिटर र मिलिलिटरसम्बन्धी जोड र घटाउ गर्न सकेमा || Able to add and subtract the litre and millilitre related problem with the help of friend
+  2) शिक्षकको आंशिक सहयोगमा लिटर र मिलिलिटरसम्बन्धी जोड र घटाउ गर्न सकेमा || Able to add and subtract the litre and millilitre related problem with the partial help of teacher
+  1) शिक्षकको पूर्ण सहयोगमा लिटर र मिलिलिटरसम्बन्धी जोड र घटाउ गर्न सकेमा || Able to add and subtract the litre and millilitre related problem with the fully help of teacher
+- चित्रग्राफ बनाउन || Able to draw pictograph
+  4) आफैँ सङ्केतको प्रयोग गरी चित्रग्राफ बनाउन सकेमा || Able to draw pictograph by one self
+  3) साथीको सहयोगमा सङ्केतको प्रयोग गरी चित्रग्राफ बनाउन सकेमा || Able to draw pictograph with the help of friend
+  2) शिक्षकको आंशिक सहयोगमा सङ्केतको प्रयोग गरी चित्रग्राफ बनाउन सकेमा || Able to draw pictograph with the partial help of teacher
+  1) शिक्षकको पूर्ण सहयोगमा सङ्केतको प्रयोग गरी चित्रग्राफ बनाउन सकेमा || Able to draw pictograph with the fully help of teacher
+
+# 5 | सङ्ख्याको ज्ञान | Number Sense | 15 | 6
+- पाँच अङ्कसम्मका सङ्ख्याहरूलाई देवनागरी सङ्ख्याङ्कन पद्धतिअनुसार स्थानमान तालिकामा प्रस्तुत गर्न, स्थानमान भन्न र लेख्न || Able to present place value table, to tell and write place value in Devanagari numerals upto 5 digits
+  4) पाँच अङ्कसम्मका सङ्ख्याहरूलाई देवनागरी सङ्ख्याङ्कन पद्धतिअनुसार स्थानमान तालिकामा प्रस्तुत गर्ने, स्थानमान भन्ने र लेख्ने सबै कार्य गर्न सकेमा || Able to present in the place value table, to tell and write place value of the numbers upto 5 digits in Devanagari numeric system
+  3) पाँच अङ्कसम्मका सङ्ख्याहरूलाई देवनागरी सङ्ख्याङ्कन पद्धतिअनुसार स्थानमान तालिकामा प्रस्तुत गर्ने, स्थानमान भन्ने र लेख्नेमध्ये कुनै दुई कार्य गर्न सकेमा || Able to do any two work among to present in the place value table, tell and write place value of the numbers upto 5 digits in Devanagari numeric system
+  2) पाँच अङ्कसम्मका सङ्ख्याहरूलाई देवनागरी सङ्ख्याङ्कन पद्धतिअनुसार स्थानमान तालिकामा प्रस्तुत गर्ने, स्थानमान भन्ने र लेख्नेमध्ये कुनै एक कार्य गर्न सकेमा || Able to do any one work among to present in the place value table, tell and write place value of the numbers upto 5 digits in Devanagari numeric system
+  1) पाँच अङ्कसम्मका सङ्ख्याहरूलाई देवनागरी सङ्ख्याङ्कन पद्धतिअनुसार स्थानमान तालिकामा प्रस्तुत गर्नका लागि स्थानमान तालिका बनाउन सकेमा || Able to prepare place value table to present place value in Devanagari numeric system upto 5 digits
+- १००० सम्मका सङ्ख्याहरूलाई देवनागरी सङ्ख्याङ्कन पद्धतिअनुसार अक्षरमा पढ्न र लेख्न || Able to read and write in Devanagari numerals system upto 1000
+  4) १००० सम्मका सङ्ख्याहरूलाई देवनागरी सङ्ख्याङ्कन पद्धतिअनुसार अक्षरमा पढ्न र लेख्न सकेमा || Able to read and write upto 1000 in Devanagari numeric system
+  3) १००० सम्मका सङ्ख्याहरूलाई देवनागरी सङ्ख्याङ्कन पद्धतिअनुसार अक्षरमा पढ्न वा लेख्न वा ७०० सम्मका सङ्ख्याहरूलाई देवनागरी सङ्ख्याङ्कन पद्धतिअनुसार पढ्न र लेख्न सकेमा || Able to read or write upto 1000 in Devanagari numeric system or able to read and write upto 700 in Devanagari numeric system
+  2) देवनागरी सङ्ख्याङ्कन पद्धतिमा ५०० सम्मका सङ्ख्याहरूलाई पढ्न र लेख्न सकेमा || Able to read and write upto 500 in Devanagari numeric system
+  1) देवनागरी सङ्ख्याङ्कन पद्धतिमा ३०० सम्मका सङ्ख्याहरूलाई देवनागरी सङ्ख्याङ्कन पद्धतिअनुसार पढ्न र लेख्न सकेमा || Able to read and write upto 300 in Devanagari numeric system
+- पाँच अङ्कसम्मका सङ्ख्याहरूलाई हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिअनुसार स्थानमान तालिकामा प्रस्तुत गर्न, स्थानमान भन्न र लेख्न || Able to present place value table, to tell and write place value in Hindu Arabic upto 5 digits
+  4) पाँच अङ्कसम्मका सङ्ख्याहरूलाई हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिअनुसार स्थानमान तालिकामा प्रस्तुत गर्न, स्थानमान भन्न र लेख्न सकेमा || Able to present place value table upto 5 digits, to tell and to write the place value in Hindu Arabic numeric system
+  3) पाँच अङ्कसम्मका सङ्ख्याहरूलाई हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिअनुसार स्थानमान तालिकामा प्रस्तुत गर्न, स्थानमान भन्न वा लेख्न सकेमा || Able to present place value table upto 5 digits, to tell or to write the place value in Hindu Arabic numeric system
+  2) पाँच अङ्कसम्मका सङ्ख्याहरूलाई हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिअनुसार स्थानमान तालिकामा प्रस्तुत गर्न वा स्थानमान भन्न वा लेख्न सकेमा || Able to present place value table upto 5 digits or to tell or to write the place value in Hindu Arabic numeric system
+  1) पाँच अङ्कसम्मका सङ्ख्याहरूलाई हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिअनुसार स्थानमान तालिकामा प्रस्तुत गर्नका लागि स्थानमान तालिका बनाउन सकेमा || Able to prepare place value table to present place value in Hindu Arabic numerals upto 5 digits
+- १००० सम्मका सङ्ख्याहरूलाई हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिअनुसार अक्षरमा पढ्न र लेख्न || Able to read and write in Hindu Arabic numerals system upto 1000
+  4) १००० सम्मका सङ्ख्याहरूलाई हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिअनुसार अक्षरमा पढ्न र लेख्न सकेमा || Able to read and write upto 1000 in Hindu Arabic numeric system
+  3) १००० सम्मका सङ्ख्याहरूलाई हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिअनुसार अक्षरमा पढ्न वा लेख्न वा ७०० सम्मका सङ्ख्याहरूलाई हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिअनुसार पढ्न र लेख्न सकेमा || Able to read or write upto 1000 in Hindu Arabic numeric system or able to read and write upto 700 in Hindu Arabic numeric system
+  2) हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिमा ५०० सम्मका सङ्ख्याहरूलाई पढ्न र लेख्न सकेमा || Able to read and write upto 500 in Hindu Arabic numeric system
+  1) हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिमा ३०० सम्मका सङ्ख्याहरूलाई पढ्न र लेख्न सकेमा || Able to read and write upto 300 in Hindu Arabic numeric system
+- सङ्ख्याको ढाँचा पहिचान गर्न || Able to identify the number pattern
+  4) आफैँ सङ्ख्याको ढाँचा पहिचान गर्न सकेमा || Able to identify the number pattern by one self
+  3) साथीको सहयोगमा सङ्ख्याको ढाँचा पहिचान गर्न सकेमा || Able to identify the number pattern with the help of friend
+  2) शिक्षकको आंशिक सहयोगमा सङ्ख्याको ढाँचा पहिचान गर्न सकेमा || Able to identify the number pattern with the partial help of teacher
+  1) शिक्षकको पूर्ण सहयोगमा सङ्ख्याको ढाँचा पहिचान गर्न सकेमा || Able to identify the number pattern with the fully help of teacher
+- चार अङ्कसम्मका सङ्ख्याहरूलाई सङ्केतहरू =, >, < प्रयोग गरी तुलना गर्न || Able to compare numbers upto 4 digits using =, >, <
+  4) चार अङ्कसम्मका सङ्ख्याहरूलाई सङ्केतहरू =, >, < प्रयोग गरी तुलना गर्न सकेमा || Able to compare the numbers upto 4 digit using the symbols =, >, <
+  3) ७००० सम्मका सङ्ख्याहरूलाई सङ्केतहरू =, >, < प्रयोग गरी तुलना गर्न सकेमा वा साथीको सहयोगमा ९९९९ सम्मका सङ्ख्याहरूलाई सङ्केतहरू =, >, < प्रयोग गरी तुलना गर्न सकेमा || Able to compare the numbers upto 7000 using the symbols =, >, <, or upto 9999 with the help of friend
+  2) आफैँ ५००० सम्मका सङ्ख्याहरूलाई सङ्केतहरू =, >, < प्रयोग गरी तुलना गर्न सकेमा वा शिक्षकको आंशिक सहयोगमा ९९९९ सम्मका सङ्ख्याहरूलाई सङ्केतहरू =, >, < प्रयोग गरी तुलना गर्न सकेमा || Able to compare the numbers upto 5000 using the symbols =, >, < by oneself, or upto 9999 with the partial help of teacher
+  1) आफैँ ३००० सम्मका सङ्ख्याहरूलाई सङ्केतहरू =, >, < प्रयोग गरी तुलना गर्न सकेमा वा शिक्षकको पूर्ण सहयोगमा ९९९९ सम्मका सङ्ख्याहरूलाई सङ्केतहरू =, >, < प्रयोग गरी तुलना गर्न सकेमा || Able to compare the numbers upto 3000 using the symbols =, >, < by oneself, or upto 9999 with the fully help of teacher
+
+# 6 | गणितका आधारभूत क्रिया | Basic Mathematics Operation | 39 | 5
+- योगफल १०,००० सम्म आउने चार अङ्कसम्मका सङ्ख्याहरूको जोड गर्न || Able to add 4 digits numbers so that sum upto 10000
+  4) स्थानमान तालिका र सङ्केत प्रयोग गरेर हात लागी नआउने र तीन स्थानसम्म हात लागी आउने तथा योगफल १०००० सम्म आउने चार अङ्कसम्मका सङ्ख्याहरूको जोड गर्न सकेमा || Able to add 4 digits numbers without carryover and with carryover in up to 3 places, sum upto 10000, by using place value table and symbol
+  3) स्थानमान तालिका र सङ्केत प्रयोग गरेर हात लागी नआउने र दुई स्थानसम्म हात लागी आउने तथा योगफल १०००० सम्म आउने चार अङ्कसम्मका सङ्ख्याहरूको जोड गर्न सकेमा || Able to add 4 digits numbers without carryover and with carryover in up to 2 places, sum upto 10000, by using place value table and symbol
+  2) स्थानमान तालिका र सङ्केत प्रयोग गरेर हात लागी नआउने र एक स्थानसम्म हात लागी आउने तथा योगफल १०००० सम्म आउने चार अङ्कसम्मका सङ्ख्याहरूको जोड गर्न सकेमा || Able to add 4 digits numbers without carryover and with carryover in 1 place, sum upto 10000, by using place value table and symbol
+  1) स्थानमान तालिका र सङ्केत प्रयोग गरेर हात लागी नआउने तथा योगफल १०००० सम्म आउने चार अङ्कसम्मका सङ्ख्याहरूको जोड गर्न सकेमा || Able to add numbers without carryover having sum upto 10000 by using place value table and symbol
+- जोड र घटाउबिचको सम्बन्ध पहिचान गर्न || To identify the relation between add and subtract
+  4) आफैँ जोड र घटाउबिचको सम्बन्ध पहिचान गर्न सकेमा || Able to identify the relation between add and subtract by one self
+  3) साथीको सहयोगमा जोड र घटाउबिचको सम्बन्ध पहिचान गर्न सकेमा || Able to identify the relation between add and subtract with the help of friend
+  2) शिक्षकको आंशिक सहयोगमा जोड र घटाउबिचको सम्बन्ध पहिचान गर्न सकेमा || Able to identify the relation between add and subtract with the partial help of teacher
+  1) शिक्षकको पूर्ण सहयोगमा जोड र घटाउबिचको सम्बन्ध पहिचान गर्न सकेमा || Able to identify the relation between add and subtract with the fully help of teacher
+- चार अङ्कले बनेका सङ्ख्याहरूको घटाउ गर्न || Able to subtract 4 digits numbers
+  4) स्थानमान तालिका र सङ्केत प्रयोग गरेर तीन अङ्कसम्मको सङ्ख्याको सापटी लिन नपर्ने र कुनै तीन स्थानबाट सापटी लिन पर्ने घटाउ गर्न सकेमा || Able to subtract 3 digits numbers without borrowing and with borrowing from 3 places by using place value table and symbol
+  3) स्थानमान तालिका र सङ्केत प्रयोग गरेर तीन अङ्कसम्मको सङ्ख्याको सापटी लिन नपर्ने र कुनै दुई स्थानबाट सापटी लिन पर्ने घटाउ गर्न सकेमा || Able to subtract 3 digits numbers without borrowing and with borrowing from 2 places by using place value table and symbol
+  2) स्थानमान तालिका र सङ्केत प्रयोग गरेर तीन अङ्कसम्मको सङ्ख्याको सापटी लिन नपर्ने र कुनै एक स्थानबाट सापटी लिन पर्ने घटाउ गर्न सकेमा || Able to subtract 3 digits numbers without borrowing and with borrowing from 1 place by using place value table and symbol
+  1) स्थानमान तालिका र सङ्केत प्रयोग गरेर तीन अङ्कसम्मको सङ्ख्याको सापटी लिन नपर्ने घटाउ गर्न सकेमा || Able to subtract 3 digits numbers without borrowing by using place value table and symbol
+- तीन अङ्कसम्मको सङ्ख्यालाई दुई अङ्कसम्मको सङ्ख्याले गुणन गर्न || Able to multiply 3 digits number by 2 digit numbers
+  4) तीन अङ्कको सङ्ख्यालाई दुई अङ्कको सङ्ख्याले गुणन गर्न सकेमा || Able to multiply 3 digits number by 2 digits numbers
+  3) दुई अङ्कको सङ्ख्यालाई दुई अङ्कको सङ्ख्याले गुणन गर्न सकेमा || Able to multiply 2 digits number by 2 digit numbers
+  2) तीन अङ्कसम्मको सङ्ख्यालाई एक अङ्कको सङ्ख्याले गुणन गर्न सकेमा || Able to multiply 3 digits number by 1 digit numbers
+  1) दुई अङ्कसम्मको सङ्ख्यालाई एक अङ्कको सङ्ख्याले गुणन गर्न सकेमा || Able to multiply 2 digits number by 1 digit number
+- तीन अङ्कसम्मको सङ्ख्यालाई १० सम्मको सङ्ख्याले भाग गर्न || Able to divide 3 digits number by upto 10
+  4) तीन अङ्कसम्मको सङ्ख्यालाई १० सम्मको सङ्ख्याले शेष नरहने र शेष रहने भाग गर्न सकेमा || Able to divide 3 digits number by the number upto 10 without remainder as well as remainder
+  3) दुई अङ्कसम्मको सङ्ख्यालाई १० सम्मको सङ्ख्याले शेष नरहने र शेष रहने भाग गर्न सकेमा || Able to divide 2 digits number by the number upto 10 without remainder as well as remainder
+  2) तीन अङ्कसम्मको सङ्ख्यालाई १० सम्मको सङ्ख्याले शेष नरहने भाग गर्न सकेमा || Able to divide 3 digits number by the number upto 10 without remainder
+  1) दुई अङ्कसम्मको सङ्ख्यालाई १० सम्मको सङ्ख्याले शेष नरहने भाग गर्न सकेमा || Able to divide 2 digits number by the number upto 10 without remainder
+
+# 7 | नाप | Measurement | 3 | 1
+- वर्ग कोठाहरूको सङ्ख्या गनेर वर्गाकार वा आयताकार समतलीय सतहको क्षेत्रफल पत्ता लगाउन || To find the area of square or rectangular plane surface by counting the small square room
+  4) आफैँ वर्ग कोठाहरूको सङ्ख्या गनेर वर्गाकार वा आयताकार समतलीय सतहको क्षेत्रफल पत्ता लगाउन सकेमा || Able to find the area of square or rectangular plane surface by counting the small square room without taking support from others
+  3) साथीको सहयोगमा वर्ग कोठाहरूको सङ्ख्या गनेर वर्गाकार वा आयताकार समतलीय सतहको क्षेत्रफल पत्ता लगाउन सकेमा || Able to find the area of square or rectangular plane surface by counting the small square room with the help of friends
+  2) शिक्षकको आंशिक सहयोगमा वर्ग कोठाहरूको सङ्ख्या गनेर वर्गाकार वा आयताकार समतलीय सतहको क्षेत्रफल पत्ता लगाउन सकेमा || Able to find the area of square or rectangular plane surface by counting the small square room with the partial help of teacher
+  1) शिक्षकको पूर्ण सहयोगमा वर्ग कोठाहरूको सङ्ख्या गनेर वर्गाकार वा आयताकार समतलीय सतहको क्षेत्रफल पत्ता लगाउन सकेमा || Able to find the area of square or rectangular plane surface by counting the small square room with the fully help of teacher

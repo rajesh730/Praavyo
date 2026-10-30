@@ -1,0 +1,78 @@
+import { NextResponse } from "next/server";
+import { requireApiSession } from "@/lib/authz";
+import connectDB from "@/lib/db";
+import UserSurfaceSeenState from "@/models/UserSurfaceSeenState";
+import { publishWorkIndicatorsUpdate } from "@/lib/workIndicatorRealtime";
+import { invalidateWorkIndicatorsCache } from "@/lib/workIndicators";
+
+const ALLOWED_SURFACES = new Set([
+  "school.platformEvents",
+  "school.schoolWall",
+  "school.eventInvitations",
+  "school.eventRegistrations",
+  "school.eventResults",
+  "student.schoolWall",
+  "student.schoolMagazine",
+  "student.events",
+  "student.eventResults",
+]);
+
+export async function POST(request) {
+  try {
+    const { session, error: authError } = await requireApiSession();
+    if (authError) return authError;
+    if (!session) {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    let body;
+    try {
+      body = await request.json();
+    } catch (error) {
+      return NextResponse.json(
+        { message: "Invalid JSON in request body" },
+        { status: 400 }
+      );
+    }
+    const surface = String(body.surface || "").trim();
+
+    if (!ALLOWED_SURFACES.has(surface)) {
+      return NextResponse.json(
+        { message: "Unsupported indicator surface" },
+        { status: 400 }
+      );
+    }
+
+    await connectDB();
+    const seenAt = new Date();
+    await UserSurfaceSeenState.updateOne(
+      { user: session.user.id, surface },
+      {
+        $set: {
+          user: session.user.id,
+          role: session.user.role,
+          surface,
+          seenAt,
+        },
+      },
+      { upsert: true }
+    );
+
+    invalidateWorkIndicatorsCache(session.user.id);
+    publishWorkIndicatorsUpdate("indicator-surface-seen", {
+      userId: String(session.user.id),
+      surface,
+    });
+
+    return NextResponse.json({
+      surface,
+      seenAt: seenAt.toISOString(),
+    });
+  } catch (error) {
+    console.error("POST /api/me/work-indicators/seen error:", error);
+    return NextResponse.json(
+      { message: "Failed to update seen state" },
+      { status: 500 }
+    );
+  }
+}

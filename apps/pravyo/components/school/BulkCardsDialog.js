@@ -1,0 +1,247 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import { X as FaTimes, QrCode as FaQrcode, TriangleAlert as FaExclamationTriangle } from "lucide-react";
+
+/**
+ * Generate Parent Access Cards for a whole grade, a selection, or the school.
+ *
+ * A bulk run is **non-destructive**: it gives a Parent ID to guardians who have
+ * none and reprints the existing one for everybody else. Nothing a school does
+ * here can lock a family out, which is why this dialog no longer carries the
+ * warnings it used to — under the old one-time-PIN design every run silently
+ * killed the previous batch of cards.
+ *
+ * Already-connected guardians stay excluded by default, but now purely to save
+ * paper. Including them is a reprint, not a reset.
+ */
+export default function BulkCardsDialog({
+  grades,
+  selectedStudentIds,
+  onClose,
+}) {
+  const [grade, setGrade] = useState("");
+  const [includeActivated, setIncludeActivated] = useState(false);
+  const [preview, setPreview] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [generating, setGenerating] = useState(false);
+  const [error, setError] = useState("");
+
+  const usingSelection = selectedStudentIds?.length > 0;
+
+  const loadPreview = useCallback(async () => {
+    if (usingSelection) {
+      // A selection is already explicit; the count is what the user ticked.
+      setPreview(null);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    setError("");
+    try {
+      const url = new URL(
+        "/api/school/guardians/cards",
+        window.location.origin
+      );
+      if (grade) url.searchParams.set("grade", grade);
+
+      const res = await fetch(url.toString(), { cache: "no-store" });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || "Could not preview");
+      setPreview(json.data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [grade, usingSelection]);
+
+  useEffect(() => {
+    loadPreview();
+  }, [loadPreview]);
+
+  const generate = async () => {
+    setGenerating(true);
+    setError("");
+    try {
+      const res = await fetch("/api/school/guardians/cards", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...(usingSelection
+            ? { studentIds: selectedStudentIds }
+            : grade
+              ? { grade }
+              : { scope: "ALL" }),
+          includeActivated,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || "Could not generate cards");
+
+      if (!json.data.cards?.length) {
+        throw new Error(
+          "No cards to print for this selection. Everyone here is already connected."
+        );
+      }
+
+      // Hand the batch to the print page in memory. PINs must not travel in a
+      // URL, and the print page must not be able to re-issue on refresh.
+      window.sessionStorage.setItem(
+        "pravyo.cardBatch",
+        JSON.stringify(json.data)
+      );
+      window.open("/school/guardians/cards", "_blank", "noopener");
+      onClose();
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  const willPrint = usingSelection
+    ? selectedStudentIds.length
+    : includeActivated
+      ? preview?.total
+      : preview?.needCard;
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Print parent access cards"
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-scrim p-4"
+    >
+      <div className="mt-6 w-full max-w-lg rounded-card bg-surface shadow-pop">
+        <header className="flex items-center gap-3 border-b border-line px-5 py-4">
+          <FaQrcode className="text-brand-strong" />
+          <h2 className="flex-1 font-semibold text-ink">
+            Print Parent Access Cards
+          </h2>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className="btn-icon btn-ghost flex items-center justify-center"
+          >
+            <FaTimes />
+          </button>
+        </header>
+
+        <div className="px-5 py-5">
+          <p className="text-sm leading-relaxed text-muted">
+            Each card carries a QR code and a Parent ID. Print them, cut them
+            up, and hand one to each guardian. They scan it to sign in — no
+            email address, phone number or password needed.
+          </p>
+
+          {usingSelection ? (
+            <p className="mt-4 rounded-card bg-brand-soft px-4 py-3 text-sm font-semibold text-brand-strong">
+              {selectedStudentIds.length} selected student
+              {selectedStudentIds.length === 1 ? "" : "s"}
+            </p>
+          ) : (
+            <div className="mt-4">
+              <label
+                htmlFor="card-grade"
+                className="block text-sm font-semibold text-ink"
+              >
+                Which class?
+              </label>
+              <select
+                id="card-grade"
+                value={grade}
+                onChange={(event) => setGrade(event.target.value)}
+                className="input mt-1.5 w-full"
+              >
+                <option value="">All students</option>
+                {grades.map((g) => (
+                  <option key={g._id} value={g.originalValue || g._id}>
+                    {g.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {loading ? (
+            <div className="mt-5 h-24 animate-pulse rounded-card bg-surface-2" />
+          ) : preview ? (
+            <div className="mt-5 grid grid-cols-2 gap-3">
+              <div className="rounded-card border border-success-line bg-success-soft p-4">
+                <p className="text-2xl font-semibold text-success">
+                  {preview.needCard}
+                </p>
+                <p className="text-xs font-semibold text-success">
+                  need a card
+                </p>
+              </div>
+              <div className="card p-4">
+                <p className="text-2xl font-semibold text-ink">
+                  {preview.alreadyActivated}
+                </p>
+                <p className="text-xs font-semibold text-ink">
+                  already connected
+                </p>
+              </div>
+            </div>
+          ) : null}
+
+          {(preview?.alreadyActivated > 0 || usingSelection) && (
+            <label className="btn btn-secondary mt-4 flex items-start gap-3">
+              <input
+                type="checkbox"
+                checked={includeActivated}
+                onChange={(event) => setIncludeActivated(event.target.checked)}
+                className="mt-0.5 h-5 w-5"
+              />
+              <span className="text-xs leading-relaxed text-muted">
+                <strong className="block">
+                  Also print for guardians who are already signed in
+                </strong>
+                They keep the same Parent ID — this is a spare copy, and it does
+                not affect the card they already have.
+              </span>
+            </label>
+          )}
+
+          {error ? (
+            <p className="mt-4 rounded-card bg-danger-soft px-4 py-3 text-sm text-danger">
+              {error}
+            </p>
+          ) : null}
+
+          <p className="mt-4 flex items-start gap-2 rounded-card bg-brand-soft px-4 py-3 text-xs text-brand-strong">
+            <FaExclamationTriangle className="mt-0.5 shrink-0" />
+            <span>
+              A card is a key to that child&apos;s record. Hand each one to the
+              named guardian rather than sending them home in a pile.
+            </span>
+          </p>
+
+          <div className="mt-5 flex justify-end gap-2">
+            <button
+              type="button"
+              onClick={onClose}
+              className="btn btn-ghost"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={generate}
+              disabled={generating || loading || willPrint === 0}
+              className="btn btn-primary"
+            >
+              {generating
+                ? "Generating…"
+                : `Generate ${willPrint ?? 0} card${willPrint === 1 ? "" : "s"}`}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

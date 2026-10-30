@@ -1,0 +1,15 @@
+{
+  "name": "@pravyo/db",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The single MongoDB connection and every Mongoose model, shared by both apps.",
+  "exports": {
+    ".": "./connect.js",
+    "./models/*": "./models/*.js",
+    "./models/cas/*": "./models/cas/*.js",
+    "./*": "./*.js"
+  },
+  "dependencies": {
+    "mongoose": "^9.0.0"
+  }
+}

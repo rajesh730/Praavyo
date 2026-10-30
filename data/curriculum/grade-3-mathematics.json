@@ -1,0 +1,219 @@
+{
+  "grade": "Grade 3",
+  "source": "मेरो गणित — विद्यार्थी मूल्याङ्कन अभिलेख कार्यसञ्चयिका, कक्षा ३ (Asmita Publication)",
+  "sourceNote": "Transcribed from the scanned workbook. Each outcome carries the book's four Indicator descriptors, level 1 to level 4. The book's cumulative assessment record states 37 learning outcomes across 7 themes: My Daily Life 3, Our Community 6, My Creation 6, Communication Technology and Market 10, Number Sense 6, Basic Mathematics Operation 5, Measurement 1. Verify each theme against that table before treating this as authoritative.",
+  "transcription": {
+    "status": "IN_PROGRESS",
+    "themesComplete": ["T1", "T2", "T3"],
+    "themesRemaining": ["T4", "T5", "T6", "T7"],
+    "outcomesTranscribed": 15,
+    "outcomesExpected": 37
+  },
+  "subjects": [
+    {
+      "code": "MATH",
+      "titleEn": "Mathematics",
+      "titleNe": "मेरो गणित",
+      "creditHours": 4,
+      "outcomes": [
+        {
+          "code": "MATH-T1-01",
+          "themeEn": "My Daily Life",
+          "themeNe": "मेरो दैनिक जीवन",
+          "titleEn": "Able to tell and write the time in hour, minute and second watching the clock",
+          "titleNe": "घडी हेरी घण्टा, मिनेट र सेकेण्डमा समय भन्न र लेख्न",
+          "descriptors": [
+            { "level": 4, "textEn": "Able to tell and write the time in hour, minute and second watching the clock one self", "textNe": "आफैँ घडी हेरी घण्टा, मिनेट र सेकेण्डमा समय भन्न र लेख्न सकेमा" },
+            { "level": 3, "textEn": "Able to tell and write the time in hour, minute and second watching the clock with the help of friend", "textNe": "साथीको सहयोगमा घडी हेरी घण्टा, मिनेट र सेकेण्डमा समय भन्न र लेख्न सकेमा" },
+            { "level": 2, "textEn": "Able to tell and write the time in hour, minute and second watching the clock with the partial help of teacher", "textNe": "शिक्षकको आंशिक सहयोगमा घडी हेरी घण्टा, मिनेट र सेकेण्डमा समय भन्न र लेख्न सकेमा" },
+            { "level": 1, "textEn": "Able to tell and write the time in hour, minute and second watching the clock with fully help of teacher", "textNe": "शिक्षकको पूर्ण सहयोगमा घडी हेरी घण्टा, मिनेट र सेकेण्डमा समय भन्न र लेख्न सकेमा" }
+          ]
+        },
+        {
+          "code": "MATH-T1-02",
+          "themeEn": "My Daily Life",
+          "themeNe": "मेरो दैनिक जीवन",
+          "titleEn": "Able to tell and write the relation among the units (like year, month, week, day, hour, minute, second) of time",
+          "titleNe": "समयका एकाइहरूबिचको सम्बन्ध भन्न र लेख्न (वर्ष, महिना, हप्ता, दिन, घण्टा, मिनेट र सेकेण्ड)",
+          "descriptors": [
+            { "level": 4, "textEn": "Able to tell and write the relation between year and month, month and week, week and day, day and hour, hour and minute and minute and second", "textNe": "वर्ष र महिना, महिना र हप्ता, हप्ता र दिन, दिन र घण्टा, घण्टा र मिनेट, मिनेट र सेकेण्डबिचको सम्बन्ध भन्न र लेख्न सकेमा" },
+            { "level": 3, "textEn": "Able to tell and write any four relation between year and month, month and week, week and day, day and hour, hour and minute and minute and second", "textNe": "वर्ष र महिना, महिना र हप्ता, हप्ता र दिन, दिन र घण्टा, घण्टा र मिनेट, मिनेट र सेकेण्डबिचको सम्बन्ध मध्ये कुनै चारओटा सम्बन्ध भन्न र लेख्न सकेमा" },
+            { "level": 2, "textEn": "Able to tell and write any three relation between year and month, month and week, week and day, day and hour, hour and minute and minute and second", "textNe": "वर्ष र महिना, महिना र हप्ता, हप्ता र दिन, दिन र घण्टा, घण्टा र मिनेट, मिनेट र सेकेण्डबिचको सम्बन्ध मध्ये कुनै तीनओटा सम्बन्ध भन्न र लेख्न सकेमा" },
+            { "level": 1, "textEn": "Able to tell and write any two relation between year and month, month and week, week and day, day and hour, hour and minute and minute and second", "textNe": "वर्ष र महिना, महिना र हप्ता, हप्ता र दिन, दिन र घण्टा, घण्टा र मिनेट, मिनेट र सेकेण्डबिचको सम्बन्ध मध्ये कुनै दुईओटा सम्बन्ध भन्न र लेख्न सकेमा" }
+          ]
+        },
+        {
+          "code": "MATH-T1-03",
+          "themeEn": "My Daily Life",
+          "themeNe": "मेरो दैनिक जीवन",
+          "titleEn": "To find time taken to do any work",
+          "titleNe": "कुनै काममा लागेको समय पत्ता लगाउन",
+          "descriptors": [
+            { "level": 4, "textEn": "To find time taken to do any work by one self", "textNe": "आफैँ कुनै काममा लागेको समय पत्ता लगाउन सकेमा" },
+            { "level": 3, "textEn": "To find time taken to do any work with the help of friends", "textNe": "साथीको सहयोगमा कुनै काममा लागेको समय पत्ता लगाउन सकेमा" },
+            { "level": 2, "textEn": "To find time taken to do any work with partial help of teacher", "textNe": "शिक्षकको आंशिक सहयोगमा कुनै काममा लागेको समय पत्ता लगाउन सकेमा" },
+            { "level": 1, "textEn": "To find time taken to do any work with fully help of teacher", "textNe": "शिक्षकको पूर्ण सहयोगमा कुनै काममा लागेको समय पत्ता लगाउन सकेमा" }
+          ]
+        },
+
+        {
+          "code": "MATH-T2-01",
+          "themeEn": "Our Community",
+          "themeNe": "हाम्रो समुदाय",
+          "titleEn": "To read and write the 4 digit number in ascending or descending order",
+          "titleNe": "चार अङ्कसम्मका सङ्ख्याहरूलाई बढ्दो वा घट्दो क्रममा पढ्न र लेख्न",
+          "descriptors": [
+            { "level": 4, "textEn": "To read and write the numbers according to ascending or descending order by comparing given number upto 4 digits", "textNe": "चार अङ्कसम्मका सङ्ख्याहरूलाई तुलना गरी बढ्दो वा घट्दो क्रममा पढ्न र लेख्न सकेमा" },
+            { "level": 3, "textEn": "To read and write the numbers according to ascending or descending order by comparing given number upto 7000 or to read and write the number according to asceding or descending order by comparing the given number upto 9999", "textNe": "७००० सम्मका सङ्ख्याहरूलाई तुलना गरी बढ्दो वा घट्दो क्रममा पढ्न र लेख्न सकेमा वा साथीको सहयोगमा ९९९९ सम्मका सङ्ख्याहरूलाई तुलना गरी बढ्दो वा घट्दो क्रममा पढ्न र लेख्न सकेमा" },
+            { "level": 2, "textEn": "To read and write the numbers according to ascending or descending order by comparing given number upto 5000 or to read and write the number according to asceding or descending order by comparing the given number upto 9999", "textNe": "आफैँ ५००० सम्मका सङ्ख्याहरूलाई तुलना गरी बढ्दो वा घट्दो क्रममा पढ्न र लेख्न सकेमा वा शिक्षकको आंशिक सहयोगमा ९९९९ सम्मका सङ्ख्याहरूलाई तुलना गरी बढ्दो वा घट्दो क्रममा पढ्न र लेख्न सकेमा" },
+            { "level": 1, "textEn": "To read and write the numbers according to ascending or descending order by comparing given number upto 3000 or to read and write the number according to asceding or descending order by comparing the given number upto 9999", "textNe": "आफैँ ३००० सम्मका सङ्ख्याहरूलाई तुलना गरी बढ्दो वा घट्दो क्रममा पढ्न र लेख्न सकेमा वा शिक्षकको पूर्ण सहयोगमा ९९९९ सम्मका सङ्ख्याहरूलाई तुलना गरी बढ्दो वा घट्दो क्रममा पढ्न र लेख्न सकेमा" }
+          ]
+        },
+        {
+          "code": "MATH-T2-02",
+          "themeEn": "Our Community",
+          "themeNe": "हाम्रो समुदाय",
+          "titleEn": "To read and write local numerals system upto 20",
+          "titleNe": "स्थानीय सङ्ख्याङ्कन पद्धतिमा २० सम्म पढ्न र लेख्न",
+          "descriptors": [
+            { "level": 4, "textEn": "Able to read and write local numerals system upto 20", "textNe": "स्थानीय सङ्ख्याङ्कन पद्धतिमा २० सम्म पढ्न र लेख्न सकेमा" },
+            { "level": 3, "textEn": "Able to read or write local numeral system upto 20 or read and write upto 15", "textNe": "स्थानीय सङ्ख्याङ्कन पद्धतिमा २० सम्म पढ्न वा लेख्न वा पन्ध्रसम्म पढ्न र लेख्न सकेमा" },
+            { "level": 2, "textEn": "Able to read or write local numeral system upto 15 or read and write upto 10", "textNe": "स्थानीय सङ्ख्याङ्कन पद्धतिमा १५ सम्म पढ्न वा लेख्न वा दशसम्म पढ्न र लेख्न सकेमा" },
+            { "level": 1, "textEn": "Able to read or write local numeral system upto 10 or read and write upto 5", "textNe": "स्थानीय सङ्ख्याङ्कन पद्धतिमा दशसम्म पढ्न वा लेख्न वा पाँचसम्म पढ्न र लेख्न सकेमा" }
+          ]
+        },
+        {
+          "code": "MATH-T2-03",
+          "themeEn": "Our Community",
+          "themeNe": "हाम्रो समुदाय",
+          "titleEn": "Able to write half, one fourth, three fourth, one third and two third interms of fraction",
+          "titleNe": "आधा, एक चौथाइ, तीन चौथाइ, एक तिहाइ र दुई तिहाइलाई भिन्नको रूपमा लेख्न",
+          "descriptors": [
+            { "level": 4, "textEn": "Able to write half, one fourth, three fourth, one third and two third interms of fraction", "textNe": "आधा, एक चौथाइ, तीन चौथाइ, एक तिहाइ र दुई तिहाइलाई भिन्नको रूपमा लेख्न सकेमा" },
+            { "level": 3, "textEn": "Able to write any four amount half, one fourth, three fourth, one third and two third interms of fraction", "textNe": "आधा, एक चौथाइ, तीन चौथाइ, एक तिहाइ र दुई तिहाइमध्ये कुनै चारओटालाई भिन्नको रूपमा लेख्न सकेमा" },
+            { "level": 2, "textEn": "Able to write any three amount half, one fourth, three fourth, one third and two third interms of fraction", "textNe": "आधा, एक चौथाइ, तीन चौथाइ, एक तिहाइ र दुई तिहाइमध्ये कुनै तीनओटालाई भिन्नको रूपमा लेख्न सकेमा" },
+            { "level": 1, "textEn": "Able to write any two amount half, one fourth, three fourth, one third and two third interms of fraction", "textNe": "आधा, एक चौथाइ, तीन चौथाइ, एक तिहाइ र दुई तिहाइमध्ये कुनै एउटालाई भिन्नको रूपमा लेख्न सकेमा" }
+          ]
+        },
+        {
+          "code": "MATH-T2-04",
+          "themeEn": "Our Community",
+          "themeNe": "हाम्रो समुदाय",
+          "titleEn": "To demonstrate the fraction 1/2, 1/4, 3/4, 1/3, 2/3 using materials",
+          "titleNe": "भिन्नहरू १/२, १/४, ३/४, १/३, २/३ लाई सामग्री प्रयोग गरी देखाउन",
+          "descriptors": [
+            { "level": 4, "textEn": "To demonstrate the fraction 1/2, 1/4, 3/4, 1/3, 2/3 using materials", "textNe": "भिन्नहरू १/२, १/४, ३/४, १/३, २/३ लाई सामग्री प्रयोग गरी देखाउन सकेमा" },
+            { "level": 3, "textEn": "To demonstrate any four given fraction 1/2, 1/4, 3/4, 1/3, 2/3 using materials", "textNe": "भिन्नहरू १/२, १/४, ३/४, १/३, २/३ मध्ये कुनै चारओटालाई सामग्री प्रयोग गरी देखाउन सकेमा" },
+            { "level": 2, "textEn": "To demonstrate any three given fraction 1/2, 1/4, 3/4, 1/3, 2/3 using materials", "textNe": "भिन्नहरू १/२, १/४, ३/४, १/३, २/३ मध्ये कुनै तीनओटालाई सामग्री प्रयोग गरी देखाउन सकेमा" },
+            { "level": 1, "textEn": "To demonstrate any two given fraction 1/2, 1/4, 3/4, 1/3, 2/3 using materials", "textNe": "भिन्नहरू १/२, १/४, ३/४, १/३, २/३ मध्ये कुनै दुईओटालाई सामग्री प्रयोग गरी देखाउन सकेमा" }
+          ]
+        },
+        {
+          "code": "MATH-T2-05",
+          "themeEn": "Our Community",
+          "themeNe": "हाम्रो समुदाय",
+          "titleEn": "To compare any two fraction of among above fraction by semi-concrete",
+          "titleNe": "चित्रद्वारा माथिका भिन्नहरूमध्ये कुनै दुईओटा भिन्नहरू तुलना गर्न",
+          "descriptors": [
+            { "level": 4, "textEn": "To compare any two fraction of among above fraction by using semi-concrete material by one self", "textNe": "आफैँ चित्रद्वारा माथिका भिन्नहरूमध्ये कुनै दुईओटा भिन्नहरू तुलना गर्न सकेमा" },
+            { "level": 3, "textEn": "To compare any two fraction of among above fraction by using semi-concrete material by with the help of friend", "textNe": "साथीको सहयोगमा चित्रद्वारा माथिका भिन्नहरूमध्ये कुनै दुईओटा भिन्नहरू तुलना गर्न सकेमा" },
+            { "level": 2, "textEn": "To compare any two fraction of among above fraction by using semi-concrete material by with the partial help of teacher", "textNe": "शिक्षकको आंशिक सहयोगमा चित्रद्वारा माथिका भिन्नहरूमध्ये कुनै दुईओटा भिन्नहरू तुलना गर्न सकेमा" },
+            { "level": 1, "textEn": "To compare any two fraction of among above fraction by using semi-concrete material by with the fully help of teacher", "textNe": "शिक्षकको पूर्ण सहयोगमा चित्रद्वारा माथिका भिन्नहरूमध्ये कुनै दुईओटा भिन्नहरू तुलना गर्न सकेमा" }
+          ]
+        },
+        {
+          "code": "MATH-T2-06",
+          "themeEn": "Our Community",
+          "themeNe": "हाम्रो समुदाय",
+          "titleEn": "Estimate, measure and prove the length of different objects in the meter and centimeter",
+          "titleNe": "विभिन्न वस्तुको लम्बाइ मिटर वा सेन्टिमिटर स्केलमा अनुमान गर्न, नाप्न र पुष्टि गर्न",
+          "descriptors": [
+            { "level": 4, "textEn": "Estimate, measure and prove the length of different objects in the meter and centimeter", "textNe": "विभिन्न वस्तुको लम्बाइ मिटर वा सेन्टिमिटर स्केलमा अनुमान गर्न, नाप्न र पुष्टि गर्न सकेमा" },
+            { "level": 3, "textEn": "Estimate, measure and prove the length of different objects in the meter or centimeter", "textNe": "विभिन्न वस्तुको लम्बाइ मिटर वा सेन्टिमिटर स्केलमा अनुमान गर्न र नाप्न वा नाप्न र पुष्टि गर्न सकेमा" },
+            { "level": 2, "textEn": "Estimate or measure and prove the length of different objects in the meter and centimeter", "textNe": "विभिन्न वस्तुको लम्बाइ मिटर वा सेन्टिमिटर स्केलमा अनुमान गर्न वा नाप्न सकेमा" },
+            { "level": 1, "textEn": "Estimate, measure and prove the length of different objects in the meter and centimetre with the help of teacher", "textNe": "शिक्षकको सहयोगमा विभिन्न वस्तुको लम्बाइ मिटर वा सेन्टिमिटर स्केलमा अनुमान गर्न, नाप्न र पुष्टि गर्न सकेमा" }
+          ]
+        },
+
+        {
+          "code": "MATH-T3-01",
+          "themeEn": "My Creation",
+          "themeNe": "मेरो सिर्जना",
+          "titleEn": "Able to measure the length of line segment or edge of given object and draw line segment of given measurement",
+          "titleNe": "दिइएको वस्तुको किनारा वा रेखाखण्डको नाप लिन र दिइएको नापको रेखाखण्ड खिच्न",
+          "descriptors": [
+            { "level": 4, "textEn": "Able to measure the length of line segment or edge of given object and draw line segment of given measurement", "textNe": "दिइएको वस्तुको किनारा वा रेखाखण्डको नाप लिन र दिइएको नापको रेखाखण्ड खिच्न सकेमा" },
+            { "level": 3, "textEn": "Able to measure the length of line segment or edge of given object or draw line segment of given measurement or able to measure the length of line segment or edge of given object and draw line segment of given measurement with the help of friend", "textNe": "दिइएको वस्तुको किनारा वा रेखाखण्डको नाप लिन वा दिइएको नापको रेखाखण्ड खिच्न सकेमा वा साथीको सहयोगमा दिइएको वस्तुको किनारा वा रेखाखण्डको नाप लिन र दिइएको नापको रेखाखण्ड खिच्न सकेमा" },
+            { "level": 2, "textEn": "Able to measure the length of line segment or edge of given object or draw line segment of given measurement with the partial help of teacher", "textNe": "शिक्षकको आंशिक सहयोगमा दिइएको वस्तुको किनारा वा रेखाखण्डको नाप लिन वा दिइएको नापको रेखाखण्ड खिच्न सकेमा" },
+            { "level": 1, "textEn": "Able to measure the length of line segment or edge of given object or draw line segment of given measurement with the fully help of teacher", "textNe": "शिक्षकको पूर्ण सहयोगमा दिइएको वस्तुको किनारा वा रेखाखण्डको नाप लिन र दिइएको नापको रेखाखण्ड खिच्न सकेमा" }
+          ]
+        },
+        {
+          "code": "MATH-T3-02",
+          "themeEn": "My Creation",
+          "themeNe": "मेरो सिर्जना",
+          "titleEn": "To show the angles in solid surface",
+          "titleNe": "वरपर पाइने ठोस वस्तुमा बनेका कोणहरू देखाउन",
+          "descriptors": [
+            { "level": 4, "textEn": "To show the angles in solid surface by one self", "textNe": "आफैँ वरपर पाइने ठोस वस्तुमा बनेका कोणहरू देखाउन सकेमा" },
+            { "level": 3, "textEn": "To show the angles in solid surface with the help of friend", "textNe": "साथीको सहयोगमा वरपर पाइने ठोस वस्तुमा बनेका कोणहरू देखाउन सकेमा" },
+            { "level": 2, "textEn": "To show the angles in solid surface with partial help of teacher", "textNe": "शिक्षकको आंशिक सहयोगमा वरपर पाइने ठोस वस्तुमा बनेका कोणहरू देखाउन सकेमा" },
+            { "level": 1, "textEn": "To show the angles in solid surface with fully help of teacher", "textNe": "शिक्षकको पूर्ण सहयोगमा वरपर पाइने ठोस वस्तुमा बनेका कोणहरू देखाउन सकेमा" }
+          ]
+        },
+        {
+          "code": "MATH-T3-03",
+          "themeEn": "My Creation",
+          "themeNe": "मेरो सिर्जना",
+          "titleEn": "Able to draw angle by using scale, to write name and compare",
+          "titleNe": "स्केलको प्रयोग गरी कोणहरू खिच्न, नाम लेख्न र तुलना गर्न",
+          "descriptors": [
+            { "level": 4, "textEn": "Able to draw angles, write the name of the angles and compare these angles in size", "textNe": "स्केलको प्रयोग गरी कोणहरू खिच्न, नाम लेख्न र सानो ठुलो छुट्याउन सकेमा" },
+            { "level": 3, "textEn": "Able to draw angles and write the name of the angles or compare these angles in size", "textNe": "स्केलको प्रयोग गरी कोणहरू खिच्न र नाम लेख्न वा सानो ठुलो छुट्याउन सकेमा" },
+            { "level": 2, "textEn": "Able to draw angles or write the name of the angles or compare these angles in size", "textNe": "स्केलको प्रयोग गरी कोणहरू खिच्न वा नाम लेख्न वा सानो ठुलो छुट्याउन सकेमा" },
+            { "level": 1, "textEn": "Able to draw angles, write the name of the angles and compare these angles in size with the help of teacher", "textNe": "शिक्षकको सहयोगमा स्केलको प्रयोग गरी कोणहरू खिच्न, नाम लेख्न र सानो ठुलो छुट्याउन सकेमा" }
+          ]
+        },
+        {
+          "code": "MATH-T3-04",
+          "themeEn": "My Creation",
+          "themeNe": "मेरो सिर्जना",
+          "titleEn": "To identify the right angle",
+          "titleNe": "समकोण पहिचान गर्न",
+          "descriptors": [
+            { "level": 4, "textEn": "Able to identify the right angle by one self", "textNe": "आफैँ समकोण पहिचान गर्न सकेमा" },
+            { "level": 3, "textEn": "Able to identify the right angle with the help of friend", "textNe": "साथीको सहयोगमा समकोण पहिचान गर्न सकेमा" },
+            { "level": 2, "textEn": "Able to identify the right angle with the partial help of teacher", "textNe": "शिक्षकको आंशिक सहयोगमा समकोण पहिचान गर्न सकेमा" },
+            { "level": 1, "textEn": "Able to identify the right angle with the fully help of teacher", "textNe": "शिक्षकको पूर्ण सहयोगमा समकोण पहिचान गर्न सकेमा" }
+          ]
+        },
+        {
+          "code": "MATH-T3-05",
+          "themeEn": "My Creation",
+          "themeNe": "मेरो सिर्जना",
+          "titleEn": "To draw and to write its name of triangle and quadrilateral by using pencil and straight edge object",
+          "titleNe": "सिधा किनारा भएको वस्तु र सिसाकलम प्रयोग गरी त्रिभुज र चतुर्भुज खिच्न र तिनको नाम लेख्न",
+          "descriptors": [
+            { "level": 4, "textEn": "Able to draw and write the name of triangle and quadrilateral by using straight edge object and pencil", "textNe": "सिधा किनारा भएको वस्तु र सिसाकलम प्रयोग गरी त्रिभुज र चतुर्भुज खिच्न र तिनको नाम लेख्न सकेमा" },
+            { "level": 3, "textEn": "Able to draw the triangle or quadrilateral and write the name of it or to draw both triangle and quadrilateral but do not able to write the name or do not draw both triangle and quadrilateral but do not able to write the name", "textNe": "त्रिभुज वा चतुर्भुज खिच्न र तिनको नाम लेख्न सकेमा वा दुवै खिच्न सकी नाम लेख्न नसकेमा" },
+            { "level": 2, "textEn": "Able to draw the triangle or quadrilateral by using straight edge object and pencil", "textNe": "सिधा किनारा भएको वस्तु र सिसाकलम प्रयोग गरी त्रिभुज वा चतुर्भुज खिच्न सकेमा" },
+            { "level": 1, "textEn": "Able to draw the triangle or quadrilateral or to give the name of it with the fully help of teacher", "textNe": "शिक्षकको पूर्ण सहयोगमा त्रिभुज वा चतुर्भुज खिच्न वा तिनको नाम लेख्न सकेमा" }
+          ]
+        },
+        {
+          "code": "MATH-T3-06",
+          "themeEn": "My Creation",
+          "themeNe": "मेरो सिर्जना",
+          "titleEn": "To identify the rectangular and square surface",
+          "titleNe": "आयताकार र वर्गाकार सतह पहिचान गर्न",
+          "descriptors": [
+            { "level": 4, "textEn": "Able to identify the rectangular and square surface", "textNe": "आयताकार र वर्गाकार सतह पहिचान गर्न सकेमा" },
+            { "level": 3, "textEn": "Able to identify the rectangular or square surface", "textNe": "आयताकार वा वर्गाकार सतह पहिचान गर्न सकेमा" },
+            { "level": 2, "textEn": "Able to identify the rectangular or square surface with the help of friend", "textNe": "साथीको सहयोगमा आयताकार र वर्गाकार सतह पहिचान गर्न सकेमा" },
+            { "level": 1, "textEn": "Able to identify the rectangular or square surface with the fully help of teacher", "textNe": "शिक्षकको पूर्ण सहयोगमा आयताकार र वर्गाकार सतह पहिचान गर्न सकेमा" }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,149 @@
+import { NextResponse } from "next/server";
+import { requireApiSession } from "@/lib/authz";
+import connectDB from "@/lib/db";
+import Event from "@/models/Event";
+import Achievement from "@/models/Achievement";
+import { canManageEventRounds } from "@/lib/eventRoundAccess";
+import { buildCertificateCode, buildCertificatePath } from "@/lib/results";
+
+export async function PATCH(req, props) {
+  try {
+    const { session, error: authError } = await requireApiSession();
+    if (authError) return authError;
+    if (
+      !session ||
+      !["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER"].includes(session.user.role)
+    ) {
+      return NextResponse.json(
+        { success: false, message: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const params = await props.params;
+    await connectDB();
+
+    const [event, achievement] = await Promise.all([
+      Event.findById(params.id),
+      Achievement.findOne({ _id: params.achievementId, event: params.id }),
+    ]);
+
+    if (!event) {
+      return NextResponse.json(
+        { success: false, message: "Event not found" },
+        { status: 404 }
+      );
+    }
+    if (!canManageEventRounds(session, event)) {
+      return NextResponse.json(
+        { success: false, message: "Forbidden" },
+        { status: 403 }
+      );
+    }
+    if (!achievement) {
+      return NextResponse.json(
+        { success: false, message: "Certificate record not found" },
+        { status: 404 }
+      );
+    }
+
+    const body = await req.json();
+    const action = String(body.action || "save").toLowerCase();
+    const isPlatformEvent = String(event.eventScope || "").toUpperCase() === "PLATFORM";
+    const isPublishingAction = [
+      "publish",
+      "issue",
+      "send_to_school",
+      "publish_public",
+    ].includes(action);
+
+    if (isPublishingAction && body.confirmPublish !== true) {
+      return NextResponse.json(
+        {
+          success: false,
+          message:
+            "Certificate publishing requires explicit organizer confirmation.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (action === "publish_public" && !isPlatformEvent) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "School event results are only visible to the school and assigned students.",
+        },
+        { status: 400 }
+      );
+    }
+
+    if (body.certificateRecipientName !== undefined) {
+      achievement.certificateRecipientName = String(
+        body.certificateRecipientName || ""
+      ).trim();
+    }
+
+    if (!achievement.certificateCode) {
+      achievement.certificateCode = buildCertificateCode(achievement._id, new Date());
+    }
+
+    if (action === "publish" || action === "issue" || action === "send_to_school") {
+      achievement.certificateIssuedAt = new Date();
+      achievement.certificateUrl = buildCertificatePath(achievement._id);
+      achievement.certificateState = "CERTIFICATE_ACTIVE";
+      achievement.schoolSharedAt = new Date();
+      achievement.isPublic = isPlatformEvent && Boolean(event.publicResultsEnabled);
+      event.resultsPublished = true;
+      if (!isPlatformEvent) {
+        event.publicResultsEnabled = false;
+      }
+      event.eventWorkflowStatus = "RESULTS_PUBLISHED";
+      await event.save();
+    }
+
+    if (action === "draft") {
+      achievement.certificateIssuedAt = null;
+      achievement.certificateUrl = "";
+      achievement.certificateState = "CERTIFICATE_PREVIEW";
+      achievement.schoolSharedAt = null;
+      achievement.isPublic = false;
+    }
+
+    if (action === "publish_public") {
+      if (!achievement.certificateIssuedAt) {
+        achievement.certificateIssuedAt = new Date();
+        achievement.certificateUrl = buildCertificatePath(achievement._id);
+      }
+      achievement.certificateState = "CERTIFICATE_ACTIVE";
+      achievement.isPublic = true;
+      event.resultsPublished = true;
+      event.publicResultsEnabled = true;
+      event.eventWorkflowStatus = "RESULTS_PUBLISHED";
+      await event.save();
+    }
+
+    await achievement.save();
+
+    return NextResponse.json({
+      success: true,
+      data: achievement,
+      message:
+        action === "send_to_school"
+          ? "Certificate sent to the corresponding school dashboard"
+          : action === "publish" || action === "issue"
+          ? "Certificate issued"
+          : action === "publish_public"
+          ? "Certificate published publicly"
+          : action === "draft"
+          ? "Certificate moved to draft"
+          : "Certificate updated",
+    });
+  } catch (error) {
+    console.error("Certificate Update Error:", error);
+    return NextResponse.json(
+      { success: false, message: "Failed to update certificate" },
+      { status: 500 }
+    );
+  }
+}

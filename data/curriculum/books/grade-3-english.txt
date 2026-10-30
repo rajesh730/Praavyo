@@ -1,0 +1,302 @@
+@grade Grade 3
+@subject ENG | English | मेरो अङ्ग्रेजी | 4
+@source grade3.pdf — My English, Student's Evaluation Record Portfolio, Grade 3 (Asmita Publication), pages 22–32
+@note Working hours are each theme page's working hours plus its assessment and project work hours, matching the Cumulative Assessment Record (page 32), which totals 128 hours (4 credit hours).
+@note Theme 4 (Our Environment) prints "Total number of learning outcomes = 22" but lists 24 rows (5 Listening, 5 Speaking, 6 Reading, 8 Writing); all 24 are kept.
+@note Theme 9 (Hobbies and Interests) prints "Total number of learning outcomes = 26" but lists 24 rows (5 Listening, 4 Speaking, 6 Reading, 9 Writing); the 24 printed rows are kept and nothing is invented.
+
+# 1 | | Me and My Family | 18 | 26
+@area Listening
+- [l-rhyme] Recognize, identify and produce rhyming words. e.g. near → here.
+- [l-resp] Listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally.
+- [l-follow] Follow the message in short simple conversations.
+- [l-key] Identify key information from a short speech or conversation.
+- [l-find] Find out specific information (names, dates, time, etc) from different kinds of simple spoken language.
+- [l-tasks] Perform a variety of listening comprehension tasks.
+- [l-songs] Listen and comprehend a range of songs and stories with a variety of visual clues.
+@area Speaking
+- [s-produce] Produce words, phrases, simple sentences with intelligible pronunciation.
+- [s-conv] Participate in short conversations.
+- [s-sing] Sing or recite a song/chant by listening to the teacher or an audio.
+@area Reading
+- [r-silent] Recognise silent letters, e.g. e (home), b (comb), k (knee), gh (right), w (write), t (often), l (walk), etc.
+- [r-multi] Read multi-syllabic words composed of roots, prefixes, and suffixes.
+- [r-abbr] Read common abbreviations (e.g., Dr., Mr., AM, and PM).
+- [r-rhymes] Perform rhymes and chants with appropriate rhyme and rhythm.
+- [r-retrieve] Read short texts silently and retrieve specific information (name, number, etc.).
+- [r-guess] Guess the meaning of unfamiliar words from contexts.
+- [r-dict] Consult dictionary to find out the meaning of words.
+- [r-para] Retrieve required information from para-orthographic texts such as charts, tables, graphs and maps.
+- [r-poems] Read poems and short stories for pleasure.
+@area Writing
+- [w-caps] Use capital letters, full stops and question marks correctly.
+- [w-coord] Connect sentences using simple coordinators (e.g. and, but, because).
+- [w-para] Write in a simple paragraph about oneself, people, places and things.
+- [w-spell] Use correct spelling of words.
+- [w-verbs] Use present (with/without -s/es) and regular past (-ed) forms of verbs
+- [w-mean] Use words in meaningful sentences.
+- [w-hand] Demonstrate good handwriting skills.
+
+# 2 | | My Daily Life | 17 | 23
+@area Listening
+- [l-rhyme]
+- [l-comp] Comprehend words and simple expressions.
+- [l-resp]
+- [l-key]
+- [l-find]
+- [l-part] Listen in order to participate in a variety of short conversations.
+- [l-tasks]
+@area Speaking
+- [s-produce]
+- [s-ask] Ask and answer a range of questions.
+- [s-talk] Talk about present, past and future events.
+- [s-sing]
+@area Reading
+- [r-rhymes]
+- [r-retrieve]
+- [r-guess]
+- [r-poems]
+@area Writing
+- [w-caps]
+- [w-coord]
+- [w-stories] Write simple stories through completion, matching with pictures or ordering.
+- [w-spell]
+- [w-plural] Use regular and irregular plural nouns.
+- [w-alpha] Arrange words in alphabetical order.
+- [w-mean]
+- [w-hand]
+
+# 3 | | Our School | 17 | 22
+@area Listening
+- [l-comp]
+- [l-resp]
+- [l-find]
+- [l-tasks]
+- [l-songs]
+@area Speaking
+- [s-produce]
+- [s-conv]
+- [s-describe] Describe people, objects and events using adjectives, adverbs and prepositions.
+- [s-talk]
+- [s-sing]
+@area Reading
+- [r-multi]
+- [r-abbr]
+- [r-rhymes]
+- [r-guess]
+- [r-poems]
+@area Writing
+- [w-coord]
+- [w-para]
+- [w-spell]
+- [w-mean]
+- [w-compound] Make compound words e.g. roundtable, playground, etc.
+- [w-msg] Write very short simple messages.
+- [w-hand]
+
+# 4 | | Our Environment | 18 | 24
+@area Listening
+- [l-resp]
+- [l-find]
+- [l-part]
+- [l-tasks]
+- [l-songs]
+@area Speaking
+- [s-produce]
+- [s-conv]
+- [s-ask]
+- [s-describe]
+- [s-sing]
+@area Reading
+- [r-multi]
+- [r-rhymes]
+- [r-main] Read short texts silently and find out the main ideas and supporting details of the text.
+- [r-guess]
+- [r-dict]
+- [r-poems]
+@area Writing
+- [w-caps]
+- [w-coord]
+- [w-spell]
+- [w-plural]
+- [w-mean]
+- [w-compound]
+- [w-msg]
+- [w-hand]
+
+# 5 | | My Belongings | 12 | 20
+@area Listening
+- [l-resp]
+- [l-key]
+- [l-find]
+- [l-tasks]
+@area Speaking
+- [s-produce]
+- [s-ask]
+- [s-describe]
+- [s-sing]
+@area Reading
+- [r-retrieve]
+- [r-guess]
+- [r-dict]
+- [r-poems]
+@area Writing
+- [w-coord]
+- [w-para]
+- [w-spell]
+- [w-plural]
+- [w-mean]
+- [w-compound]
+- [w-msg]
+- [w-hand]
+
+# 6 | | Our Culture | 12 | 25
+@area Listening
+- [l-resp]
+- [l-key]
+- [l-find]
+- [l-part]
+- [l-tasks]
+- [l-songs]
+@area Speaking
+- [s-produce]
+- [s-conv]
+- [s-ask]
+- [s-talk]
+- [s-sing]
+@area Reading
+- [r-multi]
+- [r-rhymes]
+- [r-retrieve]
+- [r-main]
+- [r-guess]
+- [r-para]
+- [r-poems]
+@area Writing
+- [w-caps]
+- [w-coord]
+- [w-stories]
+- [w-verbs]
+- [w-mean]
+- [w-msg]
+- [w-hand]
+
+# 7 | | Communication Technology and Market | 11 | 27
+@area Listening
+- [l-comp]
+- [l-resp]
+- [l-key]
+- [l-find]
+- [l-tasks]
+- [l-songs]
+@area Speaking
+- [s-conv]
+- [s-ask]
+- [s-describe]
+- [s-talk]
+- [s-sing]
+- [s-phone] Make simple telephone conversation.
+@area Reading
+- [r-rhymes]
+- [r-retrieve]
+- [r-main]
+- [r-guess]
+- [r-dict]
+- [r-para]
+- [r-poems]
+@area Writing
+- [w-coord]
+- [w-para]
+- [w-spell]
+- [w-plural]
+- [w-mean]
+- [w-compound]
+- [w-msg]
+- [w-hand]
+
+# 8 | | Fruits and Vegetables | 8 | 26
+@area Listening
+- [l-resp]
+- [l-key]
+- [l-find]
+- [l-part]
+- [l-tasks]
+- [l-songs]
+@area Speaking
+- [s-produce]
+- [s-conv]
+- [s-ask]
+- [s-describe]
+- [s-sing]
+@area Reading
+- [r-rhymes]
+- [r-retrieve]
+- [r-main]
+- [r-guess]
+- [r-dict]
+- [r-poems]
+@area Writing
+- [w-coord]
+- [w-para]
+- [w-spell]
+- [w-plural]
+- [w-alpha]
+- [w-mean]
+- [w-compound]
+- [w-msg]
+- [w-hand]
+
+# 9 | | Hobbies and Interests | 8 | 24
+@area Listening
+- [l-resp]
+- [l-key]
+- [l-find]
+- [l-tasks]
+- [l-songs]
+@area Speaking
+- [s-ask]
+- [s-describe]
+- [s-talk]
+- [s-sing]
+@area Reading
+- [r-rhymes]
+- [r-retrieve]
+- [r-main]
+- [r-guess]
+- [r-dict]
+- [r-poems]
+@area Writing
+- [w-caps]
+- [w-coord]
+- [w-para]
+- [w-stories]
+- [w-spell]
+- [w-plural]
+- [w-mean]
+- [w-compound]
+- [w-hand]
+
+# 10 | | Birds and Animals | 7 | 19
+@area Listening
+- [l-resp]
+- [l-key]
+- [l-find]
+- [l-tasks]
+- [l-songs]
+@area Speaking
+- [s-conv]
+- [s-ask]
+- [s-talk]
+- [s-sing]
+@area Reading
+- [r-rhymes]
+- [r-retrieve]
+- [r-main]
+- [r-dict]
+- [r-para]
+- [r-poems]
+@area Writing
+- [w-stories]
+- [w-plural]
+- [w-msg]
+- [w-hand]

@@ -1,0 +1,195 @@
+/* Continuous Assessment.
+   Two kinds of rules live here:
+   1. Printed documents (A4 report card / marksheet, certificates). These are
+      fixed official formats with their own palette, scoped to the document.
+   2. CAS screens (level chips, assessment sheet, assessment book, result
+      review), built on the shared design tokens from globals.css. */
+
+/* ---------------------------------------------------- printed documents */
+/* Variables the documents (and Report.module.css) are written against. */
+:root {
+  --brand-primary: #2b59c3; --brand-primary-soft: #eef3fd; --brand-primary-border: #c8d6f4; --brand-navy-deep: #0f172a;
+  --brand-border: #d8dee8; --brand-muted: #5f6f86; --foreground: #1e293b; --button-primary: #2b59c3; --button-radius: .5rem;
+  --card-shadow: none; --warning: #b45309; --warning-soft: #fff6e6; --success: #17803d; --success-soft: #ecfaf1;
+}
+.cas-ne, [lang="ne"] { font-family: "Noto Sans Devanagari", var(--font-sans); line-height: 1.75; }
+.cas-a4 { width: 210mm; min-height: 297mm; margin: 0 auto 1.5rem; border: 1px solid #d8dee8; background: #fff; padding: 14mm; color: #172033; box-shadow: var(--shadow-card); }
+.cas-a4.cas-a4-fit { display: flex; flex-direction: column; }
+.cas-a4-foot { margin-top: auto; }
+.cas-marksheet-exam-title { border-block: 1px solid #94a3b8; background: #f5f8fb; }
+.cas-marksheet-grade-title { border-bottom: 2px solid var(--brand-primary); color: var(--brand-navy-deep); }
+.cas-marksheet-identity, .cas-marksheet-remarks { border-color: #cbd5e1; }
+.cas-marksheet table { border-color: #cbd5e1; }
+.cas-marksheet th { background: #f5f8fb !important; color: #475569; }
+/* Documents were drawn on the previous type scale, font and table rules;
+   pin them here so the printed format does not move with the app design. */
+.cas-a4, .certificate-viewport {
+  font-family: "Plus Jakarta Sans", "Noto Sans Devanagari", "Segoe UI", sans-serif; font-size: 15px; line-height: 1.58;
+  --text-xs: .75rem; --text-xs--line-height: 1rem; --text-sm: .875rem; --text-sm--line-height: 1.25rem;
+  --text-base: 1rem; --text-base--line-height: 1.5rem; --text-lg: 1.125rem; --text-lg--line-height: 1.75rem;
+  --text-xl: 1.25rem; --text-xl--line-height: 1.75rem; --text-2xl: 1.5rem; --text-2xl--line-height: 2rem;
+  --text-3xl: 1.875rem; --text-3xl--line-height: 2.25rem;
+}
+.cas-a4 :where(h1, h2, h3, h4, h5, h6), .certificate-viewport :where(h1, h2, h3, h4, h5, h6) { color: inherit; font-size: inherit; font-weight: inherit; letter-spacing: inherit; line-height: inherit; }
+:is(.cas-a4, .certificate-viewport) table { border-collapse: separate; border-spacing: 0; border: 1px solid #d9ded5; border-radius: .75rem; background: #fff; overflow: hidden; }
+:is(.cas-a4, .certificate-viewport) thead { background: #f3f5ef; }
+:is(.cas-a4, .certificate-viewport) th { color: #65736a; font-size: .7rem; font-weight: 700; letter-spacing: .055em; text-transform: uppercase; }
+:is(.cas-a4, .certificate-viewport) :is(td, th) { border-color: #e4e8e0; }
+.cas-avoid-break { break-inside: avoid; }
+@media (max-width: 639px) { .cas-a4 { width: 100%; min-height: 0; padding: 1rem; } }
+/* Held at A4 while a sheet is drawn into a downloaded PDF, even on a phone. */
+.cas-a4.pdf-capture { width: 210mm; min-height: 297mm; }
+
+/* ------------------------------------------------------- level chips */
+:root { --cas-level-4: #17803d; --cas-level-4-soft: #ecfaf1; --cas-level-3: #2b59c3; --cas-level-3-soft: #eef3fd; --cas-level-2: #b45309; --cas-level-2-soft: #fff6e6; --cas-level-1: #c2352b; --cas-level-1-soft: #fef2f1; }
+.cas-level { display: inline-grid; min-width: 1.75rem; height: 1.75rem; place-items: center; border-radius: var(--radius-control); padding: 0 .4rem; font-size: var(--text-sm); font-weight: 700; font-variant-numeric: tabular-nums; }
+.cas-level-4 { background: var(--cas-level-4-soft); color: var(--cas-level-4); }
+.cas-level-3 { background: var(--cas-level-3-soft); color: var(--cas-level-3); }
+.cas-level-2 { background: var(--cas-level-2-soft); color: var(--cas-level-2); }
+.cas-level-1 { background: var(--cas-level-1-soft); color: var(--cas-level-1); }
+.cas-level-none { background: var(--color-surface-2); color: var(--color-subtle); }
+.cas-level-sm { min-width: 1.375rem; height: 1.375rem; padding: 0 .3rem; border-radius: .375rem; font-size: var(--text-2xs); }
+
+/* ------------------------------------------- responsive data tables */
+.cas-table-scroll, .cas-book-scroll, .cas-result-card-sheet { max-width: 100%; overflow-x: auto; overscroll-behavior-x: contain; }
+.cas-table { min-width: var(--cas-table-min, 36rem); }
+@media (max-width: 639px) {
+  .cas-table { min-width: 0; }
+  .cas-table thead { display: none; }
+  .cas-table, .cas-table tbody, .cas-table tr, .cas-table td { display: block; width: 100%; }
+  .cas-table tr { margin-bottom: .5rem; border: 1px solid var(--color-line); border-radius: var(--radius-card); background: var(--color-surface); padding: .25rem .875rem; box-shadow: var(--shadow-card); }
+  .cas-table td { border: 0; padding: .5rem 0; text-align: left !important; }
+  .cas-table td + td { border-top: 1px solid var(--color-line); }
+  .cas-table td[data-label]::before { content: attr(data-label); display: block; margin-bottom: .125rem; color: var(--color-subtle); font-size: var(--text-2xs); font-weight: 600; letter-spacing: .05em; text-transform: uppercase; }
+  .cas-table td:empty { display: none; }
+}
+
+/* --------------------------------------------------- assessment sheet */
+.cas-sheet { --cas-sheet-cols: 5rem minmax(10rem,1.4fr) minmax(12rem,1fr) minmax(10rem,1fr) minmax(7.5rem,.8fr); }
+.cas-sheet-head { display: none; }
+.cas-level-btn { display: inline-grid; width: 2.375rem; height: 2.375rem; place-items: center; border: 1px solid var(--color-line-strong); border-radius: var(--radius-control); background: var(--color-surface); color: var(--color-ink); font-weight: 700; transition: background-color .15s, border-color .15s, color .15s; }
+.cas-level-btn:hover:not(:disabled) { border-color: var(--color-brand); background: var(--color-brand-soft); color: var(--color-brand); }
+.cas-level-btn:disabled:not(.cas-level-btn-on) { opacity: .4; }
+.cas-level-btn-on { border-color: currentColor; }
+@media (min-width: 1024px) {
+  .cas-sheet-head, .cas-sheet-row { display: grid; grid-template-columns: var(--cas-sheet-cols); gap: .75rem; align-items: center; }
+  .cas-sheet-head { border-bottom: 1px solid var(--color-line); background: var(--color-surface-2); padding: .625rem .875rem; }
+  .cas-sheet-head > span { color: var(--color-muted); font-size: var(--text-2xs); font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+  .cas-sheet-row { border-bottom: 1px solid var(--color-line); padding: .75rem .875rem; }
+  .cas-sheet-cell::before { display: none; }
+  .cas-sheet-full { grid-column: 1 / -1; }
+}
+@media (max-width: 1023px) {
+  .cas-sheet-row { margin-bottom: .5rem; border: 1px solid var(--color-line); border-radius: var(--radius-card); background: var(--color-surface); padding: .75rem .875rem; }
+  .cas-sheet-cell { display: block; padding: .375rem 0; }
+  .cas-sheet-cell + .cas-sheet-cell { border-top: 1px solid var(--color-line); }
+  .cas-sheet-cell::before { content: attr(data-label); display: block; margin-bottom: .25rem; color: var(--color-subtle); font-size: var(--text-2xs); font-weight: 600; letter-spacing: .05em; text-transform: uppercase; }
+  .cas-sheet-full { margin-top: .5rem; }
+}
+
+/* ------------------------------------- curriculum and assessment book */
+.cas-book { min-width: 0; }
+.cas-book-identity { display: flex; flex-wrap: wrap; align-items: baseline; gap: .25rem 1rem; margin-bottom: 1rem; border-bottom: 1px solid var(--color-line); padding-bottom: .75rem; }
+.cas-book-identity strong { color: var(--color-ink); font-size: var(--text-lg); }
+.cas-book-identity span, .cas-book-date-note, .cas-book-secondary, .cas-book-attempt { color: var(--color-muted); font-size: var(--text-xs); }
+.cas-book-heading, .cas-book-theme-bar, .cas-book-theme-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .5rem 1rem; }
+.cas-book-heading h2 { margin: 0; font-size: var(--text-lg); }
+.cas-book-date-note { margin: .25rem 0 .625rem; }
+.cas-book-recommendation { display: flex; flex-wrap: wrap; align-items: center; gap: .375rem .75rem; margin: .375rem 0 .75rem; border: 1px solid var(--color-line); border-radius: var(--radius-control); background: var(--color-surface-2); padding: .5rem .75rem; color: var(--color-muted); font-size: var(--text-xs); }
+.cas-book-recommendation strong { color: var(--color-ink); }
+.cas-book-recommendation-warn { border-color: var(--color-warning-line); background: var(--color-warning-soft); color: var(--color-warning); }
+.cas-book-recommendation-ok { border-color: var(--color-success-line); background: var(--color-success-soft); color: var(--color-success); }
+.cas-book-table { width: 100%; min-width: 1050px; table-layout: fixed; border-collapse: collapse; border: 1px solid var(--color-line-strong); background: var(--color-surface); color: var(--color-ink); font-size: var(--text-sm); line-height: 1.45; }
+.cas-book-table th, .cas-book-table td { border: 1px solid var(--color-line); padding: .4rem; vertical-align: top; overflow-wrap: anywhere; }
+.cas-book-table thead th { background: var(--color-surface-2); color: var(--color-muted); text-align: center; white-space: normal; }
+.cas-book-col-serial { width: 3%; } .cas-book-col-outcome { width: 26%; } .cas-book-col-aspect, .cas-book-col-tool { width: 14%; } .cas-book-col-date { width: 12%; } .cas-book-col-mark { width: 5%; } .cas-book-col-remarks { width: 9%; } .cas-book-col-actions { width: 7%; }
+.cas-book-table .cas-book-outcome { text-align: left; font-weight: 400; }
+.cas-book-table .cas-book-serial, .cas-book-table .cas-book-mark, .cas-book-table .cas-book-total { text-align: center; }
+.cas-book-table .cas-book-total { font-weight: 700; white-space: nowrap; }
+.cas-book-table tbody td:has(.cas-book-input) { padding: .2rem; vertical-align: middle; }
+.cas-book-table .cas-book-input { width: 100%; min-height: 2.25rem; margin: 0; border: 1px solid transparent; border-radius: .375rem; background: transparent; padding: .25rem; box-shadow: none; color: var(--color-ink); font-size: var(--text-xs); }
+.cas-book-table .cas-book-input:enabled:hover, .cas-book-table .cas-book-input:focus { border-color: var(--color-brand-line); background: var(--color-brand-soft); }
+.cas-book-table .cas-book-input:disabled { opacity: 1; background: transparent; color: var(--color-muted); -webkit-text-fill-color: var(--color-muted); }
+.cas-book-table tbody tr:hover { background: transparent; }
+.cas-book-table tbody tr.cas-book-row-needs > * { background: #fff6f5; }
+.cas-book-table tbody tr.cas-book-row-support > * { background: #fffaf0; }
+.cas-book-table tbody tr.cas-book-row-ok > * { background: #f3fbf6; }
+.cas-book-table .cas-book-date-needs { border-color: var(--color-danger-line); background: var(--color-danger-soft); color: var(--color-danger); }
+.cas-book-table .cas-book-date-support { border-color: var(--color-warning-line); background: var(--color-warning-soft); color: var(--color-warning); }
+.cas-book-table .cas-book-date-ok { border-color: var(--color-success-line); background: var(--color-success-soft); color: var(--color-success); }
+.cas-book-table .cas-book-remarks, .cas-book-table .cas-book-field { resize: vertical; min-height: 2.25rem; }
+.cas-book-indicators { display: grid; gap: .375rem; margin: 0; padding: 0; list-style: none; }
+.cas-book-table tfoot th, .cas-book-table tfoot td { padding: .25rem .375rem; font-size: var(--text-xs); }
+.cas-book-table tfoot th { text-align: right; text-transform: none; letter-spacing: 0; }
+.cas-book-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem 1rem; margin: 1rem 0 .75rem; }
+.cas-book-actions p { margin: 0; color: var(--color-muted); font-size: var(--text-xs); }
+.cas-book-theme + .cas-book-theme { margin-top: 1.25rem; border-top: 1px dashed var(--color-line-strong); padding-top: 1.25rem; }
+.cas-book-theme-bar > div, .cas-book-theme-footer > div { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; }
+.cas-book-theme-editing { margin-inline: -.5rem; border: 1px solid var(--color-brand-line); border-radius: var(--radius-card); background: #f7f9fe; padding: .625rem; }
+.cas-book-table tr.cas-book-row-editing > * { background: #f4f7fd; }
+.cas-book-table .cas-book-row-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: .25rem; }
+.cas-book-table .cas-book-row-actions button, .cas-book-table .cas-book-entry-remove { display: inline-grid; min-width: 2rem; min-height: 2rem; place-items: center; border-radius: .375rem; color: var(--color-muted); font-size: var(--text-xs); }
+.cas-book-table .cas-book-row-actions button:hover, .cas-book-table .cas-book-entry-remove:hover, .cas-book-table .cas-book-entry-add:hover, .cas-book-table .cas-book-reassess:hover { background: var(--color-brand-soft); color: var(--color-brand); }
+.cas-book-table .cas-book-row-save { background: var(--color-brand) !important; color: #fff !important; padding: 0 .5rem; font-weight: 600; }
+.cas-book-table .cas-book-scored { color: var(--color-warning); font-weight: 700; }
+.cas-book-table .cas-book-entry { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: .2rem .3rem; border-bottom: 1px dashed var(--color-line); padding-bottom: .3rem; }
+.cas-book-table .cas-book-entry > input { grid-column: 1; }
+.cas-book-table .cas-book-entry-remove { grid-column: 2; grid-row: 1 / span 2; }
+.cas-book-table .cas-book-entry-add, .cas-book-table .cas-book-reassess { display: inline-flex; align-items: center; gap: .25rem; justify-self: start; border-radius: .375rem; padding: .15rem .375rem; color: var(--color-brand); font-size: var(--text-xs); font-weight: 600; }
+.cas-book-entries { padding-left: 1rem; }
+.cas-book-numbered-entries { margin: 0; padding-left: 0; list-style: none; }
+.cas-book-numbered-entries li { display: grid; grid-template-columns: max-content minmax(0,1fr); gap: .375rem; }
+.cas-book-entry-marker { color: var(--color-ink); font-weight: 700; }
+@media (max-width: 639px) { .cas-book-table { min-width: 1150px; } .cas-book-table .cas-book-input { min-height: 2.625rem; font-size: 16px; } }
+
+/* --------------------------------------------------- result review */
+.cas-results-toolbar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: .75rem; margin-bottom: .75rem; }
+.cas-results-tabs { display: inline-flex; max-width: 100%; gap: .125rem; overflow-x: auto; border-radius: var(--radius-control); background: #edf0f5; padding: .1875rem; scrollbar-width: none; }
+.cas-results-tab { display: inline-flex; height: 2rem; align-items: center; gap: .375rem; border-radius: .375rem; padding: 0 .75rem; color: var(--color-muted); font-size: var(--text-sm); font-weight: 600; white-space: nowrap; }
+.cas-results-tab span { min-width: 1.25rem; border-radius: 999px; background: rgb(15 23 42 / .06); padding: 0 .375rem; font-size: var(--text-2xs); line-height: 1.125rem; text-align: center; }
+.cas-results-tab:hover { color: var(--color-ink); }
+.cas-results-tab[aria-selected="true"] { background: var(--color-surface); color: var(--color-ink); box-shadow: 0 1px 2px rgb(15 23 42 / .08); }
+.cas-results-tab[aria-selected="true"] span { background: var(--color-brand-soft); color: var(--color-brand-strong); }
+.cas-results-search { display: flex; flex: 1 1 14rem; max-width: 20rem; align-items: center; gap: .5rem; border: 1px solid var(--color-line-strong); border-radius: var(--radius-control); background: var(--color-surface); padding: 0 .75rem; color: var(--color-subtle); }
+.cas-results-search:focus-within { border-color: var(--color-brand); box-shadow: var(--ring); }
+.cas-results-search input { width: 100%; min-height: calc(var(--control-h) - 2px); border: 0; background: transparent; padding: 0; box-shadow: none !important; }
+.cas-results-bar { display: flex; flex-wrap: wrap; align-items: center; gap: .625rem 1rem; margin-bottom: .75rem; border: 1px solid var(--color-line); border-radius: var(--radius-card); background: var(--color-surface); padding: .5rem .75rem; }
+.cas-result-card { overflow: hidden; border: 1px solid var(--color-line); border-radius: var(--radius-card); background: var(--color-surface); box-shadow: var(--shadow-card); transition: border-color .15s, box-shadow .15s; }
+.cas-result-card.is-selected { border-color: var(--color-brand); box-shadow: var(--ring); }
+.cas-result-card-head { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem .75rem; border-bottom: 1px solid var(--color-line); padding: .625rem .875rem; }
+.cas-result-card-head:last-child { border-bottom: 0; }
+.cas-result-avatar { display: grid; width: 2.125rem; height: 2.125rem; flex-shrink: 0; place-items: center; border-radius: 999px; background: var(--color-brand-soft); color: var(--color-brand-strong); font-size: var(--text-xs); font-weight: 700; }
+.cas-result-status { display: inline-flex; height: 1.375rem; align-items: center; border-radius: 999px; padding: 0 .5rem; font-size: var(--text-2xs); font-weight: 600; }
+.cas-result-status.is-published { background: var(--color-success-soft); color: var(--color-success); }
+.cas-result-status.is-draft { background: var(--color-warning-soft); color: var(--color-warning); }
+.cas-result-status.is-empty { background: var(--color-surface-2); color: var(--color-muted); }
+.cas-result-actions { display: inline-flex; margin-left: auto; overflow: hidden; border: 1px solid var(--color-line-strong); border-radius: var(--radius-control); }
+.cas-result-actions button { display: inline-flex; height: 2rem; align-items: center; justify-content: center; gap: .375rem; background: var(--color-surface); padding: 0 .625rem; color: var(--color-body); font-size: var(--text-xs); font-weight: 600; }
+.cas-result-actions button + button { border-left: 1px solid var(--color-line); }
+.cas-result-actions button:hover, .cas-result-actions button[aria-pressed="true"] { background: var(--color-brand-soft); color: var(--color-brand-strong); }
+.cas-result-card-sheet { background: var(--color-surface-2); padding: 1rem .75rem; }
+.cas-result-card-sheet .cas-a4 { box-shadow: none; }
+@media (max-width: 639px) {
+  .cas-result-actions { width: 100%; margin-left: 0; }
+  .cas-result-actions button { flex: 1; height: 2.5rem; }
+  .cas-result-actions button span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  .cas-results-search { max-width: none; }
+}
+
+/* ------------------------------------------------------------ print */
+@media print {
+  @page { size: A4 portrait; margin: 8mm; }
+  body { background: #fff !important; }
+  .cas-print-hide, .cas-print-hide * { display: none !important; }
+  .cas-print-flush { margin-left: 0 !important; }
+  .cas-print-flush main > div { max-width: none; padding: 0; }
+  .cas-a4 { width: auto; min-height: 0; margin: 0; border: 0; box-shadow: none; padding: 0; break-after: page; }
+  .cas-a4:last-child { break-after: auto; }
+  .cas-a4.cas-a4-fit { display: flex; min-height: 281mm; height: 281mm; flex-direction: column; padding: 3.5mm 4mm; break-inside: avoid; }
+  .cas-a4.cas-a4-fit .cas-a4-foot { margin-top: auto; }
+  .cas-book-scroll, .cas-result-card-sheet { overflow: visible; }
+  .cas-book-table { min-width: 0; font-size: 9pt; }
+  .cas-book-actions, .cas-book-theme-bar > div:last-child, .cas-book-theme-footer { display: none; }
+  .cas-book-table tr, .cas-a4 tr { break-inside: avoid; }
+  .no-print { display: none !important; }
+}

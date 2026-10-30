@@ -1,0 +1,374 @@
+import { NextResponse } from "next/server";
+import { requireApiSession } from "@/lib/authz";
+import connectDB from "@/lib/db";
+import Student from "@/models/Student";
+import {
+  generatePlatformStudentId,
+  generateUniqueStudentUsername,
+} from "@/lib/studentIdentity";
+import { normalizeGradeValue } from "@/lib/schoolGrades";
+import { buildPagination, escapeRegex, parsePagination } from "@/lib/pagination";
+import { generateStrongPassword } from "@/lib/passwordGenerator";
+import { isValidIemisNumber, normalizeIemisNumber } from "@/lib/iemis";
+import {
+  linkGuardianFromStudentRecord,
+  linkGuardiansForStudents,
+} from "@/lib/guardianLinking";
+import bcrypt from "bcryptjs";
+
+export const dynamic = "force-dynamic";
+
+export async function POST(req) {
+  try {
+    const { session, error: authError } = await requireApiSession();
+    if (authError) return authError;
+    if (!session || session.user.role !== "SCHOOL_ADMIN") {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    await connectDB();
+
+    const body = await req.json();
+
+    if (Array.isArray(body)) {
+      // Bulk Import
+      const studentsToCreate = [];
+      const createdCredentials = [];
+      const reservedUsernames = new Set();
+
+      for (const s of body) {
+        const iemisNumber = normalizeIemisNumber(s.iemisNumber);
+        if (!isValidIemisNumber(iemisNumber)) {
+          return NextResponse.json(
+            { message: "IEMIS number may contain letters, numbers, and hyphens only (up to 50 characters)" },
+            { status: 400 }
+          );
+        }
+        // Name Parsing
+        const nameParts = s.name.trim().split(/\s+/);
+        let firstName = nameParts[0];
+        let middleName = "";
+        let lastName = "";
+
+        if (nameParts.length === 1) {
+            lastName = ""; 
+        } else if (nameParts.length === 2) {
+            lastName = nameParts[1];
+        } else {
+            lastName = nameParts[nameParts.length - 1];
+            middleName = nameParts.slice(1, -1).join(" ");
+        }
+
+        // Random password, returned once to the school for distribution.
+        const password = generateStrongPassword();
+        const hashedPassword = await bcrypt.hash(password, 10);
+        
+        const normalizedGrade = normalizeGradeValue(s.grade);
+        const normalizedRollNumber = String(s.rollNumber || "").trim();
+        const username = await generateUniqueStudentUsername(Student, {
+          firstName,
+          grade: normalizedGrade,
+          rollNumber: normalizedRollNumber,
+          school: session.user.id,
+          reserved: reservedUsernames,
+        });
+
+        studentsToCreate.push({
+          ...s,
+          platformStudentId: await generatePlatformStudentId(Student),
+          firstName,
+          middleName,
+          lastName,
+          grade: normalizedGrade,
+          rollNumber: normalizedRollNumber,
+          iemisNumber,
+          school: session.user.id,
+          username,
+          password: hashedPassword,
+        });
+        createdCredentials.push({ username, password });
+      }
+
+      try {
+        // ordered: false ensures that if one fails (e.g. duplicate email), others continue
+        const createdStudents = await Student.insertMany(studentsToCreate, {
+          ordered: false,
+        });
+
+        // Registration parent details are authentic, so link them straight away
+        // rather than leaving a pile of unconnected families behind an import.
+        const guardians = await linkGuardiansForStudents({
+          students: createdStudents,
+          schoolId: session.user.id,
+          actorId: session.user.id,
+        });
+
+        return NextResponse.json(
+          {
+            message: "Students imported",
+            count: createdStudents.length,
+            credentials: createdCredentials,
+            guardiansLinked: guardians.linked,
+          },
+          { status: 201 }
+        );
+      } catch (bulkError) {
+        // If some succeeded, return success with count
+        if (bulkError.insertedDocs) {
+          // Partial success still deserves its guardians.
+          const guardians = await linkGuardiansForStudents({
+            students: bulkError.insertedDocs,
+            schoolId: session.user.id,
+            actorId: session.user.id,
+          });
+
+          return NextResponse.json(
+            {
+              message: `Imported ${bulkError.insertedDocs.length} students. Some failed due to duplicates.`,
+              count: bulkError.insertedDocs.length,
+              guardiansLinked: guardians.linked,
+            },
+            { status: 201 }
+          );
+        }
+        throw bulkError;
+      }
+    } else {
+      // Single Creation
+      const { name, email, grade, parentEmail, rollNumber, iemisNumber: rawIemisNumber, ...otherData } = body;
+
+      if (!name || !grade || !rollNumber) {
+        return NextResponse.json(
+          { message: "Name, grade, and roll number are required" },
+          { status: 400 }
+        );
+      }
+
+      // Name Parsing
+      const nameParts = name.trim().split(/\s+/);
+      let firstName = nameParts[0];
+      let middleName = "";
+      let lastName = "";
+
+      if (nameParts.length === 1) {
+          lastName = ""; 
+      } else if (nameParts.length === 2) {
+          lastName = nameParts[1];
+      } else {
+          lastName = nameParts[nameParts.length - 1];
+          middleName = nameParts.slice(1, -1).join(" ");
+      }
+
+      // Random password, returned once to the school for distribution.
+      const generatedPassword = generateStrongPassword();
+      const hashedPassword = await bcrypt.hash(generatedPassword, 10);
+      
+      const normalizedGrade = normalizeGradeValue(grade);
+      const normalizedRollNumber = String(rollNumber).trim();
+      const iemisNumber = normalizeIemisNumber(rawIemisNumber);
+      if (!isValidIemisNumber(iemisNumber)) {
+        return NextResponse.json(
+          { message: "IEMIS number may contain letters, numbers, and hyphens only (up to 50 characters)" },
+          { status: 400 }
+        );
+      }
+      const duplicateRoll = await Student.exists({
+        school: session.user.id,
+        grade: normalizedGrade,
+        rollNumber: normalizedRollNumber,
+        isDeleted: { $ne: true },
+      });
+      if (duplicateRoll) {
+        return NextResponse.json(
+          {
+            message: `Roll number ${normalizedRollNumber} already exists in ${normalizedGrade}`,
+          },
+          { status: 409 }
+        );
+      }
+
+      const username = await generateUniqueStudentUsername(Student, {
+        firstName,
+        grade: normalizedGrade,
+        rollNumber: normalizedRollNumber,
+        school: session.user.id,
+      });
+
+      const newStudent = await Student.create({
+        name,
+        platformStudentId: await generatePlatformStudentId(Student),
+        firstName,
+        middleName,
+        lastName,
+        email: email || undefined,
+        grade: normalizedGrade,
+        parentEmail,
+        rollNumber: normalizedRollNumber,
+        iemisNumber,
+        username,
+        password: hashedPassword,
+        school: session.user.id,
+        ...otherData
+      });
+
+      // The school named this parent at the front desk, so treat that as an
+      // authentic guardian relationship and link it immediately. Awaited so
+      // the response can report it, but it never throws — a guardian problem
+      // must not fail a student's registration.
+      const guardian = await linkGuardianFromStudentRecord({
+        student: newStudent,
+        schoolId: session.user.id,
+        actorId: session.user.id,
+      });
+
+      return NextResponse.json(
+        {
+          message: "Student created",
+          student: newStudent,
+          credentials: { username, password: generatedPassword },
+          guardianLinked: guardian.linked,
+        },
+        { status: 201 }
+      );
+    }
+  } catch (error) {
+    console.error("Create Student Error:", error);
+
+    // Provide specific error messages for common issues
+    let message = "Error creating student(s)";
+    if (error.code === 11000) {
+      const field = Object.keys(error.keyPattern)[0];
+      message = `${
+        field.charAt(0).toUpperCase() + field.slice(1)
+      } already exists`;
+    } else if (error.message.includes("validation failed")) {
+      message = "Invalid data format. Please check all fields.";
+    }
+
+    return NextResponse.json({ message }, { status: 500 });
+  }
+}
+
+export async function GET(req) {
+  try {
+    const { session, error: authError } = await requireApiSession();
+    if (authError) return authError;
+    if (!session || session.user.role !== "SCHOOL_ADMIN") {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    const { searchParams } = new URL(req.url);
+    const grade = searchParams.get("grade");
+    const section = searchParams.get("section");
+    const search = searchParams.get("search") || "";
+    const { page, limit, skip } = parsePagination(searchParams, {
+      limit: 10,
+      maxLimit: 1000,
+    });
+
+    await connectDB();
+
+    // Ensure we only fetch students for the current school
+    const andConditions = [
+      { school: session.user.id },
+      { isDeleted: { $ne: true } },
+    ];
+    
+    // Filter by Status (default to ACTIVE if not specified, unless 'ALL' is requested)
+    const status = searchParams.get("status");
+    if (status && status !== "ALL") {
+        // Case-insensitive status check
+        andConditions.push({ status: { $regex: new RegExp(`^${escapeRegex(status)}$`, 'i') } });
+    } else if (!status) {
+        // Default behavior: Show only ACTIVE students (case-insensitive)
+        andConditions.push({ status: { $regex: /^ACTIVE$/i } });
+    }
+
+    if (grade) {
+      // Extract digits to handle "Grade 9", "9", "Class 9" variations robustly
+      const gradeNumber = grade.replace(/\D/g, ""); 
+      
+      if (gradeNumber) {
+          andConditions.push({
+            $or: [
+                { grade: grade }, // Exact match
+                { grade: { $regex: new RegExp(`^${escapeRegex(grade)}$`, 'i') } }, // Case insensitive
+                { grade: { $regex: new RegExp(`^Grade\\s*${gradeNumber}$`, 'i') } }, // "Grade 9", "Grade  9"
+                { grade: { $regex: new RegExp(`^Class\\s*${gradeNumber}$`, 'i') } }, // "Class 9"
+                { grade: gradeNumber } // "9"
+            ]
+          });
+      } else {
+          // Non-numeric grades (e.g. "Kindergarten")
+          andConditions.push({
+             $or: [
+                { grade: grade },
+                { grade: { $regex: new RegExp(`^${escapeRegex(grade)}$`, 'i') } }
+             ]
+          });
+      }
+    }
+
+    if (section === "__UNASSIGNED__") {
+      andConditions.push({
+        $or: [
+          { section: "" },
+          { section: null },
+          { section: { $exists: false } },
+        ],
+      });
+    } else if (section) {
+      andConditions.push({ section });
+    }
+
+    if (search) {
+      const safeSearch = escapeRegex(search.trim());
+      andConditions.push({
+        $or: [
+          { name: { $regex: safeSearch, $options: "i" } },
+          { email: { $regex: safeSearch, $options: "i" } },
+          { username: { $regex: safeSearch, $options: "i" } },
+          { platformStudentId: { $regex: safeSearch, $options: "i" } },
+          { iemisNumber: { $regex: safeSearch, $options: "i" } },
+          { rollNumber: { $regex: safeSearch, $options: "i" } },
+          { parentName: { $regex: safeSearch, $options: "i" } },
+          { parentPhone: { $regex: safeSearch, $options: "i" } },
+        ]
+      });
+    }
+
+    const query = andConditions.length > 0 ? { $and: andConditions } : {};
+
+    const [totalStudents, students] = await Promise.all([
+      Student.countDocuments(query),
+      Student.find(query)
+        .select("-password -visiblePassword")
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean(),
+    ]);
+    const pagination = buildPagination({
+      page,
+      limit,
+      total: totalStudents,
+    });
+
+    return NextResponse.json(
+      {
+        students,
+        pagination: {
+          ...pagination,
+          totalStudents,
+        }
+      },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error("Fetch Students Error:", error);
+    return NextResponse.json(
+      { message: "Error fetching students", error: error.message },
+      { status: 500 }
+    );
+  }
+}

@@ -1,0 +1,3367 @@
+{
+  "grade": "Grade 3",
+  "source": "My English — विद्यार्थी मूल्याङ्कन अभिलेख कार्यसञ्चयिका, कक्षा ३ (Asmita Publication)",
+  "sourceNote": "Visually transcribed from PDF pages 24–37 (printed pages 22–35) of the supplied scanned workbook. English outcome wording is supplied only in English; no Nepali translation is invented. All legible theme tables are included. Nine themes are complete; Our Culture is limited to 15 fully visible rows because PDF page 32 is blurred and cropped. Our Environment lists 24 rows despite a printed total of 22; Hobbies and Interests lists 24 despite a printed total of 26. The cumulative record states 236 outcomes overall. Twelve published example rubrics on PDF pages 24–25 are attached to the same outcomes wherever they recur; no additional rubrics or missing rows are invented. Source page numbers refer to one-based PDF pages.",
+  "transcription": {
+    "status": "SOURCE_INCOMPLETE",
+    "themesComplete": [
+      "Theme 1 Me and My Family",
+      "Theme 2 My Daily Life",
+      "Theme 3 Our School",
+      "Theme 4 Our Environment",
+      "Theme 5 My Belongings",
+      "Theme 7 Communication Technology and Market",
+      "Theme 8 Fruits and Vegetables",
+      "Theme 9 Hobbies and Interests",
+      "Theme 10 Birds and Animals"
+    ],
+    "themesIncomplete": [
+      "Theme 6 Our Culture"
+    ],
+    "outcomesTranscribed": 226,
+    "outcomesExpected": 236,
+    "sourcePages": [
+      24,
+      25,
+      26,
+      27,
+      28,
+      29,
+      30,
+      31,
+      32,
+      33,
+      34,
+      35,
+      36,
+      37
+    ],
+    "sourceIssues": [
+      {
+        "theme": "Our Culture",
+        "sourcePages": [
+          32,
+          37
+        ],
+        "issue": "SOURCE_CROPPED_AND_BLURRED",
+        "details": "15 fully visible outcomes transcribed. Reading item 5 is cut off and the remaining Reading/Writing rows are missing from the source photograph; the cumulative record states 25 outcomes."
+      },
+      {
+        "theme": "Our Environment",
+        "sourcePages": [
+          30,
+          37
+        ],
+        "issue": "PRINTED_COUNT_MISMATCH",
+        "listedOutcomes": 24,
+        "printedOutcomes": 22
+      },
+      {
+        "theme": "Hobbies and Interests",
+        "sourcePages": [
+          35,
+          37
+        ],
+        "issue": "PRINTED_COUNT_MISMATCH",
+        "listedOutcomes": 24,
+        "printedOutcomes": 26
+      }
+    ]
+  },
+  "subjects": [
+    {
+      "code": "ENG",
+      "titleEn": "English",
+      "titleNe": "अङ्ग्रेजी",
+      "creditHours": 4,
+      "outcomes": [
+        {
+          "code": "ENG-T1-01",
+          "themeEn": "Me and My Family",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Recognize, identify and produce rhyming words. e.g. near → here.",
+          "sourcePages": [
+            27
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to recognize, identify and produce rhyming words. e.g. near → here."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to recognize, identify and produce rhyming words. e.g. near → here with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to recognize, identify and produce rhyming words. e.g. near → here with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to recognize, identify and produce rhyming words. e.g. near → here."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T1-02",
+          "themeEn": "Me and My Family",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally.",
+          "sourcePages": [
+            27
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T1-03",
+          "themeEn": "Me and My Family",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Follow the message in short simple conversations.",
+          "sourcePages": [
+            27
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to follow the message in short simple conversations."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to follow the message in short simple conversations with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to follow the message in short simple conversations with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to follow the message in short simple conversations."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T1-04",
+          "themeEn": "Me and My Family",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Identify key information from a short speech or conversation.",
+          "sourcePages": [
+            27
+          ]
+        },
+        {
+          "code": "ENG-T1-05",
+          "themeEn": "Me and My Family",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Find out specific information (names, dates, time, etc) from different kinds of simple spoken language.",
+          "sourcePages": [
+            27
+          ]
+        },
+        {
+          "code": "ENG-T1-06",
+          "themeEn": "Me and My Family",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Perform a variety of listening comprehension tasks.",
+          "sourcePages": [
+            27
+          ]
+        },
+        {
+          "code": "ENG-T1-07",
+          "themeEn": "Me and My Family",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Listen and comprehend a range of songs and stories with a variety of visual clues.",
+          "sourcePages": [
+            27
+          ]
+        },
+        {
+          "code": "ENG-T1-08",
+          "themeEn": "Me and My Family",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Produce words, phrases, simple sentences with intelligible pronunciation.",
+          "sourcePages": [
+            27
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to produce words, phrases, simple sentences with intelligible pronunciation."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to produce words, phrases, simple sentences with intelligible pronunciation with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to produce words, phrases, simple sentences with intelligible pronunciation with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to produce words, phrases, simple sentences with intelligible pronunciation."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T1-09",
+          "themeEn": "Me and My Family",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Participate in short conversations.",
+          "sourcePages": [
+            27
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to participate in short conversations."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to participate in short conversations with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to participate in short conversations with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to participate in short conversations."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T1-10",
+          "themeEn": "Me and My Family",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Sing or recite a song/chant by listening to the teacher or an audio.",
+          "sourcePages": [
+            27
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to sing or recite a song/chant by listening to the teacher or an audio."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T1-11",
+          "themeEn": "Me and My Family",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Recognise silent letters, e.g. e (home), b (comb), k (knee), gh (right), w (write), t (often), l (walk), etc.",
+          "sourcePages": [
+            27
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to recognize silent letters, e.g. e (home), b (comb), k (knee), gh (right), w (write), t (often), l (walk), etc."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to recognize silent letters, e.g. e (home), b (comb), k (knee), gh (right), w (write), t (often), l (walk), etc with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to recognize silent letters, e.g. e (home), b (comb), k (knee), gh (right), w (write), t (often), l (walk), etc with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to recognize silent letters, e.g. e (home), b (comb), k (knee), gh (right), w (write), t (often), l (walk), etc."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T1-12",
+          "themeEn": "Me and My Family",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Read multi-syllabic words composed of roots, prefixes, and suffixes.",
+          "sourcePages": [
+            27
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to read multi-syllabic words composed of roots, prefixes, and suffixes."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to read multi-syllabic words composed of roots, prefixes, and suffixes with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to read multi-syllabic words composed of roots, prefixes, and suffixes with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to read multi-syllabic words composed of roots, prefixes, and suffixes."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T1-13",
+          "themeEn": "Me and My Family",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Read common abbreviations (e.g., Dr., Mr., AM, and PM).",
+          "sourcePages": [
+            27
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to read common abbreviations (e.g., Dr., Mr., AM, and PM)."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to read common abbreviations (e.g., Dr., Mr., AM, and PM) with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to read common abbreviations (e.g., Dr., Mr., AM, and PM) with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to read common abbreviations (e.g., Dr., Mr., AM, and PM)."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T1-14",
+          "themeEn": "Me and My Family",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Perform rhymes and chants with appropriate rhyme and rhythm.",
+          "sourcePages": [
+            27
+          ]
+        },
+        {
+          "code": "ENG-T1-15",
+          "themeEn": "Me and My Family",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Read short texts silently and retrieve specific information (name, number, etc.).",
+          "sourcePages": [
+            27
+          ]
+        },
+        {
+          "code": "ENG-T1-16",
+          "themeEn": "Me and My Family",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Guess the meaning of unfamiliar words from contexts.",
+          "sourcePages": [
+            27
+          ]
+        },
+        {
+          "code": "ENG-T1-17",
+          "themeEn": "Me and My Family",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Consult dictionary to find out the meaning of words.",
+          "sourcePages": [
+            27
+          ]
+        },
+        {
+          "code": "ENG-T1-18",
+          "themeEn": "Me and My Family",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Retrieve required information from para-orthographic texts such as charts, tables, graphs and maps.",
+          "sourcePages": [
+            27
+          ]
+        },
+        {
+          "code": "ENG-T1-19",
+          "themeEn": "Me and My Family",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Read poems and short stories for pleasure.",
+          "sourcePages": [
+            27
+          ]
+        },
+        {
+          "code": "ENG-T1-20",
+          "themeEn": "Me and My Family",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Use capital letters, full stops and question marks correctly.",
+          "sourcePages": [
+            27
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to use capital letters, full stops and question marks correctly."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to use capital letters, full stops and question marks correctly with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to use capital letters, full stops and question marks correctly with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to use capital letters, full stops and question marks correctly."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T1-21",
+          "themeEn": "Me and My Family",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Connect sentences using simple coordinators (e.g. and, but, because).",
+          "sourcePages": [
+            27
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to connect sentences using simple coordinators (e.g. and, but, because)."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to connect sentences using simple coordinators (e.g. and, but, because) with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to connect sentences using simple coordinators (e.g. and, but, because) with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to connect sentences using simple coordinators (e.g. and, but, because)."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T1-22",
+          "themeEn": "Me and My Family",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Write in a simple paragraph about oneself, people, places and things.",
+          "sourcePages": [
+            27
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to write in a simple paragraph about oneself, people, places and things."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to write in a simple paragraph about oneself, people, places and things with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to write in a simple paragraph about oneself, people, places and things with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to write in a simple paragraph about oneself, people, places and things."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T1-23",
+          "themeEn": "Me and My Family",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Use correct spelling of words.",
+          "sourcePages": [
+            27
+          ]
+        },
+        {
+          "code": "ENG-T1-24",
+          "themeEn": "Me and My Family",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Use present (with/without -s/es) and regular past (-ed) forms of verbs.",
+          "sourcePages": [
+            27
+          ]
+        },
+        {
+          "code": "ENG-T1-25",
+          "themeEn": "Me and My Family",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Use words in meaningful sentences.",
+          "sourcePages": [
+            27
+          ]
+        },
+        {
+          "code": "ENG-T1-26",
+          "themeEn": "Me and My Family",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Demonstrate good handwriting skills.",
+          "sourcePages": [
+            27
+          ]
+        },
+        {
+          "code": "ENG-T2-01",
+          "themeEn": "My Daily Life",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Recognize, identify and produce rhyming words. e.g. near → here.",
+          "sourcePages": [
+            28
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to recognize, identify and produce rhyming words. e.g. near → here."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to recognize, identify and produce rhyming words. e.g. near → here with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to recognize, identify and produce rhyming words. e.g. near → here with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to recognize, identify and produce rhyming words. e.g. near → here."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T2-02",
+          "themeEn": "My Daily Life",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Comprehend words and simple expressions.",
+          "sourcePages": [
+            28
+          ]
+        },
+        {
+          "code": "ENG-T2-03",
+          "themeEn": "My Daily Life",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally.",
+          "sourcePages": [
+            28
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T2-04",
+          "themeEn": "My Daily Life",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Identify key information from a short speech or conversation.",
+          "sourcePages": [
+            28
+          ]
+        },
+        {
+          "code": "ENG-T2-05",
+          "themeEn": "My Daily Life",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Find out specific information (names, dates, time, etc) from different kinds of simple spoken language.",
+          "sourcePages": [
+            28
+          ]
+        },
+        {
+          "code": "ENG-T2-06",
+          "themeEn": "My Daily Life",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Listen in order to participate in a variety of short conversations.",
+          "sourcePages": [
+            28
+          ]
+        },
+        {
+          "code": "ENG-T2-07",
+          "themeEn": "My Daily Life",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Perform a variety of listening comprehension tasks.",
+          "sourcePages": [
+            28
+          ]
+        },
+        {
+          "code": "ENG-T2-08",
+          "themeEn": "My Daily Life",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Produce words, phrases, simple sentences with intelligible pronunciation.",
+          "sourcePages": [
+            28
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to produce words, phrases, simple sentences with intelligible pronunciation."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to produce words, phrases, simple sentences with intelligible pronunciation with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to produce words, phrases, simple sentences with intelligible pronunciation with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to produce words, phrases, simple sentences with intelligible pronunciation."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T2-09",
+          "themeEn": "My Daily Life",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Ask and answer a range of questions.",
+          "sourcePages": [
+            28
+          ]
+        },
+        {
+          "code": "ENG-T2-10",
+          "themeEn": "My Daily Life",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Talk about present, past and future events.",
+          "sourcePages": [
+            28
+          ]
+        },
+        {
+          "code": "ENG-T2-11",
+          "themeEn": "My Daily Life",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Sing or recite a song/chant by listening to the teacher or an audio.",
+          "sourcePages": [
+            28
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to sing or recite a song/chant by listening to the teacher or an audio."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T2-12",
+          "themeEn": "My Daily Life",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Perform rhymes and chants with appropriate rhyme and rhythm.",
+          "sourcePages": [
+            28
+          ]
+        },
+        {
+          "code": "ENG-T2-13",
+          "themeEn": "My Daily Life",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Read short texts silently and retrieve specific information (name, number, etc.).",
+          "sourcePages": [
+            28
+          ]
+        },
+        {
+          "code": "ENG-T2-14",
+          "themeEn": "My Daily Life",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Guess the meaning of unfamiliar words from contexts.",
+          "sourcePages": [
+            28
+          ]
+        },
+        {
+          "code": "ENG-T2-15",
+          "themeEn": "My Daily Life",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Read poems and short stories for pleasure.",
+          "sourcePages": [
+            28
+          ]
+        },
+        {
+          "code": "ENG-T2-16",
+          "themeEn": "My Daily Life",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Use capital letters, full stops and question marks correctly.",
+          "sourcePages": [
+            28
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to use capital letters, full stops and question marks correctly."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to use capital letters, full stops and question marks correctly with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to use capital letters, full stops and question marks correctly with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to use capital letters, full stops and question marks correctly."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T2-17",
+          "themeEn": "My Daily Life",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Connect sentences using simple coordinators (e.g. and, but, because).",
+          "sourcePages": [
+            28
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to connect sentences using simple coordinators (e.g. and, but, because)."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to connect sentences using simple coordinators (e.g. and, but, because) with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to connect sentences using simple coordinators (e.g. and, but, because) with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to connect sentences using simple coordinators (e.g. and, but, because)."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T2-18",
+          "themeEn": "My Daily Life",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Write simple stories through completion, matching with pictures or ordering.",
+          "sourcePages": [
+            28
+          ]
+        },
+        {
+          "code": "ENG-T2-19",
+          "themeEn": "My Daily Life",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Use correct spelling of words.",
+          "sourcePages": [
+            28
+          ]
+        },
+        {
+          "code": "ENG-T2-20",
+          "themeEn": "My Daily Life",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Use regular and irregular plural nouns.",
+          "sourcePages": [
+            28
+          ]
+        },
+        {
+          "code": "ENG-T2-21",
+          "themeEn": "My Daily Life",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Arrange words in alphabetical order.",
+          "sourcePages": [
+            28
+          ]
+        },
+        {
+          "code": "ENG-T2-22",
+          "themeEn": "My Daily Life",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Use words in meaningful sentences.",
+          "sourcePages": [
+            28
+          ]
+        },
+        {
+          "code": "ENG-T2-23",
+          "themeEn": "My Daily Life",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Demonstrate good handwriting skills.",
+          "sourcePages": [
+            28
+          ]
+        },
+        {
+          "code": "ENG-T3-01",
+          "themeEn": "Our School",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Comprehend words and simple expressions.",
+          "sourcePages": [
+            29
+          ]
+        },
+        {
+          "code": "ENG-T3-02",
+          "themeEn": "Our School",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally.",
+          "sourcePages": [
+            29
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T3-03",
+          "themeEn": "Our School",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Find out specific information (names, dates, time, etc) from different kinds of simple spoken language.",
+          "sourcePages": [
+            29
+          ]
+        },
+        {
+          "code": "ENG-T3-04",
+          "themeEn": "Our School",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Perform a variety of listening comprehension tasks.",
+          "sourcePages": [
+            29
+          ]
+        },
+        {
+          "code": "ENG-T3-05",
+          "themeEn": "Our School",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Listen and comprehend a range of songs and stories with a variety of visual clues.",
+          "sourcePages": [
+            29
+          ]
+        },
+        {
+          "code": "ENG-T3-06",
+          "themeEn": "Our School",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Produce words, phrases, simple sentences with intelligible pronunciation.",
+          "sourcePages": [
+            29
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to produce words, phrases, simple sentences with intelligible pronunciation."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to produce words, phrases, simple sentences with intelligible pronunciation with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to produce words, phrases, simple sentences with intelligible pronunciation with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to produce words, phrases, simple sentences with intelligible pronunciation."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T3-07",
+          "themeEn": "Our School",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Participate in short conversations.",
+          "sourcePages": [
+            29
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to participate in short conversations."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to participate in short conversations with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to participate in short conversations with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to participate in short conversations."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T3-08",
+          "themeEn": "Our School",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Describe people, objects and events using adjectives, adverbs and prepositions.",
+          "sourcePages": [
+            29
+          ]
+        },
+        {
+          "code": "ENG-T3-09",
+          "themeEn": "Our School",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Talk about present, past and future events.",
+          "sourcePages": [
+            29
+          ]
+        },
+        {
+          "code": "ENG-T3-10",
+          "themeEn": "Our School",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Sing or recite a song/chant by listening to the teacher or an audio.",
+          "sourcePages": [
+            29
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to sing or recite a song/chant by listening to the teacher or an audio."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T3-11",
+          "themeEn": "Our School",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Read multi-syllabic words composed of roots, prefixes, and suffixes.",
+          "sourcePages": [
+            29
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to read multi-syllabic words composed of roots, prefixes, and suffixes."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to read multi-syllabic words composed of roots, prefixes, and suffixes with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to read multi-syllabic words composed of roots, prefixes, and suffixes with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to read multi-syllabic words composed of roots, prefixes, and suffixes."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T3-12",
+          "themeEn": "Our School",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Read common abbreviations (e.g., Dr., Mr., AM, and PM).",
+          "sourcePages": [
+            29
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to read common abbreviations (e.g., Dr., Mr., AM, and PM)."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to read common abbreviations (e.g., Dr., Mr., AM, and PM) with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to read common abbreviations (e.g., Dr., Mr., AM, and PM) with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to read common abbreviations (e.g., Dr., Mr., AM, and PM)."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T3-13",
+          "themeEn": "Our School",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Perform rhymes and chants with appropriate rhyme and rhythm.",
+          "sourcePages": [
+            29
+          ]
+        },
+        {
+          "code": "ENG-T3-14",
+          "themeEn": "Our School",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Guess the meaning of unfamiliar words from contexts.",
+          "sourcePages": [
+            29
+          ]
+        },
+        {
+          "code": "ENG-T3-15",
+          "themeEn": "Our School",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Read poems and short stories for pleasure.",
+          "sourcePages": [
+            29
+          ]
+        },
+        {
+          "code": "ENG-T3-16",
+          "themeEn": "Our School",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Connect sentences using simple coordinators (e.g. and, but, because).",
+          "sourcePages": [
+            29
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to connect sentences using simple coordinators (e.g. and, but, because)."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to connect sentences using simple coordinators (e.g. and, but, because) with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to connect sentences using simple coordinators (e.g. and, but, because) with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to connect sentences using simple coordinators (e.g. and, but, because)."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T3-17",
+          "themeEn": "Our School",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Write in a simple paragraph about oneself, people, places and things.",
+          "sourcePages": [
+            29
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to write in a simple paragraph about oneself, people, places and things."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to write in a simple paragraph about oneself, people, places and things with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to write in a simple paragraph about oneself, people, places and things with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to write in a simple paragraph about oneself, people, places and things."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T3-18",
+          "themeEn": "Our School",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Use correct spelling of words.",
+          "sourcePages": [
+            29
+          ]
+        },
+        {
+          "code": "ENG-T3-19",
+          "themeEn": "Our School",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Use words in meaningful sentences.",
+          "sourcePages": [
+            29
+          ]
+        },
+        {
+          "code": "ENG-T3-20",
+          "themeEn": "Our School",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Make compound words e.g. roundtable, playground, etc.",
+          "sourcePages": [
+            29
+          ]
+        },
+        {
+          "code": "ENG-T3-21",
+          "themeEn": "Our School",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Write very short simple messages.",
+          "sourcePages": [
+            29
+          ]
+        },
+        {
+          "code": "ENG-T3-22",
+          "themeEn": "Our School",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Demonstrate good handwriting skills.",
+          "sourcePages": [
+            29
+          ]
+        },
+        {
+          "code": "ENG-T4-01",
+          "themeEn": "Our Environment",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally.",
+          "sourcePages": [
+            30
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T4-02",
+          "themeEn": "Our Environment",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Find out specific information (names, dates, time, etc) from different kinds of simple spoken language.",
+          "sourcePages": [
+            30
+          ]
+        },
+        {
+          "code": "ENG-T4-03",
+          "themeEn": "Our Environment",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Listen in order to participate in a variety of short conversations.",
+          "sourcePages": [
+            30
+          ]
+        },
+        {
+          "code": "ENG-T4-04",
+          "themeEn": "Our Environment",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Perform a variety of listening comprehension tasks.",
+          "sourcePages": [
+            30
+          ]
+        },
+        {
+          "code": "ENG-T4-05",
+          "themeEn": "Our Environment",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Listen and comprehend a range of songs and stories with a variety of visual clues.",
+          "sourcePages": [
+            30
+          ]
+        },
+        {
+          "code": "ENG-T4-06",
+          "themeEn": "Our Environment",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Produce words, phrases, simple sentences with intelligible pronunciation.",
+          "sourcePages": [
+            30
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to produce words, phrases, simple sentences with intelligible pronunciation."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to produce words, phrases, simple sentences with intelligible pronunciation with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to produce words, phrases, simple sentences with intelligible pronunciation with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to produce words, phrases, simple sentences with intelligible pronunciation."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T4-07",
+          "themeEn": "Our Environment",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Participate in short conversations.",
+          "sourcePages": [
+            30
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to participate in short conversations."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to participate in short conversations with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to participate in short conversations with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to participate in short conversations."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T4-08",
+          "themeEn": "Our Environment",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Ask and answer a range of questions.",
+          "sourcePages": [
+            30
+          ]
+        },
+        {
+          "code": "ENG-T4-09",
+          "themeEn": "Our Environment",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Describe people, objects and events using adjectives, adverbs and prepositions.",
+          "sourcePages": [
+            30
+          ]
+        },
+        {
+          "code": "ENG-T4-10",
+          "themeEn": "Our Environment",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Sing or recite a song/chant by listening to the teacher or an audio.",
+          "sourcePages": [
+            30
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to sing or recite a song/chant by listening to the teacher or an audio."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T4-11",
+          "themeEn": "Our Environment",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Read multi-syllabic words composed of roots, prefixes, and suffixes.",
+          "sourcePages": [
+            30
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to read multi-syllabic words composed of roots, prefixes, and suffixes."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to read multi-syllabic words composed of roots, prefixes, and suffixes with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to read multi-syllabic words composed of roots, prefixes, and suffixes with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to read multi-syllabic words composed of roots, prefixes, and suffixes."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T4-12",
+          "themeEn": "Our Environment",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Perform rhymes and chants with appropriate rhyme and rhythm.",
+          "sourcePages": [
+            30
+          ]
+        },
+        {
+          "code": "ENG-T4-13",
+          "themeEn": "Our Environment",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Read short texts silently and find out the main ideas and supporting details of the text.",
+          "sourcePages": [
+            30
+          ]
+        },
+        {
+          "code": "ENG-T4-14",
+          "themeEn": "Our Environment",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Guess the meaning of unfamiliar words from contexts.",
+          "sourcePages": [
+            30
+          ]
+        },
+        {
+          "code": "ENG-T4-15",
+          "themeEn": "Our Environment",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Consult dictionary to find out the meaning of words.",
+          "sourcePages": [
+            30
+          ]
+        },
+        {
+          "code": "ENG-T4-16",
+          "themeEn": "Our Environment",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Read poems and short stories for pleasure.",
+          "sourcePages": [
+            30
+          ]
+        },
+        {
+          "code": "ENG-T4-17",
+          "themeEn": "Our Environment",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Use capital letters, full stops and question marks correctly.",
+          "sourcePages": [
+            30
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to use capital letters, full stops and question marks correctly."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to use capital letters, full stops and question marks correctly with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to use capital letters, full stops and question marks correctly with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to use capital letters, full stops and question marks correctly."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T4-18",
+          "themeEn": "Our Environment",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Connect sentences using simple coordinators (e.g. and, but, because).",
+          "sourcePages": [
+            30
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to connect sentences using simple coordinators (e.g. and, but, because)."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to connect sentences using simple coordinators (e.g. and, but, because) with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to connect sentences using simple coordinators (e.g. and, but, because) with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to connect sentences using simple coordinators (e.g. and, but, because)."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T4-19",
+          "themeEn": "Our Environment",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Use correct spelling of words.",
+          "sourcePages": [
+            30
+          ]
+        },
+        {
+          "code": "ENG-T4-20",
+          "themeEn": "Our Environment",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Use regular and irregular plural nouns.",
+          "sourcePages": [
+            30
+          ]
+        },
+        {
+          "code": "ENG-T4-21",
+          "themeEn": "Our Environment",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Use words in meaningful sentences.",
+          "sourcePages": [
+            30
+          ]
+        },
+        {
+          "code": "ENG-T4-22",
+          "themeEn": "Our Environment",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Make compound words e.g. roundtable, playground, etc.",
+          "sourcePages": [
+            30
+          ]
+        },
+        {
+          "code": "ENG-T4-23",
+          "themeEn": "Our Environment",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Write very short simple messages.",
+          "sourcePages": [
+            30
+          ]
+        },
+        {
+          "code": "ENG-T4-24",
+          "themeEn": "Our Environment",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Demonstrate good handwriting skills.",
+          "sourcePages": [
+            30
+          ]
+        },
+        {
+          "code": "ENG-T5-01",
+          "themeEn": "My Belongings",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally.",
+          "sourcePages": [
+            31
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T5-02",
+          "themeEn": "My Belongings",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Identify key information from a short speech or conversation.",
+          "sourcePages": [
+            31
+          ]
+        },
+        {
+          "code": "ENG-T5-03",
+          "themeEn": "My Belongings",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Find out specific information (names, dates, time, etc) from different kinds of simple spoken language.",
+          "sourcePages": [
+            31
+          ]
+        },
+        {
+          "code": "ENG-T5-04",
+          "themeEn": "My Belongings",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Perform a variety of listening comprehension tasks.",
+          "sourcePages": [
+            31
+          ]
+        },
+        {
+          "code": "ENG-T5-05",
+          "themeEn": "My Belongings",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Produce words, phrases, simple sentences with intelligible pronunciation.",
+          "sourcePages": [
+            31
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to produce words, phrases, simple sentences with intelligible pronunciation."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to produce words, phrases, simple sentences with intelligible pronunciation with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to produce words, phrases, simple sentences with intelligible pronunciation with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to produce words, phrases, simple sentences with intelligible pronunciation."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T5-06",
+          "themeEn": "My Belongings",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Ask and answer a range of questions.",
+          "sourcePages": [
+            31
+          ]
+        },
+        {
+          "code": "ENG-T5-07",
+          "themeEn": "My Belongings",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Describe people, objects and events using adjectives, adverbs and prepositions.",
+          "sourcePages": [
+            31
+          ]
+        },
+        {
+          "code": "ENG-T5-08",
+          "themeEn": "My Belongings",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Sing or recite a song/chant by listening to the teacher or an audio.",
+          "sourcePages": [
+            31
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to sing or recite a song/chant by listening to the teacher or an audio."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T5-09",
+          "themeEn": "My Belongings",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Read short texts silently and retrieve specific information (name, number, etc.).",
+          "sourcePages": [
+            31
+          ]
+        },
+        {
+          "code": "ENG-T5-10",
+          "themeEn": "My Belongings",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Guess the meaning of unfamiliar words from contexts.",
+          "sourcePages": [
+            31
+          ]
+        },
+        {
+          "code": "ENG-T5-11",
+          "themeEn": "My Belongings",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Consult dictionary to find out the meaning of words.",
+          "sourcePages": [
+            31
+          ]
+        },
+        {
+          "code": "ENG-T5-12",
+          "themeEn": "My Belongings",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Read poems and short stories for pleasure.",
+          "sourcePages": [
+            31
+          ]
+        },
+        {
+          "code": "ENG-T5-13",
+          "themeEn": "My Belongings",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Connect sentences using simple coordinators (e.g. and, but, because).",
+          "sourcePages": [
+            31
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to connect sentences using simple coordinators (e.g. and, but, because)."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to connect sentences using simple coordinators (e.g. and, but, because) with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to connect sentences using simple coordinators (e.g. and, but, because) with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to connect sentences using simple coordinators (e.g. and, but, because)."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T5-14",
+          "themeEn": "My Belongings",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Write in a simple paragraph about oneself, people, places and things.",
+          "sourcePages": [
+            31
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to write in a simple paragraph about oneself, people, places and things."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to write in a simple paragraph about oneself, people, places and things with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to write in a simple paragraph about oneself, people, places and things with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to write in a simple paragraph about oneself, people, places and things."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T5-15",
+          "themeEn": "My Belongings",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Use correct spelling of words.",
+          "sourcePages": [
+            31
+          ]
+        },
+        {
+          "code": "ENG-T5-16",
+          "themeEn": "My Belongings",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Use regular and irregular plural nouns.",
+          "sourcePages": [
+            31
+          ]
+        },
+        {
+          "code": "ENG-T5-17",
+          "themeEn": "My Belongings",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Use words in meaningful sentences.",
+          "sourcePages": [
+            31
+          ]
+        },
+        {
+          "code": "ENG-T5-18",
+          "themeEn": "My Belongings",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Make compound words e.g. roundtable, playground, etc.",
+          "sourcePages": [
+            31
+          ]
+        },
+        {
+          "code": "ENG-T5-19",
+          "themeEn": "My Belongings",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Write very short simple messages.",
+          "sourcePages": [
+            31
+          ]
+        },
+        {
+          "code": "ENG-T5-20",
+          "themeEn": "My Belongings",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Demonstrate good handwriting skills.",
+          "sourcePages": [
+            31
+          ]
+        },
+        {
+          "code": "ENG-T6-01",
+          "themeEn": "Our Culture",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally.",
+          "sourcePages": [
+            32
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T6-02",
+          "themeEn": "Our Culture",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Identify key information from a short speech or conversation.",
+          "sourcePages": [
+            32
+          ]
+        },
+        {
+          "code": "ENG-T6-03",
+          "themeEn": "Our Culture",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Find out specific information (names, dates, time, etc) from different kinds of simple spoken language.",
+          "sourcePages": [
+            32
+          ]
+        },
+        {
+          "code": "ENG-T6-04",
+          "themeEn": "Our Culture",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Listen in order to participate in a variety of short conversations.",
+          "sourcePages": [
+            32
+          ]
+        },
+        {
+          "code": "ENG-T6-05",
+          "themeEn": "Our Culture",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Perform a variety of listening comprehension tasks.",
+          "sourcePages": [
+            32
+          ]
+        },
+        {
+          "code": "ENG-T6-06",
+          "themeEn": "Our Culture",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Listen and comprehend a range of songs and stories with a variety of visual clues.",
+          "sourcePages": [
+            32
+          ]
+        },
+        {
+          "code": "ENG-T6-07",
+          "themeEn": "Our Culture",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Produce words, phrases, simple sentences with intelligible pronunciation.",
+          "sourcePages": [
+            32
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to produce words, phrases, simple sentences with intelligible pronunciation."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to produce words, phrases, simple sentences with intelligible pronunciation with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to produce words, phrases, simple sentences with intelligible pronunciation with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to produce words, phrases, simple sentences with intelligible pronunciation."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T6-08",
+          "themeEn": "Our Culture",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Participate in short conversations.",
+          "sourcePages": [
+            32
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to participate in short conversations."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to participate in short conversations with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to participate in short conversations with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to participate in short conversations."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T6-09",
+          "themeEn": "Our Culture",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Ask and answer a range of questions.",
+          "sourcePages": [
+            32
+          ]
+        },
+        {
+          "code": "ENG-T6-10",
+          "themeEn": "Our Culture",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Talk about present, past and future events.",
+          "sourcePages": [
+            32
+          ]
+        },
+        {
+          "code": "ENG-T6-11",
+          "themeEn": "Our Culture",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Sing or recite a song/chant by listening to the teacher or an audio.",
+          "sourcePages": [
+            32
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to sing or recite a song/chant by listening to the teacher or an audio."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T6-12",
+          "themeEn": "Our Culture",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Read multi-syllabic words composed of roots, prefixes, and suffixes.",
+          "sourcePages": [
+            32
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to read multi-syllabic words composed of roots, prefixes, and suffixes."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to read multi-syllabic words composed of roots, prefixes, and suffixes with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to read multi-syllabic words composed of roots, prefixes, and suffixes with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to read multi-syllabic words composed of roots, prefixes, and suffixes."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T6-13",
+          "themeEn": "Our Culture",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Perform rhymes and chants with appropriate rhyme and rhythm.",
+          "sourcePages": [
+            32
+          ]
+        },
+        {
+          "code": "ENG-T6-14",
+          "themeEn": "Our Culture",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Read short texts silently and retrieve specific information (name, number, etc.).",
+          "sourcePages": [
+            32
+          ]
+        },
+        {
+          "code": "ENG-T6-15",
+          "themeEn": "Our Culture",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Read short texts silently and find out the main ideas and supporting details of the text.",
+          "sourcePages": [
+            32
+          ]
+        },
+        {
+          "code": "ENG-T7-01",
+          "themeEn": "Communication Technology and Market",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Comprehend words and simple expressions.",
+          "sourcePages": [
+            33
+          ]
+        },
+        {
+          "code": "ENG-T7-02",
+          "themeEn": "Communication Technology and Market",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally.",
+          "sourcePages": [
+            33
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T7-03",
+          "themeEn": "Communication Technology and Market",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Identify key information from a short speech or conversation.",
+          "sourcePages": [
+            33
+          ]
+        },
+        {
+          "code": "ENG-T7-04",
+          "themeEn": "Communication Technology and Market",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Find out specific information (names, dates, time, etc) from different kinds of simple spoken language.",
+          "sourcePages": [
+            33
+          ]
+        },
+        {
+          "code": "ENG-T7-05",
+          "themeEn": "Communication Technology and Market",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Perform a variety of listening comprehension tasks.",
+          "sourcePages": [
+            33
+          ]
+        },
+        {
+          "code": "ENG-T7-06",
+          "themeEn": "Communication Technology and Market",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Listen and comprehend a range of songs and stories with a variety of visual clues.",
+          "sourcePages": [
+            33
+          ]
+        },
+        {
+          "code": "ENG-T7-07",
+          "themeEn": "Communication Technology and Market",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Participate in short conversations.",
+          "sourcePages": [
+            33
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to participate in short conversations."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to participate in short conversations with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to participate in short conversations with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to participate in short conversations."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T7-08",
+          "themeEn": "Communication Technology and Market",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Ask and answer a range of questions.",
+          "sourcePages": [
+            33
+          ]
+        },
+        {
+          "code": "ENG-T7-09",
+          "themeEn": "Communication Technology and Market",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Describe people, objects and events using adjectives, adverbs and prepositions.",
+          "sourcePages": [
+            33
+          ]
+        },
+        {
+          "code": "ENG-T7-10",
+          "themeEn": "Communication Technology and Market",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Talk about present, past and future events.",
+          "sourcePages": [
+            33
+          ]
+        },
+        {
+          "code": "ENG-T7-11",
+          "themeEn": "Communication Technology and Market",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Sing or recite a song/chant by listening to the teacher or an audio.",
+          "sourcePages": [
+            33
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to sing or recite a song/chant by listening to the teacher or an audio."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T7-12",
+          "themeEn": "Communication Technology and Market",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Make simple telephone conversation.",
+          "sourcePages": [
+            33
+          ]
+        },
+        {
+          "code": "ENG-T7-13",
+          "themeEn": "Communication Technology and Market",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Perform rhymes and chants with appropriate rhyme and rhythm.",
+          "sourcePages": [
+            33
+          ]
+        },
+        {
+          "code": "ENG-T7-14",
+          "themeEn": "Communication Technology and Market",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Read short texts silently and retrieve specific information (name, number, etc.).",
+          "sourcePages": [
+            33
+          ]
+        },
+        {
+          "code": "ENG-T7-15",
+          "themeEn": "Communication Technology and Market",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Read short texts silently and find out the main ideas and supporting details of the text.",
+          "sourcePages": [
+            33
+          ]
+        },
+        {
+          "code": "ENG-T7-16",
+          "themeEn": "Communication Technology and Market",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Guess the meaning of unfamiliar words from contexts.",
+          "sourcePages": [
+            33
+          ]
+        },
+        {
+          "code": "ENG-T7-17",
+          "themeEn": "Communication Technology and Market",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Consult dictionary to find out the meaning of words.",
+          "sourcePages": [
+            33
+          ]
+        },
+        {
+          "code": "ENG-T7-18",
+          "themeEn": "Communication Technology and Market",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Retrieve required information from para-orthographic texts such as charts, tables, graphs and maps.",
+          "sourcePages": [
+            33
+          ]
+        },
+        {
+          "code": "ENG-T7-19",
+          "themeEn": "Communication Technology and Market",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Read poems and short stories for pleasure.",
+          "sourcePages": [
+            33
+          ]
+        },
+        {
+          "code": "ENG-T7-20",
+          "themeEn": "Communication Technology and Market",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Connect sentences using simple coordinators (e.g. and, but, because).",
+          "sourcePages": [
+            33
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to connect sentences using simple coordinators (e.g. and, but, because)."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to connect sentences using simple coordinators (e.g. and, but, because) with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to connect sentences using simple coordinators (e.g. and, but, because) with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to connect sentences using simple coordinators (e.g. and, but, because)."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T7-21",
+          "themeEn": "Communication Technology and Market",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Write in a simple paragraph about oneself, people, places and things.",
+          "sourcePages": [
+            33
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to write in a simple paragraph about oneself, people, places and things."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to write in a simple paragraph about oneself, people, places and things with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to write in a simple paragraph about oneself, people, places and things with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to write in a simple paragraph about oneself, people, places and things."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T7-22",
+          "themeEn": "Communication Technology and Market",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Use correct spelling of words.",
+          "sourcePages": [
+            33
+          ]
+        },
+        {
+          "code": "ENG-T7-23",
+          "themeEn": "Communication Technology and Market",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Use regular and irregular plural nouns.",
+          "sourcePages": [
+            33
+          ]
+        },
+        {
+          "code": "ENG-T7-24",
+          "themeEn": "Communication Technology and Market",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Use words in meaningful sentences.",
+          "sourcePages": [
+            33
+          ]
+        },
+        {
+          "code": "ENG-T7-25",
+          "themeEn": "Communication Technology and Market",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Make compound words e.g. roundtable, playground, etc.",
+          "sourcePages": [
+            33
+          ]
+        },
+        {
+          "code": "ENG-T7-26",
+          "themeEn": "Communication Technology and Market",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Write very short simple messages.",
+          "sourcePages": [
+            33
+          ]
+        },
+        {
+          "code": "ENG-T7-27",
+          "themeEn": "Communication Technology and Market",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Demonstrate good handwriting skills.",
+          "sourcePages": [
+            33
+          ]
+        },
+        {
+          "code": "ENG-T8-01",
+          "themeEn": "Fruits and Vegetables",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally.",
+          "sourcePages": [
+            34
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T8-02",
+          "themeEn": "Fruits and Vegetables",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Identify key information from a short speech or conversation.",
+          "sourcePages": [
+            34
+          ]
+        },
+        {
+          "code": "ENG-T8-03",
+          "themeEn": "Fruits and Vegetables",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Find out specific information (names, dates, time, etc) from different kinds of simple spoken language.",
+          "sourcePages": [
+            34
+          ]
+        },
+        {
+          "code": "ENG-T8-04",
+          "themeEn": "Fruits and Vegetables",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Listen in order to participate in a variety of short conversations.",
+          "sourcePages": [
+            34
+          ]
+        },
+        {
+          "code": "ENG-T8-05",
+          "themeEn": "Fruits and Vegetables",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Perform a variety of listening comprehension tasks.",
+          "sourcePages": [
+            34
+          ]
+        },
+        {
+          "code": "ENG-T8-06",
+          "themeEn": "Fruits and Vegetables",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Listen and comprehend a range of songs and stories with a variety of visual clues.",
+          "sourcePages": [
+            34
+          ]
+        },
+        {
+          "code": "ENG-T8-07",
+          "themeEn": "Fruits and Vegetables",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Produce words, phrases, simple sentences with intelligible pronunciation.",
+          "sourcePages": [
+            34
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to produce words, phrases, simple sentences with intelligible pronunciation."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to produce words, phrases, simple sentences with intelligible pronunciation with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to produce words, phrases, simple sentences with intelligible pronunciation with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to produce words, phrases, simple sentences with intelligible pronunciation."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T8-08",
+          "themeEn": "Fruits and Vegetables",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Participate in short conversations.",
+          "sourcePages": [
+            34
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to participate in short conversations."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to participate in short conversations with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to participate in short conversations with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to participate in short conversations."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T8-09",
+          "themeEn": "Fruits and Vegetables",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Ask and answer a range of questions.",
+          "sourcePages": [
+            34
+          ]
+        },
+        {
+          "code": "ENG-T8-10",
+          "themeEn": "Fruits and Vegetables",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Describe people, objects and events using adjectives, adverbs and prepositions.",
+          "sourcePages": [
+            34
+          ]
+        },
+        {
+          "code": "ENG-T8-11",
+          "themeEn": "Fruits and Vegetables",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Sing or recite a song/chant by listening to the teacher or an audio.",
+          "sourcePages": [
+            34
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to sing or recite a song/chant by listening to the teacher or an audio."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T8-12",
+          "themeEn": "Fruits and Vegetables",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Perform rhymes and chants with appropriate rhyme and rhythm.",
+          "sourcePages": [
+            34
+          ]
+        },
+        {
+          "code": "ENG-T8-13",
+          "themeEn": "Fruits and Vegetables",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Read short texts silently and retrieve specific information (name, number, etc.).",
+          "sourcePages": [
+            34
+          ]
+        },
+        {
+          "code": "ENG-T8-14",
+          "themeEn": "Fruits and Vegetables",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Read short texts silently and find out the main ideas and supporting details of the text.",
+          "sourcePages": [
+            34
+          ]
+        },
+        {
+          "code": "ENG-T8-15",
+          "themeEn": "Fruits and Vegetables",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Guess the meaning of unfamiliar words from contexts.",
+          "sourcePages": [
+            34
+          ]
+        },
+        {
+          "code": "ENG-T8-16",
+          "themeEn": "Fruits and Vegetables",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Consult dictionary to find out the meaning of words.",
+          "sourcePages": [
+            34
+          ]
+        },
+        {
+          "code": "ENG-T8-17",
+          "themeEn": "Fruits and Vegetables",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Read poems and short stories for pleasure.",
+          "sourcePages": [
+            34
+          ]
+        },
+        {
+          "code": "ENG-T8-18",
+          "themeEn": "Fruits and Vegetables",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Connect sentences using simple coordinators (e.g. and, but, because).",
+          "sourcePages": [
+            34
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to connect sentences using simple coordinators (e.g. and, but, because)."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to connect sentences using simple coordinators (e.g. and, but, because) with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to connect sentences using simple coordinators (e.g. and, but, because) with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to connect sentences using simple coordinators (e.g. and, but, because)."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T8-19",
+          "themeEn": "Fruits and Vegetables",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Write in a simple paragraph about oneself, people, places and things.",
+          "sourcePages": [
+            34
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to write in a simple paragraph about oneself, people, places and things."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to write in a simple paragraph about oneself, people, places and things with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to write in a simple paragraph about oneself, people, places and things with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to write in a simple paragraph about oneself, people, places and things."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T8-20",
+          "themeEn": "Fruits and Vegetables",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Use correct spelling of words.",
+          "sourcePages": [
+            34
+          ]
+        },
+        {
+          "code": "ENG-T8-21",
+          "themeEn": "Fruits and Vegetables",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Use regular and irregular plural nouns.",
+          "sourcePages": [
+            34
+          ]
+        },
+        {
+          "code": "ENG-T8-22",
+          "themeEn": "Fruits and Vegetables",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Arrange words in alphabetical order.",
+          "sourcePages": [
+            34
+          ]
+        },
+        {
+          "code": "ENG-T8-23",
+          "themeEn": "Fruits and Vegetables",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Use words in meaningful sentences.",
+          "sourcePages": [
+            34
+          ]
+        },
+        {
+          "code": "ENG-T8-24",
+          "themeEn": "Fruits and Vegetables",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Make compound words e.g. roundtable, playground, etc.",
+          "sourcePages": [
+            34
+          ]
+        },
+        {
+          "code": "ENG-T8-25",
+          "themeEn": "Fruits and Vegetables",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Write very short simple messages.",
+          "sourcePages": [
+            34
+          ]
+        },
+        {
+          "code": "ENG-T8-26",
+          "themeEn": "Fruits and Vegetables",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Demonstrate good handwriting skills.",
+          "sourcePages": [
+            34
+          ]
+        },
+        {
+          "code": "ENG-T9-01",
+          "themeEn": "Hobbies and Interests",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally.",
+          "sourcePages": [
+            35
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T9-02",
+          "themeEn": "Hobbies and Interests",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Identify key information from a short speech or conversation.",
+          "sourcePages": [
+            35
+          ]
+        },
+        {
+          "code": "ENG-T9-03",
+          "themeEn": "Hobbies and Interests",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Find out specific information (names, dates, time, etc) from different kinds of simple spoken language.",
+          "sourcePages": [
+            35
+          ]
+        },
+        {
+          "code": "ENG-T9-04",
+          "themeEn": "Hobbies and Interests",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Perform a variety of listening comprehension tasks.",
+          "sourcePages": [
+            35
+          ]
+        },
+        {
+          "code": "ENG-T9-05",
+          "themeEn": "Hobbies and Interests",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Listen and comprehend a range of songs and stories with a variety of visual clues.",
+          "sourcePages": [
+            35
+          ]
+        },
+        {
+          "code": "ENG-T9-06",
+          "themeEn": "Hobbies and Interests",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Ask and answer a range of questions.",
+          "sourcePages": [
+            35
+          ]
+        },
+        {
+          "code": "ENG-T9-07",
+          "themeEn": "Hobbies and Interests",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Describe people, objects and events using adjectives, adverbs and prepositions.",
+          "sourcePages": [
+            35
+          ]
+        },
+        {
+          "code": "ENG-T9-08",
+          "themeEn": "Hobbies and Interests",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Talk about present, past and future events.",
+          "sourcePages": [
+            35
+          ]
+        },
+        {
+          "code": "ENG-T9-09",
+          "themeEn": "Hobbies and Interests",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Sing or recite a song/chant by listening to the teacher or an audio.",
+          "sourcePages": [
+            35
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to sing or recite a song/chant by listening to the teacher or an audio."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T9-10",
+          "themeEn": "Hobbies and Interests",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Perform rhymes and chants with appropriate rhyme and rhythm.",
+          "sourcePages": [
+            35
+          ]
+        },
+        {
+          "code": "ENG-T9-11",
+          "themeEn": "Hobbies and Interests",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Read short texts silently and retrieve specific information (name, number, etc.).",
+          "sourcePages": [
+            35
+          ]
+        },
+        {
+          "code": "ENG-T9-12",
+          "themeEn": "Hobbies and Interests",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Read short texts silently and find out the main ideas and supporting details of the text.",
+          "sourcePages": [
+            35
+          ]
+        },
+        {
+          "code": "ENG-T9-13",
+          "themeEn": "Hobbies and Interests",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Guess the meaning of unfamiliar words from contexts.",
+          "sourcePages": [
+            35
+          ]
+        },
+        {
+          "code": "ENG-T9-14",
+          "themeEn": "Hobbies and Interests",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Consult dictionary to find out the meaning of words.",
+          "sourcePages": [
+            35
+          ]
+        },
+        {
+          "code": "ENG-T9-15",
+          "themeEn": "Hobbies and Interests",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Read poems and short stories for pleasure.",
+          "sourcePages": [
+            35
+          ]
+        },
+        {
+          "code": "ENG-T9-16",
+          "themeEn": "Hobbies and Interests",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Use capital letters, full stops and question marks correctly.",
+          "sourcePages": [
+            35
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to use capital letters, full stops and question marks correctly."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to use capital letters, full stops and question marks correctly with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to use capital letters, full stops and question marks correctly with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to use capital letters, full stops and question marks correctly."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T9-17",
+          "themeEn": "Hobbies and Interests",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Connect sentences using simple coordinators (e.g. and, but, because).",
+          "sourcePages": [
+            35
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to connect sentences using simple coordinators (e.g. and, but, because)."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to connect sentences using simple coordinators (e.g. and, but, because) with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to connect sentences using simple coordinators (e.g. and, but, because) with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to connect sentences using simple coordinators (e.g. and, but, because)."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T9-18",
+          "themeEn": "Hobbies and Interests",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Write in a simple paragraph about oneself, people, places and things.",
+          "sourcePages": [
+            35
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to write in a simple paragraph about oneself, people, places and things."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to write in a simple paragraph about oneself, people, places and things with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to write in a simple paragraph about oneself, people, places and things with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to write in a simple paragraph about oneself, people, places and things."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T9-19",
+          "themeEn": "Hobbies and Interests",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Write simple stories through completion, matching with pictures or ordering.",
+          "sourcePages": [
+            35
+          ]
+        },
+        {
+          "code": "ENG-T9-20",
+          "themeEn": "Hobbies and Interests",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Use correct spelling of words.",
+          "sourcePages": [
+            35
+          ]
+        },
+        {
+          "code": "ENG-T9-21",
+          "themeEn": "Hobbies and Interests",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Use regular and irregular plural nouns.",
+          "sourcePages": [
+            35
+          ]
+        },
+        {
+          "code": "ENG-T9-22",
+          "themeEn": "Hobbies and Interests",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Use words in meaningful sentences.",
+          "sourcePages": [
+            35
+          ]
+        },
+        {
+          "code": "ENG-T9-23",
+          "themeEn": "Hobbies and Interests",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Make compound words e.g. roundtable, playground, etc.",
+          "sourcePages": [
+            35
+          ]
+        },
+        {
+          "code": "ENG-T9-24",
+          "themeEn": "Hobbies and Interests",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Demonstrate good handwriting skills.",
+          "sourcePages": [
+            35
+          ]
+        },
+        {
+          "code": "ENG-T10-01",
+          "themeEn": "Birds and Animals",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally.",
+          "sourcePages": [
+            36
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to listen and respond to a wide variety of spoken stimuli (words, sentences, questions, instructions, etc.) both verbally and non-verbally."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T10-02",
+          "themeEn": "Birds and Animals",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Identify key information from a short speech or conversation.",
+          "sourcePages": [
+            36
+          ]
+        },
+        {
+          "code": "ENG-T10-03",
+          "themeEn": "Birds and Animals",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Find out specific information (names, dates, time, etc) from different kinds of simple spoken language.",
+          "sourcePages": [
+            36
+          ]
+        },
+        {
+          "code": "ENG-T10-04",
+          "themeEn": "Birds and Animals",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Perform a variety of listening comprehension tasks.",
+          "sourcePages": [
+            36
+          ]
+        },
+        {
+          "code": "ENG-T10-05",
+          "themeEn": "Birds and Animals",
+          "assessmentAspect": "Listening",
+          "titleEn": "Listening: Listen and comprehend a range of songs and stories with a variety of visual clues.",
+          "sourcePages": [
+            36
+          ]
+        },
+        {
+          "code": "ENG-T10-06",
+          "themeEn": "Birds and Animals",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Participate in short conversations.",
+          "sourcePages": [
+            36
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to participate in short conversations."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to participate in short conversations with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to participate in short conversations with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to participate in short conversations."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T10-07",
+          "themeEn": "Birds and Animals",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Ask and answer a range of questions.",
+          "sourcePages": [
+            36
+          ]
+        },
+        {
+          "code": "ENG-T10-08",
+          "themeEn": "Birds and Animals",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Talk about present, past and future events.",
+          "sourcePages": [
+            36
+          ]
+        },
+        {
+          "code": "ENG-T10-09",
+          "themeEn": "Birds and Animals",
+          "assessmentAspect": "Speaking",
+          "titleEn": "Speaking: Sing or recite a song/chant by listening to the teacher or an audio.",
+          "sourcePages": [
+            36
+          ],
+          "descriptors": [
+            {
+              "level": 4,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio."
+            },
+            {
+              "level": 3,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio with one/two errors."
+            },
+            {
+              "level": 2,
+              "textEn": "The student is able to sing or recite a song/chant by listening to the teacher or an audio with half of the errors."
+            },
+            {
+              "level": 1,
+              "textEn": "The student is almost unable to sing or recite a song/chant by listening to the teacher or an audio."
+            }
+          ]
+        },
+        {
+          "code": "ENG-T10-10",
+          "themeEn": "Birds and Animals",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Perform rhymes and chants with appropriate rhyme and rhythm.",
+          "sourcePages": [
+            36
+          ]
+        },
+        {
+          "code": "ENG-T10-11",
+          "themeEn": "Birds and Animals",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Read short texts silently and retrieve specific information (name, number, etc.).",
+          "sourcePages": [
+            36
+          ]
+        },
+        {
+          "code": "ENG-T10-12",
+          "themeEn": "Birds and Animals",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Read short texts silently and find out the main ideas and supporting details of the text.",
+          "sourcePages": [
+            36
+          ]
+        },
+        {
+          "code": "ENG-T10-13",
+          "themeEn": "Birds and Animals",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Consult dictionary to find out the meaning of words.",
+          "sourcePages": [
+            36
+          ]
+        },
+        {
+          "code": "ENG-T10-14",
+          "themeEn": "Birds and Animals",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Retrieve required information from para-orthographic texts such as charts, tables, graphs and maps.",
+          "sourcePages": [
+            36
+          ]
+        },
+        {
+          "code": "ENG-T10-15",
+          "themeEn": "Birds and Animals",
+          "assessmentAspect": "Reading",
+          "titleEn": "Reading: Read poems and short stories for pleasure.",
+          "sourcePages": [
+            36
+          ]
+        },
+        {
+          "code": "ENG-T10-16",
+          "themeEn": "Birds and Animals",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Write simple stories through completion, matching with pictures or ordering.",
+          "sourcePages": [
+            36
+          ]
+        },
+        {
+          "code": "ENG-T10-17",
+          "themeEn": "Birds and Animals",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Use regular and irregular plural nouns.",
+          "sourcePages": [
+            36
+          ]
+        },
+        {
+          "code": "ENG-T10-18",
+          "themeEn": "Birds and Animals",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Write very short simple messages.",
+          "sourcePages": [
+            36
+          ]
+        },
+        {
+          "code": "ENG-T10-19",
+          "themeEn": "Birds and Animals",
+          "assessmentAspect": "Writing",
+          "titleEn": "Writing: Demonstrate good handwriting skills.",
+          "sourcePages": [
+            36
+          ]
+        }
+      ],
+      "themes": [
+        {
+          "sequence": 1,
+          "titleEn": "Me and My Family",
+          "titleNe": "",
+          "sourcePages": [
+            27
+          ],
+          "outcomesTranscribed": 26,
+          "outcomesExpected": 26,
+          "transcriptionStatus": "COMPLETE",
+          "workingHours": 15,
+          "assessmentProjectHours": 3
+        },
+        {
+          "sequence": 2,
+          "titleEn": "My Daily Life",
+          "titleNe": "",
+          "sourcePages": [
+            28
+          ],
+          "outcomesTranscribed": 23,
+          "outcomesExpected": 23,
+          "transcriptionStatus": "COMPLETE",
+          "workingHours": 15,
+          "assessmentProjectHours": 2
+        },
+        {
+          "sequence": 3,
+          "titleEn": "Our School",
+          "titleNe": "",
+          "sourcePages": [
+            29
+          ],
+          "outcomesTranscribed": 22,
+          "outcomesExpected": 22,
+          "transcriptionStatus": "COMPLETE",
+          "workingHours": 15,
+          "assessmentProjectHours": 2
+        },
+        {
+          "sequence": 4,
+          "titleEn": "Our Environment",
+          "titleNe": "",
+          "sourcePages": [
+            30,
+            37
+          ],
+          "outcomesTranscribed": 24,
+          "outcomesExpected": 22,
+          "transcriptionStatus": "COMPLETE",
+          "workingHours": 15,
+          "assessmentProjectHours": 3,
+          "sourceNote": "The theme table contains 24 individually listed outcomes, but its printed footer and the cumulative table state 22. All listed rows are retained; no rows are added or removed to force the printed total."
+        },
+        {
+          "sequence": 5,
+          "titleEn": "My Belongings",
+          "titleNe": "",
+          "sourcePages": [
+            31
+          ],
+          "outcomesTranscribed": 20,
+          "outcomesExpected": 20,
+          "transcriptionStatus": "COMPLETE",
+          "workingHours": 11,
+          "assessmentProjectHours": 1
+        },
+        {
+          "sequence": 6,
+          "titleEn": "Our Culture",
+          "titleNe": "",
+          "sourcePages": [
+            32,
+            37
+          ],
+          "outcomesTranscribed": 15,
+          "outcomesExpected": 25,
+          "transcriptionStatus": "SOURCE_INCOMPLETE",
+          "sourceNote": "PDF page 32 (printed page 30) is blurred and cropped during Reading item 5. Only the 15 fully visible outcomes are included. Remaining Reading and all Writing rows are absent from the supplied scan. The cumulative table on PDF page 37 states 25 outcomes and 12 total hours including assessment/project work; separate working and project hours cannot be read reliably."
+        },
+        {
+          "sequence": 7,
+          "titleEn": "Communication Technology and Market",
+          "titleNe": "",
+          "sourcePages": [
+            33
+          ],
+          "outcomesTranscribed": 27,
+          "outcomesExpected": 27,
+          "transcriptionStatus": "COMPLETE",
+          "workingHours": 10,
+          "assessmentProjectHours": 1
+        },
+        {
+          "sequence": 8,
+          "titleEn": "Fruits and Vegetables",
+          "titleNe": "",
+          "sourcePages": [
+            34
+          ],
+          "outcomesTranscribed": 26,
+          "outcomesExpected": 26,
+          "transcriptionStatus": "COMPLETE",
+          "workingHours": 6,
+          "assessmentProjectHours": 2
+        },
+        {
+          "sequence": 9,
+          "titleEn": "Hobbies and Interests",
+          "titleNe": "",
+          "sourcePages": [
+            35,
+            37
+          ],
+          "outcomesTranscribed": 24,
+          "outcomesExpected": 26,
+          "transcriptionStatus": "COMPLETE",
+          "workingHours": 6,
+          "assessmentProjectHours": 2,
+          "sourceNote": "The theme table contains 24 individually listed outcomes, but its printed footer and the cumulative table state 26. All listed rows are retained; no rows are added or removed to force the printed total."
+        },
+        {
+          "sequence": 10,
+          "titleEn": "Birds and Animals",
+          "titleNe": "",
+          "sourcePages": [
+            36
+          ],
+          "outcomesTranscribed": 19,
+          "outcomesExpected": 19,
+          "transcriptionStatus": "COMPLETE",
+          "workingHours": 6,
+          "assessmentProjectHours": 1
+        }
+      ]
+    }
+  ]
+}

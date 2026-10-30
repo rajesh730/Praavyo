@@ -1,0 +1,213 @@
+"use client";
+
+import { useCallback, useEffect, useState } from "react";
+import { useRememberedState } from "@pravyo/ui/rememberedState";
+import {
+  useParentApp,
+  useParentFetch,
+} from "@/components/parent/ParentAppContext";
+import JourneyTimeline from "@/components/parent/JourneyTimeline";
+import ParentEmptyState from "@/components/parent/ParentEmptyState";
+
+/**
+ * The full Journey screen (§5).
+ *
+ * Filters and grouping are applied server-side and the result is paginated, so
+ * a child with a long history does not ship their whole record to the phone
+ * (§22). "Load more" appends rather than replacing, keeping scroll position.
+ */
+
+const FILTERS = [
+  { key: "ALL", labelKey: "journey.all" },
+  { key: "ACHIEVEMENTS", labelKey: "journey.achievements" },
+  { key: "WRITING", labelKey: "journey.writing" },
+  { key: "RESEARCH", labelKey: "journey.research" },
+  { key: "EVENTS", labelKey: "journey.events" },
+  { key: "CERTIFICATES", labelKey: "journey.certificates" },
+];
+
+const GROUPS = [
+  { key: "YEAR", labelKey: "journey.groupByYear" },
+  { key: "GRADE", labelKey: "journey.groupByGrade" },
+  { key: "SCHOOL", labelKey: "journey.groupBySchool" },
+];
+
+export default function ParentJourneyPage() {
+  const { t, selectedChildId, selectedChild } = useParentApp();
+  const parentFetch = useParentFetch();
+
+  const [filter, setFilter] = useRememberedState("parent-journey:filter", "ALL");
+  const [groupBy, setGroupBy] = useRememberedState("parent-journey:group", "YEAR");
+  const [state, setState] = useState({
+    loading: true,
+    error: "",
+    data: null,
+    page: 1,
+  });
+
+  const load = useCallback(
+    async (nextPage = 1, append = false) => {
+      if (!selectedChildId) return;
+      try {
+        setState((prev) => ({ ...prev, loading: true, error: "" }));
+        const data = await parentFetch(
+          `/api/parent/journey?filter=${filter}&groupBy=${groupBy}&page=${nextPage}`
+        );
+
+        setState((prev) => ({
+          loading: false,
+          error: "",
+          page: nextPage,
+          data:
+            append && prev.data
+              ? { ...data, groups: mergeGroups(prev.data.groups, data.groups) }
+              : data,
+        }));
+      } catch (err) {
+        setState((prev) => ({ ...prev, loading: false, error: err.message }));
+      }
+    },
+    [parentFetch, filter, groupBy, selectedChildId]
+  );
+
+  // Changing child, filter or grouping resets to page 1.
+  useEffect(() => {
+    load(1, false);
+  }, [load]);
+
+  if (!selectedChildId) return null;
+
+  const data = state.data;
+  const hasEntries = (data?.groups || []).some((g) => g.entries.length > 0);
+
+  return (
+    <div className="space-y-4">
+      <header>
+        <h1 className="flex items-center gap-2 font-semibold text-ink">
+          <span aria-hidden="true">🌱</span>
+          {t("journey.title", { name: selectedChild?.name || "" })}
+        </h1>
+        {data?.schools?.length > 1 ? (
+          // Makes the continuity across schools explicit (§24).
+          <p className="mt-1 text-xs text-muted">
+            {data.schools.map((school) => school.name).join(" · ")}
+          </p>
+        ) : null}
+      </header>
+
+      {/* Horizontally scrolling filter chips — no dropdowns on a phone. */}
+      <div className="-mx-3 overflow-x-auto overscroll-x-contain px-3 sm:-mx-4 sm:px-4">
+        <div className="flex w-max gap-2 pb-1">
+          {FILTERS.map((entry) => {
+            const active = filter === entry.key;
+            const count = data?.counts?.[entry.key];
+            return (
+              <button
+                key={entry.key}
+                type="button"
+                onClick={() => setFilter(entry.key)}
+                aria-pressed={active}
+                className={[
+                  "btn btn-secondary whitespace-nowrap font-semibold transition-colors",
+                  active
+                    ? "border-brand bg-brand text-white"
+                    : "border-line bg-surface text-muted",
+                ].join(" ")}
+              >
+                {t(entry.labelKey)}
+                {typeof count === "number" && count > 0 ? (
+                  <span className={active ? "ml-1.5 text-white" : "ml-1.5 opacity-60"}>
+                    {count}
+                  </span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="-mx-3 flex items-center gap-2 overflow-x-auto overscroll-x-contain px-3 pb-1 sm:mx-0 sm:px-0">
+        <span className="shrink-0 text-xs font-medium text-muted">
+          {t("journey.groupByYear")}:
+        </span>
+        {GROUPS.map((entry) => (
+          <button
+            key={entry.key}
+            type="button"
+            onClick={() => setGroupBy(entry.key)}
+            aria-pressed={groupBy === entry.key}
+            className={[
+              "btn btn-ghost btn-sm shrink-0 whitespace-nowrap font-semibold transition-colors",
+              groupBy === entry.key
+                ? "bg-brand-soft text-brand"
+                : "text-muted hover:bg-surface-2",
+            ].join(" ")}
+          >
+            {t(entry.labelKey)}
+          </button>
+        ))}
+      </div>
+
+      {state.loading && !data ? (
+        <TimelineSkeleton />
+      ) : state.error ? (
+        <ParentEmptyState
+          emoji="⚠️"
+          tone="neutral"
+          title={t("common.somethingWrong")}
+        />
+      ) : !hasEntries ? (
+        <ParentEmptyState
+          emoji="🌱"
+          tone="neutral"
+          title={t("journey.empty", { name: selectedChild?.name || "" })}
+        />
+      ) : (
+        <>
+          <JourneyTimeline groups={data.groups} />
+
+          {data.pagination?.hasNextPage ? (
+            <button
+              type="button"
+              onClick={() => load(state.page + 1, true)}
+              disabled={state.loading}
+              className="btn btn-secondary w-full"
+            >
+              {state.loading ? t("common.loading") : t("common.retry")}
+            </button>
+          ) : null}
+        </>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Merge a newly-fetched page into the groups already on screen.
+ * Groups are keyed, so an entry landing in an existing year appends to it
+ * rather than creating a duplicate heading.
+ */
+function mergeGroups(previous = [], next = []) {
+  const byKey = new Map(previous.map((group) => [group.key, { ...group }]));
+
+  next.forEach((group) => {
+    const existing = byKey.get(group.key);
+    if (existing) {
+      existing.entries = [...existing.entries, ...group.entries];
+    } else {
+      byKey.set(group.key, { ...group });
+    }
+  });
+
+  return Array.from(byKey.values());
+}
+
+function TimelineSkeleton() {
+  return (
+    <div className="space-y-3" aria-busy="true">
+      {[0, 1, 2, 3].map((index) => (
+        <div key={index} className="h-24 animate-pulse rounded-card bg-surface-2" />
+      ))}
+    </div>
+  );
+}

@@ -1,0 +1,197 @@
+import Event from "@/models/Event";
+import EventSchoolInvitation from "@/models/EventSchoolInvitation";
+import User from "@/models/User";
+
+const ACTIVE_SCHOOL_STATUSES = ["APPROVED", "SUBSCRIBED"];
+const OPEN_INVITATION_STATUSES = ["PENDING", "APPROVED", "DISAPPROVED"];
+
+export function isPublishablePlatformEvent(event) {
+  if (!event) return false;
+  return (
+    event.eventScope === "PLATFORM" &&
+    event.status === "APPROVED" &&
+    event.lifecycleStatus === "ACTIVE" &&
+    event.visibility !== "PRIVATE"
+  );
+}
+
+async function getTargetSchoolIds(event) {
+  if (!isPublishablePlatformEvent(event)) return [];
+
+  const schools = await User.find({
+    role: "SCHOOL_ADMIN",
+    status: { $in: ACTIVE_SCHOOL_STATUSES },
+  })
+    .select("_id")
+    .lean();
+
+  return schools.map((school) => school._id);
+}
+
+export async function syncEventSchoolInvitations(eventOrId, options = {}) {
+  const event =
+    typeof eventOrId === "object" && eventOrId?._id
+      ? eventOrId
+      : await Event.findById(eventOrId);
+
+  if (!event) {
+    return { invitedSchools: 0, withdrawnSchools: 0 };
+  }
+
+  if (!isPublishablePlatformEvent(event)) {
+    const withdrawn = await EventSchoolInvitation.updateMany(
+      {
+        event: event._id,
+        status: { $in: OPEN_INVITATION_STATUSES },
+      },
+      {
+        $set: {
+          status: "WITHDRAWN",
+          reason: "Event is no longer published for school invitations.",
+        },
+      }
+    );
+
+    return {
+      invitedSchools: 0,
+      withdrawnSchools: withdrawn.modifiedCount || 0,
+    };
+  }
+
+  const schoolIds = await getTargetSchoolIds(event);
+  const now = new Date();
+
+  if (schoolIds.length === 0) {
+    return { invitedSchools: 0, withdrawnSchools: 0 };
+  }
+
+  await EventSchoolInvitation.bulkWrite(
+    schoolIds.map((schoolId) => ({
+      updateOne: {
+        filter: { event: event._id, school: schoolId },
+        update: {
+          $setOnInsert: {
+            event: event._id,
+            school: schoolId,
+            status: "PENDING",
+            notifiedAt: now,
+            createdBy: options.createdBy || event.createdBy || null,
+          },
+          $set: {
+            eventTitleSnapshot: event.title || "",
+          },
+        },
+        upsert: true,
+      },
+    }))
+  );
+
+  // Re-invite schools whose invitation was system-withdrawn (e.g. the event was
+  // previously cancelled or unpublished) now that it is published again. School
+  // decisions (APPROVED / DISAPPROVED) are deliberately left untouched.
+  await EventSchoolInvitation.updateMany(
+    { event: event._id, school: { $in: schoolIds }, status: "WITHDRAWN" },
+    { $set: { status: "PENDING", notifiedAt: now, reason: "" } }
+  );
+
+  const withdrawn = await EventSchoolInvitation.updateMany(
+    {
+      event: event._id,
+      school: { $nin: schoolIds },
+      status: { $in: ["PENDING", "APPROVED"] },
+    },
+    {
+      $set: {
+        status: "WITHDRAWN",
+        reason: "School is no longer in the target audience for this event.",
+      },
+    }
+  );
+
+  return {
+    invitedSchools: schoolIds.length,
+    withdrawnSchools: withdrawn.modifiedCount || 0,
+  };
+}
+
+export async function ensureSchoolInvitationsForPublishedEvents(schoolId) {
+  if (!schoolId) return { ensured: 0 };
+
+  const events = await Event.find({
+    eventScope: "PLATFORM",
+    status: "APPROVED",
+    lifecycleStatus: "ACTIVE",
+    visibility: { $ne: "PRIVATE" },
+  })
+    .select("_id title createdBy")
+    .lean();
+
+  if (events.length === 0) return { ensured: 0 };
+
+  const now = new Date();
+
+  await EventSchoolInvitation.bulkWrite(
+    events.map((event) => ({
+      updateOne: {
+        filter: { event: event._id, school: schoolId },
+        update: {
+          $setOnInsert: {
+            event: event._id,
+            school: schoolId,
+            status: "PENDING",
+            notifiedAt: now,
+            createdBy: event.createdBy || null,
+          },
+          $set: {
+            eventTitleSnapshot: event.title || "",
+          },
+        },
+        upsert: true,
+      },
+    }))
+  );
+
+  return { ensured: events.length };
+}
+
+/**
+ * Single source of truth for "may a student self-register for this event?".
+ *
+ * - SCHOOL event: the owner school set registrationMode = DIRECT at the event level.
+ * - PLATFORM event: the student's school must have APPROVED the invitation AND
+ *   flipped on studentSelfRegistration for that school.
+ *
+ * Pass the school's EventSchoolInvitation (or its plain fields) for platform events.
+ */
+export function isStudentSelfRegistrationAllowed(event, invitation = null) {
+  if (!event) return false;
+
+  // Team events are always school-managed (the school controls the roster).
+  const isTeam =
+    String(event.participationFormat || "").toUpperCase() === "TEAM" ||
+    Boolean(event.minTeamSize) ||
+    Boolean(event.maxTeamSize);
+  if (isTeam) return false;
+
+  if (event.eventScope === "SCHOOL") {
+    return event.registrationMode === "DIRECT";
+  }
+
+  // PLATFORM event — gated by the per-school invitation.
+  return (
+    String(invitation?.status || "").toUpperCase() === "APPROVED" &&
+    Boolean(invitation?.studentSelfRegistration)
+  );
+}
+
+export async function ensureSchoolInvitationForEvent(eventId, schoolId) {
+  if (!eventId || !schoolId) return null;
+
+  await ensureSchoolInvitationsForPublishedEvents(schoolId);
+
+  return EventSchoolInvitation.findOne({
+    event: eventId,
+    school: schoolId,
+    status: { $ne: "WITHDRAWN" },
+  });
+}

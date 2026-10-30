@@ -1,0 +1,313 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import Link from "next/link";
+import { Send as FaPaperPlane, X as FaTimes, CheckCheck as FaCheckDouble } from "lucide-react";
+import { formatParentTime, formatDuration } from "@/lib/parentFormat";
+import useRealtimeChannel from "@/lib/client/useRealtimeChannel";
+import { MESSAGE_EVENTS } from "@/lib/messagingChannels";
+
+/**
+ * One parent conversation, from the school side.
+ *
+ * Mirrors the parent's own thread view so both sides see the same shape of
+ * conversation — the school should be able to picture exactly what the parent
+ * is looking at.
+ *
+ * Replies are attributed to the SCHOOL (or the routed team label), never to the
+ * individual staff member. A parent should not learn which teacher is on the
+ * desk today, and staff should not become personally contactable through this
+ * channel.
+ */
+export default function SchoolConversation({
+  conversationId,
+  channel,
+  onReplied,
+  onClose,
+}) {
+  const [state, setState] = useState({ loading: true, data: null, error: "" });
+  const [draft, setDraft] = useState("");
+  const [sending, setSending] = useState(false);
+  const bottomRef = useRef(null);
+
+  const load = useCallback(async () => {
+    try {
+      const res = await fetch(`/api/school/messages/${conversationId}`, {
+        cache: "no-store",
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || "Could not load");
+      setState({ loading: false, data: json.data, error: "" });
+    } catch (err) {
+      setState({ loading: false, data: null, error: err.message });
+    }
+  }, [conversationId]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ block: "end" });
+  }, [state.data?.messages?.length]);
+
+  // Live thread: reload on anything touching THIS conversation. Both event
+  // kinds matter — a new message adds a bubble, a read event flips ✓✓ on.
+  useRealtimeChannel(
+    channel || "",
+    (message) => {
+      const payload = message?.payload || message;
+      if (payload?.conversationId !== conversationId) return;
+      if (
+        payload.type === MESSAGE_EVENTS.NEW_MESSAGE ||
+        payload.type === MESSAGE_EVENTS.THREAD_READ
+      ) {
+        load();
+      }
+    },
+    { enabled: Boolean(channel) }
+  );
+
+  const send = async () => {
+    const text = draft.trim();
+    if (!text) return;
+
+    setSending(true);
+    try {
+      const res = await fetch(`/api/school/messages/${conversationId}`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: text }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message || "Could not send");
+
+      setDraft("");
+      await load();
+      // Refresh the list so the preview and unread badge stay truthful.
+      onReplied?.();
+    } catch (err) {
+      setState((prev) => ({ ...prev, error: err.message }));
+    } finally {
+      setSending(false);
+    }
+  };
+
+  if (state.loading) {
+    return <div className="h-full min-h-[400px] animate-pulse bg-surface-2" />;
+  }
+
+  if (!state.data) {
+    return (
+      <div className="p-5">
+        <p className="rounded-card bg-danger-soft px-4 py-3 text-sm text-danger">
+          {state.error}
+        </p>
+      </div>
+    );
+  }
+
+  const { conversation, messages } = state.data;
+
+  return (
+    <div className="flex h-full min-h-[400px] flex-col">
+      <header className="flex items-start gap-3 border-b border-line px-4 py-3">
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-semibold text-ink">
+            {conversation.guardianName}
+          </p>
+          <p className="truncate text-xs text-muted">
+            {conversation.child ? (
+              <>
+                About{" "}
+                <Link
+                  href={`/school/guardians?student=${conversation.child.id}`}
+                  className="font-semibold text-brand-strong underline"
+                >
+                  {conversation.child.name}
+                </Link>
+                {conversation.child.grade ? ` · ${conversation.child.grade}` : ""}
+              </>
+            ) : (
+              conversation.routedToLabel
+            )}
+          </p>
+        </div>
+
+        {conversation.isAnnouncement ? (
+          <span className="badge badge-neutral shrink-0">
+            Announcement
+          </span>
+        ) : null}
+
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Close conversation"
+          className="btn-icon btn-ghost flex shrink-0 items-center justify-center lg:hidden"
+        >
+          <FaTimes />
+        </button>
+      </header>
+
+      <div className="flex-1 space-y-3 overflow-y-auto bg-surface px-4 py-4">
+        {messages.length === 0 ? (
+          <p className="py-6 text-center text-sm text-muted">
+            No messages yet.
+          </p>
+        ) : (
+          messages.map((message) => (
+            <Bubble key={message.id} message={message} />
+          ))
+        )}
+        <div ref={bottomRef} />
+      </div>
+
+      {state.error ? (
+        <p className="bg-danger-soft px-4 py-2 text-xs text-danger">{state.error}</p>
+      ) : null}
+
+      <footer className="border-t border-line p-3">
+        <div className="flex items-end gap-2">
+          <textarea
+            rows={2}
+            value={draft}
+            onChange={(event) => setDraft(event.target.value)}
+            onKeyDown={(event) => {
+              if (event.key === "Enter" && !event.shiftKey) {
+                event.preventDefault();
+                send();
+              }
+            }}
+            placeholder="Write a reply. Keep it simple — many parents read this on a small phone."
+            className="input max-h-32 flex-1 resize-none"
+          />
+          <button
+            type="button"
+            onClick={send}
+            disabled={sending || !draft.trim()}
+            aria-label="Send reply"
+            className="btn-icon btn-primary flex shrink-0 items-center justify-center"
+          >
+            <FaPaperPlane className="h-4 w-4" />
+          </button>
+        </div>
+        <p className="mt-1.5 text-2xs text-muted">
+          Sent as <strong>{conversation.routedToLabel || "the school"}</strong> —
+          your personal details are never shown to the parent.
+        </p>
+      </footer>
+    </div>
+  );
+}
+
+function Bubble({ message }) {
+  const mine = message.mine;
+
+  return (
+    <div className={`flex ${mine ? "justify-end" : "justify-start"}`}>
+      <div
+        className={[
+          "max-w-[80%] rounded-card px-3.5 py-2.5",
+          mine
+            ? "rounded-br-control bg-brand text-white"
+            : "card text-ink",
+        ].join(" ")}
+      >
+        {!mine && message.senderName ? (
+          <p className="mb-0.5 text-2xs font-semibold text-brand-strong">
+            {message.senderName}
+          </p>
+        ) : null}
+
+        {/* Mirrors the parent's view — staff should see the announcement the
+            way the family reads it, headline included. */}
+        {message.subject ? (
+          <p
+            className={[
+              "mb-1.5 border-b pb-1 text-sm font-semibold leading-snug",
+              mine ? "border-line" : "border-line text-ink",
+            ].join(" ")}
+          >
+            {message.subject}
+          </p>
+        ) : null}
+
+        {message.attachments?.map((attachment, index) => (
+          <Attachment key={index} attachment={attachment} mine={mine} />
+        ))}
+
+        {message.body ? (
+          <p className="whitespace-pre-wrap text-sm leading-relaxed">
+            {message.body}
+          </p>
+        ) : null}
+
+        <p
+          className={[
+            "mt-1 flex items-center justify-end gap-1 text-2xs",
+            mine ? "text-white" : "text-muted",
+          ].join(" ")}
+        >
+          {formatParentTime(message.createdAt)}
+          {/* Only meaningful on our own messages: has the parent seen it? */}
+          {mine && message.readByParent ? (
+            <FaCheckDouble className="h-2.5 w-2.5" title="Read by parent" />
+          ) : null}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function Attachment({ attachment, mine }) {
+  if (attachment.kind === "VOICE") {
+    return (
+      <div className="mb-1.5">
+        <audio controls preload="none" src={attachment.url} className="w-56 max-w-full">
+          Voice message
+        </audio>
+        {attachment.durationSeconds ? (
+          <p className={`text-2xs ${mine ? "text-white" : "text-muted"}`}>
+            {formatDuration(attachment.durationSeconds)}
+          </p>
+        ) : null}
+      </div>
+    );
+  }
+
+  if (attachment.kind === "IMAGE") {
+    return (
+      <a
+        href={attachment.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="mb-1.5 block"
+      >
+        {/* Arbitrary uploaded URL — the image optimiser is not configured for
+            these hosts. Same approach as elsewhere in the app. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={attachment.thumbnailUrl || attachment.url}
+          alt={attachment.name || "Photo"}
+          loading="lazy"
+          decoding="async"
+          className="max-h-48 w-full rounded-card object-cover"
+        />
+      </a>
+    );
+  }
+
+  return (
+    <a
+      href={attachment.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className={`btn btn-ghost btn-sm mb-1.5 flex items-center gap-2 font-semibold ${
+        mine ? "bg-surface" : "bg-surface-2"
+      }`}
+    >
+      📎 <span className="min-w-0 flex-1 truncate">{attachment.name || "Document"}</span>
+    </a>
+  );
+}

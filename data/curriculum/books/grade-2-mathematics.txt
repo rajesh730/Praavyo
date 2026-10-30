@@ -1,0 +1,161 @@
+@grade Grade 2
+@subject MATH | Mathematics | मेरो गणित | 4
+@source grade2.pdf — मेरो गणित, विद्यार्थी मूल्याङ्कन अभिलेख कार्यसञ्चयिका, कक्षा २ (Asmita Publication), pages 36–46
+@note Each outcome carries the book's four indicator levels (4 highest, 1 lowest) instead of assessment areas and tools.
+@note Theme 7 rows 1 and 3, level 4, print "कुनै तीनओटा कार्य" in Nepali, but their English says all four tasks and level 3 is "any three"; level 4 is stored as all four.
+
+# 1 | म र मेरो परिवार | Me and My Family | 7 | 2
+- समान प्रकृतिका भाँडाहरूको अवलोकन गरी क्षमता तुलना गर्न || Able to observe pots of same nature and compare their capacities
+  4) आफैँ समान प्रकृतिका भाँडाहरूको अवलोकन गरी क्षमता तुलना गर्न सकेमा || Able to observe pots of same nature and compare their capacities by self
+  3) साथीको सहयोगमा समान प्रकृतिका भाँडाहरूको अवलोकन गरी क्षमता तुलना गर्न सकेमा || Able to observe pots of same nature and compare their capacities with the help of friend
+  2) शिक्षकको आंशिक सहयोगमा समान प्रकृतिका भाँडाहरूको अवलोकन गरी क्षमता तुलना गर्न सकेमा || Able to observe pots of same nature and compare their capacities by partial help of teacher
+  1) शिक्षकको पूर्ण सहयोगमा समान प्रकृतिका भाँडाहरूको अवलोकन गरी क्षमता तुलना गर्न सकेमा || Able to observe pots of same nature and compare their capacities by full help of teacher
+- विभिन्न भाँडाहरूको क्षमताको अनुमान गर्न र अप्रामाणिक नापोद्वारा पुष्टि गर्न || Estimate the capacity of pots and verify it by local measurement
+  4) विभिन्न भाँडाहरूको क्षमताको अनुमान गर्न र अप्रामाणिक नापोद्वारा नाप्न र पुष्टि गर्न सकेमा || Able to estimate the capacity of pots, measure and verify it by local measurement
+  3) विभिन्न भाँडाहरूको क्षमताको अनुमान गर्न र अप्रामाणिक नापोद्वारा नाप्न वा अप्रामाणिक नापोद्वारा नाप्न र पुष्टि गर्न सकेमा || Able to estimate the capacity of pots and measure it by local measurement or measure and verify it by local measurement
+  2) विभिन्न भाँडाहरूको क्षमताको अनुमान गर्न वा अप्रामाणिक नापोद्वारा नाप्न सकेमा || Able to estimate the capacity of pots or measure it by local measurement
+  1) शिक्षकको सहयोगमा विभिन्न भाँडाहरूको क्षमताको अनुमान गर्न र अप्रामाणिक नापोद्वारा नाप्न र पुष्टि गर्न सकेमा || Able to estimate the capacity of pots, measure and verify it by local measurement with the help of teacher
+
+# 2 | मेरो दैनिक जीवन | My Daily Life | 6 | 2
+- घडी हेरी घण्टा र मिनेटमा समय भन्न र लेख्न || Able to tell and write correct time in terms of hour and minute by watching watch
+  4) आफैँ घडी हेरी घण्टा र मिनेटमा समय भन्न र लेख्न सकेमा || Able to tell and write correct time in terms of hour and minute by watching watch by self
+  3) साथीको सहयोगमा घडी हेरी घण्टा र मिनेटमा समय भन्न र लेख्न सकेमा || Able to tell and write correct time in terms of hour and minute by watching watch with the help of friend
+  2) शिक्षकको आंशिक सहयोगमा घडी हेरी घण्टा र मिनेटमा समय भन्न र लेख्न सकेमा || Able to tell and write correct time in terms of hour and minute by watching watch with partial help of teacher
+  1) शिक्षकको पूर्ण सहयोगमा घडी हेरी घण्टा र मिनेटमा समय भन्न र लेख्न सकेमा || Able to tell and write correct time in terms of hour and minute by watching watch with full help of teacher
+- क्यालेन्डर हेरेर कुनै दिनको मिति (साल, महिना, गते र बार) भन्न र लेख्न || Able to tell and write correct date (year, month, day of the month and day of the week) by watching calendar
+  4) आफैँ क्यालेन्डर हेरेर कुनै दिनको मिति (साल, महिना, गते र बार) भन्न र लेख्न सकेमा || Able to tell and write correct date (year, month, day of the month and day of the week) by watching calendar by self
+  3) साथीको सहयोगमा क्यालेन्डर हेरेर कुनै दिनको मिति (साल, महिना, गते र बार) भन्न र लेख्न सकेमा || Able to tell and write correct date (year, month, day of the month and day of the week) by watching calendar with the help of friend
+  2) शिक्षकको आंशिक सहयोगमा क्यालेन्डर हेरेर मिति (साल, महिना, गते र बार) भन्न र लेख्न सकेमा || Able to tell and write correct date (year, month, day of the month and day of the week) by watching calendar with partial help of teacher
+  1) शिक्षकको पूर्ण सहयोगमा क्यालेन्डर हेरेर मिति (साल, महिना, गते र बार) भन्न र लेख्न सकेमा || Able to tell and write date (year, month, day of the month and day of the week) by watching calendar with full help of teacher
+
+# 3 | हाम्रो समुदाय | Our Community | 17 | 4
+- तीन अङ्कसम्मले बनेका सङ्ख्याहरूमा जोर र बिजोर सङ्ख्या पहिचान गर्न || Able to identify even and odd numbers up to 3 digit numbers
+  4) तीन अङ्कसम्मले बनेका सङ्ख्याहरूमा जोर र बिजोर सङ्ख्या पहिचान गर्न सकेमा || Able to identify even and odd numbers up to 3 digit numbers
+  3) ७०० सम्मका सङ्ख्याहरूलाई जोर र बिजोर सङ्ख्यामा छुट्याउन सकेमा वा साथीको सहयोगमा तीन अङ्कसम्मले बनेका सङ्ख्याहरूमा जोर र बिजोर सङ्ख्या पहिचान गर्न सकेमा || Able to identify even and odd numbers up to 700, or up to 3 digit numbers with the help of friend
+  2) आफैँ ५०० सम्मका सङ्ख्याहरूलाई जोर र बिजोर सङ्ख्यामा छुट्याउन सकेमा वा शिक्षकको आंशिक सहयोगमा तीन अङ्कसम्मले बनेका सङ्ख्याहरूमा जोर र बिजोर सङ्ख्या पहिचान गर्न सकेमा || Able to identify even and odd numbers up to 500, or up to 3 digit numbers with partial help of teacher
+  1) आफैँ १०० सम्मका सङ्ख्याहरूलाई जोर र बिजोर सङ्ख्यामा छुट्याउन सकेमा वा शिक्षकको पूर्ण सहयोगमा तीन अङ्कसम्मले बनेका सङ्ख्याहरूमा जोर र बिजोर सङ्ख्या पहिचान गर्न सकेमा || Able to identify even and odd numbers up to 100, or up to 3 digit numbers with full help of teacher
+- तीन अङ्कसम्मका सङ्ख्याहरूलाई तुलना गरी बढ्दो वा घट्दो क्रममा पढ्न र लेख्न || Able to read and write numbers in ascending or descending order by comparing given numbers up to 3 digits
+  4) तीन अङ्कसम्मका सङ्ख्याहरूलाई तुलना गरी बढ्दो वा घट्दो क्रममा पढ्न र लेख्न सकेमा || Able to read and write numbers in ascending or descending order by comparing given numbers up to 3 digits
+  3) ७०० सम्मका सङ्ख्याहरूलाई तुलना गरी बढ्दो वा घट्दो क्रममा पढ्न र लेख्न सकेमा वा साथीको सहयोगमा तीन अङ्कसम्मका सङ्ख्याहरूलाई तुलना गरी बढ्दो वा घट्दो क्रममा पढ्न र लेख्न सकेमा || Able to order numbers up to 700, or numbers up to 3 digits with the help of friend
+  2) आफैँ ५०० सम्मका सङ्ख्याहरूलाई तुलना गरी बढ्दो वा घट्दो क्रममा पढ्न र लेख्न सकेमा वा शिक्षकको आंशिक सहयोगमा तीन अङ्कसम्मका सङ्ख्याहरूलाई तुलना गरी बढ्दो वा घट्दो क्रममा पढ्न र लेख्न सकेमा || Able to order numbers up to 500, or numbers up to 3 digits with partial help of teacher
+  1) आफैँ १०० सम्मका सङ्ख्याहरूलाई तुलना गरी बढ्दो वा घट्दो क्रममा पढ्न र लेख्न सकेमा वा शिक्षकको पूर्ण सहयोगमा तीन अङ्कसम्मका सङ्ख्याहरूलाई तुलना गरी बढ्दो वा घट्दो क्रममा पढ्न र लेख्न सकेमा || Able to order numbers up to 100, or numbers up to 3 digits with full help of teacher
+- किलोग्राम र ग्रामको सम्बन्ध बताउन || Able to tell the relation between gram and kg
+  4) आफैँ किलोग्राम र ग्रामको सम्बन्ध बताउन सकेमा || Able to tell the relation between gram and kg by self
+  3) साथीको सहयोगमा किलोग्राम र ग्रामको सम्बन्ध बताउन सकेमा || Able to tell the relation between gram and kg with the help of friend
+  2) शिक्षकको आंशिक सहयोगमा किलोग्राम र ग्रामको सम्बन्ध बताउन सकेमा || Able to tell the relation between gram and kg with partial help of teacher
+  1) शिक्षकको पूर्ण सहयोगमा किलोग्राम र ग्रामको सम्बन्ध बताउन सकेमा || Able to tell the relation between gram and kg with full help of teacher
+- १०० ग्रामदेखि १ किलोग्रामसम्मको प्रामाणिक ढकको प्रयोग गरी वरपरका वस्तुको तौल लिन || Able to weigh surrounding objects using standard weights from 100 gram to 1 kg
+  4) आफैँ १०० ग्रामदेखि १ किलोग्रामसम्मको प्रामाणिक ढकको प्रयोग गरी वरपरका वस्तुको तौल लिन सकेमा || Able to weigh surrounding objects using weights from 100 gram to 1 kg by self
+  3) साथीको सहयोगमा १०० ग्रामदेखि १ किलोग्रामसम्मको प्रामाणिक ढकको प्रयोग गरी वरपरका वस्तुको तौल लिन सकेमा || Able to weigh surrounding objects using weights from 100 gram to 1 kg with the help of friend
+  2) शिक्षकको आंशिक सहयोगमा १०० ग्रामदेखि १ किलोग्रामसम्मको प्रामाणिक ढकको प्रयोग गरी वरपरका वस्तुको तौल लिन सकेमा || Able to weigh surrounding objects using weights from 100 gram to 1 kg with partial help of teacher
+  1) शिक्षकको पूर्ण सहयोगमा १०० ग्रामदेखि १ किलोग्रामसम्मको प्रामाणिक ढकको प्रयोग गरी वरपरका वस्तुको तौल लिन सकेमा || Able to weigh surrounding objects using weights from 100 gram to 1 kg with full help of teacher
+
+# 4 | हाम्रो विद्यालय | Our School | 15 | 5
+- गुणनलाई दोहोरिएको जोडको रूपमा व्यक्त गर्न || Able to tell that multiplication is repeated addition
+  4) आफैँ गुणनलाई दोहोरिएको जोडको रूपमा व्यक्त गर्न सकेमा || Able to tell that multiplication is repeated addition without others' support
+  3) साथीको सहयोगमा गुणनलाई दोहोरिएको जोडको रूपमा व्यक्त गर्न सकेमा || Able to tell that multiplication is repeated addition with the help of friend
+  2) शिक्षकको आंशिक सहयोगमा गुणनलाई दोहोरिएको जोडको रूपमा व्यक्त गर्न सकेमा || Able to tell that multiplication is repeated addition with partial help of teacher
+  1) शिक्षकको पूर्ण सहयोगमा गुणनलाई दोहोरिएको जोडको रूपमा व्यक्त गर्न सकेमा || Able to tell that multiplication is repeated addition with full help of teacher
+- सिङ्गो, आधा र एक चौथाइको अवधारणाको आधारमा वस्तुहरूको तुलना गर्न || Able to compare solid objects according to the concept of full, half and quarter
+  4) सिङ्गो, आधा र एक चौथाइको अवधारणाको आधारमा वस्तुहरूको तुलना गर्न सकेमा || Able to compare solid objects according to the concept of full, half and quarter
+  3) आफैँ सिङ्गो र आधा वा सिङ्गो र एक चौथाइको अवधारणाको आधारमा वस्तुहरूको तुलना गर्न सकेमा वा साथीको सहयोगमा सिङ्गो, आधा र एक चौथाइको अवधारणाको आधारमा वस्तुहरूको तुलना गर्न सकेमा || Able to compare solid objects by full and half or full and quarter by self, or by full, half and quarter with the help of friend
+  2) शिक्षकको आंशिक सहयोगमा सिङ्गो, आधा र एक चौथाइको अवधारणाको आधारमा वस्तुहरूको तुलना गर्न सकेमा || Able to compare solid objects according to the concept of full, half and quarter with partial help of teacher
+  1) शिक्षकको पूर्ण सहयोगमा सिङ्गो, आधा र एक चौथाइको अवधारणाको आधारमा वस्तुहरूको तुलना गर्न सकेमा || Able to compare solid objects according to the concept of full, half and quarter with full help of teacher
+- समान प्रकृतिका कुनै दुईओटा सतहको अवलोकन गरी क्षेत्रफल तुलना गर्न || Able to compare the area of two surfaces of the same nature by observation
+  4) आफैँ कुनै दुईओटा वर्गाकार वा आयताकार सतहको अवलोकन गरी धेरै र थोरै क्षेत्रफल भन्न र लेख्न सकेमा || By observing any two square or rectangular surfaces, able to compare them in size by self
+  3) साथीको सहयोगमा कुनै दुईओटा वर्गाकार वा आयताकार सतहको अवलोकन गरी धेरै र थोरै क्षेत्रफल भन्न र लेख्न सकेमा || By observing any two square or rectangular surfaces, able to compare them in size with the help of friend
+  2) शिक्षकको आंशिक सहयोगमा कुनै दुईओटा वर्गाकार वा आयताकार सतहको अवलोकन गरी धेरै र थोरै क्षेत्रफल भन्न र लेख्न सकेमा || By observing any two square or rectangular surfaces, able to compare them in size with partial help of teacher
+  1) शिक्षकको पूर्ण सहयोगमा कुनै दुईओटा वर्गाकार वा आयताकार सतहको अवलोकन गरी धेरै र थोरै क्षेत्रफल भन्न र लेख्न सकेमा || By observing any two square or rectangular surfaces, able to compare them in size with full help of teacher
+- लम्बाइको नापको प्रमाणिक एकाइको पहिचान र रुलरको प्रयोग गरी वस्तुको नाप सेन्टिमिटर र मिलिमिटर स्केलमा पढ्न || Able to identify the standard unit of length and read the length of objects on a ruler in centimetres and millimetres
+  4) आफैँ लम्बाइको नापको प्रमाणिक एकाइको पहिचान र रुलरको प्रयोग गरी वस्तुको नाप सेन्टिमिटर र मिलिमिटर स्केलमा पढ्न सकेमा || Able to identify the standard unit of length and read lengths on a ruler in centimetres and millimetres by self
+  3) साथीको सहयोगमा लम्बाइको नापको प्रमाणिक एकाइको पहिचान र रुलरको प्रयोग गरी वस्तुको नाप सेन्टिमिटर र मिलिमिटर स्केलमा पढ्न सकेमा वा लम्बाइको नापको प्रमाणिक एकाइको पहिचान र रुलरको प्रयोग गरी वस्तुको नाप सेन्टिमिटर स्केलमा पढ्न सकेमा || Able to do the above with the help of friend, or read lengths in centimetres only
+  2) शिक्षकको आंशिक सहयोगमा लम्बाइको नापको प्रमाणिक एकाइको पहिचान र रुलरको प्रयोग गरी वस्तुको नाप सेन्टिमिटर र मिलिमिटर स्केलमा पढ्न सकेमा वा लम्बाइको नापको प्रमाणिक एकाइको पहिचान वा रुलरको प्रयोग गरी वस्तुको नाप सेन्टिमिटर स्केलमा पढ्न सकेमा || Able to do the above with partial help of teacher, or identify the unit or read lengths in centimetres
+  1) शिक्षकको पूर्ण सहयोगमा लम्बाइको नापको प्रमाणिक एकाइको पहिचान र रुलरको प्रयोग गरी वस्तुको नाप सेन्टिमिटर र मिलिमिटर स्केलमा पढ्न सकेमा वा आफैँ लम्बाइको नापको प्रमाणिक एकाइको पहिचान गर्न सकेमा || Able to do the above with full help of teacher, or identify the standard unit of length by self
+- विभिन्न वस्तुको लम्बाइ सेन्टिमिटर स्केलमा अनुमान गर्न, नाप्न र पुष्टि गर्न || Able to estimate, measure and prove the length of different objects on the centimetre scale
+  4) आफैँ विभिन्न वस्तुको लम्बाइ सेन्टिमिटर स्केलमा अनुमान गर्न, नाप्न र पुष्टि गर्न सकेमा || Able to estimate, measure and prove the length of different objects on the centimetre scale by self
+  3) साथीको सहयोगमा विभिन्न वस्तुको लम्बाइ सेन्टिमिटर स्केलमा अनुमान गर्न, नाप्न र पुष्टि गर्न सकेमा || Able to estimate, measure and prove the length of different objects on the centimetre scale with the help of friend
+  2) शिक्षकको आंशिक सहयोगमा विभिन्न वस्तुको लम्बाइ सेन्टिमिटर स्केलमा अनुमान गर्न, नाप्न र पुष्टि गर्न सकेमा || Able to estimate, measure and prove the length of different objects on the centimetre scale with partial help of teacher
+  1) शिक्षकको पूर्ण सहयोगमा विभिन्न वस्तुको लम्बाइ सेन्टिमिटर स्केलमा अनुमान गर्न, नाप्न र पुष्टि गर्न सकेमा || Able to estimate, measure and prove the length of different objects on the centimetre scale with full help of teacher
+
+# 5 | मेरो सिर्जना | My Creation | 7 | 3
+- ठोस वस्तुहरू (जस्तै : सिन्का, तार, बाँस, किला, बाँसका चोया, डोरी, आदि) को प्रयोग गरी त्रिभुज र चतुर्भुजका आकारहरू बनाउन || Able to prepare models of triangles and quadrilaterals using solids like pieces of bamboo, metal wire, nails, bamboo slices, rope, etc.
+  4) ठोस वस्तुहरू (जस्तै : सिन्का, तार, बाँस, किला, बाँसका चोया, डोरी, आदि) को प्रयोग गरी आफैँ त्रिभुज र चतुर्भुजका आकारहरू बनाउन सकेमा || Able to prepare models of triangles and quadrilaterals using such solids by self
+  3) ठोस वस्तुहरू (जस्तै : सिन्का, तार, बाँस, किला, बाँसका चोया, डोरी, आदि) को प्रयोग गरी साथीको सहयोगमा त्रिभुज र चतुर्भुजका आकारहरू बनाउन सकेमा || Able to prepare models of triangles and quadrilaterals using such solids with the help of friend
+  2) ठोस वस्तुहरू (जस्तै : सिन्का, तार, बाँस, किला, बाँसका चोया, डोरी, आदि) को प्रयोग गरी शिक्षकको आंशिक सहयोगमा त्रिभुज र चतुर्भुजका आकारहरू बनाउन सकेमा || Able to prepare models of triangles and quadrilaterals using such solids with partial help of teacher
+  1) ठोस वस्तुहरू (जस्तै : सिन्का, तार, बाँस, किला, बाँसका चोया, डोरी, आदि) को प्रयोग गरी शिक्षकको पूर्ण सहयोगमा त्रिभुज र चतुर्भुजका आकारहरू बनाउन सकेमा || Able to prepare models of triangles and quadrilaterals using such solids with full help of teacher
+- सिधा रेखा र वक्र रेखा त्रिभुज, चतुर्भुज र वृत्तका आकारहरू ट्रेस गर्न || Able to trace the shapes of triangle, quadrilateral and circle
+  4) आफैँ त्रिभुज, चतुर्भुज र वृत्तका आकारहरू ट्रेस गर्न सकेमा || Able to trace the shapes of triangle, quadrilateral and circle by self
+  3) साथीको सहयोगमा त्रिभुज, चतुर्भुज र वृत्तका आकारहरू ट्रेस गर्न सकेमा || Able to trace the shapes of triangle, quadrilateral and circle with the help of friend
+  2) शिक्षकको आंशिक सहयोगमा त्रिभुज, चतुर्भुज र वृत्तका आकारहरू ट्रेस गर्न सकेमा || Able to trace the shapes of triangle, quadrilateral and circle with partial help of teacher
+  1) शिक्षकको पूर्ण सहयोगमा त्रिभुज, चतुर्भुज र वृत्तका आकारहरू ट्रेस गर्न सकेमा || Able to trace the shapes of triangle, quadrilateral and circle with full help of teacher
+- भुजा र कुनाका आधारमा त्रिभुज र चतुर्भुजको अवधारणा विकास गर्न || Able to develop the concept of triangle and quadrilateral according to their sides and corners (angles)
+  4) भुजा र कुनाका आधारमा त्रिभुज र चतुर्भुजको पहिचान गर्न तथा त्रिभुज र चतुर्भुजको भुजा र कुनाको सङ्ख्या बताउन सकेमा || Able to identify the triangle and quadrilateral and tell the number of their sides and angles
+  3) भुजा र कुनाका आधारमा त्रिभुज र चतुर्भुजको पहिचान गर्न वा त्रिभुज र चतुर्भुजको भुजा र कुनाको सङ्ख्या बताउन सकेमा || Able to identify the triangle and quadrilateral or tell the number of their sides and angles
+  2) साथीको सहयोगमा भुजा र कुनाका आधारमा त्रिभुज र चतुर्भुजको पहिचान गर्न तथा त्रिभुज र चतुर्भुजको भुजा र कुनाको सङ्ख्या बताउन सकेमा || Able to identify the triangle and quadrilateral and tell the number of their sides and angles with the help of friend
+  1) शिक्षकको आंशिक सहयोगमा भुजा र कुनाका आधारमा त्रिभुज र चतुर्भुजको पहिचान गर्न तथा त्रिभुज र चतुर्भुजको भुजा र कुनाको सङ्ख्या बताउन सकेमा || Able to identify the triangle and quadrilateral and tell the number of their sides and angles with partial help of teacher
+
+# 6 | सञ्चार प्रविधि र बजार | Communication Technology and Market | 12 | 4
+- रु. १००० सम्मका सिक्का तथा नोट चिन्न || Able to recognize coins and notes up to Rs. 1000
+  4) आफैँ रु. १००० सम्मका सिक्का तथा नोट चिन्न सकेमा || Able to recognize coins and notes up to Rs. 1000 by self
+  3) साथीको सहयोगमा रु. १००० सम्मका सिक्का तथा नोट चिन्न सकेमा || Able to recognize coins and notes up to Rs. 1000 with the help of friend
+  2) शिक्षकको आंशिक सहयोगमा रु. १००० सम्मका सिक्का तथा नोट चिन्न सकेमा || Able to recognize coins and notes up to Rs. 1000 with partial help of teacher
+  1) शिक्षकको पूर्ण सहयोगमा रु. १००० सम्मका सिक्का तथा नोट चिन्न सकेमा || Able to recognize coins and notes up to Rs. 1000 with full help of teacher
+- रूपान्तर गर्न नपर्ने मुद्रासम्बन्धी जोड र घटाउ गर्न || Able to add and subtract currency without conversion
+  4) आफैँ रूपान्तर गर्न नपर्ने मुद्रासम्बन्धी जोड र घटाउ गर्न सकेमा || Able to add and subtract currency without conversion by self
+  3) साथीको सहयोगमा रूपान्तर गर्न नपर्ने मुद्रासम्बन्धी जोड र घटाउ गर्न सकेमा || Able to add and subtract currency without conversion with the help of friend
+  2) शिक्षकको आंशिक सहयोगमा रूपान्तर गर्न नपर्ने मुद्रासम्बन्धी जोड र घटाउ गर्न सकेमा || Able to add and subtract currency without conversion with partial help of teacher
+  1) शिक्षकको पूर्ण सहयोगमा रूपान्तर गर्न नपर्ने मुद्रासम्बन्धी जोड र घटाउ गर्न सकेमा || Able to add and subtract currency without conversion with full help of teacher
+- दिइएको तालिकाबाट जानकारी लिन र दिन || Able to take and give information from the given table
+  4) आफैँ तालिकाबाट पूर्ण जानकारी लिन र दिन सकेमा || Able to take and give full information from the given table by self
+  3) आफैँ तालिकाबाट आंशिक जानकारी लिन र दिन सकेमा || Able to take and give partial information from the given table by self
+  2) साथीको सहयोगमा तालिकाबाट आंशिक जानकारी लिन र दिन सकेमा || Able to take and give partial information from the given table with the help of friend
+  1) शिक्षकको सहयोगमा तालिकाबाट आंशिक जानकारी लिन र दिन सकेमा || Able to take and give partial information from the given table with the help of teacher
+- दिइएको चित्रग्राफबाट सदस्यहरूको सङ्ख्या गनेर तालिकामा प्रस्तुत गर्न || Able to count members from the given pictograph and present them in a table
+  4) दिइएको चित्रग्राफबाट आफैँ सदस्यहरूको सङ्ख्या गनेर तालिकामा प्रस्तुत गर्न सकेमा || Able to count members from the given pictograph and present them in a table by self
+  3) दिइएको चित्रग्राफबाट आफैँ सदस्यहरूको सङ्ख्या गनेर तालिकामा आंशिक रूपमा प्रस्तुत गर्न सकेमा || Able to count members from the given pictograph and partly present them in a table by self
+  2) दिइएको चित्रग्राफबाट साथीको सहयोगमा सदस्यहरूको सङ्ख्या गनेर तालिकामा प्रस्तुत गर्न सकेमा || Able to count members from the given pictograph and present them in a table with the help of friend
+  1) दिइएको चित्रग्राफबाट शिक्षकको सहयोगमा सदस्यहरूको सङ्ख्या गनेर तालिकामा प्रस्तुत गर्न सकेमा || Able to count members from the given pictograph and present them in a table with the help of teacher
+
+# 7 | सङ्ख्याको ज्ञान (क) पूर्ण सङ्ख्या | Number Sense (a) Whole Numbers | 18 | 4
+- १००० सम्मका सङ्ख्याहरूलाई देवनागरी सङ्ख्याङ्कन पद्धतिमा स्थानमान तालिकामा प्रस्तुत गर्न, स्थानमान भन्न, पढ्न र लेख्न || Able to present Devanagari numbers up to 1000 in a place value table, and tell, read and write them by place value
+  4) १००० सम्मका सङ्ख्याहरूलाई देवनागरी सङ्ख्याङ्कन पद्धतिमा स्थानमान तालिकामा प्रस्तुत गर्न, स्थानमान भन्न, पढ्न र लेख्न सकेमा || Able to do all of: present Devanagari numbers up to 1000 in a place value table, and tell, read and write them by place value
+  3) १००० सम्मका सङ्ख्याहरूलाई देवनागरी सङ्ख्याङ्कन पद्धतिमा स्थानमान तालिकामा प्रस्तुत गर्न, स्थानमान भन्न, पढ्न र लेख्नमध्ये कुनै तीनओटा कार्य गर्न सकेमा || Able to do any three of the above for Devanagari numbers up to 1000
+  2) १००० सम्मका सङ्ख्याहरूलाई देवनागरी सङ्ख्याङ्कन पद्धतिमा स्थानमान तालिकामा प्रस्तुत गर्न, स्थानमान भन्न, पढ्न र लेख्नमध्ये कुनै दुईओटा कार्य गर्न सकेमा || Able to do any two of the above for Devanagari numbers up to 1000
+  1) १००० सम्मका सङ्ख्याहरूलाई देवनागरी सङ्ख्याङ्कन पद्धतिमा स्थानमान तालिकामा प्रस्तुत गर्न, स्थानमान भन्न, पढ्न र लेख्नमध्ये कुनै एउटा कार्य गर्न सकेमा || Able to do any one of the above for Devanagari numbers up to 1000
+- १०० सम्मका सङ्ख्याहरूलाई देवनागरी सङ्ख्याङ्कन पद्धतिअनुसार अक्षरमा पढ्न र लेख्न || Able to read and write Devanagari numbers in words up to 100
+  4) देवनागरी सङ्ख्याङ्कन पद्धतिमा सयसम्म अक्षरमा पढ्न र लेख्न सकेमा || Able to read and write Devanagari numbers in words up to 100
+  3) देवनागरी सङ्ख्याङ्कन पद्धतिमा सयसम्म अक्षरमा पढ्न वा लेख्न वा सत्तरीसम्म पढ्न र लेख्न सकेमा || Able to read or write Devanagari numbers in words up to 100, or read and write them up to 70
+  2) देवनागरी सङ्ख्याङ्कन पद्धतिमा पचाससम्म अक्षरमा पढ्न र लेख्न सकेमा || Able to read and write Devanagari numbers in words up to 50
+  1) देवनागरी सङ्ख्याङ्कन पद्धतिमा तीससम्म अक्षरमा पढ्न र लेख्न सकेमा || Able to read and write Devanagari numbers in words up to 30
+- १००० सम्मका सङ्ख्याहरूलाई हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिमा स्थानमान तालिकामा प्रस्तुत गर्न, स्थानमान भन्न, पढ्न र लेख्न || Able to present Hindu-Arabic numbers up to 1000 in a place value table, and tell, read and write them by place value
+  4) १००० सम्मका सङ्ख्याहरूलाई हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिमा स्थानमान तालिकामा प्रस्तुत गर्न, स्थानमान भन्न, पढ्न र लेख्न सकेमा || Able to do all of: present Hindu-Arabic numbers up to 1000 in a place value table, and tell, read and write them by place value
+  3) १००० सम्मका सङ्ख्याहरूलाई हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिमा स्थानमान तालिकामा प्रस्तुत गर्न, स्थानमान भन्न, पढ्न र लेख्नमध्ये कुनै तीनओटा कार्य गर्न सकेमा || Able to do any three of the above for Hindu-Arabic numbers up to 1000
+  2) १००० सम्मका सङ्ख्याहरूलाई हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिमा स्थानमान तालिकामा प्रस्तुत गर्न, स्थानमान भन्न, पढ्न र लेख्नमध्ये कुनै दुईओटा कार्य गर्न सकेमा || Able to do any two of the above for Hindu-Arabic numbers up to 1000
+  1) १००० सम्मका सङ्ख्याहरूलाई हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिमा स्थानमान तालिकामा प्रस्तुत गर्न, स्थानमान भन्न, पढ्न र लेख्नमध्ये कुनै एउटा कार्य गर्न सकेमा || Able to do any one of the above for Hindu-Arabic numbers up to 1000
+- १०० सम्मका सङ्ख्याहरूलाई हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिअनुसार अक्षरमा पढ्न र लेख्न || Able to read and write Hindu-Arabic numbers in words up to 100
+  4) हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिमा सयसम्म अक्षरमा पढ्न र लेख्न सकेमा || Able to read and write Hindu-Arabic numbers in words up to 100
+  3) हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिमा सयसम्म अक्षरमा पढ्न वा लेख्न वा सत्तरीसम्म पढ्न र लेख्न सकेमा || Able to read or write Hindu-Arabic numbers in words up to 100, or read and write them up to 70
+  2) हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिमा पचाससम्म अक्षरमा पढ्न र लेख्न सकेमा || Able to read and write Hindu-Arabic numbers in words up to 50
+  1) हिन्दु अरेबिक सङ्ख्याङ्कन पद्धतिमा तीससम्म अक्षरमा पढ्न र लेख्न सकेमा || Able to read and write Hindu-Arabic numbers in words up to 30
+
+# 8 | गणितका आधारभूत क्रिया | Basic Mathematics Operations | 46 | 4
+- योगफल १००० सम्म आउने तीन अङ्कसम्मका सङ्ख्याहरूको जोड गर्न || Able to add numbers up to three digits whose sum is not more than 1000
+  4) ठोस सामग्री, चित्र, स्थानमान तालिका र सङ्केत प्रयोग गरेर हात लागी नआउने र आउने तथा योगफल १००० आउनेसम्मका सङ्ख्याहरूको जोड गर्न सकेमा || Able to add numbers with and without carryover, sum up to 1000, using concrete, semi-concrete, place value table and symbol
+  3) ठोस सामग्री वा चित्र, स्थानमान तालिका र सङ्केत प्रयोग गरेर हात लागी नआउने र आउने तथा योगफल १००० आउनेसम्मका सङ्ख्याहरूको जोड गर्न सकेमा || Able to add numbers with and without carryover, sum up to 1000, using concrete or semi-concrete, place value table and symbol
+  2) ठोस सामग्री र चित्र प्रयोग गरेर हात लागी नआउने र आउने तथा योगफल १००० आउनेसम्मका सङ्ख्याहरूको जोड गर्न सकेमा || Able to add numbers with and without carryover, sum up to 1000, using concrete and semi-concrete
+  1) ठोस सामग्री प्रयोग गरेर वा हात लागी नआउने तथा योगफल १००० आउनेसम्मका सङ्ख्याहरूको जोड गर्न सकेमा || Able to add numbers using concrete, or without carryover, sum up to 1000
+- तीन अङ्कसम्मको सङ्ख्याको घटाउ गर्न || Able to subtract numbers up to three digits
+  4) ठोस सामग्री, चित्र, स्थानमान तालिका र सङ्केत प्रयोग गरेर तीन अङ्कसम्मको सङ्ख्याको सापटी लिन नपर्ने र पर्ने घटाउ गर्न सकेमा || Able to subtract up to three digits, with and without borrowing, using concrete, semi-concrete, place value table and symbol
+  3) ठोस सामग्री वा चित्र, स्थानमान तालिका र सङ्केत प्रयोग गरेर तीन अङ्कसम्मको सङ्ख्याको सापटी लिन नपर्ने र पर्ने घटाउ गर्न सकेमा || Able to subtract up to three digits, with and without borrowing, using concrete or semi-concrete, place value table and symbol
+  2) ठोस सामग्री र चित्र प्रयोग गरेर तीन अङ्कसम्मको सङ्ख्याको सापटी लिन नपर्ने र पर्ने घटाउ गर्न सकेमा || Able to subtract up to three digits, with and without borrowing, using concrete and semi-concrete
+  1) ठोस सामग्री प्रयोग गरेर तीन अङ्कसम्मको सङ्ख्याको सापटी लिन नपर्ने घटाउ गर्न सकेमा || Able to subtract up to three digits without borrowing, using concrete
+- १० सम्मको गुणन तालिका निर्माण गर्न || Able to prepare multiplication tables up to 10
+  4) आफैँ १० सम्मको गुणन तालिका निर्माण गर्न सकेमा || Able to prepare multiplication tables up to 10 by self
+  3) आफैँ ७ सम्मको गुणन तालिका निर्माण गर्न सकेमा वा साथीको सहयोगमा १० सम्मको गुणन तालिका निर्माण गर्न सकेमा || Able to prepare multiplication tables up to 7 by self, or up to 10 with the help of friend
+  2) आफैँ ५ सम्मको गुणन तालिका निर्माण गर्न सकेमा वा शिक्षकको आंशिक सहयोगमा १० सम्मको गुणन तालिका निर्माण गर्न सकेमा || Able to prepare multiplication tables up to 5 by self, or up to 10 with partial help of teacher
+  1) आफैँ ३ सम्मको गुणन तालिका निर्माण गर्न सकेमा वा शिक्षकको पूर्ण सहयोगमा १० सम्मको गुणन तालिका निर्माण गर्न सकेमा || Able to prepare multiplication tables up to 3 by self, or up to 10 with full help of teacher
+- १० सम्मको गुणनतालिकामा आधारित रहेर दुई अङ्कसम्मको सङ्ख्यालाई १० सम्मको सङ्ख्याले निशेष भाग जाने भाग गर्न || Able to divide two digit numbers exactly by numbers up to 10, based on the multiplication table up to 10
+  4) आफैँ १० सम्मको गुणनतालिकामा आधारित रहेर दुई अङ्कसम्मको सङ्ख्यालाई १० सम्मको सङ्ख्याले निशेष भाग जाने भाग गर्न सकेमा || Able to divide two digit numbers by up to 10, based on the table up to 10, by self
+  3) आफैँ ७ सम्मको गुणनतालिकामा आधारित रहेर दुई अङ्कसम्मको सङ्ख्यालाई ७ सम्मको सङ्ख्याले निशेष भाग जाने भाग गर्न सकेमा वा साथीको सहयोगमा १० सम्मको गुणनतालिकामा आधारित रहेर भाग गर्न सकेमा || Able to divide two digit numbers by up to 7 by self, or by up to 10 with the help of friend
+  2) आफैँ ५ सम्मको गुणनतालिकामा आधारित रहेर दुई अङ्कसम्मको सङ्ख्यालाई ५ सम्मको सङ्ख्याले निशेष भाग जाने भाग गर्न सकेमा वा शिक्षकको आंशिक सहयोगमा १० सम्मको गुणनतालिकामा आधारित रहेर भाग गर्न सकेमा || Able to divide two digit numbers by up to 5 by self, or by up to 10 with partial help of teacher
+  1) आफैँ ३ सम्मको गुणनतालिकामा आधारित रहेर दुई अङ्कसम्मको सङ्ख्यालाई ३ सम्मको सङ्ख्याले निशेष भाग जाने भाग गर्न सकेमा वा शिक्षकको पूर्ण सहयोगमा १० सम्मको गुणनतालिकामा आधारित रहेर भाग गर्न सकेमा || Able to divide two digit numbers by up to 3 by self, or by up to 10 with full help of teacher

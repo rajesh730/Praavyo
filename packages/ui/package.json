@@ -1,0 +1,12 @@
+{
+  "name": "@pravyo/ui",
+  "version": "1.0.0",
+  "private": true,
+  "description": "The Pravyo design system: brand tokens, base stylesheet and shared React primitives.",
+  "exports": {
+    "./*": "./*.js"
+  },
+  "peerDependencies": {
+    "react": "19.2.0"
+  }
+}
