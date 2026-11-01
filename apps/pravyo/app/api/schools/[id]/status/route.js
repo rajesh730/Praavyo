@@ -4,6 +4,7 @@ import connectDB from '@/lib/db';
 import User from '@/models/User';
 import { publishWorkIndicatorsUpdate } from '@/lib/workIndicatorRealtime';
 import { sendSchoolApprovalEmail } from '@/lib/emailService';
+import { provisionDefaultCurriculum } from '@pravyo/cas/lib/casLibraryService';
 
 export async function PUT(req, { params }) {
     try {
@@ -41,6 +42,9 @@ export async function PUT(req, { params }) {
         if (!hadAccess && hasAccess && previous.email) {
             sendSchoolApprovalEmail(previous.email, previous.schoolName || 'Your school');
         }
+        if (!hadAccess && hasAccess) {
+            await giveDefaultCurriculum(id, session.user.id);
+        }
 
         publishWorkIndicatorsUpdate("school-status-updated", {
             schoolId: String(user._id),
@@ -50,5 +54,32 @@ export async function PUT(req, { params }) {
     } catch (error) {
         console.error('❌ Error updating status:', error.message);
         return NextResponse.json({ message: 'Error updating status', error: error.message }, { status: 500 });
+    }
+}
+
+/**
+ * Copy the default CAS curriculum (Grades 1–5) into a newly approved school.
+ *
+ * Only library subjects the school has not received before are copied, so a
+ * re-approval or double-click never duplicates, and a subject the school
+ * deleted never returns. A failure never blocks the approval itself; the
+ * backfill script (npm run provision:curriculum) completes it later.
+ */
+async function giveDefaultCurriculum(schoolId, approvedBy) {
+    try {
+        const school = await User.findOne({ _id: schoolId, role: 'SCHOOL_ADMIN' }).select('casDefaultSubjects').lean();
+        if (!school) return;
+        const result = await provisionDefaultCurriculum(schoolId, {
+            createdBy: approvedBy || null,
+            received: school.casDefaultSubjects || [],
+        });
+        if (result.copied.length) {
+            await User.updateOne({ _id: schoolId }, { $addToSet: { casDefaultSubjects: { $each: result.copied } } });
+        }
+        if (result.error) throw result.error;
+        console.info('[cas] default curriculum for school', String(schoolId),
+            { subjects: result.subjects, themes: result.themes, outcomes: result.outcomes, skippedGrades: result.skippedGrades });
+    } catch (error) {
+        console.error('[cas] default curriculum copy failed for school', String(schoolId), error.message);
     }
 }

@@ -101,6 +101,14 @@ const UserSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    // Default-library CAS subjects (Grades 1–5) this school has received a
+    // copy of. Each is copied at most once, so a subject the school deleted
+    // is never added back, while subjects added to the library later still
+    // arrive. See provisionDefaultCurriculum in packages/cas.
+    casDefaultSubjects: {
+      type: [Schema.Types.ObjectId],
+      default: undefined,
+    },
     // Education configuration for schools
     educationLevels: {
       school: { type: Boolean, default: false },

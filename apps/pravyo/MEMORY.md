@@ -18,6 +18,12 @@ praavyo.com, and keep it in `RETIRED_HOSTS` in `lib/siteUrl.js` so new prints
 never use it. An even older domain spelled "pratyo" was retired and now returns
 `DEPLOYMENT_NOT_FOUND`. There should be no "pratyo" anywhere in the repo.
 
+The Continuous Assessment System (CAS) is part of this same app (domain code in
+`packages/cas`, thin routes here). **Phase 1 = Grades 1–5** with a platform
+default curriculum every approved school receives a local copy of; **Grades
+6–10 are Phase 2** (different exam/assessment process, not built — do not
+extend Grades 1–5 logic to them). Details: repo-root `memory.md`.
+
 ## Stack
 
 - **Next.js 16** App Router, React 19, JavaScript (no TypeScript).
@@ -166,16 +172,39 @@ records for mail must be proxy status "DNS only"; the zone is the parent
 
 ## Deployment
 
-Vercel, region `bom1` (see `vercel.json`). `.env.local` is **not** deployed —
-production env lives in the Vercel dashboard and changes need a redeploy.
-`.env.example` documents every variable.
+Vercel, region `bom1` (see `vercel.json`), project root `apps/pravyo`.
+`.env.local` is **not** deployed — production env lives in the Vercel dashboard
+(set every variable for Production AND Preview) and changes need a redeploy.
+There are deliberately **no `.env.example` files** (the owner removed them);
+document new variables in `.env.local` and here.
 
 Required: `MONGODB_URI`, `NEXTAUTH_URL`, `NEXTAUTH_SECRET`, `NEXT_PUBLIC_SITE_URL`.
 `NEXTAUTH_URL` and `NEXT_PUBLIC_SITE_URL` must both be the live origin with no
-trailing slash.
+trailing slash. `MONGODB_URI` is needed at **build** time too: `/events` and
+`/sitemap.xml` are prerendered and read the database, so a missing URI fails
+`next build` with "Define MONGODB_URI before connecting".
+
+Optional groups: Resend/SMTP mail; Upstash Redis; Web Push (`VAPID_PUBLIC_KEY`,
+`VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` — the public key is read server-side only
+and served by the API, so it needs no `NEXT_PUBLIC_` prefix; the old name
+`NEXT_PUBLIC_VAPID_PUBLIC_KEY` is still accepted; keep the same pair or phones
+must resubscribe); Cloudflare R2 (`R2_ENDPOINT` = `https://<account>.r2.cloudflarestorage.com`
+with no path, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_PRIVATE_BUCKET`,
+`R2_PUBLIC_BUCKET`; token scope Object Read & Write on those two buckets, no IP
+filter; both buckets stay private — media is served through `/api/media/r2/[id]`).
+R2 verified working with the local credentials on 2026-11-01.
+
+**Domain.** The owner confirmed on 2026-11-01 that the canonical domain is
+**`https://praavyo.com`** (apex, no www). `NEXTAUTH_URL` and
+`NEXT_PUBLIC_SITE_URL` are set to it, and the build's canonical URLs, OG and
+sitemap use it. The Vercel Domains target: `praavyo.com` serves Production;
+`www.praavyo.com` and `pravyo.infobytesnepal.com` 308-redirect to it. Keep the
+old domain attached, because printed cards and certificates carry it. On
+2026-11-01 Vercel still redirected apex → www and served the old domain
+directly; verify with `curl -sI https://praavyo.com/` (expect 200, not 308).
 
 **Public contact address.** The official address is
-**contact@pravyo.infobytesnepal.com**. It comes from `NEXT_PUBLIC_SUPPORT_EMAIL`,
+**contact@praavyo.com** (formerly contact@pravyo.infobytesnepal.com). It comes from `NEXT_PUBLIC_SUPPORT_EMAIL`,
 resolved once in `components/public/InfoPageShell.js` and rendered on `/contact`,
 `/privacy` and `/terms`. Because it is a `NEXT_PUBLIC_*` variable it is baked into
 the client bundle at build time, so changing it needs a rebuild, not just a
@@ -194,8 +223,11 @@ Two deployment gotchas that have bitten before:
    canonical/OG metadata, `robots.txt`, `sitemap.xml`, email links, and the
    verification host printed on certificates. If it is stale, printed
    certificates point at a dead domain. Verify after any domain change with
-   `curl https://pravyo.infobytesnepal.com/robots.txt` — the `Sitemap:` line
-   must show the current host.
+   `curl https://praavyo.com/robots.txt` — the `Sitemap:` line
+   must show the current host. Everything printed (QR codes on parent and
+   teacher cards, certificate verify links) goes through `printableOrigin()`
+   in `lib/siteUrl.js`, which swaps the retired host for praavyo.com; the
+   scanners ignore the host, so old cards keep working.
 
 Admin bootstrap is fail-closed: `POST /api/admin/bootstrap` returns 403 unless
 `SUPER_ADMIN_BOOTSTRAP_TOKEN` is set. The auto-seed in `lib/seedSuperAdmin.js`

@@ -156,4 +156,64 @@ describe('default theme library on an isolated MongoDB replica set', {
     const saved = await Subject.findById(own._id).lean();
     assert.ok(saved.themes.some((theme) => theme.key === 'own-1' && !theme.sourceThemeKey));
   });
+
+  it('gives a new school its own linked copy of every default subject, once', async () => {
+    const { lib } = await fixture();
+    const school = id();
+    const actor = { id: String(id()), role: 'SCHOOL_ADMIN', school: String(school) };
+    const librarySubjects = await Subject.countDocuments({ school: LIBRARY_SCHOOL_ID, status: 'ACTIVE' });
+
+    const result = await library.provisionDefaultCurriculum(school);
+    assert.equal(result.subjects, librarySubjects);
+    assert.equal(result.copied.length, librarySubjects);
+    const copy = await Subject.findOne({ school, librarySubject: lib._id }).lean();
+    assert.equal(copy.code, lib.code);
+    assert.deepEqual(copy.themes.map((theme) => theme.sourceThemeKey), ['lib-t1', 'lib-t2']);
+    assert.equal(await Outcome.countDocuments({ school, subject: copy._id }), 3);
+
+    const overview = await library.libraryOverview(actor, { subject: String(copy._id) });
+    assert.deepEqual(overview.themes.map((theme) => theme.status), ['UP_TO_DATE', 'UP_TO_DATE']);
+
+    // The school's edit stays local; the library is untouched.
+    await Outcome.updateOne({ school, subject: copy._id, code: 'ENG-1' }, { $set: { titleEn: 'Our wording' } });
+    const source = await Outcome.findOne({ school: LIBRARY_SCHOOL_ID, subject: lib._id, code: 'ENG-1' }).lean();
+    assert.equal(source.titleEn, 'Reads words');
+
+    // The school deletes a copied subject: a later run never brings it back.
+    await Outcome.deleteMany({ school, subject: copy._id });
+    await Subject.deleteOne({ _id: copy._id });
+    const again = await library.provisionDefaultCurriculum(school, { received: result.copied });
+    assert.equal(again.subjects, 0);
+    assert.equal(await Subject.countDocuments({ school }), librarySubjects - 1);
+  });
+
+  it('delivers a grade added to the library later, but never Grades 6–10', async () => {
+    await fixture();
+    const school = id();
+    const first = await library.provisionDefaultCurriculum(school);
+
+    const grade4 = await Subject.create({
+      school: LIBRARY_SCHOOL_ID, grade: 'Grade 4', code: `MATH${Math.random().toString(36).slice(2, 6).toUpperCase()}`,
+      titleEn: 'Mathematics', themes: [{ key: 'g4-t1', titleEn: 'Numbers', sequence: 1 }],
+    });
+    await Outcome.create({ ...outcome(LIBRARY_SCHOOL_ID, grade4._id, 'M4-1', 'g4-t1', 'Counts to 1000', 1), grade: 'Grade 4' });
+    await Subject.create({ school: LIBRARY_SCHOOL_ID, grade: 'Grade 6', code: 'PHASE2', titleEn: 'Not in phase 1' });
+
+    const later = await library.provisionDefaultCurriculum(school, { received: first.copied });
+    assert.deepEqual(later.copied.map(String), [String(grade4._id)]);
+    assert.equal(await Subject.countDocuments({ school, grade: 'Grade 6' }), 0);
+    await Subject.deleteMany({ school: LIBRARY_SCHOOL_ID, grade: { $in: ['Grade 4', 'Grade 6'] } });
+  });
+
+  it('leaves a grade the school set up itself alone and still fills the others', async () => {
+    const { school, own } = await fixture();
+    const grade1 = await Subject.create({ school: LIBRARY_SCHOOL_ID, grade: 'Grade 1', code: 'G1ENG', titleEn: 'English' });
+
+    const result = await library.provisionDefaultCurriculum(school);
+    assert.deepEqual(result.skippedGrades, ['Grade 3']);
+    assert.deepEqual(result.copied.map(String), [String(grade1._id)]);
+    const grade3 = await Subject.find({ school, grade: 'Grade 3' }).lean();
+    assert.deepEqual(grade3.map((row) => String(row._id)), [String(own._id)]);
+    await Subject.deleteOne({ _id: grade1._id });
+  });
 });

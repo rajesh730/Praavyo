@@ -3,7 +3,7 @@ import connectDB from '@pravyo/db';
 import CasSubject from '@pravyo/db/models/cas/CasSubject';
 import CasLearningOutcome from '@pravyo/db/models/cas/CasLearningOutcome';
 import CasAssessment from '@pravyo/db/models/cas/CasAssessment';
-import { LIBRARY_SCHOOL_ID, sameGrade } from '@pravyo/core/themeLibrary';
+import { LIBRARY_GRADES, LIBRARY_SCHOOL_ID, sameGrade } from '@pravyo/core/themeLibrary';
 import ensureCasIndexes from './casIndexes.js';
 import { bySequence, outcomeContent, themeHash } from './casThemeHash.js';
 import { assert, requireSchoolAdmin } from './casAccess.js';
@@ -167,10 +167,23 @@ export async function addLibraryThemes(actor, { subject, themeKeys }) {
   const usedKeys = new Set([...ownThemes.map((theme) => theme.key), ...(own.themes || []).map((theme) => theme.key)]);
   const usedCodes = new Set((await CasLearningOutcome.find({ school: actor.school, subject: own._id }).select('code').lean())
     .map((row) => row.code));
-  let sequence = ownThemes.reduce((max, theme) => Math.max(max, theme.sequence || 1), 0);
+  const sequence = ownThemes.reduce((max, theme) => Math.max(max, theme.sequence || 1), 0);
 
-  let added = 0;
-  for (const theme of libraryThemes.filter((item) => themeKeys.includes(item.key) && !alreadyCopied.has(item.key))) {
+  const chosen = libraryThemes.filter((item) => themeKeys.includes(item.key) && !alreadyCopied.has(item.key));
+  const rows = copyThemesInto(own, chosen, { school: actor.school, createdBy: actor.id, usedKeys, usedCodes, sequence });
+  if (rows.length) await CasLearningOutcome.insertMany(rows, { ordered: true });
+  await own.save();
+  return { added: chosen.length };
+}
+
+/**
+ * Append copies of library themes to `own.themes` and return the outcome rows
+ * to insert. Each copy records its library theme and content hash, so the
+ * school can later see and choose updates. Saves nothing.
+ */
+function copyThemesInto(own, libraryThemes, { school, createdBy, usedKeys, usedCodes, sequence }) {
+  const rows = [];
+  for (const theme of libraryThemes) {
     const key = usedKeys.has(theme.key) ? `theme-${randomUUID()}` : theme.key;
     usedKeys.add(key);
     sequence += 1;
@@ -179,22 +192,97 @@ export async function addLibraryThemes(actor, { subject, themeKeys }) {
       workingHours: theme.workingHours ?? null, sequence, status: 'ACTIVE',
       sourceThemeKey: theme.key, sourceHash: themeHash(theme, theme.outcomes),
     });
-    const rows = [...theme.outcomes].sort(bySequence).map((outcome, index) => {
+    [...theme.outcomes].sort(bySequence).forEach((outcome, index) => {
       let code = String(outcome.code).toUpperCase();
       for (let n = 2; usedCodes.has(code); n += 1) code = `${String(outcome.code).toUpperCase().slice(0, 26)}-${n}`;
       usedCodes.add(code);
-      return {
-        school: actor.school, grade: own.grade, subject: own._id, subjectCode: own.code,
+      rows.push({
+        school, grade: own.grade, subject: own._id, subjectCode: own.code,
         code, themeKey: key, themeEn: theme.titleEn || '', themeNe: theme.titleNe || '',
         ...Object.fromEntries(OUTCOME_COPY_FIELDS.map((field) => [field, outcome[field] ?? (field.endsWith('s') ? [] : '')])),
-        sequence: outcome.sequence || index + 1, status: 'ACTIVE', createdBy: actor.id,
-      };
+        sequence: outcome.sequence || index + 1, status: 'ACTIVE', createdBy,
+      });
     });
-    if (rows.length) await CasLearningOutcome.insertMany(rows, { ordered: true });
-    added += 1;
   }
-  await own.save();
-  return { added };
+  return rows;
+}
+
+/**
+ * Give a school its own copy of the default library — every library subject
+ * (Grades 1–5 only; Grades 6–10 are Phase 2) it has not received yet, linked
+ * to its source, with all of its themes and outcomes.
+ *
+ * `received` lists the library subject ids the school already got (kept on
+ * the school's account by the caller). Each library subject reaches a school
+ * at most once, so a subject the school deleted never comes back, while a
+ * grade added to the library later (Grades 4–5) still reaches schools that
+ * were approved before it existed.
+ *
+ * A grade the school set up itself — any subject there, active or archived,
+ * that did not come from this copy — is left alone. After copying, the rows
+ * are the school's: edits stay local, library changes arrive only as "Update
+ * available", and the school may archive or delete what it does not use.
+ *
+ * Each subject is copied completely or not at all. The caller records
+ * `copied` even when `error` is set.
+ */
+export async function provisionDefaultCurriculum(school, { createdBy = null, received = [] } = {}) {
+  await connectDB();
+  await ensureCasIndexes();
+  assert(school && String(school) !== LIBRARY_SCHOOL_ID, 'Choose a school', 400);
+  const done = new Set(received.map(String));
+
+  const [librarySubjects, ownSubjects] = await Promise.all([
+    CasSubject.find({ school: LIBRARY_SCHOOL_ID, status: 'ACTIVE' }).sort({ grade: 1, sequence: 1, titleEn: 1 }).lean(),
+    CasSubject.find({ school }).select('grade code librarySubject').lean(),
+  ]);
+  const selfManaged = (grade) => ownSubjects.some((row) => sameGrade(row.grade, grade)
+    && !(row.librarySubject && done.has(String(row.librarySubject))));
+  const codeTaken = (library) => ownSubjects.some((row) => sameGrade(row.grade, library.grade)
+    && String(row.code).toUpperCase() === String(library.code).toUpperCase());
+
+  const result = { copied: [], subjects: 0, themes: 0, outcomes: 0, skippedGrades: [] };
+  for (const library of librarySubjects) {
+    if (!LIBRARY_GRADES.some((grade) => sameGrade(grade, library.grade))) continue;
+    if (done.has(String(library._id)) || codeTaken(library)) continue;
+    if (selfManaged(library.grade)) {
+      if (!result.skippedGrades.includes(library.grade)) result.skippedGrades.push(library.grade);
+      continue;
+    }
+
+    const own = new CasSubject({
+      school, grade: library.grade, code: library.code,
+      titleEn: library.titleEn, titleNe: library.titleNe || '',
+      sequence: library.sequence || 1, creditHours: library.creditHours ?? null,
+      taught: library.taught ?? true, examined: library.examined ?? true,
+      kind: library.kind || 'COMPULSORY', optionalGroup: library.optionalGroup || '',
+      librarySubject: library._id, createdBy,
+    });
+    let saved = false;
+    try {
+      const libraryThemes = await subjectThemes(LIBRARY_SCHOOL_ID, library);
+      const rows = copyThemesInto(own, libraryThemes, { school, createdBy, usedKeys: new Set(), usedCodes: new Set(), sequence: 0 });
+      await own.save();
+      saved = true;
+      if (rows.length) await CasLearningOutcome.insertMany(rows, { ordered: true });
+      result.copied.push(library._id);
+      result.subjects += 1;
+      result.themes += libraryThemes.length;
+      result.outcomes += rows.length;
+    } catch (error) {
+      // The subject itself already exists: a concurrent run (a double-click on
+      // Approve) copied it first. Nothing of ours to undo.
+      if (!saved && error?.code === 11000) continue;
+      // Never leave a half-copied subject behind.
+      if (saved) {
+        await CasLearningOutcome.deleteMany({ school, subject: own._id });
+        await CasSubject.deleteOne({ _id: own._id });
+      }
+      result.error = error;
+      break;
+    }
+  }
+  return result;
 }
 
 async function themePair(actor, { subject, themeKey }) {

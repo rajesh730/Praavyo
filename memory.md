@@ -1,5 +1,48 @@
 # Praavyo CAS memory
 
+Newest sections first. Where sections disagree, the newer one wins.
+
+## Project scope and phases - 2026-11-01 (read first)
+
+- **Phase 1 — Grades 1–5 (built).** CAS = curriculum (subjects → themes →
+  learning outcomes), exams, assessment, results, report cards for Grades 1–5.
+- **Phase 2 — Grades 6–10 (not built).** A different exam and assessment
+  process. Do not stretch Grades 1–5 logic (theme library, result calculation,
+  report formats) over Grades 6–10; wait for the agreed Phase 2 design.
+- Live at https://praavyo.com (formerly pravyo.infobytesnepal.com). One
+  Next.js app at `apps/pravyo`; CAS domain code in `packages/cas`, shared
+  models in `packages/db`, shared helpers in `packages/core`.
+
+## Default curriculum for every school - 2026-11-01
+
+- **One global default, one local copy per school.** The super admin maintains
+  the default library at `/admin/theme-library` (stored under the reserved
+  school id `LIBRARY_SCHOOL_ID` in `packages/core/themeLibrary.js`; editor is
+  limited to `LIBRARY_GRADES` = Grades 1–5). Today it holds Grades 1–3 (English,
+  Mathematics, Nepali, Our Surroundings); Grades 4–5 are still to be entered.
+- **Provisioning.** `provisionDefaultCurriculum` in
+  `packages/cas/lib/casLibraryService.js` copies every library subject the
+  school has not received yet — subject, credit hours, all themes and outcomes —
+  linked via `CasSubject.librarySubject`, each theme carrying
+  `sourceThemeKey`/`sourceHash`. Runs automatically when a super admin first
+  approves a school (`apps/pravyo/app/api/schools/[id]/status/route.js`).
+- **Each library subject reaches a school at most once.** Received ids are kept
+  in `User.casDefaultSubjects` (school account). So a subject the school deletes
+  never returns, and Grades 4–5 added later still reach earlier schools.
+- **School's choice afterwards.** Copies are local: edits, archiving and
+  deletion affect only that school. Library changes appear as "Update
+  available" and are applied only if the school chooses. A grade the school set
+  up with its own subjects (e.g. Green Villege Grades 1–3, the library's source)
+  is skipped entirely. Library grades outside 1–5 are never copied.
+- **After adding a grade to the library** (e.g. Grade 4 finished), run
+  `npm run provision:curriculum -- --dry-run`, then `-- --apply`, to deliver it
+  to already-approved schools. Safe to re-run.
+- Tests: `packages/cas/tests/casLibrary.integration.test.mjs` (run with
+  `CAS_TEST_MONGOD="C:/Program Files/MongoDB/Server/6.0/bin/mongod.exe"`).
+- Status 2026-11-01: backfill NOT yet applied on production. Dry run listed
+  Mothers Tongue Secondary School and Tejaswee Pathshala (12 subjects each);
+  Green Villege skipped. Never report it as applied until it has been.
+
 ## UI refresh and visible rebrand - 2026-10-13
 
 - Product-facing branding is now **Praavyo**. The change is intentionally

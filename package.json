@@ -17,6 +17,7 @@
     "db:inspect": "node scripts/inspect-database.cjs",
     "seed:curriculum": "node scripts/seed-curriculum.mjs",
     "migrate:cas-global-exams": "node scripts/migrate-cas-global-exams.mjs",
+    "provision:curriculum": "node scripts/provision-default-curriculum.mjs",
     "cleanup:grade3": "node scripts/cleanup-grade3-pilot.mjs"
   },
   "engines": {
