@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import PrintableAccessCard from "@/components/school/PrintableAccessCard";
 import PrintButton from "@/components/school/PrintButton";
 import Glyph from "@/components/ui/Glyph";
+import { printableOrigin } from "@/lib/siteUrl";
 
 /**
  * The bulk print sheet — one Parent Access Card per page, ready to cut and hand
@@ -87,7 +88,7 @@ export default function BulkCardsPage() {
   }
 
   const siteUrl =
-    typeof window !== "undefined" ? window.location.origin : "";
+    typeof window !== "undefined" ? printableOrigin(window.location.origin) : "";
 
   return (
     <main className="">

@@ -9,6 +9,7 @@ import User from "@/models/User";
 import TeacherMembership from "@pravyo/db/models/TeacherMembership";
 import PrintButton from "@/components/school/PrintButton";
 import { teacherCardUrl } from "@/lib/teacherCard";
+import { printableOrigin } from "@/lib/siteUrl";
 
 /**
  * A printable Teacher Login Card.
@@ -92,12 +93,12 @@ export default async function TeacherLoginCardPage({ searchParams }) {
 /** Same origin resolution as the Parent Access Card: env first, request host as fallback. */
 async function resolveSiteUrl() {
   const configured = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
-  if (configured) return configured;
+  if (configured) return printableOrigin(configured);
   const headerList = await headers();
   const host = headerList.get("x-forwarded-host") || headerList.get("host");
   if (!host) return "";
   const protocol = headerList.get("x-forwarded-proto") || (host.startsWith("localhost") ? "http" : "https");
-  return `${protocol}://${host}`;
+  return printableOrigin(`${protocol}://${host}`);
 }
 
 function Missing({ reason }) {

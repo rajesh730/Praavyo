@@ -23,7 +23,10 @@ export default async function connectDB() {
   // would otherwise capture an undefined URI before its .env.local was read.
   const uri = process.env.MONGODB_URI;
   if (!uri) {
-    throw new Error('Define MONGODB_URI in .env.local before connecting');
+    throw new Error(
+      'Define MONGODB_URI before connecting: .env.local locally, or the Vercel ' +
+        'project environment variables (Production and Preview) for deployments'
+    );
   }
   if (cached.conn) return cached.conn;
 

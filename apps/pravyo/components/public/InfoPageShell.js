@@ -4,7 +4,7 @@ import PublicSiteNav from "@/components/public/PublicSiteNav";
 // Rendered publicly on /contact, /privacy and /terms, so the fallback must be an
 // official address — never a personal mailbox.
 export const SUPPORT_EMAIL =
-  process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "contact@pravyo.infobytesnepal.com";
+  process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "contact@praavyo.com";
 
 export function InfoSection({ title, children }) {
   return (

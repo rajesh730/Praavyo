@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useSyncExternalStore } from "react";
 import QRCode from "qrcode";
+import { printableOrigin } from "@/lib/siteUrl";
 import { X as FaTimes, Copy as FaCopy, Share2 as FaShareAlt, Printer as FaPrint, Check as FaCheck } from "lucide-react";
 
 /**
@@ -45,7 +46,7 @@ export default function ParentCardDialog({
     () => false
   );
 
-  const siteUrl = typeof window !== "undefined" ? window.location.origin : "";
+  const siteUrl = typeof window !== "undefined" ? printableOrigin(window.location.origin) : "";
   const loginUrl = `${siteUrl}/parent/login?id=${encodeURIComponent(
     parentIdentifier
   )}`;

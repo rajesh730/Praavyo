@@ -11,8 +11,11 @@ certificates, published writing, magazine articles), and the public can browse
 and verify any of it. Certificates carry a code plus a verification URL, so a
 printed copy can be checked against the live site.
 
-Live at **https://pravyo.infobytesnepal.com** (Vercel). The brand and the domain
-are both "pravyo" — an older domain spelled "pratyo" was retired and now returns
+Live at **https://praavyo.com** (Vercel). It moved there from
+`pravyo.infobytesnepal.com`; cards and certificates printed before the move
+carry the old host, so keep that domain attached in Vercel as a redirect to
+praavyo.com, and keep it in `RETIRED_HOSTS` in `lib/siteUrl.js` so new prints
+never use it. An even older domain spelled "pratyo" was retired and now returns
 `DEPLOYMENT_NOT_FOUND`. There should be no "pratyo" anywhere in the repo.
 
 ## Stack

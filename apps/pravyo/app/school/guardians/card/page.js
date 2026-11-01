@@ -11,6 +11,7 @@ import { getSessionSchoolId, sameId } from "@/lib/authz";
 import ParentAccessCard from "@/components/school/ParentAccessCard";
 import PrintButton from "@/components/school/PrintButton";
 import Glyph from "@/components/ui/Glyph";
+import { printableOrigin } from "@/lib/siteUrl";
 
 export const dynamic = "force-dynamic";
 
@@ -111,11 +112,12 @@ export default async function ParentAccessCardPage({ searchParams }) {
  * that goes stale after a domain move — and a card printed with a dead host is
  * a card nobody can use, discovered weeks later at the school gate. Falling
  * back to the request's own host means the QR always points at the deployment
- * the card was printed from.
+ * the card was printed from. Either way a retired domain is swapped for the
+ * live one (see lib/siteUrl.js).
  */
 async function resolveSiteUrl() {
   const configured = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "");
-  if (configured) return configured;
+  if (configured) return printableOrigin(configured);
 
   const headerList = await headers();
   const host = headerList.get("x-forwarded-host") || headerList.get("host");
@@ -124,7 +126,7 @@ async function resolveSiteUrl() {
   const protocol =
     headerList.get("x-forwarded-proto") ||
     (host.startsWith("localhost") ? "http" : "https");
-  return `${protocol}://${host}`;
+  return printableOrigin(`${protocol}://${host}`);
 }
 
 function MissingCard({ reason }) {

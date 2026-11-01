@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import QRCode from "qrcode";
 import { Check, Copy, KeyRound, Printer, X } from "lucide-react";
 import { teacherCardUrl } from "@/lib/teacherCard";
+import { printableOrigin } from "@/lib/siteUrl";
 
 /**
  * A teacher's login card on screen, like the Parent Access Card.
@@ -22,7 +23,7 @@ export default function TeacherLoginCardDialog({ teacher, onClose }) {
 
   useEffect(() => {
     let active = true;
-    QRCode.toString(teacherCardUrl(window.location.origin, identifier), {
+    QRCode.toString(teacherCardUrl(printableOrigin(window.location.origin), identifier), {
       type: "svg", errorCorrectionLevel: "M", margin: 1, width: 220,
       color: { dark: "#000000", light: "#ffffff" },
     }).then((svg) => active && setQrSvg(svg)).catch(() => {});
@@ -59,7 +60,7 @@ export default function TeacherLoginCardDialog({ teacher, onClose }) {
       `Username: ${teacher.username || "—"}`,
       `Email: ${teacher.email}`,
       password ? `Password: ${password}` : "Password: the one your school gave you",
-      `Sign in: ${window.location.origin}/login?as=teacher`,
+      `Sign in: ${printableOrigin(window.location.origin)}/login?as=teacher`,
     ].join("\n");
     navigator.clipboard?.writeText(text).then(() => setCopied(true)).catch(() => {});
   };

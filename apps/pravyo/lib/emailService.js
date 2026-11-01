@@ -100,7 +100,7 @@ async function deliver({ to, subject, html }) {
 }
 
 const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || 'https://pravyo.infobytesnepal.com';
+  process.env.NEXT_PUBLIC_SITE_URL || 'https://praavyo.com';
 
 /**
  * Branded logo band placed at the top of every email.

@@ -5,7 +5,7 @@ import ServiceWorkerRegistrar from '@/components/ServiceWorkerRegistrar';
 import PwaInstallButton from '@/components/PwaInstallButton';
 
 const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://pravyo.infobytesnepal.com";
+  process.env.NEXT_PUBLIC_SITE_URL || "https://praavyo.com";
 
 const siteDescription =
   "School events, results, magazines, certificates, notices, and student writing in one connected platform.";

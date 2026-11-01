@@ -3,6 +3,7 @@ import Image from "next/image";
 import QRCode from "qrcode";
 import { formatPlacementLabel } from "@/lib/results";
 import { normalizeImageUrl } from "@/lib/imageUrls";
+import { CANONICAL_SITE_URL, printableOrigin } from "@/lib/siteUrl";
 import pravyoLogo from "@/logo/pravyo logo by name.png";
 import AppDate from "@/components/common/AppDate";
 import FittedCertificateName from "@/components/certificates/FittedCertificateName";
@@ -31,8 +32,9 @@ const GOLD = "#f7b731"; // brand amber
 const PAPER = "#fbf5e8"; // warm ivory sheet
 
 // Printed copies carry no signature; the code + this URL prove authenticity.
-const SITE_URL =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://pravyo.infobytesnepal.com";
+const SITE_URL = printableOrigin(
+  process.env.NEXT_PUBLIC_SITE_URL || CANONICAL_SITE_URL
+);
 const VERIFY_HOST = SITE_URL.replace(/^https?:\/\//, "");
 
 function getInitials(value) {
