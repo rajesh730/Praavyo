@@ -1,11 +1,11 @@
-import connectDB from '@pravyo/db';
-import User from '@pravyo/db/models/User';
-import Teacher from '@pravyo/db/models/Teacher';
-import { isActiveTeacherMember } from '@pravyo/db/teacherMemberships';
-import { LIBRARY_SCHOOL_ID } from '@pravyo/core/themeLibrary';
+import connectDB from "@pravyo/db";
+import User from "@pravyo/db/models/User";
+import Teacher from "@pravyo/db/models/Teacher";
+import { isActiveTeacherMember } from "@pravyo/db/teacherMemberships";
+import { LIBRARY_SCHOOL_ID } from "@pravyo/core/themeLibrary";
 
 /**
- * Who is calling, and what may they touch.
+ * Who is calling, and what may they touch. Dumy
  *
  * Two rules run through everything:
  *
@@ -24,7 +24,7 @@ import { LIBRARY_SCHOOL_ID } from '@pravyo/core/themeLibrary';
 export class HttpError extends Error {
   constructor(message, status = 400) {
     super(message);
-    this.name = 'HttpError';
+    this.name = "HttpError";
     this.status = status;
   }
 }
@@ -49,78 +49,82 @@ export async function getActor() {
   // domain services can also run from an authorized maintenance job without
   // bootstrapping NextAuth's browser-provider configuration.
   const [{ getServerSession }, { authOptions }] = await Promise.all([
-    import('next-auth'),
-    import('@pravyo/auth'),
+    import("next-auth"),
+    import("@pravyo/auth"),
   ]);
   const session = await getServerSession(authOptions);
-  assert(session?.user?.id && !session.error, 'Sign in with your Pravyo account', 401);
+  assert(
+    session?.user?.id && !session.error,
+    "Sign in with your Pravyo account",
+    401,
+  );
 
   await connectDB();
   const { id, role } = session.user;
 
-  if (role === 'SCHOOL_ADMIN') {
+  if (role === "SCHOOL_ADMIN") {
     const row = await User.findOne({
       _id: id,
-      role: 'SCHOOL_ADMIN',
-      status: { $in: ['APPROVED', 'SUBSCRIBED'] },
+      role: "SCHOOL_ADMIN",
+      status: { $in: ["APPROVED", "SUBSCRIBED"] },
     })
-      .select('schoolName name authVersion calendarPreference')
+      .select("schoolName name authVersion calendarPreference")
       .lean();
-    assert(row, 'This school account cannot access assessment', 403);
+    assert(row, "This school account cannot access assessment", 403);
     assert(
       (row.authVersion || 0) === (session.user.authVersion || 0),
-      'Your session was revoked. Sign in again.',
+      "Your session was revoked. Sign in again.",
       401,
     );
     return {
       id: String(row._id),
-      role: 'SCHOOL_ADMIN',
+      role: "SCHOOL_ADMIN",
       // A school admin IS the school in Pravyo's data model — there is no
       // separate School collection.
       school: String(row._id),
-      name: row.schoolName || row.name || 'School',
-      calendar: row.calendarPreference || 'BS',
+      name: row.schoolName || row.name || "School",
+      calendar: row.calendarPreference || "BS",
     };
   }
 
-  if (role === 'TEACHER') {
+  if (role === "TEACHER") {
     // A teacher may work at several schools; the session names the one they
     // chose, and the membership must still be ACTIVE (not Left or Inactive).
     const school = session.user.schoolId;
-    assert(school, 'Choose the school you are working in', 403);
-    const row = await Teacher.findById(id).select('name').lean();
-    assert(row, 'This teacher account is no longer active', 403);
+    assert(school, "Choose the school you are working in", 403);
+    const row = await Teacher.findById(id).select("name").lean();
+    assert(row, "This teacher account is no longer active", 403);
     assert(
       await isActiveTeacherMember(row._id, school),
-      'You no longer have access to this school',
+      "You no longer have access to this school",
       403,
     );
 
     return {
       id: String(row._id),
-      role: 'TEACHER',
+      role: "TEACHER",
       school: String(school),
-      name: row.name || 'Teacher',
-      calendar: session.user.calendarPreference || 'BS',
+      name: row.name || "Teacher",
+      calendar: session.user.calendarPreference || "BS",
     };
   }
 
   // The super admin edits the platform's default theme library with the same
   // Curriculum editor. The library is a reserved id, not a real school, and
   // casRoute only lets this actor reach curriculum routes.
-  if (role === 'SUPER_ADMIN') {
+  if (role === "SUPER_ADMIN") {
     return {
       id: String(id),
-      role: 'SCHOOL_ADMIN',
+      role: "SCHOOL_ADMIN",
       school: LIBRARY_SCHOOL_ID,
       library: true,
-      name: 'Default theme library',
-      calendar: session.user.calendarPreference || 'BS',
+      name: "Default theme library",
+      calendar: session.user.calendarPreference || "BS",
     };
   }
 
   throw new HttpError(
-    'Continuous Assessment is for school accounts. Guardians and students see published reports in the Pravyo dashboard.',
+    "Continuous Assessment is for school accounts. Guardians and students see published reports in the Pravyo dashboard.",
     403,
   );
 }
@@ -128,8 +132,8 @@ export async function getActor() {
 /** School-wide setup, publishing and other administrative changes. */
 export function requireSchoolAdmin(actor) {
   assert(
-    actor.role === 'SCHOOL_ADMIN',
-    'Only the school account can change this',
+    actor.role === "SCHOOL_ADMIN",
+    "Only the school account can change this",
     403,
   );
   return actor;
@@ -140,15 +144,15 @@ export function errorResponse(error) {
   const status = error instanceof HttpError ? error.status : 500;
   const message =
     status === 500
-      ? 'Something went wrong. Please try again.'
-      : error.message || 'Request failed';
-  if (status === 500) console.error('[cas]', error);
+      ? "Something went wrong. Please try again."
+      : error.message || "Request failed";
+  if (status === 500) console.error("[cas]", error);
   return Response.json({ error: message }, { status });
 }
 
 export function ok(data, init) {
   return Response.json(
     { data },
-    { headers: { 'Cache-Control': 'private, no-store' }, ...init },
+    { headers: { "Cache-Control": "private, no-store" }, ...init },
   );
 }
