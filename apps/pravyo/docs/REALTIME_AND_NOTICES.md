@@ -129,7 +129,7 @@ If Redis vars are present:
 
 Optional Web Push vars:
 
-- `NEXT_PUBLIC_VAPID_PUBLIC_KEY`
+- `VAPID_PUBLIC_KEY` (formerly `NEXT_PUBLIC_VAPID_PUBLIC_KEY`, still accepted)
 - `VAPID_PRIVATE_KEY`
 - `VAPID_SUBJECT`
 

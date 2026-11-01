@@ -31,14 +31,14 @@ function selectedLean(rows) {
 }
 
 const originalEnv = {
-  publicKey: process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY,
+  publicKey: process.env.VAPID_PUBLIC_KEY,
   privateKey: process.env.VAPID_PRIVATE_KEY,
   subject: process.env.VAPID_SUBJECT,
 };
 
 beforeEach(() => {
   jest.clearAllMocks();
-  process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY = "public-key";
+  process.env.VAPID_PUBLIC_KEY = "public-key";
   process.env.VAPID_PRIVATE_KEY = "private-key";
   process.env.VAPID_SUBJECT = "mailto:test@pravyo.example";
   Parent.find.mockReturnValue(selectedLean([{ _id: "parent-1", authVersion: 4 }]));
@@ -65,9 +65,9 @@ beforeEach(() => {
 
 afterAll(() => {
   if (originalEnv.publicKey === undefined) {
-    delete process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY;
+    delete process.env.VAPID_PUBLIC_KEY;
   } else {
-    process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY = originalEnv.publicKey;
+    process.env.VAPID_PUBLIC_KEY = originalEnv.publicKey;
   }
   if (originalEnv.privateKey === undefined) {
     delete process.env.VAPID_PRIVATE_KEY;

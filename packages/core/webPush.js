@@ -6,11 +6,17 @@ import Parent from "@pravyo/db/models/Parent";
 const PUSH_CONCURRENCY = 20;
 
 function configuration() {
-  const publicKey = String(process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || "").trim();
+  // Read on the server only — the browser receives it through
+  // getWebPushPublicConfig(), so it needs no NEXT_PUBLIC_ prefix. The old
+  // NEXT_PUBLIC_ name is still accepted so a deployment that has not renamed
+  // the variable yet keeps sending push.
+  const publicKey = String(
+    process.env.VAPID_PUBLIC_KEY || process.env.NEXT_PUBLIC_VAPID_PUBLIC_KEY || ""
+  ).trim();
   const privateKey = String(process.env.VAPID_PRIVATE_KEY || "").trim();
   const subject = String(
     process.env.VAPID_SUBJECT ||
-      `mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "contact@pravyo.app"}`
+      `mailto:${process.env.NEXT_PUBLIC_SUPPORT_EMAIL || "contact@praavyo.com"}`
   ).trim();
 
   return { publicKey, privateKey, subject };
