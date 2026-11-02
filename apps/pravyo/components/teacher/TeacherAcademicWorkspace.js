@@ -10,6 +10,12 @@ import AppDate from '@/components/common/AppDate';
 
 const byGrade = (a, b) => String(a).localeCompare(String(b), undefined, { numeric: true });
 
+function resultSummary(result) {
+  return result.kind === 'CLASS_RESULT'
+    ? `Overall: ${result.overallGrade || '—'}${result.gpa != null ? ` · GPA ${result.gpa}` : ''}`
+    : `${result.subject}: ${result.gradeResult || '—'}${result.obtained != null ? ` · ${result.obtained}/${result.fullMarks ?? '—'}` : ''}`;
+}
+
 export default function TeacherAcademicWorkspace() {
   const [workspace, setWorkspace] = useState(null);
   const [error, setError] = useState('');
@@ -65,7 +71,7 @@ export default function TeacherAcademicWorkspace() {
           </div>
         </div>
         {workspace.canSwitchSchool && (
-          <Link href="/teacher/select-school" className="btn btn-secondary btn-sm inline-flex items-center gap-1.5"><Repeat aria-hidden size={16} /> Switch school</Link>
+          <Link href="/teacher/select-school" className="btn btn-secondary btn-sm inline-flex items-center justify-center gap-1.5"><Repeat aria-hidden size={16} /> Switch school</Link>
         )}
       </section>
 
@@ -90,7 +96,7 @@ export default function TeacherAcademicWorkspace() {
       <section className="card p-4">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-2"><ClipboardCheck className="text-brand" aria-hidden /><h2 className="font-semibold text-ink">Exam mark entry</h2></div>
-          {workspace.examAccess.length > 0 && <Link href="/school/cas/assessment" className="btn btn-primary btn-sm">Enter marks</Link>}
+          {workspace.examAccess.length > 0 && <Link href="/school/cas/assessment" className="btn btn-primary btn-sm w-full sm:w-auto">Enter marks</Link>}
         </div>
         {workspace.examAccess.length === 0 ? (
           <p className="mt-3 text-sm text-muted">Your school has not opened any exam for you to enter marks yet.</p>
@@ -115,8 +121,21 @@ export default function TeacherAcademicWorkspace() {
             </select>
           )}
         </div>
-        {students.length === 0 ? <p className="p-4 text-sm text-muted">No active students are listed in your assigned grades.</p> : (
-          <div className="max-h-96 overflow-auto">
+        {students.length === 0 ? <p className="p-4 text-sm text-muted">No active students are listed in your assigned grades.</p> : (<>
+          {/* Phones: stacked rows. A 4-column table forced sideways scrolling
+              inside a scroll box, which is hard to use with a thumb. */}
+          <ul className="divide-y divide-line sm:hidden">
+            {students.map((student) => (
+              <li key={student.id} className="flex items-center gap-3 px-4 py-2.5">
+                <span className="w-9 shrink-0 text-sm tabular-nums text-muted">{student.rollNumber || '—'}</span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate font-medium text-ink">{student.name}</span>
+                  <span className="block text-xs text-muted">{student.grade}{student.section ? ` · Section ${student.section}` : ''}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+          <div className="hidden max-h-96 overflow-auto sm:block">
             <table className="w-full min-w-[420px] text-left text-sm">
               <thead className="bg-surface-2 text-xs text-muted"><tr><th className="px-4 py-2">Roll</th><th className="px-4 py-2">Student</th><th className="px-4 py-2">Grade</th><th className="px-4 py-2">Section</th></tr></thead>
               <tbody className="divide-line">{students.map((student) => (
@@ -124,7 +143,7 @@ export default function TeacherAcademicWorkspace() {
               ))}</tbody>
             </table>
           </div>
-        )}
+        </>)}
       </section>
 
       <section className="card overflow-hidden">
@@ -137,8 +156,17 @@ export default function TeacherAcademicWorkspace() {
             </select>
           )}
         </div>
-        {results.length === 0 ? <p className="p-4 text-sm text-muted">Results for your subjects and class appear here after the school publishes them.</p> : (
-          <div className="max-h-96 overflow-auto">
+        {results.length === 0 ? <p className="p-4 text-sm text-muted">Results for your subjects and class appear here after the school publishes them.</p> : (<>
+          <ul className="divide-y divide-line sm:hidden">
+            {results.map((result, index) => (
+              <li key={`${result.studentName}-${result.subject || 'overall'}-${index}`} className="px-4 py-2.5">
+                <p className="truncate font-medium text-ink">{result.rollNumber ? `${result.rollNumber} · ` : ''}{result.studentName}</p>
+                <p className="text-sm text-ink">{resultSummary(result)}</p>
+                <p className="text-xs text-muted">{result.grade}{result.exam ? ` · ${result.exam}` : ''} · <AppDate value={result.publishedAt} fallback="—" /></p>
+              </li>
+            ))}
+          </ul>
+          <div className="hidden max-h-96 overflow-auto sm:block">
             <table className="w-full min-w-[560px] text-left text-sm">
               <thead className="bg-surface-2 text-xs text-muted"><tr><th className="px-4 py-2">Student</th><th className="px-4 py-2">Grade</th><th className="px-4 py-2">Exam</th><th className="px-4 py-2">Result</th><th className="px-4 py-2">Published</th></tr></thead>
               <tbody className="divide-line">{results.map((result, index) => (
@@ -146,15 +174,13 @@ export default function TeacherAcademicWorkspace() {
                   <td className="px-4 py-2 font-medium text-ink">{result.rollNumber ? `${result.rollNumber} · ` : ''}{result.studentName}</td>
                   <td className="px-4 py-2 text-muted">{result.grade}</td>
                   <td className="px-4 py-2 text-muted">{result.exam || '—'}</td>
-                  <td className="px-4 py-2 text-ink">{result.kind === 'CLASS_RESULT'
-                    ? `Overall: ${result.overallGrade || '—'}${result.gpa != null ? ` · GPA ${result.gpa}` : ''}`
-                    : `${result.subject}: ${result.gradeResult || '—'}${result.obtained != null ? ` · ${result.obtained}/${result.fullMarks ?? '—'}` : ''}`}</td>
+                  <td className="px-4 py-2 text-ink">{resultSummary(result)}</td>
                   <td className="px-4 py-2 text-muted"><AppDate value={result.publishedAt} fallback="—" /></td>
                 </tr>
               ))}</tbody>
             </table>
           </div>
-        )}
+        </>)}
       </section>
     </div>
   );

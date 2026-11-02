@@ -12,6 +12,7 @@ import ParentAccessCard from "@/components/school/ParentAccessCard";
 import PrintButton from "@/components/school/PrintButton";
 import Glyph from "@/components/ui/Glyph";
 import { printableOrigin } from "@/lib/siteUrl";
+import { parentCardUrl } from "@/lib/cardQr";
 
 export const dynamic = "force-dynamic";
 
@@ -74,11 +75,11 @@ export default async function ParentAccessCardPage({ searchParams }) {
   }
 
   return (
-    <main className="">
-      <div className="">
+    <main className="card-page">
+      <div className="card-page-head no-print">
         <div>
-          <h1 className="">Parent Access Card</h1>
-          <p className="">
+          <h1>Parent Access Card</h1>
+          <p>
             Print this and hand it to the guardian. You can print it again later
             — reprinting does not disturb a guardian who is already signed in.
           </p>
@@ -96,9 +97,7 @@ export default async function ParentAccessCardPage({ searchParams }) {
           }
           relationshipLabel={relationshipLabel(link.relationshipType)}
           parentIdentifier={parent.parentId}
-          loginUrl={`${await resolveSiteUrl()}/parent/login?id=${encodeURIComponent(
-            parent.parentId
-          )}`}
+          loginUrl={parentCardUrl(await resolveSiteUrl(), parent.parentId)}
         />
       </div>
     </main>
@@ -131,14 +130,14 @@ async function resolveSiteUrl() {
 
 function MissingCard({ reason }) {
   return (
-    <main className="">
-      <div className="">
-        <p className="" aria-hidden="true">
+    <main className="card-page">
+      <div className="card-page-missing">
+        <p aria-hidden="true">
           <Glyph emoji="🔒" />
         </p>
-        <h1 className="">Card not available</h1>
-        <p className="">{reason}</p>
-        <p className="">
+        <h1>Card not available</h1>
+        <p>{reason}</p>
+        <p>
           Go back to Parents &amp; Guardians to check this guardian&apos;s access.
         </p>
       </div>

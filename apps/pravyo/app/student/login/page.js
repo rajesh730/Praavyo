@@ -117,6 +117,9 @@ export default function StudentLogin() {
           required
           disabled={loading}
           autoComplete="username"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
         />
         <PasswordInput
           label="Password"

@@ -1,4 +1,4 @@
-import QRCode from "qrcode";
+import { cardQrSvg } from "@/lib/cardQr";
 
 /**
  * The printable Parent Access Card (§5).
@@ -32,15 +32,8 @@ export default async function ParentAccessCard({
   parentIdentifier,
   loginUrl,
 }) {
-  // Error-correction level M survives a fold, a smudge, or a mediocre
-  // photocopy — all of which happen to a card that lives in a school bag.
-  const qrSvg = await QRCode.toString(loginUrl, {
-    type: "svg",
-    errorCorrectionLevel: "M",
-    margin: 1,
-    width: 240,
-    color: { dark: "#000000", light: "#ffffff" },
-  });
+  // Settings shared with every card; see lib/cardQr.js.
+  const qrSvg = await cardQrSvg(loginUrl);
 
   return (
     <article className="parent-access-card">

@@ -1,9 +1,9 @@
 "use client";
 
 import { useEffect, useState, useSyncExternalStore } from "react";
-import QRCode from "qrcode";
 import { printableOrigin } from "@/lib/siteUrl";
-import { X as FaTimes, Copy as FaCopy, Share2 as FaShareAlt, Printer as FaPrint, Check as FaCheck } from "lucide-react";
+import { cardQrSvg, parentCardUrl, renderCardImage, shareOrDownloadImage } from "@/lib/cardQr";
+import { X as FaTimes, Copy as FaCopy, Share2 as FaShareAlt, Printer as FaPrint, Check as FaCheck, ImageDown, LoaderCircle } from "lucide-react";
 
 /**
  * Show a guardian's Parent Access Card on screen.
@@ -33,6 +33,8 @@ export default function ParentCardDialog({
 }) {
   const [qrSvg, setQrSvg] = useState("");
   const [copied, setCopied] = useState(false);
+  const [imageBusy, setImageBusy] = useState(false);
+  const [imageError, setImageError] = useState("");
   const usableParentId =
     typeof parentIdentifier === "string" &&
     /^PRV-P-[ABCDEFGHJKLMNPQRSTUVWXYZ23456789]{6}$/.test(parentIdentifier);
@@ -47,9 +49,7 @@ export default function ParentCardDialog({
   );
 
   const siteUrl = typeof window !== "undefined" ? printableOrigin(window.location.origin) : "";
-  const loginUrl = `${siteUrl}/parent/login?id=${encodeURIComponent(
-    parentIdentifier
-  )}`;
+  const loginUrl = parentCardUrl(siteUrl, parentIdentifier);
 
   useEffect(() => {
     if (!usableParentId) {
@@ -58,13 +58,7 @@ export default function ParentCardDialog({
 
     let active = true;
 
-    QRCode.toString(loginUrl, {
-      type: "svg",
-      errorCorrectionLevel: "M",
-      margin: 1,
-      width: 220,
-      color: { dark: "#000000", light: "#ffffff" },
-    })
+    cardQrSvg(loginUrl)
       .then((svg) => active && setQrSvg(svg))
       .catch(() => {
         // The ID below is the same credential typed out, so a missing QR is
@@ -119,6 +113,33 @@ export default function ParentCardDialog({
     }
   };
 
+  /**
+   * The card as a sharp picture. A guardian forwarded a photo of a monitor
+   * often cannot get the QR to read; a generated image always does, and it is
+   * what they will use to sign in on their own phone.
+   */
+  const sendImage = async () => {
+    if (!usableParentId) return;
+    setImageBusy(true);
+    setImageError("");
+    try {
+      const blob = await renderCardImage({
+        heading: `${schoolName} — PRAVYO PARENT ACCESS`,
+        title: studentName,
+        lines: [`Guardian: ${guardianName}`],
+        qrText: loginUrl,
+        codeLabel: "Parent ID / अभिभावक आईडी",
+        code: parentIdentifier,
+        footer: "Keep this private — it opens your child's record.",
+      });
+      await shareOrDownloadImage(blob, `parent-card-${parentIdentifier}.png`, `Praavyo Parent Access — ${studentName}`);
+    } catch {
+      setImageError("The card picture could not be made. Use Copy or Print instead.");
+    } finally {
+      setImageBusy(false);
+    }
+  };
+
   const print = () => {
     window.open(
       `/school/guardians/card?link=${encodeURIComponent(linkId)}`,
@@ -141,6 +162,16 @@ export default function ParentCardDialog({
           </h2>
           <button
             type="button"
+            onClick={sendImage}
+            disabled={!usableParentId || imageBusy || !qrSvg}
+            aria-label="Download card as a picture"
+            title="Download card as a picture"
+            className="btn-icon btn-ghost flex items-center justify-center"
+          >
+            {imageBusy ? <LoaderCircle className="animate-spin" /> : <ImageDown />}
+          </button>
+          <button
+            type="button"
             onClick={onClose}
             aria-label="Close"
             className="btn-icon btn-ghost flex items-center justify-center"
@@ -150,6 +181,7 @@ export default function ParentCardDialog({
         </header>
 
         <div className="px-5 py-5">
+          {imageError ? <p role="alert" className="mb-3 text-sm text-danger">{imageError}</p> : null}
           {!usableParentId ? (
             <p role="alert" className="rounded-card bg-danger-soft px-4 py-3 text-sm font-semibold text-danger">
               This guardian does not have a valid Parent ID. Close this window
@@ -180,7 +212,7 @@ export default function ParentCardDialog({
             <p className="text-sm text-muted">Guardian: {guardianName}</p>
 
             <div
-              className="mt-3 flex justify-center [&_svg]:h-44 [&_svg]:w-44"
+              className="mt-3 flex justify-center [&_svg]:h-52 [&_svg]:w-52"
               dangerouslySetInnerHTML={{
                 __html: usableParentId ? qrSvg : "",
               }}

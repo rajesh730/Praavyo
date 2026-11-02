@@ -200,7 +200,8 @@ function LoginContent() {
         <div className="mb-4 space-y-2">
           <QrCardScanner
             onDetected={handleCardPhoto}
-            label="Upload a photo of your login card"
+            cameraLabel="Take a photo of your login card"
+            label="Choose a photo of your login card"
             fallbackHint="type your username below"
           />
           <p className="text-center text-xs text-muted">The card fills in your username. You still enter your password.</p>
@@ -219,6 +220,10 @@ function LoginContent() {
           required
           disabled={loading}
           autoComplete="username"
+          // Phone keyboards capitalise and "correct" usernames otherwise.
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
         />
         <PasswordInput
           label="Password"
@@ -232,6 +237,8 @@ function LoginContent() {
           required
           disabled={loading}
           autoComplete="current-password"
+          // Arriving from a scanned card, the password is the only thing left.
+          autoFocus={Boolean(searchParams.get("user"))}
         />
         <Button type="submit" fullWidth disabled={loading}>
           {loading ? "Signing in..." : "Sign in"}

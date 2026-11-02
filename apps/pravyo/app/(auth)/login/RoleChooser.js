@@ -45,7 +45,7 @@ const ROLES = [
     title: "Teacher",
     titleNe: "शिक्षक",
     description: "Your classes, students and marks",
-    hint: "Username or email and password, or upload a photo of your login card",
+    hint: "Username or email and password, or a photo of your login card",
     tone: "",
   },
   {

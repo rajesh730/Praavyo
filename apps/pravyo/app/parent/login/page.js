@@ -11,7 +11,7 @@ import QrCardScanner, { readParentCard } from "@/components/parent/QrCardScanner
  *
  * Two ways through it, and nothing else:
  *
- *   🖼️ **Upload a photo of the card** — nothing typed.
+ *   🖼️ **Take or choose a photo of the card** — nothing typed.
  *   🔑 **Type the Parent ID** — one field, then Continue.
  *
  * There is no PIN to create, no PIN to remember, no separate "activate your
@@ -50,6 +50,10 @@ const TEXT = {
     askSchool: "Please ask your school office for your Parent Card.",
     notACard: "That code is not a Praavyo Parent Card.",
     failed: "Something went wrong. Please try again.",
+    slow: "This is taking too long. Check your internet and try again.",
+    takePhoto: "Take a photo of my card",
+    choosePhoto: "Choose a photo of my card",
+    typeInstead: "type your Parent ID below",
   },
   ne: {
     welcome: "स्वागत छ",
@@ -66,6 +70,10 @@ const TEXT = {
     askSchool: "कृपया विद्यालयको कार्यालयमा अभिभावक कार्ड माग्नुहोस्।",
     notACard: "यो कोड प्राव्यो अभिभावक कार्ड होइन।",
     failed: "केही गडबड भयो। कृपया फेरि प्रयास गर्नुहोस्।",
+    slow: "धेरै समय लाग्यो। इन्टरनेट जाँच गरेर फेरि प्रयास गर्नुहोस्।",
+    takePhoto: "कार्डको फोटो खिच्नुहोस्",
+    choosePhoto: "कार्डको फोटो छान्नुहोस्",
+    typeInstead: "तल अभिभावक आईडी टाइप गर्नुहोस्",
   },
 };
 
@@ -94,21 +102,30 @@ function ParentLogin() {
       setError("");
       setLoading(true);
       try {
-        const result = await signIn("credentials", {
-          loginScope: "parent",
-          language,
-          deviceMode: sharedDevice ? "SHARED" : "PERSONAL",
-          redirect: false,
-          ...credentials,
-        });
+        // Mobile data drops mid-request; without a deadline the button sat on
+        // "Please wait…" forever with no way to retry.
+        const result = await Promise.race([
+          signIn("credentials", {
+            loginScope: "parent",
+            language,
+            deviceMode: sharedDevice ? "SHARED" : "PERSONAL",
+            redirect: false,
+            ...credentials,
+          }),
+          new Promise((_, reject) =>
+            window.setTimeout(() => reject(new Error("TIMEOUT")), 20000)
+          ),
+        ]);
         if (result?.error) {
-          setError(result.error);
+          setError(parentErrorMessage(result.error, TEXT[language]));
           setLoading(false);
           return;
         }
         window.location.assign("/parent");
-      } catch {
-        setError(TEXT[language].failed);
+      } catch (reason) {
+        setError(
+          reason?.message === "TIMEOUT" ? TEXT[language].slow : TEXT[language].failed
+        );
         setLoading(false);
       }
     },
@@ -206,7 +223,12 @@ function ParentLogin() {
 
         {mode === "CARD" ? (
           <>
-            <QrCardScanner onDetected={handleScan} />
+            <QrCardScanner
+              onDetected={handleScan}
+              cameraLabel={t.takePhoto}
+              label={t.choosePhoto}
+              fallbackHint={t.typeInstead}
+            />
 
             <p className="py-4 text-center text-sm font-semibold text-muted">
               {t.or}
@@ -223,13 +245,17 @@ function ParentLogin() {
                 <p className="text-sm text-muted">
                   {t.idHint} — PRV-P-XXXXXX
                 </p>
+                {/* No autoFocus: on Android it opens the keyboard on arrival,
+                    which covers the photo buttons most guardians need. */}
                 <input
                   id="parentId"
                   type="text"
                   inputMode="text"
                   autoCapitalize="characters"
+                  autoCorrect="off"
+                  spellCheck={false}
                   autoComplete="username"
-                  autoFocus
+                  maxLength={20}
                   value={parentId}
                   onChange={(event) =>
                     setParentId(event.target.value.toUpperCase())
@@ -276,6 +302,9 @@ function ParentLogin() {
               <input
                 id="identifier"
                 type="text"
+                autoCapitalize="none"
+                autoCorrect="off"
+                spellCheck={false}
                 autoComplete="username"
                 value={identifier}
                 onChange={(event) => setIdentifier(event.target.value)}
@@ -333,6 +362,14 @@ function ParentLogin() {
       </div>
     </main>
   );
+}
+
+// Server messages that are already written for guardians pass through; codes
+// and unexpected failures become a plain "try again".
+function parentErrorMessage(code, t) {
+  const value = String(code || "");
+  if (!value || value === "CredentialsSignin" || /^[A-Z_]+$/.test(value)) return t.failed;
+  return value;
 }
 
 function ErrorNote({ children }) {

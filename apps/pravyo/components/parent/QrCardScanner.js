@@ -2,15 +2,16 @@
 
 import { useState } from "react";
 import jsQR from "jsqr";
-import { Image as FaImage } from "lucide-react";
+import { Camera, Image as FaImage } from "lucide-react";
 
 /**
  * Read a Pravyo card's QR code (Parent Access Card or Teacher Login Card)
  * from a photo of the card.
  *
- * Photo upload covers what actually happens for this audience: the card was
- * photographed and sent over WhatsApp, or the guardian snaps it with the
- * phone's own camera. (Live in-page camera scanning was removed on purpose.)
+ * Two buttons, because phones disagree about what a plain file picker offers:
+ * newer Android photo pickers show only the gallery, so "Take a photo" opens
+ * the camera directly (`capture`), and "Choose a photo" covers a card that
+ * arrived over WhatsApp. (Live in-page camera scanning was removed on purpose.)
  *
  * Decoding uses jsQR (MIT, no dependencies) rather than the native
  * `BarcodeDetector`, which is absent on iOS Safari and on older Android
@@ -22,7 +23,8 @@ import { Image as FaImage } from "lucide-react";
  */
 export default function QrCardScanner({
   onDetected,
-  label = "Upload a photo of my card",
+  label = "Choose a photo of my card",
+  cameraLabel = "Take a photo of my card",
   fallbackHint = "type your Parent ID instead",
 }) {
   const [reading, setReading] = useState(false);
@@ -30,64 +32,53 @@ export default function QrCardScanner({
 
   /** Decode a still photo of the card. */
   const handleFile = async (event) => {
-    const file = event.target.files?.[0];
+    const input = event.target;
+    const file = input.files?.[0];
     if (!file) return;
 
     setError("");
     setReading(true);
 
     try {
-      const bitmap = await createImageBitmap(file);
-      const canvas = document.createElement("canvas");
+      const image = await loadImage(file);
+      const text = await decodeQr(image);
+      image.close?.();
 
-      // Cap the working size. A 12-megapixel phone photo decoded at full
-      // resolution can stall a low-end device for several seconds.
-      const MAX_EDGE = 1400;
-      const scale = Math.min(1, MAX_EDGE / Math.max(bitmap.width, bitmap.height));
-      canvas.width = Math.round(bitmap.width * scale);
-      canvas.height = Math.round(bitmap.height * scale);
-
-      const context = canvas.getContext("2d", { willReadFrequently: true });
-      context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
-      bitmap.close?.();
-
-      const image = context.getImageData(0, 0, canvas.width, canvas.height);
-      // A photographed or photocopied card is often inverted or low-contrast,
-      // and a still frame can afford the extra pass.
-      const found = jsQR(image.data, image.width, image.height, {
-        inversionAttempts: "attemptBoth",
-      });
-
-      if (found?.data) {
-        onDetected(found.data);
+      if (text) {
+        onDetected(text);
         return;
       }
 
       setError(
-        `Could not read the code in that picture. Try a clearer photo, or ${fallbackHint}.`
+        `Could not read the code in that picture. Hold the phone closer so the code fills most of the photo, in good light, or ${fallbackHint}.`
       );
     } catch {
-      setError("Could not open that picture. Please try another one.");
+      setError(
+        `Could not open that picture. Try taking a new photo, or ${fallbackHint}.`
+      );
     } finally {
       setReading(false);
       // Allow re-picking the same file after a failed attempt.
-      event.target.value = "";
+      input.value = "";
     }
   };
 
   return (
-    <div className="space-y-3">
-      <label className="btn btn-secondary flex w-full cursor-pointer items-center justify-center gap-3">
-        <FaImage aria-hidden="true" className="h-5 w-5" />
-        {reading ? "Reading…" : label}
-        <input
-          type="file"
-          accept="image/*"
-          onChange={handleFile}
-          disabled={reading}
-          className="sr-only"
-        />
-      </label>
+    <div className="space-y-2">
+      <PickButton
+        icon={Camera}
+        label={reading ? "Reading the code…" : cameraLabel}
+        capture="environment"
+        primary
+        disabled={reading}
+        onChange={handleFile}
+      />
+      <PickButton
+        icon={FaImage}
+        label={label}
+        disabled={reading}
+        onChange={handleFile}
+      />
 
       {error ? (
         <p
@@ -99,6 +90,100 @@ export default function QrCardScanner({
       ) : null}
     </div>
   );
+}
+
+function PickButton({ icon: Icon, label, capture, primary, disabled, onChange }) {
+  return (
+    <label
+      className={`btn ${primary ? "btn-primary" : "btn-secondary"} flex w-full cursor-pointer items-center justify-center gap-3 ${
+        disabled ? "pointer-events-none opacity-60" : ""
+      }`}
+    >
+      <Icon aria-hidden="true" className="h-5 w-5 shrink-0" />
+      <span className="truncate">{label}</span>
+      <input
+        type="file"
+        accept="image/*"
+        capture={capture}
+        onChange={onChange}
+        disabled={disabled}
+        className="sr-only"
+      />
+    </label>
+  );
+}
+
+/**
+ * Open a picture as something drawable. `createImageBitmap` is fastest, but
+ * Safari before 15 cannot take a Blob, so fall back to an <img>.
+ */
+async function loadImage(file) {
+  if (typeof createImageBitmap === "function") {
+    try {
+      return await createImageBitmap(file, { imageOrientation: "from-image" });
+    } catch {
+      // Fall through to the <img> path.
+    }
+  }
+
+  const url = URL.createObjectURL(file);
+  try {
+    const img = new Image();
+    img.src = url;
+    await (img.decode ? img.decode() : new Promise((resolve, reject) => {
+      img.onload = resolve;
+      img.onerror = reject;
+    }));
+    return img;
+  } finally {
+    // The decoded pixels stay usable after the URL is released.
+    setTimeout(() => URL.revokeObjectURL(url), 0);
+  }
+}
+
+/**
+ * Find a QR in a photo, cheapest attempt first.
+ *
+ * A single pass at one size failed often in practice: a card photographed from
+ * arm's length leaves the code too small once the photo is shrunk, while a
+ * full 12-megapixel pass stalls a low-end phone. So try a small size, then
+ * larger ones, then the middle of the photo enlarged — and stop at the first
+ * hit, which is usually the first pass.
+ */
+async function decodeQr(image) {
+  const width = image.naturalWidth || image.width;
+  const height = image.naturalHeight || image.height;
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+
+  const attempts = [
+    { edge: 1000, crop: 1 },
+    { edge: 1600, crop: 1 },
+    { edge: 1400, crop: 0.6 },
+    { edge: 2400, crop: 1 },
+  ];
+
+  for (const { edge, crop } of attempts) {
+    const sw = width * crop;
+    const sh = height * crop;
+    const scale = Math.min(1, edge / Math.max(sw, sh));
+    canvas.width = Math.max(1, Math.round(sw * scale));
+    canvas.height = Math.max(1, Math.round(sh * scale));
+    context.drawImage(image, (width - sw) / 2, (height - sh) / 2, sw, sh, 0, 0, canvas.width, canvas.height);
+
+    const pixels = context.getImageData(0, 0, canvas.width, canvas.height);
+    // A photographed or photocopied card is often inverted or low-contrast,
+    // and a still frame can afford the extra pass.
+    const found = jsQR(pixels.data, pixels.width, pixels.height, {
+      inversionAttempts: "attemptBoth",
+    });
+    if (found?.data) return found.data;
+
+    // Let "Reading the code…" paint between passes on a slow phone.
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  }
+
+  return null;
 }
 
 /**

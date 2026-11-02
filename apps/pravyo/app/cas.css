@@ -176,8 +176,46 @@
   .cas-results-search { max-width: none; }
 }
 
+/* ------------------------------------------- parent access card
+   Printed on a school office printer, so black and white only: solid rules,
+   pure black QR, no tints behind text. Fixed px sizes so the phone type
+   scale cannot shrink the card. */
+.card-page { min-height: 100dvh; background: var(--color-surface-2); padding: 1rem; color: var(--color-ink); }
+.card-page-head { display: flex; max-width: 22rem; margin: 0 auto 1rem; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: .75rem; }
+.card-page-head h1 { font-size: var(--text-lg); font-weight: 600; }
+.card-page-head p { margin-top: .25rem; font-size: var(--text-sm); color: var(--color-muted); }
+.card-page-missing { max-width: 22rem; margin: 2rem auto; border: 1px solid var(--color-line); border-radius: var(--radius-card); background: var(--color-surface); padding: 1.25rem; text-align: center; }
+.card-page-missing h1 { margin-top: .5rem; font-weight: 600; }
+.card-page-missing p { margin-top: .5rem; font-size: var(--text-sm); color: var(--color-muted); }
+.card-sheet > * + * { margin-top: 1rem; }
+.parent-access-card { max-width: 22rem; margin: 0 auto; border: 2px solid #000; border-radius: 10px; background: #fff; padding: 18px; color: #000; font-size: 13px; line-height: 1.35; text-align: center; }
+.pac-header { border-bottom: 1px solid #000; padding-bottom: 10px; }
+.pac-school { font-size: 16px; font-weight: 700; }
+.pac-brand { margin-top: 2px; font-size: 11px; font-weight: 700; letter-spacing: .14em; }
+.pac-child { display: flex; margin-top: 12px; align-items: center; justify-content: center; gap: 10px; }
+.pac-child-icon { font-size: 26px; }
+.pac-child-name { font-size: 18px; font-weight: 700; }
+.pac-child-grade, .pac-relationship { font-size: 12px; }
+.pac-guardian { margin-top: 10px; }
+.pac-label { font-size: 11px; font-weight: 600; }
+.pac-guardian-name { font-size: 15px; font-weight: 600; }
+.pac-qr-block { margin-top: 12px; }
+.pac-scan { font-size: 12px; font-weight: 700; letter-spacing: .08em; }
+.pac-scan-ne { font-size: 12px; }
+.pac-qr { display: flex; margin-top: 6px; justify-content: center; }
+.pac-qr svg { width: 190px; height: 190px; }
+.pac-or { margin-top: 8px; font-size: 11px; font-weight: 600; }
+.pac-credentials { margin-top: 6px; border: 1.5px solid #000; border-radius: 6px; padding: 8px; }
+.pac-value { font-family: var(--font-mono); font-size: 22px; font-weight: 700; letter-spacing: .08em; word-break: break-all; }
+.pac-footer { margin-top: 12px; font-size: 11px; }
+.pac-footer > * + * { margin-top: 4px; }
+.pac-warning { border-top: 1px solid #000; padding-top: 6px; font-weight: 600; }
+
 /* ------------------------------------------------------------ print */
 @media print {
+  .card-page { min-height: 0; background: #fff; padding: 0; }
+  .card-sheet > * { break-after: page; break-inside: avoid; margin-top: 0; }
+  .card-sheet > *:last-child { break-after: auto; }
   @page { size: A4 portrait; margin: 8mm; }
   body { background: #fff !important; }
   .cas-print-hide, .cas-print-hide * { display: none !important; }

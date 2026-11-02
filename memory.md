@@ -9,7 +9,7 @@ Newest sections first. Where sections disagree, the newer one wins.
 - **Phase 2 — Grades 6–10 (not built).** A different exam and assessment
   process. Do not stretch Grades 1–5 logic (theme library, result calculation,
   report formats) over Grades 6–10; wait for the agreed Phase 2 design.
-- Live at https://praavyo.com (formerly pravyo.infobytesnepal.com). One
+- Live at https://www.praavyo.com (formerly pravyo.infobytesnepal.com). One
   Next.js app at `apps/pravyo`; CAS domain code in `packages/cas`, shared
   models in `packages/db`, shared helpers in `packages/core`.
 
@@ -39,9 +39,18 @@ Newest sections first. Where sections disagree, the newer one wins.
   to already-approved schools. Safe to re-run.
 - Tests: `packages/cas/tests/casLibrary.integration.test.mjs` (run with
   `CAS_TEST_MONGOD="C:/Program Files/MongoDB/Server/6.0/bin/mongod.exe"`).
-- Status 2026-11-01: backfill NOT yet applied on production. Dry run listed
-  Mothers Tongue Secondary School and Tejaswee Pathshala (12 subjects each);
-  Green Villege skipped. Never report it as applied until it has been.
+- **Applied on production 2026-11-01** (owner's request): Mothers Tongue
+  Secondary School and Tejaswee Pathshala each received 12 subjects, 115
+  themes, 1,439 outcomes (Grades 1–3), all linked to the library and recorded
+  in `User.casDefaultSubjects`. Green Villege Secondary School (the library's
+  source, own Grades 1–3 + Grade 10) was skipped and unchanged. A re-run
+  copies nothing.
+- The approval hook only works once the code is deployed. A school approved
+  before that deploy gets its copy from the next
+  `npm run provision:curriculum -- --apply`.
+- Is giving the default to every school a problem? No: copies are per school,
+  schools with their own setup are skipped, edits stay local, and updates are
+  opt-in. The cost is about 1,440 outcome rows per school for Grades 1–3.
 
 ## UI refresh and visible rebrand - 2026-10-13
 
@@ -122,6 +131,34 @@ cards that are already visible to students and guardians.
   presentation work. The protected Published Results URL was not separately
   rechecked in the authenticated browser in this pass; do not claim an
   end-to-end Published Results visual verification until that route is opened.
+
+## Teacher exam assignment - audited 2026-11-02
+
+Checked end to end from code; no app run or test run in this pass. The flow is
+complete: school creates exam → assigns teacher per exam + grade + subject →
+it shows on the teacher dashboard → that teacher enters marks and reassessments.
+
+- `CasExamTeacherAssignment` (school, academicYear, exam, grade, subject,
+  teacher) is the single source of truth. Two admin screens write it: Manage
+  Exams (`/api/cas/exam-teachers`, `casTeacherAssignmentService`) and the
+  teacher detail panel (`/api/teachers/[id]/exam-access`, current academic year
+  only, and only for subjects the teacher teaches or was already granted).
+  Saving replaces the scope; marks already entered are never deleted.
+- Teacher dashboard "Exam mark entry" card lists exam · grade · subject and
+  links to `/school/cas/assessment` (`/api/teacher/workspace`, active year only).
+- Server enforcement: `assertTeacherExamAssignment` (exact exam+grade+subject)
+  guards `loadThemes`, `loadStudentSheet` and `saveSheet`; reassessment goes
+  through `saveSheet`, so the same guard covers it. `listExams` and
+  `loadCurriculum` filter to the teacher's grants; the roster needs
+  `assertTeacherGradeAssignment`. The legacy outcome sheet / `recordLevel` and
+  student progress are admin-only. Teachers see only the Assessment CAS nav link.
+- Test: `casSheet.integration.test.mjs` "permits an assigned teacher…" (assigned
+  saves, unassigned gets 403). No teacher-reassessment-specific test.
+- Known UX gaps (not security holes, not fixed yet): the Assessment Grade
+  dropdown shows every school grade to a teacher (an unassigned grade shows the
+  misleading "Create an exam…" warning); the Subject dropdown is not filtered by
+  the selected exam (a subject granted only for another exam errors with 403);
+  the Attendance/Extra Activities tabs still show for teachers.
 
 ## Current exam and curriculum workflow - 2026-09-27
 

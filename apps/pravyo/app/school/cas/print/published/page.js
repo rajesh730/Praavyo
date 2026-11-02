@@ -18,6 +18,8 @@ export const dynamic = 'force-dynamic';
 export default async function PublishedResultsPage({ searchParams }) {
   const query = await searchParams;
   const lang = query?.lang === 'ne' ? 'ne' : 'en';
+  // Optional layout override from Published Results; ReportCard ignores anything unknown.
+  const format = typeof query?.format === 'string' ? query.format : undefined;
   const ids = [...new Set(String(query?.ids || '').split(',').filter((id) => /^[a-f\d]{24}$/i.test(id)))].slice(0, 500);
 
   const session = await getServerSession(authOptions);
@@ -48,7 +50,7 @@ export default async function PublishedResultsPage({ searchParams }) {
         </p>
       )}
       {reports.map((report) => (
-        <ReportCard key={report.id} report={report} lang={lang} />
+        <ReportCard key={report.id} report={report} lang={lang} format={format} />
       ))}
     </main>
   );

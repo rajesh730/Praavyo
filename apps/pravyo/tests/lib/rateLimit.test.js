@@ -1,4 +1,4 @@
-import { applyRateLimit } from "@/lib/rateLimit";
+import { applyRateLimit, checkRateLimit, recordRateLimitHit } from "@/lib/rateLimit";
 
 // No Upstash env in the test runner → exercises the in-memory rolling window.
 describe("applyRateLimit (in-memory fallback)", () => {
@@ -32,5 +32,21 @@ describe("applyRateLimit (in-memory fallback)", () => {
     expect((await applyRateLimit({ key, windowMs: 1, max: 1 })).ok).toBe(true);
     await new Promise((r) => setTimeout(r, 5));
     expect((await applyRateLimit({ key, windowMs: 1, max: 1 })).ok).toBe(true);
+  });
+});
+
+describe("checkRateLimit + recordRateLimitHit (failure-only limits)", () => {
+  it("does not count checks, only recorded hits", async () => {
+    const opts = { key: `test-${Date.now()}-e`, windowMs: 60_000, max: 2 };
+
+    for (let i = 0; i < 10; i += 1) expect((await checkRateLimit(opts)).ok).toBe(true);
+
+    await recordRateLimitHit(opts);
+    expect((await checkRateLimit(opts)).ok).toBe(true);
+    await recordRateLimitHit(opts);
+
+    const blocked = await checkRateLimit(opts);
+    expect(blocked.ok).toBe(false);
+    expect(blocked.retryAfter).toBeGreaterThan(0);
   });
 });

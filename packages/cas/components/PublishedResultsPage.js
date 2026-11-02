@@ -12,8 +12,9 @@ import {
   PageHeader, Card, Button, EmptyState, Field, Input, Select, Spinner,
 } from './ui/Kit.js';
 
+// A display choice, not a filter: every card can be drawn in either layout.
 const FORMATS = [
-  { value: '', label: 'All report formats' },
+  { value: '', label: 'As published' },
   { value: 'CLASSIC', label: 'Classic' },
   { value: 'MODERN', label: 'Modern' },
 ];
@@ -58,7 +59,6 @@ export default function PublishedResultsPage() {
           status: 'PUBLISHED',
           ...(section ? { section } : {}),
           ...(exam ? { exam } : {}),
-          ...(format ? { format } : {}),
           ...(search ? { search } : {}),
         })}`
       : null,
@@ -68,7 +68,7 @@ export default function PublishedResultsPage() {
   async function download(list, key) {
     setDownloading(key);
     try {
-      await downloadPdfFromPage(publishedHref(list, lang));
+      await downloadPdfFromPage(publishedHref(list, lang, false, format));
     } catch (error) {
       window.alert(error.message);
     } finally {
@@ -159,7 +159,7 @@ export default function PublishedResultsPage() {
                   <div className="cas-print-hide mx-auto mb-2 flex max-w-[210mm] flex-wrap items-center justify-between gap-2">
                     <span className="text-sm font-semibold text-ink">{studentLabel(report)}</span>
                     <div className="flex flex-wrap gap-2">
-                      <a href={publishedHref([report], lang, true)} target="_blank" rel="noopener noreferrer" className="btn btn-secondary inline-flex items-center gap-2 font-semibold">
+                      <a href={publishedHref([report], lang, true, format)} target="_blank" rel="noopener noreferrer" className="btn btn-secondary inline-flex items-center gap-2 font-semibold">
                         <FaPrint className="text-xs" /> Print
                       </a>
                       <Button disabled={Boolean(downloading)} onClick={() => download([report], report.id)}>
@@ -168,7 +168,7 @@ export default function PublishedResultsPage() {
                     </div>
                   </div>
                   {showAssessedThemes && <div className="cas-print-hide mx-auto mb-3 max-w-[210mm]"><Card title="Assessed themes">{themeSummary(report.snapshot?.selectedThemes)}</Card></div>}
-                  <ReportCard report={report} lang={lang} />
+                  <ReportCard report={report} lang={lang} format={format || undefined} />
                 </article>
               ))}
             </section>}
@@ -176,13 +176,14 @@ export default function PublishedResultsPage() {
   );
 }
 
-function publishedHref(reports, lang, print = false) {
+function publishedHref(reports, lang, print = false, format = '') {
   const ids = reports.map((report) => report.id).filter(Boolean);
   if (!ids.length) return '#';
 
   const query = new URLSearchParams({
     ids: ids.join(','),
     lang: lang === 'ne' ? 'ne' : 'en',
+    ...(format ? { format } : {}),
     ...(print ? { print: '1' } : {}),
   });
   return `/school/cas/print/published?${query}`;

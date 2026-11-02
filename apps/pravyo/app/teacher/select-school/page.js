@@ -45,7 +45,7 @@ export default function SelectSchoolPage() {
   };
 
   return (
-    <main className="min-h-screen bg-canvas px-4 py-10 text-ink">
+    <main className="min-h-dvh bg-canvas px-4 py-8 pb-[calc(2rem+env(safe-area-inset-bottom))] text-ink sm:py-10">
       <div className="mx-auto max-w-md">
         <h1 className="text-xl font-semibold">Choose your school</h1>
         <p className="mt-1 text-sm text-muted">You teach at more than one school. Pick the one you want to work in now. You can switch any time from your dashboard.</p>
@@ -80,7 +80,7 @@ export default function SelectSchoolPage() {
           </ul>
         )}
 
-        <button type="button" onClick={() => signOut({ callbackUrl: "/login" })} className="btn btn-ghost btn-sm mt-6">Sign out</button>
+        <button type="button" onClick={() => signOut({ callbackUrl: "/login?as=teacher" })} className="btn btn-ghost btn-sm mt-6">Sign out</button>
       </div>
     </main>
   );

@@ -15,7 +15,7 @@ export default function TeacherDashboard() {
   const router = useRouter();
 
   useEffect(() => {
-    if (status === "unauthenticated") router.push("/login");
+    if (status === "unauthenticated") router.replace("/login?as=teacher");
   }, [status, router]);
 
   if (status === "loading") {

@@ -5,7 +5,7 @@ import ServiceWorkerRegistrar from '@/components/ServiceWorkerRegistrar';
 import PwaInstallButton from '@/components/PwaInstallButton';
 
 const siteUrl =
-  process.env.NEXT_PUBLIC_SITE_URL || "https://praavyo.com";
+  process.env.NEXT_PUBLIC_SITE_URL || "https://www.praavyo.com";
 
 const siteDescription =
   "School events, results, magazines, certificates, notices, and student writing in one connected platform.";
@@ -105,9 +105,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning={true}>
       <body suppressHydrationWarning={true}>
+        {/* First in the body: the install strip sits above every page. */}
+        <PwaInstallButton />
         <Providers>{children}</Providers>
         <ServiceWorkerRegistrar />
-        <PwaInstallButton />
       </body>
     </html>
   );

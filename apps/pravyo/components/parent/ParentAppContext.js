@@ -50,7 +50,6 @@ export function ParentAppProvider({ children }) {
       setState((prev) => ({ ...prev, loading: true, error: "" }));
 
       const res = await fetch("/api/parent/me", { cache: "no-store" });
-      const json = await res.json();
 
       // No usable session — the cookie expired, the school revoked access, or
       // this is a shared phone that went idle. Send them to sign in rather than
@@ -61,7 +60,9 @@ export function ParentAppProvider({ children }) {
         return;
       }
 
-      if (!res.ok) {
+      // A captive portal or a dropped connection can return HTML, not JSON.
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok || !json.data) {
         throw new Error(json.message || "Failed to load your account");
       }
 

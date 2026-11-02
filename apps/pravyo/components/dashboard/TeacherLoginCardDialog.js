@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import QRCode from "qrcode";
-import { Check, Copy, KeyRound, Printer, X } from "lucide-react";
+import { Check, Copy, ImageDown, KeyRound, LoaderCircle, Printer, X } from "lucide-react";
+import { cardQrSvg, renderCardImage, shareOrDownloadImage } from "@/lib/cardQr";
 import { teacherCardUrl } from "@/lib/teacherCard";
 import { printableOrigin } from "@/lib/siteUrl";
 
@@ -20,13 +20,12 @@ export default function TeacherLoginCardDialog({ teacher, onClose }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [copied, setCopied] = useState(false);
+  const [imageBusy, setImageBusy] = useState(false);
 
   useEffect(() => {
     let active = true;
-    QRCode.toString(teacherCardUrl(printableOrigin(window.location.origin), identifier), {
-      type: "svg", errorCorrectionLevel: "M", margin: 1, width: 220,
-      color: { dark: "#000000", light: "#ffffff" },
-    }).then((svg) => active && setQrSvg(svg)).catch(() => {});
+    cardQrSvg(teacherCardUrl(printableOrigin(window.location.origin), identifier))
+      .then((svg) => active && setQrSvg(svg)).catch(() => {});
     return () => { active = false; };
   }, [identifier]);
 
@@ -65,6 +64,28 @@ export default function TeacherLoginCardDialog({ teacher, onClose }) {
     navigator.clipboard?.writeText(text).then(() => setCopied(true)).catch(() => {});
   };
 
+  // A sharp picture of the card for WhatsApp — the password is never on it.
+  const sendImage = async () => {
+    setImageBusy(true);
+    setError("");
+    try {
+      const blob = await renderCardImage({
+        heading: "PRAVYO TEACHER LOGIN",
+        title: teacher.name,
+        lines: ["Sign in → Teacher → Take a photo of your login card"],
+        qrText: teacherCardUrl(printableOrigin(window.location.origin), identifier),
+        codeLabel: "Username",
+        code: identifier,
+        footer: "You still need your password to sign in.",
+      });
+      await shareOrDownloadImage(blob, `teacher-login-${identifier}.png`, `${teacher.name} — login card`);
+    } catch {
+      setError("The card picture could not be made. Use Print card instead.");
+    } finally {
+      setImageBusy(false);
+    }
+  };
+
   return (
     <div className="modal-overlay" role="dialog" aria-modal="true" aria-label={`${teacher.name} login card`}>
       <div className="modal-panel max-w-sm">
@@ -73,16 +94,21 @@ export default function TeacherLoginCardDialog({ teacher, onClose }) {
             <h2 className="text-base font-semibold text-ink">{teacher.name}</h2>
             <p className="text-sm text-muted">Teacher login card</p>
           </div>
-          <button type="button" onClick={onClose} disabled={busy} className="btn-icon btn-ghost" aria-label="Close"><X size={16} /></button>
+          <div className="flex shrink-0 items-center gap-1">
+            <button type="button" onClick={sendImage} disabled={imageBusy || !qrSvg} className="btn-icon btn-ghost" aria-label="Download card as a picture" title="Download card as a picture">
+              {imageBusy ? <LoaderCircle size={16} className="animate-spin" /> : <ImageDown size={16} />}
+            </button>
+            <button type="button" onClick={onClose} disabled={busy} className="btn-icon btn-ghost" aria-label="Close"><X size={16} /></button>
+          </div>
         </div>
 
         <div className="mt-4 flex flex-col items-center rounded-card border border-line bg-white p-4 text-black">
           <div
-            className="h-44 w-44 [&>svg]:h-full [&>svg]:w-full"
+            className="h-48 w-48 [&>svg]:h-full [&>svg]:w-full"
             // Generated locally by the qrcode package from our own URL.
             dangerouslySetInnerHTML={{ __html: qrSvg }}
           />
-          <p className="mt-2 text-center text-xs">Sign in → Teacher → Upload a photo of your login card</p>
+          <p className="mt-2 text-center text-xs">Sign in → Teacher → Take a photo of your login card</p>
         </div>
 
         <dl className="mt-4 grid grid-cols-[6rem_1fr] gap-y-1.5 text-sm">

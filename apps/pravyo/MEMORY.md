@@ -11,11 +11,10 @@ certificates, published writing, magazine articles), and the public can browse
 and verify any of it. Certificates carry a code plus a verification URL, so a
 printed copy can be checked against the live site.
 
-Live at **https://praavyo.com** (Vercel). It moved there from
-`pravyo.infobytesnepal.com`; cards and certificates printed before the move
-carry the old host, so keep that domain attached in Vercel as a redirect to
-praavyo.com, and keep it in `RETIRED_HOSTS` in `lib/siteUrl.js` so new prints
-never use it. An even older domain spelled "pratyo" was retired and now returns
+Live at **https://www.praavyo.com** — a new Vercel deployment and domain on
+the same, existing production database. The old domain
+`pravyo.infobytesnepal.com` is **not used at all** any more (owner,
+2026-11-01). An even older domain spelled "pratyo" was retired and now returns
 `DEPLOYMENT_NOT_FOUND`. There should be no "pratyo" anywhere in the repo.
 
 The Continuous Assessment System (CAS) is part of this same app (domain code in
@@ -163,6 +162,12 @@ because several clients drop `<style>` blocks and Outlook ignores CSS dimensions
 
 ## Sending mail from Zoho vs Resend
 
+**Old-domain setup (historical).** The paragraph below describes DNS for the
+retired `pravyo.infobytesnepal.com`. Since 2026-11-01 mail uses `@praavyo.com`,
+so the equivalent must exist for `praavyo.com`: the domain verified in Resend
+(SPF/DKIM records, DNS only in Cloudflare) before `MAIL_FROM` uses it, or
+every send is rejected. Not yet confirmed as of 2026-11-01.
+
 Resend sends; Zoho receives. Resend's SPF lives on `send.pravyo.infobytesnepal.com`
 so it does **not** collide with the Zoho SPF (`v=spf1 include:zohomail.com ~all`)
 on `pravyo.infobytesnepal.com` — never merge or delete that one. Zoho's free plan
@@ -194,14 +199,13 @@ with no path, `R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_PRIVATE_BUCKET`,
 filter; both buckets stay private — media is served through `/api/media/r2/[id]`).
 R2 verified working with the local credentials on 2026-11-01.
 
-**Domain.** The owner confirmed on 2026-11-01 that the canonical domain is
-**`https://praavyo.com`** (apex, no www). `NEXTAUTH_URL` and
-`NEXT_PUBLIC_SITE_URL` are set to it, and the build's canonical URLs, OG and
-sitemap use it. The Vercel Domains target: `praavyo.com` serves Production;
-`www.praavyo.com` and `pravyo.infobytesnepal.com` 308-redirect to it. Keep the
-old domain attached, because printed cards and certificates carry it. On
-2026-11-01 Vercel still redirected apex → www and served the old domain
-directly; verify with `curl -sI https://praavyo.com/` (expect 200, not 308).
+**Domain.** The owner confirmed on 2026-11-01 that the official site is
+**`https://www.praavyo.com`** (with www). Vercel serves www for Production
+and 308-redirects bare `praavyo.com` to it. `NEXTAUTH_URL` and
+`NEXT_PUBLIC_SITE_URL` must be `https://www.praavyo.com`, because NextAuth
+needs the exact browser origin. The old domain
+`pravyo.infobytesnepal.com` is not used. Support/mail addresses are
+`@praavyo.com`.
 
 **Public contact address.** The official address is
 **contact@praavyo.com** (formerly contact@pravyo.infobytesnepal.com). It comes from `NEXT_PUBLIC_SUPPORT_EMAIL`,
@@ -223,10 +227,11 @@ Two deployment gotchas that have bitten before:
    canonical/OG metadata, `robots.txt`, `sitemap.xml`, email links, and the
    verification host printed on certificates. If it is stale, printed
    certificates point at a dead domain. Verify after any domain change with
-   `curl https://praavyo.com/robots.txt` — the `Sitemap:` line
+   `curl https://www.praavyo.com/robots.txt` — the `Sitemap:` line
    must show the current host. Everything printed (QR codes on parent and
    teacher cards, certificate verify links) goes through `printableOrigin()`
-   in `lib/siteUrl.js`, which swaps the retired host for praavyo.com; the
+   in `lib/siteUrl.js`, which swaps redirecting hosts (old domain, bare
+   praavyo.com) for www.praavyo.com; the
    scanners ignore the host, so old cards keep working.
 
 Admin bootstrap is fail-closed: `POST /api/admin/bootstrap` returns 403 unless

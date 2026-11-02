@@ -1,6 +1,5 @@
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
-import QRCode from "qrcode";
 import { getServerSession } from "next-auth";
 import connectDB from "@/lib/db";
 import { authOptions } from "@/lib/authOptions";
@@ -10,6 +9,7 @@ import TeacherMembership from "@pravyo/db/models/TeacherMembership";
 import PrintButton from "@/components/school/PrintButton";
 import { teacherCardUrl } from "@/lib/teacherCard";
 import { printableOrigin } from "@/lib/siteUrl";
+import { cardQrSvg } from "@/lib/cardQr";
 
 /**
  * A printable Teacher Login Card.
@@ -37,13 +37,7 @@ export default async function TeacherLoginCardPage({ searchParams }) {
   if (membership.status === "LEFT") return <Missing reason="This teacher has left your school." />;
 
   const identifier = teacher.username || teacher.email;
-  const qrSvg = await QRCode.toString(teacherCardUrl(await resolveSiteUrl(), identifier), {
-    type: "svg",
-    errorCorrectionLevel: "M",
-    margin: 1,
-    width: 220,
-    color: { dark: "#000000", light: "#ffffff" },
-  });
+  const qrSvg = await cardQrSvg(teacherCardUrl(await resolveSiteUrl(), identifier));
 
   return (
     <main className="min-h-screen bg-canvas p-4 text-ink print:bg-white print:p-0">
@@ -68,11 +62,11 @@ export default async function TeacherLoginCardPage({ searchParams }) {
 
         <section className="mt-4 flex flex-col items-center">
           <div
-            className="h-44 w-44 [&>svg]:h-full [&>svg]:w-full"
+            className="h-48 w-48 [&>svg]:h-full [&>svg]:w-full"
             // Generated on the server by the qrcode package from our own URL.
             dangerouslySetInnerHTML={{ __html: qrSvg }}
           />
-          <p className="mt-2 text-center text-xs">On the sign-in page, choose Teacher, then<br /><strong>Upload a photo of your login card</strong></p>
+          <p className="mt-2 text-center text-xs">On the sign-in page, choose Teacher, then<br /><strong>Take a photo of your login card</strong></p>
         </section>
 
         <section className="mt-4 rounded-control border border-black/20 p-3 text-center">

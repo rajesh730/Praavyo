@@ -26,8 +26,13 @@ export function reportFormatOf(report) {
   return REPORT_FORMATS.some((f) => f.value === stored) ? stored : DEFAULT_REPORT_FORMAT;
 }
 
-export default function ReportCard({ report, lang = 'en' }) {
-  return reportFormatOf(report) === 'CLASSIC'
+/**
+ * Both layouts read the same snapshot, so a viewer may pass `format` to show a
+ * published card in the other layout without regenerating or republishing it.
+ */
+export default function ReportCard({ report, lang = 'en', format }) {
+  const layout = REPORT_FORMATS.some((f) => f.value === format) ? format : reportFormatOf(report);
+  return layout === 'CLASSIC'
     ? <MarksheetReport report={report} lang={lang} />
     : <CleanAssessmentReport report={report} lang={lang} />;
 }

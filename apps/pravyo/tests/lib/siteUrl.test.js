@@ -3,13 +3,15 @@ import { readTeacherCard, teacherCardUrl } from "@/lib/teacherCard";
 import { readParentCard } from "@/components/parent/QrCardScanner";
 
 describe("printableOrigin", () => {
-  it("swaps the retired domain for the live one", () => {
+  it("swaps redirecting domains for the live one", () => {
+    expect(CANONICAL_SITE_URL).toBe("https://www.praavyo.com");
+    expect(printableOrigin("https://praavyo.com/")).toBe(CANONICAL_SITE_URL);
     expect(printableOrigin("https://pravyo.infobytesnepal.com")).toBe(CANONICAL_SITE_URL);
     expect(printableOrigin("http://pravyo.infobytesnepal.com/")).toBe(CANONICAL_SITE_URL);
   });
 
   it("leaves the live domain, previews and localhost alone", () => {
-    expect(printableOrigin("https://praavyo.com/")).toBe("https://praavyo.com");
+    expect(printableOrigin("https://www.praavyo.com/")).toBe("https://www.praavyo.com");
     expect(printableOrigin("https://pravyo-git-main.vercel.app")).toBe("https://pravyo-git-main.vercel.app");
     expect(printableOrigin("http://localhost:3000")).toBe("http://localhost:3000");
     expect(printableOrigin("")).toBe("");

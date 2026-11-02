@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import QRCode from "qrcode";
+import { cardQrSvg, parentCardUrl } from "@/lib/cardQr";
 
 /**
  * A single Parent Access Card, rendered on the CLIENT.
@@ -20,19 +20,7 @@ export default function PrintableAccessCard({ card, schoolName, siteUrl }) {
 
   useEffect(() => {
     let active = true;
-    const loginUrl = `${siteUrl}/parent/login?id=${encodeURIComponent(
-      card.parentIdentifier
-    )}`;
-
-    QRCode.toString(loginUrl, {
-      type: "svg",
-      // Level M survives a fold, a smudge and a mediocre photocopy — all of
-      // which happen to a card that travels home in a school bag.
-      errorCorrectionLevel: "M",
-      margin: 1,
-      width: 240,
-      color: { dark: "#000000", light: "#ffffff" },
-    })
+    cardQrSvg(parentCardUrl(siteUrl, card.parentIdentifier))
       .then((svg) => {
         if (active) setQrSvg(svg);
       })

@@ -61,17 +61,17 @@ export default function BulkCardsPage() {
   // No batch means the page was refreshed, or opened directly.
   if (batch === null) {
     return (
-      <main className="">
-        <div className="">
-          <p className="" aria-hidden="true">
+      <main className="card-page">
+        <div className="card-page-missing">
+          <p aria-hidden="true">
             <Glyph emoji="🖨️" />
           </p>
-          <h1 className="">These cards have been printed</h1>
-          <p className="">
+          <h1>These cards have been printed</h1>
+          <p>
             The batch is cleared once it is shown, so that a list of Parent IDs
             is not left sitting in a shared office browser.
           </p>
-          <p className="">
+          <p>
             If you still need them, generate the batch again — the same cards
             come out, and the ones you already handed over keep working.
           </p>
@@ -91,14 +91,14 @@ export default function BulkCardsPage() {
     typeof window !== "undefined" ? printableOrigin(window.location.origin) : "";
 
   return (
-    <main className="">
-      <div className="no-print">
+    <main className="card-page">
+      <div className="card-page-head no-print">
         <div>
-          <h1 className="">
+          <h1>
             {batch.cards.length} Parent Access Card
             {batch.cards.length === 1 ? "" : "s"}
           </h1>
-          <p className="">
+          <p>
             Each card prints on its own page. Hand each one to the guardian
             named on it.
           </p>
@@ -111,9 +111,9 @@ export default function BulkCardsPage() {
         <PrintButton label={`Print ${batch.cards.length} cards`} />
       </div>
 
-      <div className="card-sheet space-y-4">
+      <div className="card-sheet">
         {batch.cards.map((card, index) => (
-          <div key={`${card.parentIdentifier}-${index}`} className="">
+          <div key={`${card.parentIdentifier}-${index}`}>
             <PrintableAccessCard
               card={card}
               schoolName={batch.schoolName}

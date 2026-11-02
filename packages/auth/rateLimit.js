@@ -48,6 +48,26 @@ async function applyRedisRateLimit({ config, key, windowMs, max }) {
   return { ok: true };
 }
 
+// Read the Redis fixed-window counter without adding to it.
+async function peekRedisRateLimit({ config, key, windowMs, max }) {
+  const bucket = Math.floor(Date.now() / windowMs);
+  const count = Number(
+    (await redisCommand(config, ["GET", `ratelimit:${key}:${bucket}`])) || 0
+  );
+  if (count >= max) {
+    const elapsed = Date.now() - bucket * windowMs;
+    return { ok: false, retryAfter: Math.ceil((windowMs - elapsed) / 1000) };
+  }
+  return { ok: true };
+}
+
+function memoryWindow(key, windowMs) {
+  const now = Date.now();
+  const fresh = (buckets.get(key) || []).filter((ts) => now - ts < windowMs);
+  buckets.set(key, fresh);
+  return { now, fresh };
+}
+
 /**
  * Per-key rate limit. Uses Redis (cross-instance) when configured, otherwise an
  * in-memory rolling window. Never throws — on a Redis error it degrades to the
@@ -67,15 +87,44 @@ export async function applyRateLimit({
     }
   }
 
-  const now = Date.now();
-  const bucket = buckets.get(key) || [];
-  const fresh = bucket.filter((ts) => now - ts < windowMs);
+  const { now, fresh } = memoryWindow(key, windowMs);
   fresh.push(now);
-  buckets.set(key, fresh);
 
   if (fresh.length > max) {
     const retryAfter = Math.ceil((windowMs - (now - fresh[0])) / 1000);
     return { ok: false, retryAfter };
   }
   return { ok: true };
+}
+
+/**
+ * Whether `key` has already used up `max` hits, WITHOUT counting this call.
+ * Pair with `recordRateLimitHit` to limit only failures — e.g. wrong passwords —
+ * so successful requests never use up the allowance. Never throws.
+ */
+export async function checkRateLimit({
+  key,
+  windowMs = 10 * 60 * 1000,
+  max = 20,
+}) {
+  const config = getRedisConfig();
+  if (config) {
+    try {
+      return await peekRedisRateLimit({ config, key, windowMs, max });
+    } catch {
+      // fall through to in-memory
+    }
+  }
+
+  const { now, fresh } = memoryWindow(key, windowMs);
+  if (fresh.length >= max) {
+    return { ok: false, retryAfter: Math.ceil((windowMs - (now - fresh[0])) / 1000) };
+  }
+  return { ok: true };
+}
+
+/** Count one hit against `key` (see `checkRateLimit`). Never throws. */
+export async function recordRateLimitHit({ key, windowMs = 10 * 60 * 1000 }) {
+  // A huge max: this only counts; `checkRateLimit` decides.
+  await applyRateLimit({ key, windowMs, max: Number.MAX_SAFE_INTEGER });
 }

@@ -24,7 +24,11 @@ import {
   backfillTeacherMemberships,
   isActiveTeacherMember,
 } from "@pravyo/db/teacherMemberships";
-import { applyRateLimit } from "@pravyo/auth/rateLimit";
+import {
+  applyRateLimit,
+  checkRateLimit,
+  recordRateLimitHit,
+} from "@pravyo/auth/rateLimit";
 
 const PERSISTENT_SESSION_MAX_AGE = 60 * 60 * 24 * 365; // 1 year
 const SESSION_REFRESH_INTERVAL = 60 * 60 * 24; // 1 day
@@ -76,6 +80,270 @@ const useSecureCookies =
   process.env.NEXTAUTH_URL?.startsWith("https://") ?? !!process.env.VERCEL;
 const cookiePrefix = useSecureCookies ? "__Secure-" : "";
 
+// The account a sign-in attempt is aimed at, for the per-account failure limit.
+function loginAccountKey(credentials) {
+  const raw = credentials?.parentId || credentials?.email || "";
+  const key = String(raw).toLowerCase().replace(/[^a-z0-9@._+-]/g, "");
+  return key ? key.slice(0, 120) : null;
+}
+
+/**
+ * Check one set of credentials and return the session user, or throw an Error
+ * whose message the sign-in pages show. Rate limiting lives in `authorize`.
+ */
+async function verifyCredentials(credentials) {
+  const identifier = String(credentials?.email || "").trim();
+  const normalizedEmail = identifier.toLowerCase();
+  // /parent/login sends loginScope="parent". Without it we would hit the
+  // Teacher branch first for a teacher who is ALSO a guardian at the same
+  // school (a common case), and they could never reach the parent app.
+  // Any other value keeps the pre-existing lookup order untouched.
+  const loginScope = String(credentials?.loginScope || "").toLowerCase();
+
+  try {
+    await connectDB();
+  } catch (error) {
+    const rawCode = error?.code || error?.cause?.code || error?.reason?.code;
+    const code = /^[A-Z0-9_]+$/.test(String(rawCode || "")) ? rawCode : "UNKNOWN";
+    console.error("[auth] Sign-in database connection failed", { code });
+    throw new Error("AUTH_SERVICE_UNAVAILABLE");
+  }
+
+  // Guardians sign in from /parent/login, which scopes the lookup to the
+  // Parent collection only. Nothing below this block changes for the
+  // existing admin / teacher / student flows.
+  if (loginScope === "parent") {
+    // --- Primary path: the Parent ID off the Access Card -------------
+    // No email, no phone, no password, no PIN. The one thing printed on
+    // the card is the whole credential — see lib/parentCredentials.js for
+    // why that trade was made and what it costs.
+    if (credentials?.parentId || credentials?.cardToken) {
+      const { verifyParentId, verifyParentCardToken } = await import(
+        "@pravyo/auth/parentCredentials"
+      );
+
+      const result = credentials.cardToken
+        ? // A scanned card printed under the old activation flow.
+          await verifyParentCardToken(credentials.cardToken)
+        : await verifyParentId(credentials.parentId, {
+            language: credentials.language,
+          });
+
+      if (!result.ok) {
+        throw new Error(
+          credentials.cardToken
+            ? "This card is not valid any more. Please ask your school for a new one."
+            : "That Parent ID was not recognised. Please check your card."
+        );
+      }
+
+      const parent = result.parent;
+      const deviceMode =
+        credentials.deviceMode === "SHARED" ? "SHARED" : "PERSONAL";
+
+      return {
+        id: parent._id.toString(),
+        email: parent.email || parent.parentId,
+        role: "PARENT",
+        name: parent.name,
+        status: parent.status,
+        schoolId: null,
+        authVersion: parent.authVersion || 0,
+        calendarPreference: parent.preferences?.calendarPreference || "BS",
+        // Drives the shared-device idle window; see the jwt callback.
+        deviceMode,
+        signedInAt: Date.now(),
+      };
+    }
+
+    // --- Legacy path: email/phone + password (§15, §57) --------------
+    // Kept so guardians created before Parent Access can still sign in.
+    // Not deleted; existing users are never forced to migrate.
+    const parent = await Parent.findOne({
+      $or: [{ email: normalizedEmail }, { phone: identifier }],
+      isDeleted: { $ne: true },
+    });
+
+    if (!parent) {
+      throw new Error("No parent account found for these details");
+    }
+
+    if (!parent.password) {
+      throw new Error(
+        "This account signs in with a Parent ID. Please use the ID on your card."
+      );
+    }
+
+    const isValid = await bcrypt.compare(
+      credentials.password,
+      parent.password
+    );
+    if (!isValid) {
+      throw new Error("Invalid password");
+    }
+
+    if (parent.status !== "ACTIVE") {
+      throw new Error("Your account is inactive. Please contact your school.");
+    }
+
+    // Fire-and-forget: a failed timestamp write must never block a login.
+    Parent.updateOne(
+      { _id: parent._id },
+      { $set: { lastLoginAt: new Date() } }
+    ).catch(() => {});
+
+    return {
+      id: parent._id.toString(),
+      email: parent.email || parent.phone,
+      role: "PARENT",
+      name: parent.name,
+      status: parent.status,
+      // A guardian is not scoped to a single school — they may have
+      // children at several. School context is resolved per selected
+      // child by lib/parentAccess.js, never from the session.
+      schoolId: null,
+      authVersion: parent.authVersion || 0,
+      calendarPreference: parent.preferences?.calendarPreference || "BS",
+    };
+  }
+
+  // 1. Try Teacher collection FIRST (Clean Architecture). The account is
+  // the person; which schools they may open comes from TeacherMembership.
+  const teacher = await Teacher.findOne({
+    $or: [{ email: normalizedEmail }, { username: normalizedEmail }],
+  });
+
+  if (teacher) {
+    let isValid = false;
+
+    if (teacher.password) {
+      isValid = await bcrypt.compare(
+        credentials.password,
+        teacher.password,
+      );
+    } else {
+      // Fallback: a legacy teacher whose credentials live in the User
+      // collection. Hashed compare only — no plaintext path.
+      const user = await User.findOne({ email: normalizedEmail });
+      if (user && user.password) {
+        isValid = await bcrypt.compare(
+          credentials.password,
+          user.password,
+        );
+      }
+    }
+
+    if (!isValid) {
+      throw new Error("Invalid password");
+    }
+
+    await backfillTeacherMemberships({ _id: teacher._id });
+    const schools = await activeSchoolsForTeacher(teacher._id);
+    if (!schools.length) {
+      throw new Error("Your teacher account is not active at any school. Contact your school.");
+    }
+
+    // One school: go straight in. Several: schoolId stays empty and the
+    // teacher picks one at /teacher/select-school.
+    return {
+      id: teacher._id.toString(),
+      email: teacher.email,
+      username: teacher.username || null,
+      role: "TEACHER",
+      name: teacher.name,
+      status: "APPROVED",
+      schoolId: schools.length === 1 ? schools[0].id : null,
+      schoolName: schools.length === 1 ? schools[0].name : null,
+    };
+  }
+
+  // 2. Try User collection (Admins, School Admins, Legacy support)
+  const user = await User.findOne({ email: normalizedEmail });
+
+  if (user) {
+    const isValid = await bcrypt.compare(
+      credentials.password,
+      user.password,
+    );
+
+    if (!isValid) {
+      throw new Error("Invalid password");
+    }
+
+    if (user.status === "PENDING") {
+      throw new Error("Your account is pending approval.");
+    }
+
+    if (user.status === "REJECTED") {
+      throw new Error("Your account has been rejected.");
+    }
+
+    if (user.status === "UNSUBSCRIBED") {
+      throw new Error("Your account is inactive.");
+    }
+
+    if (["STUDENT", "TEACHER"].includes(user.role)) {
+      throw new Error("Your profile is inactive or unavailable.");
+    }
+
+    // Resolve a schoolId for downstream filtering
+    let schoolId = null;
+
+    if (user.role === "SCHOOL_ADMIN") {
+      schoolId = user._id.toString();
+    }
+
+    return {
+      id: user._id.toString(),
+      email: user.email,
+      role: user.role,
+      name:
+        user.role === "SUPER_ADMIN"
+          ? user.name || user.email
+          : user.schoolName || "Admin",
+      schoolName:
+        user.role === "SUPER_ADMIN" ? null : user.schoolName || null,
+      status: user.status,
+      schoolId,
+      authVersion: user.authVersion || 0,
+      calendarPreference: user.calendarPreference || "BS",
+    };
+  }
+
+  // 3. Try Student collection (Students)
+  // Check by username OR email (in case they use email)
+  const student = await Student.findOne({
+    // Usernames are stored lowercase; phone keyboards capitalise the first letter.
+    $or: [{ username: normalizedEmail }, { email: normalizedEmail }],
+    isDeleted: { $ne: true },
+    status: "ACTIVE",
+  });
+
+  if (student) {
+    const isValid = await bcrypt.compare(
+      credentials.password,
+      student.password,
+    );
+
+    if (!isValid) {
+      throw new Error("Invalid password");
+    }
+
+    // Return student user object
+    return {
+      id: student._id.toString(),
+      email: student.email || student.username, // Use username if email missing
+      role: "STUDENT",
+      name: student.name,
+      status: "ACTIVE", // Default to active as status management is removed
+      schoolId: student.school?.toString(),
+      calendarPreference: student.calendarPreference || "BS",
+    };
+  }
+
+  throw new Error("No user found with this email/username");
+}
+
 export const authOptions = {
   providers: [
     CredentialsProvider({
@@ -92,271 +360,43 @@ export const authOptions = {
         deviceMode: { label: "Device mode", type: "text" },
       },
       async authorize(credentials, req) {
-        const identifier = String(credentials?.email || "").trim();
-        const normalizedEmail = identifier.toLowerCase();
-        // /parent/login sends loginScope="parent". Without it we would hit the
-        // Teacher branch first for a teacher who is ALSO a guardian at the same
-        // school (a common case), and they could never reach the parent app.
-        // Any other value keeps the pre-existing lookup order untouched.
-        const loginScope = String(credentials?.loginScope || "").toLowerCase();
-
-        // Throttle credential attempts per client IP to blunt brute-forcing.
+        // Throttle per client IP and per account to blunt brute-forcing.
+        //
+        // Only FAILED attempts count. Mobile carriers in Nepal put thousands of
+        // phones behind one public IP, and a school's Wi-Fi does the same, so
+        // counting every sign-in locked whole parent meetings out after the
+        // fifteenth successful login.
         const ip =
           String(req?.headers?.["x-forwarded-for"] || "")
             .split(",")[0]
             .trim() || "unknown";
-        const rate = await applyRateLimit({
-          key: `login:${ip}`,
-          windowMs: 10 * 60 * 1000,
-          max: 15,
-        });
-        if (!rate.ok) {
+        const account = loginAccountKey(credentials);
+        const windowMs = 10 * 60 * 1000;
+        const limits = [
+          { key: `login-fail:ip:${ip}`, windowMs, max: 40 },
+          ...(account ? [{ key: `login-fail:acct:${account}`, windowMs, max: 10 }] : []),
+        ];
+
+        // A hard ceiling on all attempts from one IP still stops floods.
+        const flood = await applyRateLimit({ key: `login:${ip}`, windowMs, max: 400 });
+        const checks = flood.ok ? await Promise.all(limits.map(checkRateLimit)) : [flood];
+        const blocked = checks.find((check) => !check.ok);
+        if (blocked) {
+          const minutes = Math.max(1, Math.ceil(blocked.retryAfter / 60));
           throw new Error(
-            `Too many login attempts. Try again in ${rate.retryAfter}s.`
+            `Too many login attempts. Try again in ${minutes} minute${minutes === 1 ? "" : "s"}.`
           );
         }
 
         try {
-          await connectDB();
+          return await verifyCredentials(credentials);
         } catch (error) {
-          const rawCode = error?.code || error?.cause?.code || error?.reason?.code;
-          const code = /^[A-Z0-9_]+$/.test(String(rawCode || "")) ? rawCode : "UNKNOWN";
-          console.error("[auth] Sign-in database connection failed", { code });
-          throw new Error("AUTH_SERVICE_UNAVAILABLE");
+          // An outage is not the user's fault and must not lock them out.
+          if (error?.message !== "AUTH_SERVICE_UNAVAILABLE") {
+            await Promise.all(limits.map(recordRateLimitHit));
+          }
+          throw error;
         }
-
-        // Guardians sign in from /parent/login, which scopes the lookup to the
-        // Parent collection only. Nothing below this block changes for the
-        // existing admin / teacher / student flows.
-        if (loginScope === "parent") {
-          // --- Primary path: the Parent ID off the Access Card -------------
-          // No email, no phone, no password, no PIN. The one thing printed on
-          // the card is the whole credential — see lib/parentCredentials.js for
-          // why that trade was made and what it costs.
-          if (credentials?.parentId || credentials?.cardToken) {
-            const { verifyParentId, verifyParentCardToken } = await import(
-              "@pravyo/auth/parentCredentials"
-            );
-
-            const result = credentials.cardToken
-              ? // A scanned card printed under the old activation flow.
-                await verifyParentCardToken(credentials.cardToken)
-              : await verifyParentId(credentials.parentId, {
-                  language: credentials.language,
-                });
-
-            if (!result.ok) {
-              throw new Error(
-                credentials.cardToken
-                  ? "This card is not valid any more. Please ask your school for a new one."
-                  : "That Parent ID was not recognised. Please check your card."
-              );
-            }
-
-            const parent = result.parent;
-            const deviceMode =
-              credentials.deviceMode === "SHARED" ? "SHARED" : "PERSONAL";
-
-            return {
-              id: parent._id.toString(),
-              email: parent.email || parent.parentId,
-              role: "PARENT",
-              name: parent.name,
-              status: parent.status,
-              schoolId: null,
-              authVersion: parent.authVersion || 0,
-              calendarPreference: parent.preferences?.calendarPreference || "BS",
-              // Drives the shared-device idle window; see the jwt callback.
-              deviceMode,
-              signedInAt: Date.now(),
-            };
-          }
-
-          // --- Legacy path: email/phone + password (§15, §57) --------------
-          // Kept so guardians created before Parent Access can still sign in.
-          // Not deleted; existing users are never forced to migrate.
-          const parent = await Parent.findOne({
-            $or: [{ email: normalizedEmail }, { phone: identifier }],
-            isDeleted: { $ne: true },
-          });
-
-          if (!parent) {
-            throw new Error("No parent account found for these details");
-          }
-
-          if (!parent.password) {
-            throw new Error(
-              "This account signs in with a Parent ID. Please use the ID on your card."
-            );
-          }
-
-          const isValid = await bcrypt.compare(
-            credentials.password,
-            parent.password
-          );
-          if (!isValid) {
-            throw new Error("Invalid password");
-          }
-
-          if (parent.status !== "ACTIVE") {
-            throw new Error("Your account is inactive. Please contact your school.");
-          }
-
-          // Fire-and-forget: a failed timestamp write must never block a login.
-          Parent.updateOne(
-            { _id: parent._id },
-            { $set: { lastLoginAt: new Date() } }
-          ).catch(() => {});
-
-          return {
-            id: parent._id.toString(),
-            email: parent.email || parent.phone,
-            role: "PARENT",
-            name: parent.name,
-            status: parent.status,
-            // A guardian is not scoped to a single school — they may have
-            // children at several. School context is resolved per selected
-            // child by lib/parentAccess.js, never from the session.
-            schoolId: null,
-            authVersion: parent.authVersion || 0,
-            calendarPreference: parent.preferences?.calendarPreference || "BS",
-          };
-        }
-
-        // 1. Try Teacher collection FIRST (Clean Architecture). The account is
-        // the person; which schools they may open comes from TeacherMembership.
-        const teacher = await Teacher.findOne({
-          $or: [{ email: normalizedEmail }, { username: normalizedEmail }],
-        });
-
-        if (teacher) {
-          let isValid = false;
-
-          if (teacher.password) {
-            isValid = await bcrypt.compare(
-              credentials.password,
-              teacher.password,
-            );
-          } else {
-            // Fallback: a legacy teacher whose credentials live in the User
-            // collection. Hashed compare only — no plaintext path.
-            const user = await User.findOne({ email: normalizedEmail });
-            if (user && user.password) {
-              isValid = await bcrypt.compare(
-                credentials.password,
-                user.password,
-              );
-            }
-          }
-
-          if (!isValid) {
-            throw new Error("Invalid password");
-          }
-
-          await backfillTeacherMemberships({ _id: teacher._id });
-          const schools = await activeSchoolsForTeacher(teacher._id);
-          if (!schools.length) {
-            throw new Error("Your teacher account is not active at any school. Contact your school.");
-          }
-
-          // One school: go straight in. Several: schoolId stays empty and the
-          // teacher picks one at /teacher/select-school.
-          return {
-            id: teacher._id.toString(),
-            email: teacher.email,
-            username: teacher.username || null,
-            role: "TEACHER",
-            name: teacher.name,
-            status: "APPROVED",
-            schoolId: schools.length === 1 ? schools[0].id : null,
-            schoolName: schools.length === 1 ? schools[0].name : null,
-          };
-        }
-
-        // 2. Try User collection (Admins, School Admins, Legacy support)
-        const user = await User.findOne({ email: normalizedEmail });
-
-        if (user) {
-          const isValid = await bcrypt.compare(
-            credentials.password,
-            user.password,
-          );
-
-          if (!isValid) {
-            throw new Error("Invalid password");
-          }
-
-          if (user.status === "PENDING") {
-            throw new Error("Your account is pending approval.");
-          }
-
-          if (user.status === "REJECTED") {
-            throw new Error("Your account has been rejected.");
-          }
-
-          if (user.status === "UNSUBSCRIBED") {
-            throw new Error("Your account is inactive.");
-          }
-
-          if (["STUDENT", "TEACHER"].includes(user.role)) {
-            throw new Error("Your profile is inactive or unavailable.");
-          }
-
-          // Resolve a schoolId for downstream filtering
-          let schoolId = null;
-
-          if (user.role === "SCHOOL_ADMIN") {
-            schoolId = user._id.toString();
-          }
-
-          return {
-            id: user._id.toString(),
-            email: user.email,
-            role: user.role,
-            name:
-              user.role === "SUPER_ADMIN"
-                ? user.name || user.email
-                : user.schoolName || "Admin",
-            schoolName:
-              user.role === "SUPER_ADMIN" ? null : user.schoolName || null,
-            status: user.status,
-            schoolId,
-            authVersion: user.authVersion || 0,
-            calendarPreference: user.calendarPreference || "BS",
-          };
-        }
-
-        // 3. Try Student collection (Students)
-        // Check by username OR email (in case they use email)
-        const student = await Student.findOne({
-          $or: [{ username: identifier }, { email: normalizedEmail }],
-          isDeleted: { $ne: true },
-          status: "ACTIVE",
-        });
-
-        if (student) {
-          const isValid = await bcrypt.compare(
-            credentials.password,
-            student.password,
-          );
-
-          if (!isValid) {
-            throw new Error("Invalid password");
-          }
-
-          // Return student user object
-          return {
-            id: student._id.toString(),
-            email: student.email || student.username, // Use username if email missing
-            role: "STUDENT",
-            name: student.name,
-            status: "ACTIVE", // Default to active as status management is removed
-            schoolId: student.school?.toString(),
-            calendarPreference: student.calendarPreference || "BS",
-          };
-        }
-
-        throw new Error("No user found with this email/username");
       },
     }),
   ],
