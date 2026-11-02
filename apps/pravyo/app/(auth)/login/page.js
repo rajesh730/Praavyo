@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useRef, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { signIn, signOut, useSession } from "next-auth/react";
 import Link from "next/link";
@@ -24,6 +24,7 @@ function destinationForRole(role) {
     SCHOOL_ADMIN: "/school/dashboard",
     TEACHER: "/teacher/dashboard",
     STUDENT: "/student/dashboard",
+    PARENT: "/parent",
   };
   return destinations[role] || "/school/dashboard";
 }
@@ -56,6 +57,16 @@ function LoginContent() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const { status, data: session } = useSession();
+
+  // A scanned teacher card opens inside the installed app, which on a family
+  // phone is usually still signed in as the parent. That session must not
+  // swallow the card: drop any non-teacher session and show the teacher form.
+  const cardUser = asTeacher && searchParams.get("user");
+  const staleSession = Boolean(cardUser) && status === "authenticated" && session?.user?.role !== "TEACHER";
+  useEffect(() => {
+    if (!staleSession) return;
+    signOut({ redirect: false }).finally(() => window.location.reload());
+  }, [staleSession]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -108,6 +119,8 @@ function LoginContent() {
     setEmail(identifier);
     passwordRef.current?.focus();
   };
+
+  if (staleSession) return null;
 
   if (status === "authenticated") {
     return (
