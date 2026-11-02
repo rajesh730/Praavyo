@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useParams, useSearchParams } from "next/navigation";
 import EventInfoHeader from "./EventInfoHeader";
 import ManagementTabs from "./ManagementTabs";
+import EventManagersPanel from "./EventManagersPanel";
 import EventEditorForm from "./EventEditorForm";
 import { useSession } from "next-auth/react";
 import { ArrowLeft as FaArrowLeft } from "lucide-react";
@@ -27,6 +28,7 @@ export default function EventDetailDashboard() {
     searchParams.get("tab") || "overview"
   );
   const [loadError, setLoadError] = useState("");
+  const [loadForbidden, setLoadForbidden] = useState(false);
   const [editingEvent, setEditingEvent] = useState(null);
   const [archiveTarget, setArchiveTarget] = useState(null);
   const [feedback, setFeedback] = useState(null);
@@ -49,6 +51,7 @@ export default function EventDetailDashboard() {
         setEventData(data);
       } else {
         setEventData(null);
+        setLoadForbidden(res.status === 403);
         setLoadError(data.message || "Failed to load event data.");
       }
     } catch (error) {
@@ -108,15 +111,25 @@ export default function EventDetailDashboard() {
         <div className="card mx-auto max-w-2xl p-4 sm:p-5 text-center">
           <h1 className="font-semibold text-ink">Event could not load</h1>
           <p className="mt-2 text-muted">
-            {loadError || "Event not found or you do not have access."}
+            {loadForbidden && session?.user?.role === "TEACHER"
+              ? // A teacher the school has just taken off this event.
+                "You are not managing this event any more. Ask your school office if this is a mistake."
+              : loadError || "Event not found or you do not have access."}
           </p>
-          <button
-            type="button"
-            onClick={fetchEventData}
-             className="btn btn-danger mt-4 font-semibold"
-          >
-            Try Again
-          </button>
+          <div className="mt-4 flex flex-wrap justify-center gap-2">
+            {session?.user?.role === "TEACHER" && (
+              <Link href="/teacher/dashboard?tab=events" className="btn btn-secondary font-semibold">
+                Back to my events
+              </Link>
+            )}
+            <button
+              type="button"
+              onClick={fetchEventData}
+              className="btn btn-danger font-semibold"
+            >
+              Try Again
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -155,6 +168,8 @@ export default function EventDetailDashboard() {
       ? "/admin/dashboard?tab=events"
       : session?.user?.role === "STUDENT"
       ? "/student/events"
+      : session?.user?.role === "TEACHER"
+      ? "/teacher/dashboard?tab=events"
       : "/school/dashboard?tab=school-events";
   const backLabel =
     session?.user?.role === "SUPER_ADMIN"
@@ -186,6 +201,15 @@ export default function EventDetailDashboard() {
               message={feedback.message}
             />
           </div>
+        )}
+        {event.eventScope === "SCHOOL" && (
+          <EventManagersPanel
+            // Remount when the saved list changes (another admin, realtime).
+            key={(event.assignedMentors || []).map((teacher) => String(teacher?._id || teacher)).join(",")}
+            event={event}
+            teachers={teachers}
+            canEdit={session?.user?.role === "SCHOOL_ADMIN"}
+          />
         )}
         {/* Management Tabs */}
         <ManagementTabs

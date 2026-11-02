@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
 import { CalendarDays as FaCalendarAlt, LoaderCircle as FaSpinner, Users as FaUsers } from "lucide-react";
 import { formatShortDate, getEventStage, getStageClasses } from "@/lib/eventUiStatus";
+import useRealtimeChannel from "@/lib/client/useRealtimeChannel";
 
 function label(value) {
   return String(value || "").replaceAll("_", " ");
@@ -104,6 +105,10 @@ export default function TeacherEventOperations() {
   useEffect(() => {
     loadEvents();
   }, [loadEvents]);
+
+  // The school can add or remove this teacher from an event at any time; the
+  // Manage Event button follows without a reload.
+  useRealtimeChannel("events", loadEvents);
 
   if (loading) {
     return (
