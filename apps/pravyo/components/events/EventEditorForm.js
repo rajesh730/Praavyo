@@ -47,10 +47,10 @@ function buildInitialFormData(initialData, ownerMode) {
         : initialData?.registrationMode || "THROUGH_SCHOOL",
     featuredOnLanding: false,
     publicHighlightsEnabled: true,
-    assignedMentors:
-      ownerMode === "school"
-        ? []
-        : (initialData?.assignedMentors || []).map((mentor) => mentor?._id || mentor),
+    // For a school event these are the teachers the school lets manage it.
+    assignedMentors: (initialData?.assignedMentors || []).map((mentor) =>
+      String(mentor?._id || mentor)
+    ),
   };
 }
 
@@ -80,6 +80,36 @@ export default function EventEditorForm({
     resolvedOwnerMode === "school" ? [] : buildGradeLabels()
   );
   const [activeStep, setActiveStep] = useState("basic");
+  // The school's active teachers, for "Teachers who manage this event".
+  // Stays null when it cannot load (a teacher filling the form has no access
+  // to the list), which hides the picker.
+  const [schoolTeachers, setSchoolTeachers] = useState(null);
+  const [teacherQuery, setTeacherQuery] = useState("");
+
+  useEffect(() => {
+    if (!isSchoolOwnedFlow) return undefined;
+    let active = true;
+    fetch("/api/teachers?status=ACTIVE&limit=200", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (active && Array.isArray(data?.teachers)) setSchoolTeachers(data.teachers);
+      })
+      .catch(() => {});
+    return () => {
+      active = false;
+    };
+  }, [isSchoolOwnedFlow]);
+
+  const toggleManager = (teacherId) =>
+    setFormData((prev) => {
+      const current = prev.assignedMentors || [];
+      return {
+        ...prev,
+        assignedMentors: current.includes(teacherId)
+          ? current.filter((id) => id !== teacherId)
+          : [...current, teacherId],
+      };
+    });
 
   const eventTypes = [
     "COMPETITION",
@@ -238,7 +268,7 @@ export default function EventEditorForm({
           formData.participationFormat === "TEAM" && formData.maxTeamSize !== ""
             ? Number(formData.maxTeamSize)
             : null,
-        assignedMentors: isSchoolOwnedFlow ? [] : formData.assignedMentors || [],
+        assignedMentors: formData.assignedMentors || [],
       };
 
       const res = await fetch(url, {
@@ -703,6 +733,15 @@ export default function EventEditorForm({
           </div>
           )}
             </div>
+            {isSchoolOwnedFlow && schoolTeachers && (
+              <EventManagersPicker
+                teachers={schoolTeachers}
+                selected={formData.assignedMentors || []}
+                onToggle={toggleManager}
+                query={teacherQuery}
+                onQuery={setTeacherQuery}
+              />
+            )}
             {formData.participationFormat === "TEAM" && (
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
@@ -778,6 +817,15 @@ export default function EventEditorForm({
                     : "School registers students (each school can let its students self-register)",
                 ],
                 ["Deadline", formData.registrationDeadline || "No deadline"],
+                ...(isSchoolOwnedFlow && schoolTeachers
+                  ? [[
+                      "Managed By",
+                      schoolTeachers
+                        .filter((teacher) => (formData.assignedMentors || []).includes(String(teacher._id)))
+                        .map((teacher) => teacher.name)
+                        .join(", ") || "School admin only",
+                    ]]
+                  : []),
                 ["Registration Grades", selectedGradesLabel],
                 [
                   "Capacity",
@@ -869,6 +917,74 @@ export default function EventEditorForm({
           )}
         </div>
       </form>
+    </div>
+  );
+}
+
+/**
+ * "Teachers who manage this event": the chosen teachers see Manage Event on
+ * their dashboard and can run rounds, participants and results. Everyone else
+ * only sees the event listed.
+ */
+function EventManagersPicker({ teachers, selected, onToggle, query, onQuery }) {
+  const needle = query.trim().toLowerCase();
+  const shown = teachers.filter(
+    (teacher) =>
+      !needle ||
+      [teacher.name, teacher.username, teacher.designation]
+        .filter(Boolean)
+        .some((value) => value.toLowerCase().includes(needle))
+  );
+
+  return (
+    <div className="rounded-control border border-line-strong bg-surface p-3">
+      <div className="flex flex-wrap items-baseline justify-between gap-2">
+        <p className="text-sm font-semibold text-ink">Teachers who manage this event</p>
+        <span className="text-xs text-muted">{selected.length} selected</span>
+      </div>
+      <p className="mt-1 text-xs text-muted">
+        Only these teachers get the Manage Event button. Leave empty to manage it yourself.
+      </p>
+      {teachers.length === 0 ? (
+        <p className="mt-3 text-sm text-muted">No active teachers at your school yet.</p>
+      ) : (
+        <>
+          {teachers.length > 8 && (
+            <input
+              type="search"
+              value={query}
+              onChange={(event) => onQuery(event.target.value)}
+              placeholder="Search teachers"
+              className="input mt-3 w-full"
+            />
+          )}
+          <ul className="mt-2 max-h-64 divide-y divide-line overflow-y-auto">
+            {shown.map((teacher) => {
+              const id = String(teacher._id);
+              return (
+                <li key={id}>
+                  <label className="flex min-h-11 cursor-pointer items-center gap-3 py-2 text-sm">
+                    <input
+                      type="checkbox"
+                      checked={selected.includes(id)}
+                      onChange={() => onToggle(id)}
+                    />
+                    <span className="min-w-0 flex-1">
+                      <span className="block truncate font-medium text-ink">{teacher.name}</span>
+                      {(teacher.designation || teacher.username) && (
+                        <span className="block truncate text-xs text-muted">
+                          {[teacher.designation, teacher.username].filter(Boolean).join(" · ")}
+                        </span>
+                      )}
+                    </span>
+                  </label>
+                </li>
+              );
+            })}
+            {shown.length === 0 && <li className="py-2 text-sm text-muted">No teacher matches “{query}”.</li>}
+          </ul>
+        </>
+      )}
     </div>
   );
 }

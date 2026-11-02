@@ -9,6 +9,7 @@ import { normalizeGradeValue } from "@/lib/schoolGrades";
 import { publishEventRealtimeUpdate } from "@/lib/eventRealtime";
 import { normalizeEventWorkflowStatus } from "@/lib/eventWorkflow";
 import { canManageEventRecord, requireApiSession } from "@/lib/authz";
+import { activeSchoolTeacherIds } from "@/lib/eventManagers";
 
 function normalizeParticipationFormat(value) {
   return value === "TEAM" ? "TEAM" : "INDIVIDUAL";
@@ -241,9 +242,13 @@ export async function PUT(req, props) {
         ? eligibleGrades.map(normalizeGradeValue).filter(Boolean)
         : [];
     }
-    if (Array.isArray(assignedMentors)) {
+    // Only the school (or a super admin) decides who manages an event; a
+    // managing teacher saving the form must not change that list.
+    if (Array.isArray(assignedMentors) && session.user.role !== "TEACHER") {
       event.assignedMentors =
-        requestedScope === "SCHOOL" ? [] : assignedMentors;
+        requestedScope === "SCHOOL"
+          ? await activeSchoolTeacherIds(assignedMentors, resolvedSchool)
+          : assignedMentors;
     }
     if (lifecycleStatus) {
       if (lifecycleStatus === "ARCHIVED" && event.resultsPublished) {

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireApiSession } from "@/lib/authz";
+import { canManageEventRecord, requireApiSession } from "@/lib/authz";
 import connectDB from "@/lib/db";
 import Event from "@/models/Event";
 import EventNotice from "@/models/EventNotice";
@@ -28,6 +28,7 @@ import {
 import { publishEventRealtimeUpdate } from "@/lib/eventRealtime";
 import { ensureEventNotice } from "@/lib/eventNotices";
 import { ensureActiveAcademicYear } from "@/lib/studentEnrollment";
+import { activeSchoolTeacherIds } from "@/lib/eventManagers";
 import {
   getRegistrationWorkflowStatus,
   normalizeEventWorkflowStatus,
@@ -189,9 +190,14 @@ export async function POST(req) {
       eligibleGrades: Array.isArray(eligibleGrades)
         ? eligibleGrades.map(normalizeGradeValue).filter(Boolean)
         : [],
+      // School events: the teachers the school picked to manage it. A teacher
+      // creating an event cannot hand it to others; as its creator they
+      // already manage it.
       assignedMentors:
         normalizedScope === "SCHOOL"
-          ? []
+          ? session.user.role === "TEACHER"
+            ? []
+            : await activeSchoolTeacherIds(assignedMentors, school)
           : Array.isArray(assignedMentors)
           ? assignedMentors
           : [],
@@ -461,6 +467,10 @@ export async function GET(req) {
     // Add computed fields for frontend compatibility
     const eventsWithParticipation = events.map((event) => {
         const eventObj = { ...event };
+
+        // The same rule the manage page enforces, so a teacher is only offered
+        // "Manage Event" on events their school gave them (or they created).
+        eventObj.canManage = canManageEventRecord(session, event);
 
         // Map fields to frontend expectations
         eventObj.deadline = event.registrationDeadline;

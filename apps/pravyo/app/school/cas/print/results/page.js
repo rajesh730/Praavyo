@@ -65,8 +65,10 @@ export default async function PrintResultsPage({ searchParams }) {
           No report cards to print: nothing has been assessed for these students yet.
         </p>
       )}
+      {/* Student Result's chosen format applies to published cards as well;
+          ReportCard ignores an unknown value. */}
       {cards.map((student) => (
-        <ReportCard key={student.id} report={student.report} lang={lang} />
+        <ReportCard key={student.id} report={student.report} lang={lang} format={query?.format} />
       ))}
     </main>
   );

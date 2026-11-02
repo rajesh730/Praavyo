@@ -64,6 +64,7 @@ export default function StudentResultPage() {
   const [previews, setPreviews] = useState(new Set());
   const [downloading, setDownloading] = useState('');
   const [outcome, setOutcome] = useState(null);
+  const [confirmingPublish, setConfirmingPublish] = useState(false);
   const grade = (grades.includes(chosenGrade) && chosenGrade) || grades[0] || '';
   const sections = sectionsForGrade(school?.gradeSections, grade);
   // Only live sections: one deleted on the dashboard stops filtering here.
@@ -227,11 +228,7 @@ export default function StudentResultPage() {
 
   async function publish() {
     if (!toPublish.length || !academicYear?.id) return;
-    if (!window.confirm(
-      `Publish the result of ${describe(toPublish)}?\n\n` +
-      'Each report card is sent to the student and to every parent linked to them. ' +
-      'A published result is locked until you unpublish it.',
-    )) return;
+    setConfirmingPublish(false);
     setOutcome(null);
     const result = await run('/api/cas/results/publish', {
       method: 'POST',
@@ -315,7 +312,7 @@ export default function StudentResultPage() {
                 <FaUndo className="text-xs" />
                 {t(`Unpublish (${toUnpublish.length})`, `अप्रकाशित (${toUnpublish.length})`)}
               </Button>
-              <Button disabled={pending || toPublish.length === 0} onClick={publish}>
+              <Button disabled={pending || toPublish.length === 0} onClick={() => setConfirmingPublish(true)}>
                 <FaPaperPlane className="text-xs" />
                 {pending
                   ? t('Working...', 'हुँदैछ...')
@@ -325,6 +322,20 @@ export default function StudentResultPage() {
           )
         }
       />
+
+      {confirmingPublish && (
+        <PublishConfirmDialog
+          t={t}
+          students={toPublish}
+          grade={grade}
+          section={section}
+          examName={selectedExam?.name}
+          formatLabel={REPORT_FORMATS.find((option) => option.value === format)?.label || format}
+          missingRecords={toPublish.filter(missesRecords).length}
+          onCancel={() => setConfirmingPublish(false)}
+          onConfirm={publish}
+        />
+      )}
 
       <Card>
         <div className="grid items-end gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7">
@@ -595,6 +606,7 @@ export default function StudentResultPage() {
                   downloading={downloading === student.id}
                   downloadBusy={Boolean(downloading)}
                   onPrint={(download) => openPrint([student], download, student.id)}
+                  format={format}
                 />
               ))}
             </div>
@@ -613,7 +625,7 @@ export default function StudentResultPage() {
 }
 
 /** One student: who they are and where their result stands, above their card. */
-function StudentCard({ student, lang, t, selected, onSelect, showWorking, onToggleWorking, showCard, onToggleCard, downloading, downloadBusy, onPrint }) {
+function StudentCard({ student, lang, t, selected, onSelect, showWorking, onToggleWorking, showCard, onToggleCard, downloading, downloadBusy, onPrint, format }) {
   const { report } = student;
   return (
     <section className={`cas-result-card ${selected ? 'is-selected' : ''}`} aria-label={student.name}>
@@ -663,7 +675,9 @@ function StudentCard({ student, lang, t, selected, onSelect, showWorking, onTogg
           )}
           {showCard && (
             <div className="cas-result-card-sheet">
-              <ReportCard report={report} lang={lang} />
+              {/* The chosen format, published or not: both layouts read the
+                  same snapshot, so this never changes the stored result. */}
+              <ReportCard report={report} lang={lang} format={format} />
             </div>
           )}
         </>
@@ -747,6 +761,70 @@ function historyGroups(reports) {
     groups.get(title).reports.push(report);
   });
   return [...groups.values()];
+}
+
+/**
+ * The last check before results reach families. A browser confirm() was one
+ * reflexive click away from publishing the wrong exam or grade; this spells out
+ * exactly what goes out and needs a deliberate tick first.
+ */
+function PublishConfirmDialog({ t, students, grade, section, examName, formatLabel, missingRecords, onCancel, onConfirm }) {
+  const [checked, setChecked] = useState(false);
+  const rows = [
+    [t('Grade', 'कक्षा'), section ? `${grade} · ${t('Section', 'सेक्सन')} ${section}` : grade],
+    [t('Exam', 'परीक्षा'), examName || '—'],
+    [t('Format', 'ढाँचा'), formatLabel],
+    [t('Students', 'विद्यार्थी'), String(students.length)],
+  ];
+
+  return (
+    <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="publish-confirm-title">
+      <div className="modal-panel">
+        <h2 id="publish-confirm-title" className="text-lg font-semibold text-ink">
+          {t('Publish these results?', 'यी नतिजा प्रकाशित गर्ने?')}
+        </h2>
+        <p className="mt-1 text-sm text-muted">
+          {t(
+            'Each report card is sent to the student and every linked parent straight away. It stays locked until you unpublish it.',
+            'हरेक नतिजा पत्र तुरुन्तै विद्यार्थी र अभिभावकलाई पठाइन्छ। अप्रकाशित नगरेसम्म यो लक रहन्छ।',
+          )}
+        </p>
+
+        <dl className="mt-4 divide-y divide-line rounded-control border border-line">
+          {rows.map(([label, value]) => (
+            <div key={label} className="flex justify-between gap-3 px-3 py-2 text-sm">
+              <dt className="text-muted">{label}</dt>
+              <dd className="text-right font-semibold text-ink">{value}</dd>
+            </div>
+          ))}
+        </dl>
+
+        <p className="mt-3 text-xs text-muted">{listNames(students, ', ')}</p>
+
+        {missingRecords > 0 && (
+          <p className="mt-3 rounded-control bg-warning-soft px-3 py-2 text-xs font-medium text-warning">
+            {t(
+              `${missingRecords} of these card${missingRecords === 1 ? ' has' : 's have'} no attendance or extra activities filled in.`,
+              `${missingRecords} नतिजा पत्रमा हाजिरी वा अतिरिक्त क्रियाकलाप भरिएको छैन।`,
+            )}
+          </p>
+        )}
+
+        <label className="mt-4 flex cursor-pointer items-start gap-2.5 text-sm text-ink">
+          <input type="checkbox" className="mt-0.5" checked={checked} onChange={(event) => setChecked(event.target.checked)} />
+          {t('I have checked these results and they are correct.', 'मैले यी नतिजा जाँचेँ र सही छन्।')}
+        </label>
+
+        <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button variant="secondary" onClick={onCancel}>{t('Cancel', 'रद्द गर्नुहोस्')}</Button>
+          <Button disabled={!checked} onClick={onConfirm}>
+            <FaPaperPlane className="text-xs" />
+            {t(`Publish ${students.length} result${students.length === 1 ? '' : 's'}`, `${students.length} नतिजा प्रकाशित गर्नुहोस्`)}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
 }
 
 function missesRecords(student) {

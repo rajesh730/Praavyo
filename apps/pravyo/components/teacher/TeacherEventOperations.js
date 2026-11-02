@@ -64,11 +64,16 @@ export default function TeacherEventOperations() {
       const data = await res.json();
       if (!res.ok) throw new Error(data.message || "Failed to load events");
 
-      const loadedEvents = data.events || [];
+      // Events the school gave this teacher come first; the rest are listed
+      // for information only.
+      const loadedEvents = [...(data.events || [])].sort(
+        (a, b) => Number(Boolean(b.canManage)) - Number(Boolean(a.canManage))
+      );
       setEvents(loadedEvents);
 
+      // Round details are only readable by the teachers managing the event.
       const roundResults = await Promise.all(
-        loadedEvents.slice(0, 8).map(async (event) => {
+        loadedEvents.filter((event) => event.canManage).slice(0, 8).map(async (event) => {
           try {
             const roundRes = await fetch(`/api/events/${event._id}/rounds`, {
               cache: "no-store",
@@ -116,8 +121,8 @@ export default function TeacherEventOperations() {
 
         {events.length === 0 ? (
           <div className="card px-5 py-10 text-center text-sm text-muted">
-            No assigned events yet. Ask the school admin to assign you as a mentor
-            on a school event.
+            No events yet. When your school picks you to manage an event, it
+            appears here with a Manage Event button.
           </div>
         ) : (
           <div className="grid gap-4 lg:grid-cols-2">
@@ -145,6 +150,9 @@ export default function TeacherEventOperations() {
                     <span className="badge badge-neutral text-xs">
                       {label(event.eventType)}
                     </span>
+                    {event.canManage && (
+                      <span className="badge badge-success text-xs">You manage this</span>
+                    )}
                   </div>
 
                   <h3 className="font-semibold text-ink">{event.title}</h3>
@@ -172,7 +180,7 @@ export default function TeacherEventOperations() {
                     </span>
                   </div>
 
-                  {activeRound ? (
+                  {!event.canManage ? null : activeRound ? (
                     <div className="mt-4 rounded-card border border-line-strong bg-surface p-4">
                       <div className="mb-2 flex items-center justify-between gap-3">
                         <div>
@@ -197,14 +205,20 @@ export default function TeacherEventOperations() {
                     </div>
                   )}
 
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <Link
-                      href={`/school/events/${event._id}/manage`}
-                      className="btn btn-primary inline-flex items-center gap-2 font-semibold"
-                    >
-                      Manage Event
-                    </Link>
-                  </div>
+                  {event.canManage ? (
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      <Link
+                        href={`/school/events/${event._id}/manage`}
+                        className="btn btn-primary inline-flex items-center gap-2 font-semibold"
+                      >
+                        Manage Event
+                      </Link>
+                    </div>
+                  ) : (
+                    <p className="mt-4 text-xs text-muted">
+                      Managed by your school. Ask the school office if you should help run it.
+                    </p>
+                  )}
                 </article>
               );
             })}
