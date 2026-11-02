@@ -55,6 +55,7 @@ function shortLabel(name = "") {
     "Parents & Guardians": "Parents",
     "Parent Messages": "Messages",
     "My Workspace": "Workspace",
+    "My Profile": "Profile",
     "Platform Events": "Events",
     "School Events": "Events",
     "School Magazine": "Magazine",

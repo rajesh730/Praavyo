@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState } from "react";
-import { CalendarDays as FaCalendarAlt, Presentation as FaChalkboardTeacher, LoaderCircle as FaSpinner, Users as FaUsers } from "lucide-react";
+import { CalendarDays as FaCalendarAlt, LoaderCircle as FaSpinner, Users as FaUsers } from "lucide-react";
 import { formatShortDate, getEventStage, getStageClasses } from "@/lib/eventUiStatus";
 
 function label(value) {
@@ -59,8 +59,6 @@ export default function TeacherEventOperations() {
   const [error, setError] = useState("");
 
   const loadEvents = useCallback(async () => {
-    setLoading(true);
-    setError("");
     try {
       const res = await fetch("/api/events", { cache: "no-store" });
       const data = await res.json();
@@ -113,23 +111,11 @@ export default function TeacherEventOperations() {
 
   return (
     <div className="space-y-4">
-      <div className="rounded-card border border-line-strong bg-surface p-4 sm:p-5">
-        <div className="mb-5 flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
-          <div>
-            <h2 className="flex items-center gap-2 font-semibold text-ink">
-              <FaChalkboardTeacher className="text-success" />
-              Assigned Events
-            </h2>
-            <p className="mt-1 text-sm text-subtle">
-              Manage rounds, submissions, and student selection for your events.
-            </p>
-          </div>
-        </div>
-
+      <div>
         {error && <p className="mb-4 text-sm text-danger">{error}</p>}
 
         {events.length === 0 ? (
-          <div className="rounded-card border border-line-strong bg-surface p-4 sm:p-5 text-subtle">
+          <div className="card px-5 py-10 text-center text-sm text-muted">
             No assigned events yet. Ask the school admin to assign you as a mentor
             on a school event.
           </div>
@@ -142,7 +128,7 @@ export default function TeacherEventOperations() {
               return (
                 <article
                   key={event._id}
-                  className="rounded-card border border-line-strong bg-surface p-4"
+                  className="card p-4"
                 >
                   <div className="mb-3 flex flex-wrap items-center gap-2">
                     <span

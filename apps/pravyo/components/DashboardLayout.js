@@ -8,6 +8,7 @@ import { Menu as FaBars, X as FaTimes } from 'lucide-react';
 import PravyoLogo from '@/components/brand/PravyoLogo';
 import AuthenticatedPublicLinkGuard from '@/components/AuthenticatedPublicLinkGuard';
 import AppTabBar from '@/components/navigation/AppTabBar';
+import InstallAppButton from '@pravyo/ui/installApp';
 import { getRoleNavigationLinks, isNavLinkActive } from '@/components/navigation/appNavigation';
 
 export default function DashboardLayout({ children }) {
@@ -97,6 +98,7 @@ export default function DashboardLayout({ children }) {
             <p className="truncate text-sm font-semibold leading-tight text-ink">{userName}</p>
             <p className="truncate text-2xs font-medium capitalize leading-tight text-muted">{userRole.toLowerCase()}</p>
           </div>
+          <InstallAppButton />
           <button
             type="button"
             id="dashboard-mobile-nav-toggle"

@@ -6,6 +6,7 @@ import { Menu as FaBars, Search as FaSearch, X as FaTimes } from "lucide-react";
 import PravyoLogo from "@/components/brand/PravyoLogo";
 import PublicRegisterLink from "@/components/public/PublicRegisterLink";
 import MobileTabBar from "@/components/public/MobileTabBar";
+import InstallAppButton from "@pravyo/ui/installApp";
 
 export default function PublicSiteNav({
   active = "home",
@@ -84,6 +85,7 @@ export default function PublicSiteNav({
 
           {/* Desktop CTA buttons */}
           <div className="ml-auto hidden items-center gap-2 md:flex">
+            <span className="hidden xl:inline-flex"><InstallAppButton /></span>
             <Link
               href="/login"
               className="btn btn-secondary btn-sm inline-flex items-center justify-center font-semibold transition-colors"
@@ -97,6 +99,7 @@ export default function PublicSiteNav({
 
           {/* Navigation trigger for screens where the public sidebar is hidden */}
           <div className="ml-auto flex items-center gap-2 xl:hidden">
+            <InstallAppButton />
             {/* Compact search pill */}
             <form
               action={searchAction}

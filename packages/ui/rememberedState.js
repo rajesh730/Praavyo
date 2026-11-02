@@ -32,6 +32,14 @@ export function setRememberedStateOwner(userId) {
   }
 }
 
+/**
+ * Pre-set a remembered value before opening a screen, so a link such as
+ * "Enter marks for Grade 3 English" lands with those filters already chosen.
+ */
+export function rememberValue(key, value) {
+  store.set(key, value);
+}
+
 export function useRememberedState(key, initialValue) {
   const [value, setValue] = useState(() => {
     if (store.has(key)) return store.get(key);

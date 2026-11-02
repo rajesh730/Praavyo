@@ -2,7 +2,7 @@ import './globals.css';
 import './cas.css';
 import { Providers } from './providers';
 import ServiceWorkerRegistrar from '@/components/ServiceWorkerRegistrar';
-import PwaInstallButton from '@/components/PwaInstallButton';
+import { InstallPromptCapture } from '@pravyo/ui/installApp';
 
 const siteUrl =
   process.env.NEXT_PUBLIC_SITE_URL || "https://www.praavyo.com";
@@ -105,8 +105,9 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en" suppressHydrationWarning={true}>
       <body suppressHydrationWarning={true}>
-        {/* First in the body: the install strip sits above every page. */}
-        <PwaInstallButton />
+        {/* Catches the browser's install offer for the "Install app" buttons
+            in each top bar. Renders nothing. */}
+        <InstallPromptCapture />
         <Providers>{children}</Providers>
         <ServiceWorkerRegistrar />
       </body>

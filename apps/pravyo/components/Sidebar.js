@@ -9,6 +9,7 @@ import PravyoLogo from "@/components/brand/PravyoLogo";
 import NavItemLink from "@/components/navigation/NavItemLink";
 import { getRoleNavigationLinks, isNavLinkActive } from "@/components/navigation/appNavigation";
 import useWorkIndicators from "@/lib/client/useWorkIndicators";
+import InstallAppButton from "@pravyo/ui/installApp";
 
 const HREF_INDICATOR_KEYS = {
   "/admin/dashboard?tab=approvals": "admin.approvals",
@@ -281,6 +282,10 @@ export default function Sidebar({
             )}
           </div>
         )}
+        {/* Phones have it in the top bar; the desktop shell has no top bar. */}
+        <div className="mb-1 hidden lg:block">
+          <InstallAppButton className="is-block" />
+        </div>
         <button
           type="button"
           onClick={() => signOut({ callbackUrl: "/login" })}

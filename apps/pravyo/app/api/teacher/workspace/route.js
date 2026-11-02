@@ -28,7 +28,7 @@ export const GET = defineRoute({ roles: ['TEACHER'] }, async ({ session }) => {
   }
 
   const [teacher, membership, schools, assignments, year] = await Promise.all([
-    Teacher.findById(session.user.id).select('name username email').lean(),
+    Teacher.findById(session.user.id).select('name username email phone').lean(),
     TeacherMembership.findOne({ teacher: session.user.id, school }).select('designation').lean(),
     activeSchoolsForTeacher(session.user.id),
     TeacherTeachingAssignment.find({ school, teacher: session.user.id }).lean(),
@@ -89,7 +89,7 @@ export const GET = defineRoute({ roles: ['TEACHER'] }, async ({ session }) => {
   });
 
   return successResponse(200, 'Teacher workspace loaded', {
-    teacher: { name: teacher.name, username: teacher.username || '', email: teacher.email, designation: membership?.designation || '' },
+    teacher: { name: teacher.name, username: teacher.username || '', email: teacher.email, phone: teacher.phone || '', designation: membership?.designation || '' },
     school: { id: String(school), name: session.user.schoolName || schools.find((row) => row.id === String(school))?.name || 'School' },
     canSwitchSchool: schools.length > 1,
     assignments: assignments.map((row) => {
@@ -102,6 +102,9 @@ export const GET = defineRoute({ roles: ['TEACHER'] }, async ({ session }) => {
     examAccess: grants
       .filter((row) => subjectById.has(String(row.subject)))
       .map((row) => ({
+        // Ids let the dashboard open mark entry already filtered to this row.
+        examId: String(row.exam),
+        subjectId: String(row.subject),
         exam: examById.get(String(row.exam)) || 'Exam',
         grade: row.grade,
         subject: subjectTitle(subjectById.get(String(row.subject))),

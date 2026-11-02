@@ -11,6 +11,7 @@ import CasSidebar from './CasSidebar.js';
 import { CAS_NAV_LINKS } from './navigation/casNavigation.js';
 import { casFetch, invalidateCasQueryCache, useCasQuery } from '../lib/client/useCas.js';
 import { configureCasRealtime } from '../lib/client/casSync.js';
+import InstallAppButton from '@pravyo/ui/installApp';
 
 /**
  * The authenticated shell.
@@ -199,7 +200,7 @@ export default function CasLayout({ children, embedded = false }) {
           isMobileOpen={isNavOpen}
           onNavigate={() => setIsNavOpen(false)}
           links={visibleLinks}
-          returnHref={isTeacher ? '/teacher/dashboard' : '/school/dashboard'}
+          returnHref={isTeacher ? '/teacher/dashboard?tab=assessment' : '/school/dashboard'}
         />
 
         <div className="app-main cas-print-flush">
@@ -234,6 +235,7 @@ export default function CasLayout({ children, embedded = false }) {
                 ))}
               </select>
             )}
+            <InstallAppButton />
             <div className="tabs shrink-0" role="group" aria-label="Display language">
               {[
                 ['en', 'EN'],

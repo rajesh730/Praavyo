@@ -10,6 +10,7 @@ import ParentBottomNav, { ParentNavRail } from "./ParentBottomNav";
 import ParentNotificationBell from "./ParentNotificationBell";
 import { ParentNotificationProvider } from "./ParentNotificationContext";
 import styles from "./ParentDesign.module.css";
+import InstallAppButton from "@pravyo/ui/installApp";
 
 export default function ParentAppShell({ children }) {
   const { loading, error, needsChildLink, selectedChildId, childList, selectedChild, simpleMode, t, reload, badges } = useParentApp();
@@ -39,6 +40,7 @@ export default function ParentAppShell({ children }) {
               <strong>Praavyo.</strong><span>{t("home.parentSpace")}</span>
             </Link>
             <div className={styles.tools}>
+              <InstallAppButton />
               {[
                 { href: "/parent/notices", label: t("notices.title"), icon: ClipboardList, count: badges["/parent/notices"] },
               ].map(({ href, label, icon: Icon, count }) => <Link key={href} href={href} aria-label={label} title={label}
