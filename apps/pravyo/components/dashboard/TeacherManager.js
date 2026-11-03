@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useRememberedState } from "@pravyo/ui/rememberedState";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Download as FaDownload, Plus as FaPlus, QrCode, Search as FaSearch, Upload as FaUpload, Settings2 } from "lucide-react";
+import { Download as FaDownload, Plus as FaPlus, QrCode, Search as FaSearch, Upload as FaUpload, Settings2, X } from "lucide-react";
 import { TableSkeleton } from "@/components/Skeletons";
 import PaginationControls from "@/components/PaginationControls";
 import EmptyState from "@/components/EmptyState";
@@ -26,6 +26,16 @@ const STATUS_BADGE = {
   LEFT: "badge badge-neutral",
 };
 const STATUS_LABEL = { ACTIVE: "Active", INACTIVE: "Inactive", LEFT: "Left" };
+const RESPONSIBILITY_OPTIONS = [
+  { value: "CLASS_TEACHER", label: "Class teachers" },
+  { value: "SUBJECT_TEACHER", label: "Subject teachers" },
+  { value: "UNASSIGNED", label: "Not assigned yet" },
+];
+const EMPLOYMENT_OPTIONS = [
+  { value: "FULL_TIME", label: "Full time" },
+  { value: "PART_TIME", label: "Part time" },
+  { value: "CONTRACT", label: "Contract" },
+];
 
 const initialsFor = (name = "Teacher") =>
   name.split(" ").filter(Boolean).slice(0, 2).map((part) => part[0]?.toUpperCase()).join("") || "TR";
@@ -44,7 +54,12 @@ export default function TeacherManager() {
   // Filters and the page are remembered until the page is refreshed.
   const [search, setSearch] = useRememberedState("teachers:search", "");
   const [status, setStatus] = useRememberedState("teachers:status", "CURRENT");
+  const [grade, setGrade] = useRememberedState("teachers:grade", "");
+  const [responsibility, setResponsibility] = useRememberedState("teachers:responsibility", "");
+  const [subject, setSubject] = useRememberedState("teachers:subject", "");
+  const [employment, setEmployment] = useRememberedState("teachers:employment", "");
   const [rememberedPage, setRememberedPage] = useRememberedState("teachers:page", 1);
+  const [filterOptions, setFilterOptions] = useState({ grades: [], subjects: [] });
   const initialPageRef = useRef(rememberedPage);
   const [feedback, setFeedback] = useState(null);
   const [selectedTeacherId, setSelectedTeacherId] = useState(null);
@@ -57,12 +72,20 @@ export default function TeacherManager() {
     setLoading(true);
     setFeedback(null);
     try {
-      const params = new URLSearchParams({ page, limit: 20, status, ...(search && { search }) });
+      const params = new URLSearchParams({
+        page, limit: 20, status,
+        ...(search && { search }),
+        ...(grade && { grade }),
+        ...(responsibility && { responsibility }),
+        ...(subject && { subject }),
+        ...(employment && { employment }),
+      });
       const res = await fetch(`/api/teachers?${params}`, { cache: "no-store" });
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.message || "Failed to load teachers.");
       setTeachers(data.teachers || []);
       setCounts(data.counts || { ACTIVE: 0, INACTIVE: 0, LEFT: 0 });
+      setFilterOptions(data.filterOptions || { grades: [], subjects: [] });
       setPagination(data.pagination || { page: 1, totalPages: 1, totalTeachers: 0, limit: 20 });
       setRememberedPage(data.pagination?.page || page);
     } catch (error) {
@@ -76,7 +99,18 @@ export default function TeacherManager() {
     } finally {
       setLoading(false);
     }
-  }, [search, status, setRememberedPage]);
+  }, [search, status, grade, responsibility, subject, employment, setRememberedPage]);
+
+  const filtered = Boolean(search || grade || responsibility || subject || employment);
+  // Subjects are listed by title; once a grade is picked, only that grade's.
+  const subjectChoices = filterOptions.subjects.filter((entry) => !grade || entry.grades.includes(grade));
+  const clearFilters = () => {
+    setSearch("");
+    setGrade("");
+    setResponsibility("");
+    setSubject("");
+    setEmployment("");
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -152,30 +186,89 @@ export default function TeacherManager() {
         />
       )}
 
-      <div className="card flex flex-col gap-3 p-3 lg:flex-row lg:items-center lg:justify-between">
-        <div className="flex flex-wrap gap-1" role="tablist" aria-label="Teacher status">
-          {FILTERS.map((filter) => (
-            <button
-              key={filter.id}
-              type="button"
-              role="tab"
-              aria-selected={status === filter.id}
-              onClick={() => setStatus(filter.id)}
-              className={`btn btn-sm ${status === filter.id ? "btn-primary" : "btn-ghost"}`}
-            >
-              {filter.label} <span className="ml-1 opacity-75">{filter.count(counts)}</span>
-            </button>
-          ))}
+      <div className="card space-y-3 p-3">
+        <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-wrap gap-1" role="tablist" aria-label="Teacher status">
+            {FILTERS.map((filter) => (
+              <button
+                key={filter.id}
+                type="button"
+                role="tab"
+                aria-selected={status === filter.id}
+                onClick={() => setStatus(filter.id)}
+                className={`btn btn-sm ${status === filter.id ? "btn-primary" : "btn-ghost"}`}
+              >
+                {filter.label} <span className="ml-1 opacity-75">{filter.count(counts)}</span>
+              </button>
+            ))}
+          </div>
+          <div className="relative lg:w-80">
+            <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
+            <input
+              type="text"
+              placeholder="Search name, username, email, phone"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="input w-full pl-11 pr-4"
+            />
+          </div>
         </div>
-        <div className="relative lg:w-80">
-          <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
-          <input
-            type="text"
-            placeholder="Search name, username, email, phone"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="input w-full pl-11 pr-4"
-          />
+        <div className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-[repeat(4,minmax(0,1fr))_auto]">
+          <select
+            value={grade}
+            onChange={(event) => {
+              const next = event.target.value;
+              setGrade(next);
+              if (subject && next && !filterOptions.subjects.some((entry) => entry.title === subject && entry.grades.includes(next))) setSubject("");
+            }}
+            className="input"
+            aria-label="Filter by grade"
+          >
+            <option value="">All grades</option>
+            {filterOptions.grades.map((value) => <option key={value} value={value}>{value}</option>)}
+          </select>
+          <select
+            value={responsibility}
+            onChange={(event) => {
+              setResponsibility(event.target.value);
+              if (event.target.value !== "SUBJECT_TEACHER") setSubject("");
+            }}
+            className="input"
+            aria-label="Filter by responsibility"
+          >
+            <option value="">All responsibilities</option>
+            {RESPONSIBILITY_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+          </select>
+          <select
+            value={subject}
+            onChange={(event) => {
+              setSubject(event.target.value);
+              if (event.target.value) setResponsibility("SUBJECT_TEACHER");
+            }}
+            className="input"
+            aria-label="Filter by subject"
+            disabled={subjectChoices.length === 0}
+          >
+            <option value="">All subjects</option>
+            {subjectChoices.map((entry) => <option key={entry.title} value={entry.title}>{entry.title}</option>)}
+          </select>
+          <select
+            value={employment}
+            onChange={(event) => setEmployment(event.target.value)}
+            className="input"
+            aria-label="Filter by employment type"
+          >
+            <option value="">All employment types</option>
+            {EMPLOYMENT_OPTIONS.map((option) => <option key={option.value} value={option.value}>{option.label}</option>)}
+          </select>
+          <button
+            type="button"
+            onClick={clearFilters}
+            disabled={!filtered}
+            className="btn btn-secondary inline-flex items-center justify-center gap-2"
+          >
+            <X size={14} aria-hidden /> Clear filters
+          </button>
         </div>
       </div>
 
@@ -198,8 +291,8 @@ export default function TeacherManager() {
                 <tr>
                   <td colSpan="5" className="p-6 text-center text-muted">
                     <EmptyState
-                      title={search ? "No teachers match this search" : status === "LEFT" ? "No teachers have left" : "No teachers here yet"}
-                      description={search ? "Try a different name, username, email or phone." : "Add a teacher, then assign their grades and subjects."}
+                      title={filtered ? "No teachers match these filters" : status === "LEFT" ? "No teachers have left" : "No teachers here yet"}
+                      description={filtered ? "Try a different search or clear the filters." : "Add a teacher, then assign their grades and subjects."}
                     />
                   </td>
                 </tr>
