@@ -7,6 +7,7 @@ import AcademicYearManager from "@/components/school/AcademicYearManager";
 import CalendarToggle from "@/components/common/CalendarToggle";
 import WebsiteApiKeysPanel from "@/components/settings/WebsiteApiKeysPanel";
 import ReportCardImagesPanel from "@/components/settings/ReportCardImagesPanel";
+import IemisSettingsPanel from "@/components/settings/IemisSettingsPanel";
 
 const defaultConfig = {
   schoolName: "",
@@ -94,9 +95,10 @@ function buildSettingsPatch(current, saved) {
     "website",
     "establishedYear",
   ];
+  // The IEMIS number is edited and saved in its own section
+  // (IemisSettingsPanel), never through this form.
   const configFields = [
     "schoolCode",
-    "iemisNumber",
     "city",
     "state",
     "pincode",
@@ -547,6 +549,16 @@ export default function SchoolSettingsManager() {
       )}
 
       {activeSettingsTab === "profile" && (
+        <IemisSettingsPanel
+          value={savedConfig.iemisNumber}
+          onSaved={(iemisNumber) => {
+            setConfig((current) => ({ ...current, iemisNumber }));
+            setSavedConfig((current) => ({ ...current, iemisNumber }));
+          }}
+        />
+      )}
+
+      {activeSettingsTab === "profile" && (
       <div className="grid gap-4 md:grid-cols-3">
         <StatCard
           label="Students"
@@ -600,27 +612,6 @@ export default function SchoolSettingsManager() {
                   onChange={handleChange}
                   className="input w-full"
                 />
-              </div>
-              <div>
-                <label className="mb-2 block text-sm font-medium text-ink">
-                  School IEMIS registration number <span className="text-danger">*</span>
-                </label>
-                <input
-                  type="text"
-                  name="iemisNumber"
-                  value={config.iemisNumber}
-                  maxLength={50}
-                  placeholder="IEMIS number issued by the government"
-                  onChange={handleChange}
-                  className="input w-full"
-                />
-                {config.iemisNumber ? (
-                  <p className="mt-1 text-xs text-muted">Issued by the government. Printed on every report card.</p>
-                ) : (
-                  <p className="mt-1 text-xs font-medium text-warning">
-                    Not entered yet. Your report cards show &quot;—&quot; until you add it. You can save your other settings now and add it later.
-                  </p>
-                )}
               </div>
               <div>
                 <label className="mb-2 block text-sm font-medium text-ink">
