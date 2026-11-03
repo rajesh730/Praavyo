@@ -19,7 +19,7 @@ export default function InternalExamReport({ report, lang = 'en' }) {
 
   const pick = picker(lang);
   const subjects = s.subjects || [];
-  const { logoUrl, reportImageUrl, principalName, classTeachers } = report.branding || {};
+  const { logoUrl, reportImageUrl, principalName, classTeachers, schoolIemis, studentIemis } = report.branding || {};
   const issueDate = issueDateOf(report);
   // The remark follows the result: the grade band's own words when passed,
   // otherwise the subjects that were not passed.
@@ -67,7 +67,9 @@ export default function InternalExamReport({ report, lang = 'en' }) {
           <Detail label="Class" value={s.student?.grade} />
           <Detail label="Roll No." value={s.student?.rollNumber} />
           {s.student?.section ? <Detail label="Section" value={s.student.section} /> : null}
-          {s.school?.iemisNumber ? <Detail label="IEMIS No." value={s.school.iemisNumber} /> : null}
+          {/* Both government IEMIS numbers, live from the records. */}
+          <Detail label="Student IEMIS No." value={studentIemis || s.student?.iemisNumber} />
+          <Detail label="School IEMIS No." value={schoolIemis || s.school?.iemisNumber} />
           <Detail label="Academic Year" value={s.academicYear?.label} />
         </dl>
 

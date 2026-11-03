@@ -93,8 +93,8 @@ const EnhancedStudentRegistration = ({ schoolId, onSuccess }) => {
     setSuccess("");
     
     // Validation
-    if (!formData.fullName || !formData.grade || !formData.rollNumber || !formData.registrationNumber.trim()) {
-      setError("Please fill in all required student details (Name, Grade, Roll Number, Registration Number)");
+    if (!formData.fullName || !formData.grade || !formData.rollNumber || !formData.registrationNumber.trim() || !formData.iemisNumber.trim()) {
+      setError("Please fill in all required student details (Name, Grade, Roll Number, Registration Number, Student IEMIS Number)");
       return;
     }
     if (gradeSectionOptions.length && !formData.section) {
@@ -262,6 +262,7 @@ const EnhancedStudentRegistration = ({ schoolId, onSuccess }) => {
             if (!fullName) missing.push("FullName");
             if (!rollNumber) missing.push("RollNumber");
             if (!registrationNumber) missing.push("RegistrationNumber");
+            if (!iemisNumber) missing.push("IEMISNumber");
             if (!grade) missing.push("Grade");
 
             if (missing.length > 0) {
@@ -317,7 +318,7 @@ const EnhancedStudentRegistration = ({ schoolId, onSuccess }) => {
                 throw new Error("Your file has no data rows. Add students below the header row and try again.");
             }
             setBulkResult({ success: [], failed: invalid });
-            setError("No students could be uploaded. Your column headers may not match the template, or required cells (FullName, RollNumber, RegistrationNumber, Grade) are empty. Use \"Download Template\" and compare your headings.");
+            setError("No students could be uploaded. Your column headers may not match the template, or required cells (FullName, RollNumber, RegistrationNumber, IEMISNumber, Grade) are empty. Use \"Download Template\" and compare your headings.");
             scrollToTop();
             return;
         }
@@ -645,11 +646,13 @@ const EnhancedStudentRegistration = ({ schoolId, onSuccess }) => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-muted mb-1">IEMIS Number</label>
+                <label className="block text-sm font-medium text-muted mb-1">Student IEMIS Number *</label>
                 <input
                   type="text"
                   value={formData.iemisNumber}
                   maxLength={50}
+                  required
+                  placeholder="Government-issued, unique to this student"
                   onChange={(e) => setFormData({...formData, iemisNumber: e.target.value.toUpperCase()})}
                   className="input w-full"
                 />
@@ -814,7 +817,7 @@ const EnhancedStudentRegistration = ({ schoolId, onSuccess }) => {
                     <span className="text-danger">FullName*</span>, 
                     <span className="text-danger"> RollNumber*</span>, 
                     <span className="text-danger"> RegistrationNumber*</span>, 
-                    <span className="text-brand-strong"> IEMISNumber</span>, 
+                    <span className="text-danger"> IEMISNumber*</span>, 
                     <span className="text-danger"> Grade*</span>, 
                     <span className="text-brand-strong"> Section</span>, 
                     <span className="text-brand-strong"> Gender</span>, 

@@ -191,9 +191,10 @@ export default function CasLayout({ children, embedded = false, area = 'cas' }) 
 
   const isTeacher = context?.actor?.role === 'TEACHER';
   const areaLinks = area === 'internal' ? INTERNAL_EXAM_NAV_LINKS : [...CAS_NAV_LINKS, CAS_TO_INTERNAL_LINK];
-  // Teachers enter marks only: CAS Assessment and Internal Exam mark entry.
+  // Teachers: CAS Assessment, Student Progress (their own students only, see
+  // casProgressAccess) and Internal Exam mark entry.
   const visibleLinks = isTeacher
-    ? (area === 'internal' ? [INTERNAL_EXAM_NAV_LINKS[0], INTERNAL_EXAM_NAV_LINKS.at(-1)] : [CAS_NAV_LINKS[0], CAS_TO_INTERNAL_LINK])
+    ? (area === 'internal' ? [INTERNAL_EXAM_NAV_LINKS[0], INTERNAL_EXAM_NAV_LINKS.at(-1)] : [CAS_NAV_LINKS[0], CAS_NAV_LINKS[1], CAS_TO_INTERNAL_LINK])
     : areaLinks;
   const tabLinks = visibleLinks.slice(0, 4);
   const isLinkActive = (link) =>

@@ -338,6 +338,7 @@ function snapshotFor({ school, exam, year, student }) {
       section: student.section,
       rollNumber: student.rollNumber,
       registrationNumber: student.registrationNumber,
+      iemisNumber: student.iemisNumber || '',
     },
     subjects: result.subjects,
     fullMarks: result.fullMarks,

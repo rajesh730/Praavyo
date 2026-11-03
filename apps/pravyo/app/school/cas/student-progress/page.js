@@ -27,27 +27,29 @@ function progressSheet(progress) {
 
 export default function StudentProgressPage() {
   const { school, academicYear, t } = useCas();
-  const grades = school?.grades || [];
   // Filters are remembered until the page is refreshed.
   const [chosenGrade, setGrade] = useRememberedState('cas-progress:grade', '');
   const [subjectId, setSubject] = useRememberedState('cas-progress:subject', '');
   const [studentId, setStudent] = useRememberedState('cas-progress:student', '');
   const [chosenSection, setSection] = useRememberedState('cas-progress:section', '');
-  const grade = (grades.includes(chosenGrade) && chosenGrade) || grades[0] || '';
-  const sections = sectionsForGrade(school?.gradeSections, grade);
-  const section = sections.includes(chosenSection) ? chosenSection : '';
 
-  const curriculum = useCasQuery(
-    grade ? `/api/cas/curriculum?grade=${encodeURIComponent(grade)}` : null,
-  );
-  const students = useCasQuery(
-    grade && academicYear?.id
-      ? `/api/cas/students?grade=${encodeURIComponent(grade)}&academicYear=${academicYear.id}${section ? `&section=${encodeURIComponent(section)}` : ''}`
+  // Grades, subjects and students this person may see: everything for the
+  // school, only their own grades and subjects for a teacher.
+  const options = useCasQuery(
+    academicYear?.id
+      ? `/api/cas/progress/options?${new URLSearchParams({
+          academicYear: academicYear.id,
+          ...(chosenGrade ? { grade: chosenGrade } : {}),
+          ...(chosenSection ? { section: chosenSection } : {}),
+        })}`
       : null,
   );
-
-  const subjects = curriculum.data || [];
-  const roster = students.data || [];
+  const grades = options.data?.grades || [];
+  const grade = options.data?.grade || '';
+  const sections = sectionsForGrade(school?.gradeSections, grade);
+  const section = sections.includes(chosenSection) ? chosenSection : '';
+  const subjects = options.data?.subjects || [];
+  const roster = options.data?.students || [];
   const subject = subjects.some((item) => item.id === subjectId)
     ? subjectId
     : subjects[0]?.id || '';
@@ -65,11 +67,11 @@ export default function StudentProgressPage() {
       : null;
   const progress = useCasQuery(progressPath);
 
-  const loading = curriculum.loading || students.loading || progress.loading;
+  const loading = options.loading || progress.loading;
   // Grades 6-10 have no agreed result rule yet, so no sheet is computed.
   const resultAvailable = progress.data?.resultAvailable !== false;
   const sheet = progress.data && resultAvailable ? progressSheet(progress.data) : null;
-  const error = curriculum.error || students.error || progress.error;
+  const error = options.error || progress.error;
 
   function resetGrade(value) {
     setGrade(value);
@@ -92,7 +94,7 @@ export default function StudentProgressPage() {
         <div className="grid items-end gap-3 lg:grid-cols-4">
           <Field label={t('Grade', 'Grade')}>
             <Select value={grade} onChange={(event) => resetGrade(event.target.value)}>
-              {grades.length === 0 && <option value="">No grades configured</option>}
+              {grades.length === 0 && <option value="">{t('No grades to show', 'कक्षा छैन')}</option>}
               {grades.map((item) => (
                 <option key={item} value={item}>{item}</option>
               ))}
@@ -110,7 +112,7 @@ export default function StudentProgressPage() {
           <Field label={t('Student', 'Student')}>
             <Select
               value={student}
-              disabled={!roster.length || students.loading}
+              disabled={!roster.length || options.loading}
               onChange={(event) => setStudent(event.target.value)}
             >
               {!roster.length && <option value="">Choose grade first</option>}
@@ -125,7 +127,7 @@ export default function StudentProgressPage() {
           <Field label={t('Subject', 'Subject')}>
             <Select
               value={subject}
-              disabled={!subjects.length || curriculum.loading}
+              disabled={!subjects.length || options.loading}
               onChange={(event) => setSubject(event.target.value)}
             >
               {!subjects.length && <option value="">Choose grade first</option>}

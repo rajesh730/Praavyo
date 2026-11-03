@@ -603,16 +603,24 @@ export default function SchoolSettingsManager() {
               </div>
               <div>
                 <label className="mb-2 block text-sm font-medium text-ink">
-                  School IEMIS number
+                  School IEMIS registration number <span className="text-danger">*</span>
                 </label>
                 <input
                   type="text"
                   name="iemisNumber"
                   value={config.iemisNumber}
                   maxLength={50}
+                  placeholder="IEMIS number issued by the government"
                   onChange={handleChange}
                   className="input w-full"
                 />
+                {config.iemisNumber ? (
+                  <p className="mt-1 text-xs text-muted">Issued by the government. Printed on every report card.</p>
+                ) : (
+                  <p className="mt-1 text-xs font-medium text-warning">
+                    Not entered yet. Your report cards show &quot;—&quot; until you add it. You can save your other settings now and add it later.
+                  </p>
+                )}
               </div>
               <div>
                 <label className="mb-2 block text-sm font-medium text-ink">

@@ -17,7 +17,7 @@ export default function ClassicReport({ report, lang = 'en' }) {
 
   const t = stringsFor(lang);
   const pick = picker(lang);
-  const { logoUrl, reportImageUrl, principalName, classTeachers } = report.branding || {};
+  const { logoUrl, reportImageUrl, principalName, classTeachers, schoolIemis, studentIemis } = report.branding || {};
 
   return (
     // cas-a4-fit + cas-a4-foot hold the signatures at the foot of the page.
@@ -64,8 +64,10 @@ export default function ClassicReport({ report, lang = 'en' }) {
         <Item label={t.student} value={s.student?.name} />
         <Item label={t.grade} value={s.student?.grade} />
         <Item label={t.roll} value={s.student?.rollNumber || '—'} />
-        {s.school?.iemisNumber ? <Item label="School IEMIS No." value={s.school.iemisNumber} /> : null}
         {s.student?.section ? <Item label="Section" value={s.student.section} /> : null}
+        {/* Both government IEMIS numbers, live from the records. */}
+        <Item label="Student IEMIS No." value={studentIemis || s.student?.iemisNumber} />
+        <Item label="School IEMIS No." value={schoolIemis || s.school?.iemisNumber} />
       </dl>
 
       <table className="mb-4 w-full border-collapse text-sm">

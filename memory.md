@@ -106,6 +106,75 @@ words if passed, else "Needs improvement in: <subjects>"), not fixed text.
 - Not built (owner: later): theory / practical / internal-assessment split,
   combining terminals into a final result, guardian notification on publish.
 
+### Student Progress for teachers and parents (owner rule)
+- Everyone sees CAS progress, but only their own students
+  (`packages/cas/lib/casProgressAccess.js`):
+  - school admin: every Grades 1–5 student and subject;
+  - teacher: only grades they teach — `CLASS_TEACHER` (Teachers page) sees
+    every subject of the grade, a subject teacher (`SUBJECT_TEACHER` or a CAS
+    exam assignment) only their subjects; enforced on the server in
+    `loadStudentSubjectProgress` (`assertProgressAccess`), and the screen's
+    dropdowns come from `GET /api/cas/progress/options`;
+  - parent: only their own linked child (`requireParentChild`, portfolio
+    permission) via `GET /api/parent/progress` → `loadChildProgress`, which
+    returns each subject the child takes, theme achievement and the level per
+    outcome — nothing internal (no remarks, attempts or dates).
+- Teachers reach Student Progress from the CAS sidebar and a card on their
+  dashboard Assessment tab. Parents reach it from the Learning tab:
+  "Results | Progress" switch (`/parent/learning/cas`, `/parent/learning/progress`).
+- Progress is live (updates as teachers assess) and Grades 1–5 only; a
+  Grades 6–10 child sees a note pointing to Results.
+
+### IEMIS numbers are compulsory (owner rule)
+- **School:** registers with its government IEMIS number — field "School
+  IEMIS Registration Number *" on `/register` (replaced the unused
+  "Registration Number" field) → `SchoolConfig.iemisNumber`. Compulsory and
+  unique across schools; Settings can change but never clear a saved one.
+- **Schools registered before the rule:** a pop-up on the dashboard
+  (`components/school/IemisReminder.js`, mounted in `DashboardLayout` for
+  SCHOOL_ADMIN) asks for the number; "Later" hides it for the browser session
+  (sessionStorage) and it returns on the next visit until saved. Saves via
+  `PATCH /api/school/settings/iemis`. Settings keeps the field, and a school
+  with no number yet can still save its other settings ("add it later").
+- **Student:** "Student IEMIS Number *" on single registration, the CSV
+  import (`IEMISNumber*` column) and the edit form. Compulsory and **unique
+  across the whole platform** (it follows the student between schools); the
+  same number twice in one import file is refused.
+- One server rule for all paths: `apps/pravyo/lib/iemisRegistry.js`
+  (`checkStudentIemis`, `checkSchoolIemis`; format in `lib/iemis.js`:
+  letters, digits, hyphens, ≤ 50). Applied in `/api/register`,
+  `/api/school/settings`, `/api/students` (bulk + single),
+  `/api/students/register`, `/api/students/bulk-register`, `/api/students/[id]`.
+- Uniqueness is checked in the app, not by a database index (no index was
+  created on the live database).
+- Live data on 2026-11-03: 3 schools, 148 students, **none** had an IEMIS
+  number. Existing records keep working (logins, results); a student must get
+  a number before their record can be edited again.
+- **Report cards** (CAS Classic and internal exam) always print "Student IEMIS
+  No." and "School IEMIS No.", read live via `withBranding`
+  (`schoolIemis`, `studentIemis`), so numbers entered later appear on cards
+  made earlier; "—" until entered.
+
+### Tejaswee Pathshala roster imported (production, 2026-11-03)
+- Owner's request. Source: government IEMIS "Control List Report" sheets
+  `grade 1.xlsx` … `grade 5.xlsx` (repo root). Script
+  `scripts/import-tejaswee-students.mjs` (`--dry-run` / `--apply`; refuses if
+  the school already has students or any IEMIS number is taken).
+- Written: school IEMIS **26011002772**; **188 students** (G1 42, G2 41,
+  G3 40, G4 40, G5 25) enrolled in year 2026-27 (2083), roll number = S.N. of
+  the sheet (alphabetical), student IEMIS = sheet "Student Id", gender, DOB
+  (B.S. → A.D.), username `firstname.gN.roll`, random password; no section,
+  no registration number (not in the sheets). **367 guardians**: father as
+  primary (184), mother as second guardian (183), view + notices only, no
+  Parent Access Card issued, no contacts. Five students had no parent names
+  in the sheet (Reyansh Awal G2, Aayan Giri G3, Pratik Karki G3, Anushka
+  Kumari G5; Amit Kumar Jaiswal G4 has no mother).
+- Siblings were NOT merged into one guardian (no phone numbers to match on;
+  same rule as `lib/guardianLinking.js`).
+- Student passwords were given to the owner once in a credentials CSV (not
+  in the repo). Tejaswee's CAS subjects exist for Grades 1–3 only (library);
+  Grades 4–5 need subjects before CAS or internal exams can run there.
+
 ### Smaller fixes the same day
 - CAS filter rows always show **Section** (disabled "No sections" when the
   grade has none) on Assessment, Attendance/Extra Activities and Student

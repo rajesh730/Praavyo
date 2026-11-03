@@ -578,7 +578,7 @@ export async function loadGradeReportCards(actor, input) {
       const identity = { id: student.id, name: student.name, rollNumber: student.rollNumber || '' };
       const stored = reportByStudent.get(student.id);
       if (stored?.status === 'PUBLISHED') {
-        return { ...identity, status: 'PUBLISHED', report: { ...serializeReport(stored), branding } };
+        return { ...identity, status: 'PUBLISHED', report: { ...serializeReport(stored), branding: { ...branding, studentIemis: student.iemisNumber || '' } } };
       }
       const result = computeResult(
         curriculumFor(curriculum, student),
@@ -595,7 +595,7 @@ export async function loadGradeReportCards(actor, input) {
         fullyAssessed: result.total.fullyAssessed,
         report: {
           id: null,
-          branding,
+          branding: { ...branding, studentIemis: student.iemisNumber || '' },
           student: student.id,
           grade: data.grade,
           status: 'PREVIEW',

@@ -6,6 +6,7 @@ import User from "@/models/User";
 import SchoolConfig from "@/models/SchoolConfig";
 import { buildGradeLabels, normalizeSchoolLevelConfig } from "@/lib/schoolGrades";
 import { sendSchoolRegistrationReceivedEmail } from "@/lib/emailService";
+import { checkSchoolIemis } from "@/lib/iemisRegistry";
 
 function getCurrentNepaliYearApprox() {
   const today = new Date();
@@ -46,6 +47,7 @@ export async function POST(req) {
       website,
       establishedYear,
       establishedYearCalendar = "AD",
+      iemisNumber: submittedIemisNumber,
       schoolConfig: submittedSchoolConfig,
     } = await req.json();
 
@@ -107,6 +109,13 @@ export async function POST(req) {
 
     await connectDB();
 
+    // Every school registers with the IEMIS number the government issued it;
+    // compulsory and unique across schools (lib/iemisRegistry.js).
+    const { iemisNumber, error: iemisError } = await checkSchoolIemis(submittedIemisNumber);
+    if (iemisError) {
+      return NextResponse.json({ message: iemisError }, { status: 400 });
+    }
+
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return NextResponse.json(
@@ -148,6 +157,7 @@ export async function POST(req) {
       { school: newUser._id },
       {
         school: newUser._id,
+        iemisNumber,
         grades,
         educationLevels,
         schoolConfig,

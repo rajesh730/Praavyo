@@ -6,7 +6,7 @@ import SchoolShowcaseProfile from "@/models/SchoolShowcaseProfile";
 import Student from "@/models/Student";
 import TeacherMembership from "@pravyo/db/models/TeacherMembership";
 import { buildGradeLabels } from "@/lib/schoolGrades";
-import { isValidIemisNumber, normalizeIemisNumber } from "@/lib/iemis";
+import { checkSchoolIemis } from "@/lib/iemisRegistry";
 import { recordSettingsAudit } from "@/lib/settingsAudit";
 import {
   errorResponse,
@@ -194,6 +194,23 @@ export async function PUT(req) {
       userUpdate.establishedYear = year ? numericYear : null;
     }
 
+    // Checked before anything is saved: the school's IEMIS registration
+    // number is unique across schools and, once saved, cannot be cleared.
+    // A school registered before it became compulsory may leave it empty
+    // ("enter it later") and still save its other settings.
+    let checkedIemis = null;
+    if (configBody.iemisNumber !== undefined) {
+      const submitted = String(configBody.iemisNumber || "").trim();
+      const hasSaved = submitted
+        ? false
+        : await SchoolConfig.exists({ school: session.user.id, iemisNumber: { $nin: ["", null] } });
+      if (submitted || hasSaved) {
+        const { iemisNumber, error: iemisError } = await checkSchoolIemis(configBody.iemisNumber, { exceptSchool: session.user.id });
+        if (iemisError) return validationError(iemisError);
+        checkedIemis = iemisNumber;
+      }
+    }
+
     const updatedUser =
       Object.keys(userUpdate).length > 0
         ? await User.findByIdAndUpdate(session.user.id, userUpdate, {
@@ -206,13 +223,7 @@ export async function PUT(req) {
     if (configBody.schoolCode !== undefined) {
       configUpdate.schoolCode = cleanText(configBody.schoolCode);
     }
-    if (configBody.iemisNumber !== undefined) {
-      const iemisNumber = normalizeIemisNumber(configBody.iemisNumber);
-      if (!isValidIemisNumber(iemisNumber)) {
-        return validationError("IEMIS number may contain letters, numbers, and hyphens only (up to 50 characters).");
-      }
-      configUpdate.iemisNumber = iemisNumber;
-    }
+    if (checkedIemis !== null) configUpdate.iemisNumber = checkedIemis;
     if (configBody.city !== undefined) configUpdate.city = cleanText(configBody.city);
     if (configBody.state !== undefined) configUpdate.state = cleanText(configBody.state);
     if (configBody.pincode !== undefined) configUpdate.pincode = cleanText(configBody.pincode);

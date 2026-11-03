@@ -17,6 +17,7 @@ jest.mock("@/models/SchoolConfig", () => ({
   default: {
     findOne: jest.fn(),
     findOneAndUpdate: jest.fn(),
+    exists: jest.fn().mockResolvedValue(null),
   },
 }));
 jest.mock("@/models/Student", () => ({
@@ -178,6 +179,33 @@ describe("school settings credentials and persistence", () => {
       expect.objectContaining({ new: true, upsert: true, runValidators: true })
     );
     expect(json.data.config.iemisNumber).toBe("IEMIS-2083-0001");
+  });
+
+  it("lets a school without an IEMIS number save other settings and enter it later", async () => {
+    SchoolConfig.findOneAndUpdate.mockResolvedValue({ schoolCode: "NEW", iemisNumber: "", teacherRoles: [] });
+    const response = await PUT(request({ config: { schoolCode: "NEW", iemisNumber: "" } }));
+    expect(response.status).toBe(200);
+    expect(SchoolConfig.findOneAndUpdate).toHaveBeenCalledWith(
+      { school: "school-1" },
+      expect.not.objectContaining({ iemisNumber: expect.anything() }),
+      expect.anything()
+    );
+  });
+
+  it("refuses to clear a saved school IEMIS registration number", async () => {
+    SchoolConfig.exists.mockResolvedValueOnce({ _id: "config-1" });
+    const response = await PUT(request({ config: { iemisNumber: "  " } }));
+    expect(response.status).toBe(400);
+    expect((await response.json()).message).toMatch(/IEMIS registration number is required/);
+    expect(SchoolConfig.findOneAndUpdate).not.toHaveBeenCalled();
+  });
+
+  it("refuses an IEMIS registration number another school already holds", async () => {
+    SchoolConfig.exists.mockResolvedValueOnce({ _id: "other" });
+    const response = await PUT(request({ config: { iemisNumber: "IEMIS-2083-0001" } }));
+    expect(response.status).toBe(400);
+    expect((await response.json()).message).toMatch(/already registered to another school/);
+    expect(SchoolConfig.exists).toHaveBeenCalledWith({ iemisNumber: "IEMIS-2083-0001", school: { $ne: "school-1" } });
   });
 
   it("rejects invalid profile values even when client validation is bypassed", async () => {

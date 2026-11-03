@@ -65,7 +65,8 @@ export default function RegisterPage() {
     customAffiliation: "",
     establishedYear: "",
     establishedYearCalendar: "AD",
-    registrationNumber: "",
+    // The school's IEMIS registration number, issued by the government.
+    iemisNumber: "",
     schoolPhone: "",
     schoolEmail: "",
 
@@ -143,6 +144,10 @@ export default function RegisterPage() {
           );
           if (yearError) errors.establishedYear = yearError;
         }
+        if (!formData.iemisNumber.trim())
+          errors.iemisNumber = "School IEMIS registration number is required";
+        else if (!/^[A-Za-z0-9-]{1,50}$/.test(formData.iemisNumber.trim()))
+          errors.iemisNumber = "Use letters, numbers and hyphens only";
         if (!formData.schoolPhone.trim())
           errors.schoolPhone = "School phone is required";
         if (!formData.schoolEmail.trim())
@@ -464,17 +469,23 @@ export default function RegisterPage() {
 
           <div>
             <label className="block text-sm font-medium text-ink mb-2">
-              Registration Number
+              School IEMIS Registration Number <span className="text-danger">*</span>
             </label>
             <input
               type="text"
-              className="input w-full"
-              value={formData.registrationNumber}
+              className={errors.iemisNumber ? "input input-invalid w-full" : "input w-full"}
+              value={formData.iemisNumber}
               onChange={(e) =>
-                updateFormData({ registrationNumber: e.target.value })
+                updateFormData({ iemisNumber: e.target.value })
               }
-              placeholder="Official registration number"
+              placeholder="IEMIS number issued by the government"
+              autoComplete="off"
             />
+            {errors.iemisNumber ? (
+              <p className="text-danger text-sm mt-1">{errors.iemisNumber}</p>
+            ) : (
+              <p className="mt-1 text-xs text-muted">Printed on every report card. Each school&apos;s IEMIS number can be registered only once.</p>
+            )}
           </div>
         </div>
 

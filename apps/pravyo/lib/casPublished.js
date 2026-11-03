@@ -46,7 +46,7 @@ export async function publishedCas(request) {
     { kind: 'INTERNAL', collection: 'internalexamreports' },
   ];
   const projection = reportId
-    ? { snapshot: 1, format: 1, status: 1, publishedAt: 1, school: 1 }
+    ? { snapshot: 1, format: 1, status: 1, publishedAt: 1, school: 1, student: 1 }
     // The list view needs only enough to render a link, so the full
     // per-outcome detail is not shipped to the browser until a report is opened.
     : { 'snapshot.academicYear.label': 1, 'snapshot.examTitle': 1, 'snapshot.student.name': 1,

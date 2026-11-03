@@ -10,7 +10,7 @@ import { normalizeGradeValue } from '@/lib/schoolGrades';
 import { getSessionSchoolId, requireApiSession } from '@/lib/authz';
 import { syncGuardianFromStudentRecord } from '@/lib/guardianLinking';
 import { resolveStudentSection } from '@/lib/gradeSections';
-import { isValidIemisNumber, normalizeIemisNumber } from '@/lib/iemis';
+import { checkStudentIemis } from '@/lib/iemisRegistry';
 
 export async function PUT(req, { params }) {
     try {
@@ -97,12 +97,13 @@ export async function PUT(req, { params }) {
             }
         }
 
-        const normalizedIemisNumber =
-            iemisNumber !== undefined
-                ? normalizeIemisNumber(iemisNumber)
-                : existingStudent.iemisNumber || '';
-        if (!isValidIemisNumber(normalizedIemisNumber)) {
-            return NextResponse.json({ message: 'IEMIS number may contain letters, numbers, and hyphens only (up to 50 characters)' }, { status: 400 });
+        // Compulsory and unique: a student saved without one must get it now.
+        const { iemisNumber: normalizedIemisNumber, error: iemisError } = await checkStudentIemis(
+            iemisNumber !== undefined ? iemisNumber : existingStudent.iemisNumber,
+            { exceptStudent: existingStudent._id },
+        );
+        if (iemisError) {
+            return NextResponse.json({ message: iemisError }, { status: iemisError.includes('already') ? 409 : 400 });
         }
 
         // 3. Check for Email Uniqueness (if changed and provided)

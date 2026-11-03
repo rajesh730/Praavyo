@@ -952,10 +952,11 @@ export default function StudentManager({ initialGrade, hideGradeFilter = false }
                 />
               </div>
               <div>
-                <label className="block text-xs text-subtle mb-1">IEMIS Number</label>
+                <label className="block text-xs text-subtle mb-1">Student IEMIS Number *</label>
                 <input
                   type="text"
                   maxLength={50}
+                  required
                   value={editingStudent.iemisNumber || ""}
                   onChange={(e) => setEditingStudent({ ...editingStudent, iemisNumber: e.target.value.toUpperCase() })}
                   className="input w-full"

@@ -9,7 +9,8 @@ import CasReport from '@pravyo/db/models/cas/CasReport';
 import CasExam from '@pravyo/db/models/cas/CasExam';
 import CasThemeExam from '@pravyo/db/models/cas/CasThemeExam';
 import ensureCasIndexes from './casIndexes.js';
-import { assert, requireSchoolAdmin, sameId } from './casAccess.js';
+import { assert, sameId } from './casAccess.js';
+import { assertProgressAccess } from './casProgressAccess.js';
 import { assertTeacherExamAssignment } from './casTeacherAssignmentService.js';
 import { sheetInput, sheetQuery, studentProgressQuery, themesQuery } from './casValidation.js';
 import {
@@ -208,8 +209,19 @@ export async function loadStudentSheet(actor, input) {
 }
 
 /** Summarize one student's progress across every assessable theme in a subject. */
+/**
+ * Student Progress for one student and subject. The school sees everyone; a
+ * teacher only the grades and subjects they teach (casProgressAccess).
+ */
 export async function loadStudentSubjectProgress(actor, input) {
-  requireSchoolAdmin(actor);
+  const data = studentProgressQuery.parse(input);
+  await connectDB();
+  await assertProgressAccess(actor, data);
+  return buildStudentSubjectProgress(actor, data);
+}
+
+/** The progress itself, with no access check — callers authorise first. */
+export async function buildStudentSubjectProgress(actor, input) {
   const data = studentProgressQuery.parse(input);
   await connectDB();
   const year = await loadAcademicYear(actor, data.academicYear);

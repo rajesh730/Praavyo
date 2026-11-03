@@ -21,7 +21,7 @@ import {
 import bcrypt from "bcryptjs";
 import { generateStrongPassword } from "../../../../lib/passwordGenerator.js";
 import { linkGuardianFromStudentRecord } from "../../../../lib/guardianLinking.js";
-import { isValidIemisNumber, normalizeIemisNumber } from "../../../../lib/iemis.js";
+import { checkStudentIemis } from "@/lib/iemisRegistry";
 
 export async function POST(req) {
   try {
@@ -46,6 +46,7 @@ export async function POST(req) {
     };
     const reservedUsernames = new Set();
     const reservedRegistrations = new Set();
+    const reservedIemis = new Set();
     const academicYear = await ensureActiveAcademicYear(schoolId);
     const schoolNameSnapshot =
       session.user.schoolName || session.user.name || "";
@@ -58,9 +59,11 @@ export async function POST(req) {
           throw new Error("Missing required fields (First Name, Last Name, Grade, Roll Number)");
         }
         const normalizedRegistrationNumber = String(studentData.registrationNumber || "").trim();
-        const normalizedIemisNumber = normalizeIemisNumber(studentData.iemisNumber);
-        if (!isValidIemisNumber(normalizedIemisNumber)) {
-          throw new Error("IEMIS number may contain letters, numbers, and hyphens only (up to 50 characters)");
+        // Compulsory and unique, in the platform and within this file.
+        const { iemisNumber: normalizedIemisNumber, error: iemisError } = await checkStudentIemis(studentData.iemisNumber);
+        if (iemisError) throw new Error(iemisError);
+        if (reservedIemis.has(normalizedIemisNumber)) {
+          throw new Error(`Student IEMIS number ${normalizedIemisNumber} appears twice in this file`);
         }
         if (!normalizedRegistrationNumber) {
           throw new Error("Missing required field: Registration Number");
@@ -156,6 +159,7 @@ export async function POST(req) {
 
         await newStudent.save();
         reservedRegistrations.add(normalizedRegistrationNumber);
+        reservedIemis.add(normalizedIemisNumber);
 
         // The school named this parent on the registration sheet, so treat it
         // as an authentic guardian relationship and link it now. Never throws;

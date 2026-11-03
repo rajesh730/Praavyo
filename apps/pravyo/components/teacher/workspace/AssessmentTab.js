@@ -2,20 +2,39 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ClipboardCheck, FileSpreadsheet, PenLine } from 'lucide-react';
+import { ClipboardCheck, FileSpreadsheet, LineChart, PenLine } from 'lucide-react';
 import { byGrade, EmptyNote, openMarkEntry } from './shared';
 
-/** The school's own written exams: marks for the subjects this teacher teaches. */
-function InternalExamLink() {
+function WorkspaceLink({ href, icon: Icon, title, text }) {
   return (
-    <Link href="/school/internal-exam/marks" className="card flex items-center gap-3 p-4 transition hover:border-brand">
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-card bg-brand-soft text-brand"><FileSpreadsheet aria-hidden size={20} /></span>
+    <Link href={href} className="card flex items-center gap-3 p-4 transition hover:border-brand">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-card bg-brand-soft text-brand"><Icon aria-hidden size={20} /></span>
       <span className="min-w-0 flex-1">
-        <span className="block font-semibold text-ink">Internal exam marks</span>
-        <span className="block text-sm text-muted">Terminal exams set by the school, Grades 1–10. Enter marks for your subjects.</span>
+        <span className="block font-semibold text-ink">{title}</span>
+        <span className="block text-sm text-muted">{text}</span>
       </span>
       <PenLine aria-hidden size={18} className="shrink-0 text-brand" />
     </Link>
+  );
+}
+
+/** Internal exam marks, and CAS progress of this teacher's own students. */
+function InternalExamLink() {
+  return (
+    <div className="grid gap-3 md:grid-cols-2">
+      <WorkspaceLink
+        href="/school/internal-exam/marks"
+        icon={FileSpreadsheet}
+        title="Internal exam marks"
+        text="Terminal exams set by the school, Grades 1–10. Enter marks for your subjects."
+      />
+      <WorkspaceLink
+        href="/school/cas/student-progress"
+        icon={LineChart}
+        title="Student progress"
+        text="CAS progress of the students you teach, subject by subject (Grades 1–5)."
+      />
+    </div>
   );
 }
 

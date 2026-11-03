@@ -9,7 +9,7 @@ import {
 import { normalizeGradeValue } from "@/lib/schoolGrades";
 import { buildPagination, escapeRegex, parsePagination } from "@/lib/pagination";
 import { generateStrongPassword } from "@/lib/passwordGenerator";
-import { isValidIemisNumber, normalizeIemisNumber } from "@/lib/iemis";
+import { checkStudentIemis } from "@/lib/iemisRegistry";
 import {
   linkGuardianFromStudentRecord,
   linkGuardiansForStudents,
@@ -35,15 +35,18 @@ export async function POST(req) {
       const studentsToCreate = [];
       const createdCredentials = [];
       const reservedUsernames = new Set();
+      const reservedIemis = new Set();
 
       for (const s of body) {
-        const iemisNumber = normalizeIemisNumber(s.iemisNumber);
-        if (!isValidIemisNumber(iemisNumber)) {
+        // Compulsory and unique, in the platform and within this import.
+        const { iemisNumber, error: iemisError } = await checkStudentIemis(s.iemisNumber);
+        if (iemisError || reservedIemis.has(iemisNumber)) {
           return NextResponse.json(
-            { message: "IEMIS number may contain letters, numbers, and hyphens only (up to 50 characters)" },
+            { message: iemisError || `Student IEMIS number ${iemisNumber} appears twice in this import` },
             { status: 400 }
           );
         }
+        reservedIemis.add(iemisNumber);
         // Name Parsing
         const nameParts = s.name.trim().split(/\s+/);
         let firstName = nameParts[0];
@@ -165,11 +168,11 @@ export async function POST(req) {
       
       const normalizedGrade = normalizeGradeValue(grade);
       const normalizedRollNumber = String(rollNumber).trim();
-      const iemisNumber = normalizeIemisNumber(rawIemisNumber);
-      if (!isValidIemisNumber(iemisNumber)) {
+      const { iemisNumber, error: iemisError } = await checkStudentIemis(rawIemisNumber);
+      if (iemisError) {
         return NextResponse.json(
-          { message: "IEMIS number may contain letters, numbers, and hyphens only (up to 50 characters)" },
-          { status: 400 }
+          { message: iemisError },
+          { status: iemisError.includes("already") ? 409 : 400 }
         );
       }
       const duplicateRoll = await Student.exists({

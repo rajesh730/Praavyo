@@ -1,5 +1,6 @@
 import SchoolConfig from '@pravyo/db/models/SchoolConfig';
 import User from '@pravyo/db/models/User';
+import Student from '@pravyo/db/models/Student';
 import Teacher from '@pravyo/db/models/Teacher';
 import TeacherTeachingAssignment from '@pravyo/db/models/TeacherTeachingAssignment';
 import { teacherIdsAtSchool } from '@pravyo/db/teacherMemberships';
@@ -7,8 +8,10 @@ import { teacherIdsAtSchool } from '@pravyo/db/teacherMemberships';
 /**
  * Everything on a report card that describes the SCHOOL rather than the
  * result: the logo (Public Profile), the optional right-hand image (Settings),
- * the principal's name (school profile) and each grade's class teacher
- * (Teachers page, CLASS_TEACHER assignments).
+ * the principal's name (school profile), each grade's class teacher
+ * (Teachers page, CLASS_TEACHER assignments) and the school's IEMIS
+ * registration number (Settings). `withBranding` adds each student's own
+ * IEMIS number too, so both print on every card.
  *
  * Attached when a card is read rather than frozen into the snapshot, so a
  * school that adds its logo, changes principal or reassigns a class teacher
@@ -20,7 +23,7 @@ export async function loadReportBranding(schoolIds) {
   const objectIds = ids.map((id) => new SchoolConfig.base.Types.ObjectId(id));
 
   const [configs, profiles, schools, classTeachers] = await Promise.all([
-    SchoolConfig.find({ school: { $in: ids } }).select('school reportCardImageUrl').lean(),
+    SchoolConfig.find({ school: { $in: ids } }).select('school reportCardImageUrl iemisNumber').lean(),
     // The profile model belongs to the Pravyo app; read its collection directly.
     SchoolConfig.db.collection('schoolshowcaseprofiles')
       .find({ school: { $in: objectIds } }, { projection: { school: 1, coverImageUrl: 1 } })
@@ -29,12 +32,14 @@ export async function loadReportBranding(schoolIds) {
     loadClassTeachers(ids),
   ]);
   const imageBySchool = new Map(configs.map((row) => [String(row.school), row.reportCardImageUrl || '']));
+  const iemisBySchool = new Map(configs.map((row) => [String(row.school), row.iemisNumber || '']));
   const logoBySchool = new Map(profiles.map((row) => [String(row.school), row.coverImageUrl || '']));
   const principalBySchool = new Map(schools.map((row) => [String(row._id), row.principalName || '']));
   return new Map(ids.map((id) => [id, {
     logoUrl: logoBySchool.get(id) || '',
     reportImageUrl: imageBySchool.get(id) || '',
     principalName: principalBySchool.get(id) || '',
+    schoolIemis: iemisBySchool.get(id) || '',
     // { "Grade 1": "Sita Sharma", ... } — names joined when a grade has several.
     classTeachers: classTeachers.get(id) || {},
   }]));
@@ -66,9 +71,15 @@ async function loadClassTeachers(schoolIds) {
   return bySchool;
 }
 
-/** Attach one school's report-card identity to each report. */
+/** Attach one school's report-card identity, and each student's IEMIS number, to each report. */
 export async function withBranding(schoolId, reports) {
   const branding = (await loadReportBranding(schoolId)).get(String(schoolId))
-    || { logoUrl: '', reportImageUrl: '', principalName: '', classTeachers: {} };
-  return reports.map((report) => (report ? { ...report, branding } : report));
+    || { logoUrl: '', reportImageUrl: '', principalName: '', classTeachers: {}, schoolIemis: '' };
+  const studentId = (report) => String(report?.student || report?.snapshot?.student?.id || '');
+  const ids = [...new Set(reports.map(studentId).filter((id) => /^[a-f\d]{24}$/i.test(id)))];
+  const students = ids.length ? await Student.find({ _id: { $in: ids } }).select('iemisNumber').lean() : [];
+  const iemisByStudent = new Map(students.map((row) => [String(row._id), row.iemisNumber || '']));
+  return reports.map((report) => (report
+    ? { ...report, branding: { ...branding, studentIemis: iemisByStudent.get(studentId(report)) || '' } }
+    : report));
 }

@@ -19,7 +19,7 @@ import {
   ensureActiveAcademicYear,
   makeEnrollmentEntry,
 } from "../../../../lib/studentEnrollment.js";
-import { isValidIemisNumber, normalizeIemisNumber } from "../../../../lib/iemis.js";
+import { checkStudentIemis } from "@/lib/iemisRegistry";
 
 export async function POST(req) {
   try {
@@ -110,10 +110,9 @@ export async function POST(req) {
 
     // A registration number identifies one student within the school.
     const normalizedRegistrationNumber = String(registrationNumber).trim();
-    const normalizedIemisNumber = normalizeIemisNumber(iemisNumber);
-    if (!isValidIemisNumber(normalizedIemisNumber)) {
-      return errorResponse(400, "IEMIS number may contain letters, numbers, and hyphens only (up to 50 characters)");
-    }
+    // Compulsory and unique across the platform (lib/iemisRegistry.js).
+    const { iemisNumber: normalizedIemisNumber, error: iemisError } = await checkStudentIemis(iemisNumber);
+    if (iemisError) return errorResponse(iemisError.includes("already") ? 409 : 400, iemisError);
     const existingRegistration = await Student.findOne({
       school: schoolId,
       registrationNumber: normalizedRegistrationNumber,
