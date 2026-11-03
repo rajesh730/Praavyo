@@ -131,22 +131,21 @@ export default function StudentSupplementaryAssessment({
               <option value={WHOLE_YEAR}>{t('Whole year (final result)', 'पूरा वर्ष (अन्तिम नतिजा)')}</option>
             </Select>
           </Field>
-          {sections.length > 0 && (
-            <Field label={t('Section', 'Section')}>
-              <Select
-                value={selectedSection}
-                disabled={!grade || tableQuery.loading}
-                onChange={(event) => setSection(event.target.value)}
-              >
-                <option value="">{t('All sections', 'All sections')}</option>
-                {sections.map((item) => (
-                  <option key={item} value={item}>
-                    {item}
-                  </option>
-                ))}
-              </Select>
-            </Field>
-          )}
+          {/* Always shown, so every grade gets the same filter row. */}
+          <Field label={t('Section', 'सेक्सन')}>
+            <Select
+              value={selectedSection}
+              disabled={!grade || !sections.length || tableQuery.loading}
+              onChange={(event) => setSection(event.target.value)}
+            >
+              <option value="">{sections.length ? t('All sections', 'सबै सेक्सन') : t('No sections', 'सेक्सन छैन')}</option>
+              {sections.map((item) => (
+                <option key={item} value={item}>
+                  {item}
+                </option>
+              ))}
+            </Select>
+          </Field>
         </fieldset>
       </Card>
 

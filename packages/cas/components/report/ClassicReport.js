@@ -20,7 +20,8 @@ export default function ClassicReport({ report, lang = 'en' }) {
   const { logoUrl, reportImageUrl } = report.branding || {};
 
   return (
-    <article className="cas-a4">
+    // cas-a4-fit + cas-a4-foot hold the signatures at the foot of the page.
+    <article className="cas-a4 cas-a4-fit">
       <header className="cas-avoid-break flex items-start gap-4 border-b-2 border-[#1f4e79] pb-4">
         {logoUrl ? (
           // A plain <img>, so the downloaded PDF can draw it too.
@@ -117,19 +118,16 @@ export default function ClassicReport({ report, lang = 'en' }) {
         </p>
       )}
 
-      <p className="mb-4 text-[10px] leading-relaxed text-[#5f6b7a]">
-        {t.levelNote} {t.creditNote}
-      </p>
-
-      <footer className="cas-avoid-break mt-10">
+      <footer className="cas-avoid-break cas-a4-foot pt-10">
         <div className="flex items-end justify-between gap-6">
           <Signature label={t.classTeacher} name="" />
           <Signature label={t.principal} name={s.school?.principalName || ''} />
-          <Signature label={t.date} name={issueDateOf(report)} />
+          <Signature label={t.issueDate} name={issueDateOf(report)} />
         </div>
-        <p className="mt-6 border-t border-[#dfe5eb] pt-2 text-[10px] text-[#5f6b7a]">
-          {report.status === 'PUBLISHED' ? t.published : t.draftWarning}
-        </p>
+        {/* Only an unpublished preview is labelled; a published card stays clean. */}
+        {report.status && report.status !== 'PUBLISHED' && (
+          <p className="mt-6 border-t border-[#dfe5eb] pt-2 text-[10px] text-[#5f6b7a]">{t.draftWarning}</p>
+        )}
       </footer>
     </article>
   );

@@ -52,6 +52,7 @@ export const EN = {
   classTeacher: 'Class Teacher',
   principal: 'Principal',
   date: 'Date',
+  issueDate: 'Issue Date',
   levelNote:
     'Achievement levels run from 1 to 4 and are not percentage grades. Achievement is calculated from accepted levels on outcomes that were assessed; outcomes not yet assessed are excluded rather than counted as zero, and are reported separately as coverage. An accepted level is the highest a student reached, so a reassessment can only raise it.',
   creditNote: 'One credit hour equals 32 working hours.',
@@ -80,6 +81,7 @@ export const NE = {
   classTeacher: 'कक्षा शिक्षक',
   principal: 'प्रधानाध्यापक',
   date: 'मिति',
+  issueDate: 'जारी मिति',
   levelNote:
     'उपलब्धि स्तर १ देखि ४ सम्म हुन्छ; यो प्रतिशत श्रेणी होइन। मूल्याङ्कन भएका सिकाइ उपलब्धिका स्वीकृत स्तरका आधारमा उपलब्धि गणना गरिएको छ। मूल्याङ्कन नभएका उपलब्धिलाई शून्य नगणी अलग्गै देखाइएको छ। स्वीकृत स्तर सधैँ विद्यार्थीले प्राप्त गरेको सर्वोच्च स्तर हुन्छ।',
   creditNote: 'एक क्रेडिट घण्टा बराबर ३२ कार्यघण्टा हुन्छ।',

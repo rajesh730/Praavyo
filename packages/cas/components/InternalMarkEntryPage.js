@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Save } from 'lucide-react';
 import { internalExamResult } from '@pravyo/core/internalExamResult';
 import { useCas } from './CasLayout.js';
-import { useCasMutation, useCasQuery } from '../lib/client/useCas.js';
+import { casFetch, useCasMutation, useCasQuery } from '../lib/client/useCas.js';
 import { Alert, Badge, Button, Card, EmptyState, PageHeader, Spinner } from './ui/Kit.js';
 import { InternalExamFilterBar, useInternalExamFilters } from './InternalExamFilters.js';
 
@@ -23,9 +23,8 @@ export default function InternalMarkEntryPage() {
   const { t } = useCas();
   const filters = useInternalExamFilters();
   const { exam, section } = filters;
-  const sheetQuery = useCasQuery(
-    exam ? `/api/cas/internal-exams/sheet?${new URLSearchParams({ exam: exam.id, ...(section ? { section } : {}) })}` : null,
-  );
+  const sheetPath = exam ? `/api/cas/internal-exams/sheet?${new URLSearchParams({ exam: exam.id, ...(section ? { section } : {}) })}` : null;
+  const sheetQuery = useCasQuery(sheetPath);
   const sheet = sheetQuery.data;
   const { run, pending, error, success, setError } = useCasMutation();
   // Typed but unsaved cells: { [studentId]: { [subjectId]: text } }. Tied to
@@ -98,8 +97,14 @@ export default function InternalMarkEntryPage() {
       successMessage: t(`${entries.length} mark${entries.length === 1 ? '' : 's'} saved`, `${entries.length} अङ्क सुरक्षित भयो`),
     });
     if (result.ok) {
+      // Swap in the saved sheet before clearing what was typed, so the old
+      // marks never flash back while the refresh is in flight.
+      try {
+        sheetQuery.setData(await casFetch(sheetPath));
+      } catch {
+        sheetQuery.reload();
+      }
       setDrafts({});
-      sheetQuery.reload();
     }
   }
 

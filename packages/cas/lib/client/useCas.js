@@ -105,11 +105,17 @@ export function useCasQuery(path) {
 
   // Hide old data during the render that changes the URL, before effects run.
   // A previous child's sheet must never appear beneath a new child's name.
-  const current = path && result?.path === path && result.nonce === nonce;
+  // A reload of the SAME URL (after a save) keeps showing what is on screen
+  // until the fresh copy lands: blanking it swapped whole panels for spinners,
+  // collapsing what the user had open (Manage Exams' theme lists).
+  const samePath = Boolean(path && result?.path === path);
+  const current = samePath && result.nonce === nonce;
   return {
-    data: current ? result.data : null,
-    error: current ? result.error : '',
-    loading: Boolean(path && !current),
+    data: samePath ? result.data : null,
+    error: samePath ? result.error : '',
+    // First load of this URL only; `refreshing` covers a reload in flight.
+    loading: Boolean(path && !samePath),
+    refreshing: samePath && !current,
     reload,
     setData,
   };

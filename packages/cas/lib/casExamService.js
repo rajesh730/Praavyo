@@ -12,6 +12,7 @@ import { loadAcademicYear } from './casContext.js';
 import { themeIdentity } from './casSheetService.js';
 import ensureCasIndexes from './casIndexes.js';
 import { examCreateInput, examUpdateInput } from './casValidation.js';
+import { parseBsNumeric } from '@pravyo/core/nepaliDate';
 
 function namePattern(value) {
   const escaped = value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -154,8 +155,18 @@ export async function updateExam(actor, input) {
   exam.name = name;
   exam.academicYear = year.id;
   if (Object.hasOwn(data, 'reportTitle')) exam.reportTitle = data.reportTitle || name;
+  const issueDateChanged = Object.hasOwn(data, 'issueDate') && data.issueDate !== exam.issueDate;
   if (Object.hasOwn(data, 'issueDate')) exam.issueDate = data.issueDate;
   await exam.save();
+  // The issue date is managed here, not per card: carry a change onto every
+  // report card already made for this exam, published ones included, in the
+  // same normalised form generation stores (casReportService checkedIssueDate).
+  if (issueDateChanged) {
+    await CasReport.updateMany(
+      { school: actor.school, exam: exam._id },
+      { $set: { 'snapshot.issueDate': parseBsNumeric(exam.issueDate)?.bs || null } },
+    );
+  }
   return serializeExam(exam);
 }
 

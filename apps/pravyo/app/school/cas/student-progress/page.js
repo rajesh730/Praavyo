@@ -99,12 +99,13 @@ export default function StudentProgressPage() {
             </Select>
           </Field>
 
-          {sections.length > 0 && <Field label={t('Section', 'सेक्सन')}>
-            <Select value={section} onChange={(event) => { setSection(event.target.value); setStudent(''); }}>
-              <option value="">{t('All sections', 'सबै सेक्सन')}</option>
+          {/* Always shown, so every grade gets the same filter row. */}
+          <Field label={t('Section', 'सेक्सन')}>
+            <Select value={section} disabled={!sections.length} onChange={(event) => { setSection(event.target.value); setStudent(''); }}>
+              <option value="">{sections.length ? t('All sections', 'सबै सेक्सन') : t('No sections', 'सेक्सन छैन')}</option>
               {sections.map((item) => <option key={item} value={item}>{item}</option>)}
             </Select>
-          </Field>}
+          </Field>
 
           <Field label={t('Student', 'Student')}>
             <Select
