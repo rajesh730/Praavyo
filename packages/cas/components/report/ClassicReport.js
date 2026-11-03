@@ -1,7 +1,8 @@
 import { stringsFor, picker, issueDateOf, academicYearOf, examTitleOf } from './reportText.js';
 
 /**
- * The clean continuous-assessment sheet used by Format 2 — Modern.
+ * The clean continuous-assessment sheet — the Classic format, used for every
+ * CAS result.
  *
  * Shows what the letter grade is built FROM — outcomes assessed, achievement
  * and coverage alongside the grade point — rather than the letter alone. A

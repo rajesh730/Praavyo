@@ -1,8 +1,7 @@
-import CleanAssessmentReport from './ClassicReport.js';
-import MarksheetReport from './ModernReport.js';
+import ClassicReport from './ClassicReport.js';
 
 /**
- * The one place a stored format becomes a layout.
+ * The one place a CAS report becomes a layout.
  *
  * Both the school's A4 print route and the guardian's portal render through
  * here, so what a school previews is exactly what the parent opens. When these
@@ -10,29 +9,23 @@ import MarksheetReport from './ModernReport.js';
  * school saw its own grade sheet while the guardian silently got a different
  * layout entirely.
  *
- * `format` is read from the report row, falling back to the snapshot's copy for
- * rows written before the column existed.
+ * Since 2026-11-03 every CAS result is drawn as the Classic continuous-
+ * assessment sheet (ClassicReport.js), whatever `format` a card was stored
+ * with. The Modern card belongs to internal exams (InternalExamReport.js).
+ * The marksheet layout in ModernReport.js is no longer used by CAS.
  */
 
 export const REPORT_FORMATS = [
-  { value: 'CLASSIC', label: 'Format 1 - Classic' },
-  { value: 'MODERN', label: 'Format 2 - Modern' },
+  { value: 'CLASSIC', label: 'Classic' },
 ];
 
 export const DEFAULT_REPORT_FORMAT = 'CLASSIC';
 
-export function reportFormatOf(report) {
-  const stored = report?.format || report?.snapshot?.format;
-  return REPORT_FORMATS.some((f) => f.value === stored) ? stored : DEFAULT_REPORT_FORMAT;
+export function reportFormatOf() {
+  return DEFAULT_REPORT_FORMAT;
 }
 
-/**
- * Both layouts read the same snapshot, so a viewer may pass `format` to show a
- * published card in the other layout without regenerating or republishing it.
- */
+// `format` is accepted and ignored so existing callers keep working.
 export default function ReportCard({ report, lang = 'en', format }) {
-  const layout = REPORT_FORMATS.some((f) => f.value === format) ? format : reportFormatOf(report);
-  return layout === 'CLASSIC'
-    ? <MarksheetReport report={report} lang={lang} />
-    : <CleanAssessmentReport report={report} lang={lang} />;
+  return <ClassicReport report={report} lang={lang} />;
 }
