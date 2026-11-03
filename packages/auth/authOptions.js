@@ -82,9 +82,33 @@ const cookiePrefix = useSecureCookies ? "__Secure-" : "";
 
 // The account a sign-in attempt is aimed at, for the per-account failure limit.
 function loginAccountKey(credentials) {
-  const raw = credentials?.parentId || credentials?.email || "";
+  // A card token is keyed by the teacher id it claims, not the secret part.
+  const cardTeacher = String(credentials?.teacherCard || "").split(".")[0];
+  const raw = credentials?.parentId || credentials?.email || cardTeacher || "";
   const key = String(raw).toLowerCase().replace(/[^a-z0-9@._+-]/g, "");
   return key ? key.slice(0, 120) : null;
+}
+
+/** The session user for a verified teacher, by password or by login card. */
+async function teacherSessionUser(teacher) {
+  await backfillTeacherMemberships({ _id: teacher._id });
+  const schools = await activeSchoolsForTeacher(teacher._id);
+  if (!schools.length) {
+    throw new Error("Your teacher account is not active at any school. Contact your school.");
+  }
+
+  // One school: go straight in. Several: schoolId stays empty and the
+  // teacher picks one at /teacher/select-school.
+  return {
+    id: teacher._id.toString(),
+    email: teacher.email,
+    username: teacher.username || null,
+    role: "TEACHER",
+    name: teacher.name,
+    status: "APPROVED",
+    schoolId: schools.length === 1 ? schools[0].id : null,
+    schoolName: schools.length === 1 ? schools[0].name : null,
+  };
 }
 
 /**
@@ -207,6 +231,17 @@ async function verifyCredentials(credentials) {
     };
   }
 
+  // A scanned Teacher Login Card: the signed card token is the whole
+  // credential, like the Parent Access Card. See teacherCardToken.js.
+  if (credentials?.teacherCard) {
+    const { verifyTeacherCardToken } = await import("@pravyo/auth/teacherCardToken");
+    const result = await verifyTeacherCardToken(credentials.teacherCard);
+    if (!result.ok) {
+      throw new Error("This login card is not valid any more. Please ask your school for a new one.");
+    }
+    return teacherSessionUser(result.teacher);
+  }
+
   // 1. Try Teacher collection FIRST (Clean Architecture). The account is
   // the person; which schools they may open comes from TeacherMembership.
   const teacher = await Teacher.findOne({
@@ -237,24 +272,7 @@ async function verifyCredentials(credentials) {
       throw new Error("Invalid password");
     }
 
-    await backfillTeacherMemberships({ _id: teacher._id });
-    const schools = await activeSchoolsForTeacher(teacher._id);
-    if (!schools.length) {
-      throw new Error("Your teacher account is not active at any school. Contact your school.");
-    }
-
-    // One school: go straight in. Several: schoolId stays empty and the
-    // teacher picks one at /teacher/select-school.
-    return {
-      id: teacher._id.toString(),
-      email: teacher.email,
-      username: teacher.username || null,
-      role: "TEACHER",
-      name: teacher.name,
-      status: "APPROVED",
-      schoolId: schools.length === 1 ? schools[0].id : null,
-      schoolName: schools.length === 1 ? schools[0].name : null,
-    };
+    return teacherSessionUser(teacher);
   }
 
   // 2. Try User collection (Admins, School Admins, Legacy support)
@@ -356,6 +374,8 @@ export const authOptions = {
         // is the same thing arriving from a scanned legacy QR card.
         parentId: { label: "Parent ID", type: "text" },
         cardToken: { label: "Card token", type: "password" },
+        // A scanned Teacher Login Card; see teacherCardToken.js.
+        teacherCard: { label: "Teacher card", type: "password" },
         language: { label: "Language", type: "text" },
         deviceMode: { label: "Device mode", type: "text" },
       },

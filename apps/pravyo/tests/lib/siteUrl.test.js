@@ -18,7 +18,7 @@ describe("printableOrigin", () => {
   });
 
   it("keeps cards printed on the old domain readable", () => {
-    expect(readTeacherCard(teacherCardUrl("https://pravyo.infobytesnepal.com", "ram.sharma"))).toBe("ram.sharma");
+    expect(readTeacherCard(teacherCardUrl("https://pravyo.infobytesnepal.com", "ram.sharma"))).toEqual({ user: "ram.sharma" });
     expect(readParentCard("https://pravyo.infobytesnepal.com/parent/login?id=PRV-P-X7K4Q9")).toEqual({ parentId: "PRV-P-X7K4Q9" });
   });
 });

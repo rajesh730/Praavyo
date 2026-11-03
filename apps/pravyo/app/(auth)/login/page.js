@@ -10,7 +10,7 @@ import Input, { PasswordInput } from "@/components/ui/Input";
 import AlertBanner from "@/components/ui/AlertBanner";
 import RoleChooser from "./RoleChooser";
 import QrCardScanner from "@/components/parent/QrCardScanner";
-import { readTeacherCard } from "@/lib/teacherCard";
+import { readTeacherCard, readTeacherCardToken } from "@/lib/teacherCard";
 import { authErrorMessage } from "@/lib/authErrorMessage";
 
 const AUTH_LINKS = [
@@ -48,39 +48,45 @@ function LoginContent() {
   const asTeacher = as === "teacher" || (as === "school" && Boolean(searchParams.get("user")));
   const showStaffForm = asTeacher || as === "school";
 
-  // A Teacher Login Card's QR opens /login?as=teacher&user=<username>, and a
-  // photo of the card fills the same field. The password is always typed.
+  // A Teacher Login Card's QR opens /login?as=teacher&card=<token> and signs
+  // the teacher straight in; a photo of the card does the same. Username-only
+  // cards (?user=) just fill the field and the password is typed.
+  const cardToken = asTeacher ? readTeacherCardToken(searchParams.get("card")) : null;
   const [email, setEmail] = useState(() => searchParams.get("user") || "");
   const passwordRef = useRef(null);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const cardAttempted = useRef(false);
   const { status, data: session } = useSession();
 
   // A scanned teacher card opens inside the installed app, which on a family
   // phone is usually still signed in as the parent. That session must not
-  // swallow the card: drop any non-teacher session and show the teacher form.
-  const cardUser = asTeacher && searchParams.get("user");
-  const staleSession = Boolean(cardUser) && status === "authenticated" && session?.user?.role !== "TEACHER";
+  // swallow the card: drop it unless it is already this card's teacher.
+  const cardUser = asTeacher && (searchParams.get("user") || cardToken);
+  const sameCardTeacher = session?.user?.role === "TEACHER" &&
+    (!cardToken || session.user.id === cardToken.split(".")[0]);
+  const staleSession = Boolean(cardUser) && status === "authenticated" && !sameCardTeacher;
   useEffect(() => {
     if (!staleSession) return;
     signOut({ redirect: false }).finally(() => window.location.reload());
   }, [staleSession]);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // This card's teacher is already signed in on this phone: just go in.
+  const alreadyIn = Boolean(cardToken) && status === "authenticated" && sameCardTeacher;
+  useEffect(() => {
+    if (alreadyIn) window.location.replace(destinationForRole("TEACHER"));
+  }, [alreadyIn]);
+
+  const finishSignIn = async (credentials) => {
     if (loading) return;
     setError("");
     setLoading(true);
 
     try {
       const res = await Promise.race([
-        signIn("credentials", {
-          email: email.trim(),
-          password,
-          redirect: false,
-        }),
+        signIn("credentials", { ...credentials, redirect: false }),
         new Promise((_, reject) =>
           window.setTimeout(
             () => reject(new Error("AUTH_REQUEST_TIMEOUT")),
@@ -109,18 +115,36 @@ function LoginContent() {
     }
   };
 
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    finishSignIn({ email: email.trim(), password });
+  };
+
+  // Arriving from a scanned sign-in card: no form to fill, just sign in.
+  useEffect(() => {
+    if (!cardToken || status !== "unauthenticated" || cardAttempted.current) return;
+    cardAttempted.current = true;
+    finishSignIn({ teacherCard: cardToken });
+    // finishSignIn is recreated every render; the ref makes this run once.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cardToken, status]);
+
   const handleCardPhoto = (raw) => {
-    const identifier = readTeacherCard(raw);
-    if (!identifier) {
+    const card = readTeacherCard(raw);
+    if (!card) {
       setError("That QR code is not a Pravyo teacher card.");
       return;
     }
+    if (card.card) {
+      finishSignIn({ teacherCard: card.card });
+      return;
+    }
     setError("");
-    setEmail(identifier);
+    setEmail(card.user);
     passwordRef.current?.focus();
   };
 
-  if (staleSession) return null;
+  if (staleSession || alreadyIn) return null;
 
   if (status === "authenticated") {
     return (
@@ -217,7 +241,9 @@ function LoginContent() {
             label="Choose a photo of your login card"
             fallbackHint="type your username below"
           />
-          <p className="text-center text-xs text-muted">The card fills in your username. You still enter your password.</p>
+          <p className="text-center text-xs text-muted">
+            {cardToken && loading ? "Signing you in with your card…" : "Your login card signs you in. Older cards fill in your username for you."}
+          </p>
         </div>
       )}
 

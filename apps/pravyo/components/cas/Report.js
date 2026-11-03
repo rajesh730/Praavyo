@@ -2,6 +2,7 @@
 
 import { useRef, useState } from 'react';
 import ReportCard from '@pravyo/cas/components/report/ReportCard';
+import InternalExamReport from '@pravyo/cas/components/report/InternalExamReport';
 import { downloadSheets } from '@pravyo/cas/lib/client/pdfDownload';
 import { picker } from '@pravyo/cas/components/report/reportText';
 import styles from './Report.module.css';
@@ -28,6 +29,8 @@ export default function Report({ report }) {
   if (!s) return <p role="alert">This report is unavailable.</p>;
 
   const pick = picker(lang);
+  // Internal exams are marks, not outcomes: Modern card, no outcome detail.
+  const internal = report.kind === 'INTERNAL';
 
   async function download() {
     setDownloading(true);
@@ -46,9 +49,11 @@ export default function Report({ report }) {
         <button type="button" onClick={() => setLang((v) => (v === 'ne' ? 'en' : 'ne'))}>
           {lang === 'ne' ? 'English' : 'नेपाली'}
         </button>
-        <button type="button" onClick={() => setDetail((v) => !v)}>
-          {detail ? 'Hide outcome details' : 'Show outcome details'}
-        </button>
+        {!internal && (
+          <button type="button" onClick={() => setDetail((v) => !v)}>
+            {detail ? 'Hide outcome details' : 'Show outcome details'}
+          </button>
+        )}
         <button type="button" onClick={() => window.print()}>Print</button>
         <button type="button" disabled={downloading} onClick={download}>
           {downloading ? 'Preparing PDF...' : 'Download PDF'}
@@ -56,10 +61,11 @@ export default function Report({ report }) {
       </div>
 
       <div ref={sheetRef}>
-        <ReportCard report={report} lang={lang} />
+        {/* CAS results always print as the Classic card. */}
+        {internal ? <InternalExamReport report={report} lang={lang} /> : <ReportCard report={report} lang={lang} format="CLASSIC" />}
       </div>
 
-      {detail && (
+      {detail && !internal && (
         <section className={`${styles.report} ${styles['report-details']}`}>
           <h2>Outcome details</h2>
           {(s.subjects || []).map((subject) => (

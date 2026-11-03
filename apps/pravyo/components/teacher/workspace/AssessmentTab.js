@@ -1,18 +1,36 @@
 'use client';
 
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ClipboardCheck, PenLine } from 'lucide-react';
+import { ClipboardCheck, FileSpreadsheet, PenLine } from 'lucide-react';
 import { byGrade, EmptyNote, openMarkEntry } from './shared';
 
-/** Every exam the school opened to this teacher, grouped by exam. */
+/** The school's own written exams: marks for the subjects this teacher teaches. */
+function InternalExamLink() {
+  return (
+    <Link href="/school/internal-exam/marks" className="card flex items-center gap-3 p-4 transition hover:border-brand">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-card bg-brand-soft text-brand"><FileSpreadsheet aria-hidden size={20} /></span>
+      <span className="min-w-0 flex-1">
+        <span className="block font-semibold text-ink">Internal exam marks</span>
+        <span className="block text-sm text-muted">Terminal exams set by the school, Grades 1–10. Enter marks for your subjects.</span>
+      </span>
+      <PenLine aria-hidden size={18} className="shrink-0 text-brand" />
+    </Link>
+  );
+}
+
+/** Every CAS exam the school opened to this teacher, grouped by exam, plus internal exams. */
 export default function AssessmentTab({ workspace }) {
   const router = useRouter();
 
   if (workspace.examAccess.length === 0) {
     return (
-      <EmptyNote icon={ClipboardCheck} title="No exams open for you yet">
-        Your school opens an exam for each grade and subject you teach. It will appear here, ready for mark entry.
-      </EmptyNote>
+      <div className="space-y-4">
+        <InternalExamLink />
+        <EmptyNote icon={ClipboardCheck} title="No CAS exams open for you yet">
+          Your school opens a CAS exam for each grade and subject you teach in Grades 1–5. It will appear here, ready for mark entry.
+        </EmptyNote>
+      </div>
     );
   }
 
@@ -25,6 +43,7 @@ export default function AssessmentTab({ workspace }) {
 
   return (
     <div className="space-y-4">
+      <InternalExamLink />
       {[...exams.entries()].map(([key, exam]) => (
         <section key={key} className="card overflow-hidden">
           <div className="flex items-center justify-between gap-3 border-b border-line p-4">

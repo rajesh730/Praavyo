@@ -133,6 +133,23 @@ a school built itself are skipped; edits stay local; library updates are
 opt-in per theme ("Update available"). After adding a library grade run
 `npm run provision:curriculum -- --dry-run` then `--apply`.
 
+**Exams = CAS + Internal Exam (since 2026-11-03).** The school sidebar's
+"Exams" (`/school/exams`) chooses between:
+- *CAS* — Grades 1–5 only (the CAS shell filters `school.grades` through
+  `usesResultSheet`); results always render Classic, no format dropdown.
+- *Internal Exam* (`/school/internal-exam/{marks,exams,results}`, same shell
+  with `area="internal"`) — the school's own papers, Grades 1–10. Models
+  `InternalExam` (grade + term, full marks default + per-subject overrides,
+  pass %), `InternalExamMark`, `InternalExamReport` (frozen snapshots);
+  service `packages/cas/lib/internalExamService.js`; maths
+  `packages/core/internalExamResult.js` (percentage of full marks → the CAS
+  grade bands; equal weights when no credit hours); card
+  `components/report/InternalExamReport.js` (the "Modern" card). Teachers
+  edit only subjects they hold as SUBJECT_TEACHER (TeacherTeachingAssignment);
+  class teachers read. Publishing needs every mark entered and locks marks;
+  parents/students read both collections via `lib/casPublished.js`.
+  Practical/internal-assessment marks and combined final results: not built.
+
 **CAS boundaries.** `packages/cas/lib/casContext.js` is the only CAS module
 that reads Pravyo collections. CAS never creates accounts or students.
 

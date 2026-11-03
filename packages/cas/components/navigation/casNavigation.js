@@ -16,3 +16,16 @@ export const CAS_NAV_LINKS = [
   { name: 'Published Results', href: '/school/cas/published-results', icon: FaFolderOpen, initials: 'PR' },
 ];
 
+
+/**
+ * Internal exam navigation — the school's own written exams, Grades 1-10.
+ * Shares the CAS shell; CAS and Internal Exam link to each other at the end.
+ */
+export const INTERNAL_EXAM_NAV_LINKS = [
+  { name: 'Mark Entry', href: '/school/internal-exam/marks', icon: FaClipboardCheck, initials: 'ME' },
+  { name: 'Manage Exams', href: '/school/internal-exam/exams', icon: FaCalendarAlt, initials: 'EX' },
+  { name: 'Results', href: '/school/internal-exam/results', icon: FaFileAlt, initials: 'RS' },
+  { name: 'CAS (Grades 1–5)', href: '/school/cas/assessment', icon: FaFolderOpen, initials: 'CA' },
+];
+
+export const CAS_TO_INTERNAL_LINK = { name: 'Internal Exam', href: '/school/internal-exam/marks', icon: FaCalendarAlt, initials: 'IE' };

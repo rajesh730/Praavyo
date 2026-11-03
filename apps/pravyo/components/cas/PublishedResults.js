@@ -51,6 +51,7 @@ function Results({ role, childId, reportId }) {
         {reports.map(report => <a key={report._id} href={`/${role}/learning/cas/${report._id}`}
           aria-current={report._id === openId ? 'page' : undefined}>
           {[
+            report.kind === 'INTERNAL' ? 'Internal exam' : 'CAS',
             report.snapshot?.examTitle || academicYearDisplayLabel(
               report.snapshot?.academicYear?.label,
               { yearStart: report.snapshot?.academicYear?.yearStart },

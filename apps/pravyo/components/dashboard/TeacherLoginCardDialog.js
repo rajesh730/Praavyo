@@ -3,19 +3,22 @@
 import { useEffect, useState } from "react";
 import { Check, Copy, ImageDown, KeyRound, LoaderCircle, Printer, X } from "lucide-react";
 import { cardQrSvg, renderCardImage, shareOrDownloadImage } from "@/lib/cardQr";
-import { teacherCardUrl } from "@/lib/teacherCard";
+import { teacherCardTokenUrl, teacherCardUrl } from "@/lib/teacherCard";
 import { printableOrigin } from "@/lib/siteUrl";
 
 /**
  * A teacher's login card on screen, like the Parent Access Card.
  *
- * The QR carries only the username (or email), so it fills the sign-in form
- * and the teacher still types a password. Passwords are stored hashed and can
- * never be shown again; "Reset password" issues a new one and shows it once.
+ * Scanning the QR signs the teacher straight in (see lib/teacherCard.js); a
+ * teacher who also works elsewhere gets a username-only QR. Passwords are
+ * stored hashed and never shown again; "Reset password" sets a new one, shows
+ * it once, and retires every card printed before.
  */
 export default function TeacherLoginCardDialog({ teacher, onClose }) {
   const identifier = teacher.username || teacher.email;
   const [qrSvg, setQrSvg] = useState("");
+  // undefined while loading, null for a username-only card.
+  const [cardToken, setCardToken] = useState(undefined);
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -24,10 +27,25 @@ export default function TeacherLoginCardDialog({ teacher, onClose }) {
 
   useEffect(() => {
     let active = true;
-    cardQrSvg(teacherCardUrl(printableOrigin(window.location.origin), identifier))
-      .then((svg) => active && setQrSvg(svg)).catch(() => {});
+    fetch(`/api/teachers/${teacher._id}/card`)
+      .then((response) => (response.ok ? response.json() : Promise.reject()))
+      .then((payload) => active && setCardToken(payload.data.cardToken || null))
+      .catch(() => active && setError("The login card could not be loaded. Close and try again."));
     return () => { active = false; };
-  }, [identifier]);
+  }, [teacher._id]);
+
+  const cardUrl = cardToken === undefined || typeof window === "undefined"
+    ? ""
+    : cardToken
+      ? teacherCardTokenUrl(printableOrigin(window.location.origin), cardToken)
+      : teacherCardUrl(printableOrigin(window.location.origin), identifier);
+
+  useEffect(() => {
+    if (!cardUrl) return undefined;
+    let active = true;
+    cardQrSvg(cardUrl).then((svg) => active && setQrSvg(svg)).catch(() => {});
+    return () => { active = false; };
+  }, [cardUrl]);
 
   useEffect(() => {
     const onKey = (event) => event.key === "Escape" && !busy && onClose();
@@ -36,7 +54,7 @@ export default function TeacherLoginCardDialog({ teacher, onClose }) {
   }, [busy, onClose]);
 
   const resetPassword = async () => {
-    if (!window.confirm(`Reset ${teacher.name}'s password?\n\nTheir current password will stop working immediately.`)) return;
+    if (!window.confirm(`Reset ${teacher.name}'s password to password@123?\n\nTheir current password and every printed login card will stop working immediately.`)) return;
     setBusy(true);
     setError("");
     try {
@@ -46,6 +64,7 @@ export default function TeacherLoginCardDialog({ teacher, onClose }) {
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) throw new Error(payload.message || "Password could not be reset.");
       setPassword(payload.data.credentials.password);
+      if (payload.data.cardToken) setCardToken(payload.data.cardToken);
     } catch (reason) {
       setError(reason.message);
     } finally {
@@ -72,11 +91,11 @@ export default function TeacherLoginCardDialog({ teacher, onClose }) {
       const blob = await renderCardImage({
         heading: "PRAVYO TEACHER LOGIN",
         title: teacher.name,
-        lines: ["Sign in → Teacher → Take a photo of your login card"],
-        qrText: teacherCardUrl(printableOrigin(window.location.origin), identifier),
+        lines: [cardToken ? "Scan with your phone camera to sign in" : "Sign in → Teacher → Take a photo of your login card"],
+        qrText: cardUrl,
         codeLabel: "Username",
         code: identifier,
-        footer: "You still need your password to sign in.",
+        footer: cardToken ? "Keep this card private: it signs you in." : "You still need your password to sign in.",
       });
       await shareOrDownloadImage(blob, `teacher-login-${identifier}.png`, `${teacher.name} — login card`);
     } catch {
@@ -108,7 +127,9 @@ export default function TeacherLoginCardDialog({ teacher, onClose }) {
             // Generated locally by the qrcode package from our own URL.
             dangerouslySetInnerHTML={{ __html: qrSvg }}
           />
-          <p className="mt-2 text-center text-xs">Sign in → Teacher → Take a photo of your login card</p>
+          <p className="mt-2 text-center text-xs">
+            {cardToken ? "Scan with the phone camera to sign in. Keep this card private." : "Sign in → Teacher → Take a photo of your login card"}
+          </p>
         </div>
 
         <dl className="mt-4 grid grid-cols-[6rem_1fr] gap-y-1.5 text-sm">
@@ -119,7 +140,7 @@ export default function TeacherLoginCardDialog({ teacher, onClose }) {
             {password ? <span className="break-all">{password}</span> : <span className="font-sans text-xs text-muted">Hidden for security. Reset to issue a new one.</span>}
           </dd>
         </dl>
-        {password && <p className="mt-2 rounded-control bg-success-soft px-3 py-2 text-xs text-ink">New password shown only now. Copy it and give it to {teacher.name}.</p>}
+        {password && <p className="mt-2 rounded-control bg-success-soft px-3 py-2 text-xs text-ink">New password shown only now. Older printed cards no longer work — give {teacher.name} this new card.</p>}
         {error && <p className="mt-2 text-sm text-danger">{error}</p>}
 
         <div className="mt-4 flex flex-wrap gap-2">

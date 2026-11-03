@@ -25,11 +25,10 @@ export const SCHOOL_NAV_LINKS = [
   { name: "Manage Sections", href: "/school/dashboard?tab=sections", icon: FaThLarge },
   { name: "Manage Subjects", href: "/school/dashboard?tab=subjects", icon: FaBookOpen },
   { name: "Student Transfer", href: "/school/dashboard?tab=student-transfers", icon: FaExchangeAlt },
-  // Continuous Assessment. Opening this REPLACES the Pravyo chrome with the
-  // CAS shell rather than nesting inside it — same app, same session, but a
-  // full-screen workspace with its own navigation, and a "Back to Pravyo" link
-  // to return. Nothing under /school/cas renders DashboardLayout.
-  { name: "CAS", href: "/school/cas", icon: FaClipboardCheck },
+  // Exams: a chooser between CAS (Grades 1–5, theme assessment) and the
+  // Internal Exam (Grades 1–10, marks). Each opens a full-screen workspace
+  // that REPLACES the Pravyo chrome, with a "Back to Pravyo" link to return.
+  { name: "Exams", href: "/school/exams", icon: FaClipboardCheck },
   // Guardian access to the Parent App is authorised here — see §19/§27 in
   // docs/PARENT_APP.md. Its own page rather than a dashboard tab, because
   // safeguarding decisions deserve a stable URL an admin can be sent to.

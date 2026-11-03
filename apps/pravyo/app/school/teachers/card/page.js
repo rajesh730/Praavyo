@@ -7,15 +7,18 @@ import Teacher from "@/models/Teacher";
 import User from "@/models/User";
 import TeacherMembership from "@pravyo/db/models/TeacherMembership";
 import PrintButton from "@/components/school/PrintButton";
-import { teacherCardUrl } from "@/lib/teacherCard";
+import { teacherCardTokenUrl, teacherCardUrl } from "@/lib/teacherCard";
+import { teacherCardSignInToken } from "@/lib/teacherAccounts";
 import { printableOrigin } from "@/lib/siteUrl";
 import { cardQrSvg } from "@/lib/cardQr";
 
 /**
  * A printable Teacher Login Card.
  *
- * The QR holds only the teacher's username, so a lost card cannot sign anyone
- * in — the password is still required. Reprinting changes nothing.
+ * Scanning the QR signs the teacher in by itself (see lib/teacherCard.js), so
+ * the card must be kept private; "Reset password" retires a lost one. A
+ * teacher who also works at another school gets a username-only card.
+ * Reprinting gives the same QR.
  * Server-rendered, school-admin only, and only for this school's teachers.
  */
 export default async function TeacherLoginCardPage({ searchParams }) {
@@ -30,21 +33,27 @@ export default async function TeacherLoginCardPage({ searchParams }) {
   const school = session.user.id;
   const [membership, teacher, schoolRow] = await Promise.all([
     TeacherMembership.findOne({ teacher: teacherId, school }).select("status designation").lean(),
-    Teacher.findById(teacherId).select("name username email").lean(),
+    Teacher.findById(teacherId).select("name username email cardVersion").lean(),
     User.findById(school).select("schoolName name").lean(),
   ]);
   if (!membership || !teacher) return <Missing reason="This teacher is not at your school." />;
   if (membership.status === "LEFT") return <Missing reason="This teacher has left your school." />;
 
   const identifier = teacher.username || teacher.email;
-  const qrSvg = await cardQrSvg(teacherCardUrl(await resolveSiteUrl(), identifier));
+  const cardToken = await teacherCardSignInToken(teacher, school);
+  const siteUrl = await resolveSiteUrl();
+  const qrSvg = await cardQrSvg(cardToken ? teacherCardTokenUrl(siteUrl, cardToken) : teacherCardUrl(siteUrl, identifier));
 
   return (
     <main className="min-h-screen bg-canvas p-4 text-ink print:bg-white print:p-0">
       <div className="mx-auto mb-4 flex max-w-md items-start justify-between gap-4 print:hidden">
         <div>
           <h1 className="font-semibold">Teacher Login Card</h1>
-          <p className="mt-1 text-sm text-muted">Print and hand this to the teacher. The card fills in their username; they still sign in with their password.</p>
+          <p className="mt-1 text-sm text-muted">
+            {cardToken
+              ? "Print and hand this to the teacher. Scanning it signs them in, so it should be kept private."
+              : "Print and hand this to the teacher. The card fills in their username; they still sign in with their password."}
+          </p>
         </div>
         <PrintButton />
       </div>
@@ -66,7 +75,11 @@ export default async function TeacherLoginCardPage({ searchParams }) {
             // Generated on the server by the qrcode package from our own URL.
             dangerouslySetInnerHTML={{ __html: qrSvg }}
           />
-          <p className="mt-2 text-center text-xs">On the sign-in page, choose Teacher, then<br /><strong>Take a photo of your login card</strong></p>
+          {cardToken ? (
+            <p className="mt-2 text-center text-xs">Scan with your phone camera to sign in<br />फोनको क्यामेराले स्क्यान गरी साइन इन गर्नुहोस्</p>
+          ) : (
+            <p className="mt-2 text-center text-xs">On the sign-in page, choose Teacher, then<br /><strong>Take a photo of your login card</strong></p>
+          )}
         </section>
 
         <section className="mt-4 rounded-control border border-black/20 p-3 text-center">
@@ -75,9 +88,18 @@ export default async function TeacherLoginCardPage({ searchParams }) {
         </section>
 
         <footer className="mt-4 text-center text-xs">
-          <p>You still need your password to sign in.</p>
-          <p>साइन इन गर्न पासवर्ड चाहिन्छ।</p>
-          <p className="mt-2">Forgot your password? Ask the school office.</p>
+          {cardToken ? (
+            <>
+              <p>Keep this card private: it signs you in.</p>
+              <p>यो कार्ड गोप्य राख्नुहोस्।</p>
+            </>
+          ) : (
+            <>
+              <p>You still need your password to sign in.</p>
+              <p>साइन इन गर्न पासवर्ड चाहिन्छ।</p>
+            </>
+          )}
+          <p className="mt-2">Lost this card or forgot your password? Ask the school office.</p>
         </footer>
       </article>
     </main>

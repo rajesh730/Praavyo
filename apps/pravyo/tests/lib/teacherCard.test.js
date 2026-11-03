@@ -1,6 +1,6 @@
 import QRCode from "qrcode";
 import jsQR from "jsqr";
-import { readTeacherCard, teacherCardUrl } from "@/lib/teacherCard";
+import { readTeacherCard, teacherCardTokenUrl, teacherCardUrl } from "@/lib/teacherCard";
 
 /** Render a QR to RGBA pixels the way a photo would reach jsQR. */
 function rasterize(text, scale = 6, quiet = 4) {
@@ -25,11 +25,18 @@ describe("teacher login card", () => {
   it("round-trips the username through a printed QR", () => {
     const { data, size } = rasterize(teacherCardUrl("https://pravyo.example", "sita.shrestha"));
     const found = jsQR(data, size, size, { inversionAttempts: "attemptBoth" });
-    expect(readTeacherCard(found.data)).toBe("sita.shrestha");
+    expect(readTeacherCard(found.data)).toEqual({ user: "sita.shrestha" });
   });
 
   it("accepts an email for teachers without a username", () => {
-    expect(readTeacherCard(teacherCardUrl("https://x.test", "Ram@School.np"))).toBe("ram@school.np");
+    expect(readTeacherCard(teacherCardUrl("https://x.test", "Ram@School.np"))).toEqual({ user: "ram@school.np" });
+  });
+
+  it("round-trips a sign-in card token through a printed QR", () => {
+    const token = `${"a".repeat(24)}.${"Zz9_-".repeat(6)}Ab`;
+    const { data, size } = rasterize(teacherCardTokenUrl("https://pravyo.example", token));
+    const found = jsQR(data, size, size, { inversionAttempts: "attemptBoth" });
+    expect(readTeacherCard(found.data)).toEqual({ card: token });
   });
 
   it("rejects parent cards and unrelated QR codes", () => {

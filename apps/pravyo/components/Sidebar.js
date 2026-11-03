@@ -59,7 +59,7 @@ const SCHOOL_NAV_GROUPS = [
       "Manage Sections",
       "Manage Subjects",
       "Student Transfer",
-      "CAS",
+      "Exams",
       "Parents & Guardians",
       "Parent Messages",
       "Teachers",

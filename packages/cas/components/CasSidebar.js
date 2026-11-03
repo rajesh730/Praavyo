@@ -9,7 +9,7 @@ import PravyoLogo from './brand/PravyoLogo.js';
 import NavItemLink from './navigation/NavItemLink.js';
 import { CAS_NAV_LINKS } from './navigation/casNavigation.js';
 
-export default function CasSidebar({ school, academicYear, isMobileOpen, onNavigate, links = CAS_NAV_LINKS, returnHref = '/school/dashboard' }) {
+export default function CasSidebar({ school, academicYear, isMobileOpen, onNavigate, links = CAS_NAV_LINKS, returnHref = '/school/dashboard', area = 'cas' }) {
   const { data: session } = useSession();
   const pathname = usePathname();
 
@@ -31,7 +31,7 @@ export default function CasSidebar({ school, academicYear, isMobileOpen, onNavig
       <div className="flex h-[var(--topbar-h)] shrink-0 items-center gap-2.5 border-b border-line px-4">
         <PravyoLogo variant="icon" compact />
         <div className="min-w-0 flex-1">
-          <p className="text-2xs font-semibold uppercase tracking-wide text-brand">Praavyo CAS</p>
+          <p className="text-2xs font-semibold uppercase tracking-wide text-brand">{area === 'internal' ? 'Praavyo Internal Exam' : 'Praavyo CAS'}</p>
           <p className="truncate text-sm font-semibold leading-tight text-ink">
             {school?.name || session?.user?.schoolName || 'School'}
           </p>
@@ -56,7 +56,7 @@ export default function CasSidebar({ school, academicYear, isMobileOpen, onNavig
       )}
 
       <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 pb-3 pt-2">
-        <p className="nav-section">Assessment</p>
+        <p className="nav-section">{area === 'internal' ? 'Internal Exam' : 'Assessment'}</p>
         {links.map((link) => (
           <NavItemLink
             key={link.href}

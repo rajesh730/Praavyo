@@ -12,12 +12,9 @@ import {
   PageHeader, Card, Button, EmptyState, Field, Input, Select, Spinner,
 } from './ui/Kit.js';
 
-// A display choice, not a filter: every card can be drawn in either layout.
-const FORMATS = [
-  { value: '', label: 'As published' },
-  { value: 'CLASSIC', label: 'Classic' },
-  { value: 'MODERN', label: 'Modern' },
-];
+// CAS results are always drawn in the Classic layout, whatever format an
+// older card was stored with. Internal exams have their own Modern card.
+const format = 'CLASSIC';
 
 /**
  * Published report cards are rendered directly below the filters. This is a
@@ -31,7 +28,6 @@ export default function PublishedResultsPage() {
   const [chosenGrade, setChosenGrade] = useRememberedState('cas-published:grade', '');
   const [section, setSection] = useRememberedState('cas-published:section', '');
   const [exam, setExam] = useRememberedState('cas-published:exam', '');
-  const [format, setFormat] = useRememberedState('cas-published:format', '');
   const [searchInput, setSearchInput] = useRememberedState('cas-published:search-input', '');
   const [search, setSearch] = useRememberedState('cas-published:search', '');
   const [showAssessedThemes, setShowAssessedThemes] = useRememberedState('cas-published:show-themes', false);
@@ -126,11 +122,6 @@ export default function PublishedResultsPage() {
               <Select value={exam} onChange={(event) => setExam(event.target.value)}>
                 <option value="">All exams</option>
                 {(examsQuery.data?.exams || []).map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}
-              </Select>
-            </Field>
-            <Field label="Report format">
-              <Select value={format} onChange={(event) => setFormat(event.target.value)}>
-                {FORMATS.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
               </Select>
             </Field>
             <Field label="Student, roll or result title">

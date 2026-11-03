@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { BookOpen, Repeat, UserRound } from 'lucide-react';
 import { gradeSummaries } from './shared';
+import ChangePasswordCard from './ChangePasswordCard';
 
 /** Who I am at this school, and what the school has made me responsible for. */
 export default function ProfileTab({ workspace }) {
@@ -19,33 +20,37 @@ export default function ProfileTab({ workspace }) {
 
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
-      <section className="card p-4">
-        <div className="flex items-center gap-3">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand-strong"><UserRound aria-hidden /></span>
-          <div className="min-w-0">
-            <h2 className="truncate font-semibold text-ink">{teacher.name}</h2>
-            <p className="truncate text-sm text-muted">{teacher.designation || 'Teacher'}</p>
-          </div>
-        </div>
-
-        <dl className="mt-4 divide-y divide-line border-t border-line">
-          {details.map(([label, value]) => (
-            <div key={label} className="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-2 py-2.5 text-sm">
-              <dt className="text-muted">{label}</dt>
-              <dd className="break-words font-medium text-ink">{value}</dd>
+      <div className="space-y-4">
+        <section className="card p-4">
+          <div className="flex items-center gap-3">
+            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand-strong"><UserRound aria-hidden /></span>
+            <div className="min-w-0">
+              <h2 className="truncate font-semibold text-ink">{teacher.name}</h2>
+              <p className="truncate text-sm text-muted">{teacher.designation || 'Teacher'}</p>
             </div>
-          ))}
-        </dl>
+          </div>
 
-        <p className="mt-3 rounded-control bg-surface-2 px-3 py-2 text-xs text-muted">
-          To change these details or your password, ask your school office.
-        </p>
-        {workspace.canSwitchSchool && (
-          <Link href="/teacher/select-school" className="btn btn-secondary btn-sm mt-3 inline-flex w-full items-center justify-center gap-1.5">
-            <Repeat aria-hidden size={16} /> Switch school
-          </Link>
-        )}
-      </section>
+          <dl className="mt-4 divide-y divide-line border-t border-line">
+            {details.map(([label, value]) => (
+              <div key={label} className="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-2 py-2.5 text-sm">
+                <dt className="text-muted">{label}</dt>
+                <dd className="break-words font-medium text-ink">{value}</dd>
+              </div>
+            ))}
+          </dl>
+
+          <p className="mt-3 rounded-control bg-surface-2 px-3 py-2 text-xs text-muted">
+            To change these details, ask your school office.
+          </p>
+          {workspace.canSwitchSchool && (
+            <Link href="/teacher/select-school" className="btn btn-secondary btn-sm mt-3 inline-flex w-full items-center justify-center gap-1.5">
+              <Repeat aria-hidden size={16} /> Switch school
+            </Link>
+          )}
+        </section>
+
+        <ChangePasswordCard />
+      </div>
 
       <section className="card overflow-hidden">
         <div className="flex items-center gap-2 border-b border-line p-4">

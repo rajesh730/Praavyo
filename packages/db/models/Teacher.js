@@ -49,6 +49,11 @@ const TeacherSchema = new mongoose.Schema({
   password: {
     type: String, // Hashed password for authentication
   },
+  // Bumped to invalidate every printed login card (see @pravyo/auth/teacherCardToken).
+  cardVersion: {
+    type: Number,
+    default: 0,
+  },
   subject: {
     type: String,
     required: [true, "Please provide a focus area"],

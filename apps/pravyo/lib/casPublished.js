@@ -38,13 +38,27 @@ export async function publishedCas(request) {
     if (!mongoose.isValidObjectId(reportId)) return Response.json({ error: 'Invalid report' }, { status: 400 });
     filter._id = new mongoose.Types.ObjectId(reportId);
   }
-  const rows = await mongoose.connection.db.collection('casreports').find(filter, { projection: reportId
+  // Two kinds of card: CAS (casreports, Grades 1–5) and the school's internal
+  // exams (internalexamreports, Grades 1–10). `kind` tells the reader which
+  // layout draws it.
+  const sources = [
+    { kind: 'CAS', collection: 'casreports' },
+    { kind: 'INTERNAL', collection: 'internalexamreports' },
+  ];
+  const projection = reportId
     ? { snapshot: 1, format: 1, status: 1, publishedAt: 1, school: 1 }
     // The list view needs only enough to render a link, so the full
     // per-outcome detail is not shipped to the browser until a report is opened.
     : { 'snapshot.academicYear.label': 1, 'snapshot.examTitle': 1, 'snapshot.student.name': 1,
-        'snapshot.student.grade': 1, 'snapshot.total.achievement': 1, examTerm: 1, format: 1, publishedAt: 1 } })
-    .sort({ publishedAt: -1 }).limit(100).toArray();
+        'snapshot.student.grade': 1, 'snapshot.total.achievement': 1, examTerm: 1, format: 1, publishedAt: 1 };
+  const found = await Promise.all(sources.map(async ({ kind, collection }) => {
+    const list = await mongoose.connection.db.collection(collection).find(filter, { projection })
+      .sort({ publishedAt: -1 }).limit(100).toArray();
+    return list.map((row) => ({ ...row, kind }));
+  }));
+  const rows = found.flat()
+    .sort((a, b) => new Date(b.publishedAt || 0) - new Date(a.publishedAt || 0))
+    .slice(0, 100);
   if (reportId && !rows.length) return Response.json({ error: 'Report unavailable' }, { status: 404 });
   // The school that published the card supplies its header images.
   const data = reportId ? (await withBranding(rows[0].school, rows))[0] : rows;

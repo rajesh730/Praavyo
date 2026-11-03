@@ -8,7 +8,8 @@ import { useRememberedState } from '@pravyo/ui/rememberedState';
 import { Menu as FaBars, X as FaTimes } from 'lucide-react';
 import PravyoLogo from './brand/PravyoLogo.js';
 import CasSidebar from './CasSidebar.js';
-import { CAS_NAV_LINKS } from './navigation/casNavigation.js';
+import { CAS_NAV_LINKS, CAS_TO_INTERNAL_LINK, INTERNAL_EXAM_NAV_LINKS } from './navigation/casNavigation.js';
+import { usesResultSheet } from '../lib/casResultSheet.js';
 import { casFetch, invalidateCasQueryCache, useCasQuery } from '../lib/client/useCas.js';
 import { configureCasRealtime } from '../lib/client/casSync.js';
 import InstallAppButton from '@pravyo/ui/installApp';
@@ -44,7 +45,11 @@ export function useCas() {
   return value;
 }
 
-export default function CasLayout({ children, embedded = false }) {
+/**
+ * `area` picks the workspace: 'cas' (theme assessment, Grades 1–5 only) or
+ * 'internal' (the school's own marks exams, every grade).
+ */
+export default function CasLayout({ children, embedded = false, area = 'cas' }) {
   const { data: session, status } = useSession();
   const [isNavOpen, setIsNavOpen] = useState(false);
   const pathname = usePathname();
@@ -132,9 +137,17 @@ export default function CasLayout({ children, embedded = false }) {
   const academicYear =
     years.find((y) => y.id === yearId) || context?.selectedYear || null;
 
+  // CAS assesses Grades 1–5 only; Grades 6–10 have internal exams instead.
+  // The super admin's theme library keeps its own grade list.
+  const school = useMemo(() => {
+    const row = context?.school || null;
+    if (!row || area !== 'cas' || row.library) return row;
+    return { ...row, grades: (row.grades || []).filter(usesResultSheet) };
+  }, [context?.school, area]);
+
   const value = useMemo(
     () => ({
-      school: context?.school || null,
+      school,
       actor: context?.actor || null,
       years,
       academicYear,
@@ -144,7 +157,7 @@ export default function CasLayout({ children, embedded = false }) {
       // Pick the Nepali string when the user is reading Nepali and one exists.
       t: (en, ne) => (lang === 'ne' && ne ? ne : en),
     }),
-    [context, years, academicYear, setYearId, lang, setLang],
+    [context, school, years, academicYear, setYearId, lang, setLang],
   );
 
   if (status === 'loading' || loading) {
@@ -177,7 +190,11 @@ export default function CasLayout({ children, embedded = false }) {
   }
 
   const isTeacher = context?.actor?.role === 'TEACHER';
-  const visibleLinks = isTeacher ? CAS_NAV_LINKS.slice(0, 1) : CAS_NAV_LINKS;
+  const areaLinks = area === 'internal' ? INTERNAL_EXAM_NAV_LINKS : [...CAS_NAV_LINKS, CAS_TO_INTERNAL_LINK];
+  // Teachers enter marks only: CAS Assessment and Internal Exam mark entry.
+  const visibleLinks = isTeacher
+    ? (area === 'internal' ? [INTERNAL_EXAM_NAV_LINKS[0], INTERNAL_EXAM_NAV_LINKS.at(-1)] : [CAS_NAV_LINKS[0], CAS_TO_INTERNAL_LINK])
+    : areaLinks;
   const tabLinks = visibleLinks.slice(0, 4);
   const isLinkActive = (link) =>
     link.href === '/' ? pathname === '/' : pathname === link.href || pathname?.startsWith(`${link.href}/`);
@@ -200,6 +217,7 @@ export default function CasLayout({ children, embedded = false }) {
           isMobileOpen={isNavOpen}
           onNavigate={() => setIsNavOpen(false)}
           links={visibleLinks}
+          area={area}
           returnHref={isTeacher ? '/teacher/dashboard?tab=assessment' : '/school/dashboard'}
         />
 

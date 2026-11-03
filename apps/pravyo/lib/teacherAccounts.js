@@ -3,6 +3,7 @@ import Student from '@/models/Student';
 import User from '@/models/User';
 import TeacherMembership from '@pravyo/db/models/TeacherMembership';
 import { APIError } from '@/lib/apiResponse';
+import { teacherCardToken } from '@pravyo/auth/teacherCardToken';
 
 const USERNAME_PATTERN = /^[a-z][a-z0-9._-]{2,39}$/;
 const ID_PATTERN = /^[a-f\d]{24}$/i;
@@ -98,6 +99,15 @@ export async function worksElsewhere(teacherId, school) {
   return Boolean(await TeacherMembership.exists({
     teacher: teacherId, school: { $ne: school }, status: { $in: ['ACTIVE', 'INACTIVE'] },
   }));
+}
+
+/**
+ * The sign-in token for a teacher's login card, or null when the card must be
+ * username-only: a teacher who also works at another school, so this school
+ * never holds a login into that one. Needs `cardVersion` on `teacher`.
+ */
+export async function teacherCardSignInToken(teacher, school) {
+  return (await worksElsewhere(teacher._id, school)) ? null : teacherCardToken(teacher);
 }
 
 export function parseOptionalDate(value, label) {

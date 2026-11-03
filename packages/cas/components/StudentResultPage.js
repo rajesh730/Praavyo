@@ -54,7 +54,8 @@ export default function StudentResultPage() {
   const examTerm = DEFAULT_CAS_EXAM_TERM;
   const [examId, setExamId] = useRememberedState('cas-result:exam', '');
   const [chosenThemeAssignmentIds, setChosenThemeAssignmentIds] = useRememberedState('cas-result:themes', null);
-  const [format, setFormat] = useRememberedState('cas-result:format', DEFAULT_REPORT_FORMAT);
+  // CAS results are always Classic; the Modern card belongs to internal exams.
+  const format = DEFAULT_REPORT_FORMAT;
   const [search, setSearch] = useRememberedState('cas-result:search', '');
   const [filter, setFilter] = useRememberedState('cas-result:status', 'all');
   const [selected, setSelected] = useState(new Set());
@@ -367,13 +368,6 @@ export default function StudentResultPage() {
             <Select value={selectedExam?.id || ''} onChange={(event) => changeExam(event.target.value)}>
               {!exams.length && <option value="">No exams configured</option>}
               {exams.map((option) => <option key={option.id} value={option.id}>{option.name}{option.status === 'ARCHIVED' ? ` (${t('Archived', 'संग्रहित')})` : ''}</option>)}
-            </Select>
-          </Field>
-          <Field label={t('Report card format', 'नतिजा पत्रको ढाँचा')}>
-            <Select value={format} onChange={(event) => setFormat(event.target.value)}>
-              {REPORT_FORMATS.map((option) => (
-                <option key={option.value} value={option.value}>{option.label}</option>
-              ))}
             </Select>
           </Field>
         </div>
