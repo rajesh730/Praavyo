@@ -38,6 +38,16 @@ function CountCard({ icon: Icon, value, label, note, tone = "blue" }) {
   );
 }
 
+// Each list scrolls inside its own box, so a school with hundreds of
+// admissions or events does not make the whole Overview page endless.
+const LIST_BOX = "max-h-[26rem] space-y-2 overflow-y-auto overscroll-contain pr-1";
+
+// Grades are stored as "Grade 5" now and as "5" in older rows.
+function gradeLabel(grade) {
+  if (!grade) return "";
+  return /^grade\b/i.test(String(grade)) ? String(grade) : `Grade ${grade}`;
+}
+
 function Chip({ label, classes }) {
   return (
     <span className={`badge badge-neutral uppercase ${classes}`}>
@@ -52,7 +62,7 @@ function PersonRow({ name, grade, year, chip }) {
       <div className="min-w-0">
         <p className="truncate text-sm font-semibold text-ink">{name}</p>
         <p className="truncate text-xs font-semibold text-muted">
-          {grade ? `Grade ${grade}` : "Grade —"}
+          {gradeLabel(grade) || "Grade —"}
           {year ? ` · ${year}` : ""}
         </p>
       </div>
@@ -69,7 +79,7 @@ function TransferRow({ row, direction }) {
         <p className="truncate text-xs font-semibold text-muted">
           {direction === "in" ? "From " : "To "}
           {row.counterpartSchool}
-          {row.grade ? ` · Grade ${row.grade}` : ""}
+          {row.grade ? ` · ${gradeLabel(row.grade)}` : ""}
         </p>
       </div>
       <span className="shrink-0 text-xs font-semibold text-muted">
@@ -269,7 +279,7 @@ export default function SchoolAnalytics() {
             <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-success">
               <FaSignInAlt /> Came in {data.selectedYearLabel} ({joined.length})
             </p>
-            <div className="space-y-2">
+            <div className={LIST_BOX}>
               {joined.length === 0 ? (
                 <EmptyLine text="No new students this session." />
               ) : (
@@ -289,7 +299,7 @@ export default function SchoolAnalytics() {
             <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-danger">
               <FaSignOutAlt /> Left in {data.selectedYearLabel} ({left.length})
             </p>
-            <div className="space-y-2">
+            <div className={LIST_BOX}>
               {left.length === 0 ? (
                 <EmptyLine text="No students left this session." />
               ) : (
@@ -320,7 +330,7 @@ export default function SchoolAnalytics() {
             <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-brand-strong">
               <FaSignInAlt /> Incoming ({incoming.length})
             </p>
-            <div className="space-y-2">
+            <div className={LIST_BOX}>
               {incoming.length === 0 ? (
                 <EmptyLine text="No incoming transfers this session." />
               ) : (
@@ -334,7 +344,7 @@ export default function SchoolAnalytics() {
             <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-brand-strong">
               <FaSignOutAlt /> Outgoing ({outgoing.length})
             </p>
-            <div className="space-y-2">
+            <div className={LIST_BOX}>
               {outgoing.length === 0 ? (
                 <EmptyLine text="No outgoing transfers this session." />
               ) : (
@@ -359,7 +369,7 @@ export default function SchoolAnalytics() {
             <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-brand-strong">
               <FaGraduationCap /> Organized ({organized.length})
             </p>
-            <div className="space-y-2">
+            <div className={LIST_BOX}>
               {organized.length === 0 ? (
                 <EmptyLine text="No school events this session." />
               ) : (
@@ -389,7 +399,7 @@ export default function SchoolAnalytics() {
             <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-brand-strong">
               <FaCalendarAlt /> Participated ({participated.length})
             </p>
-            <div className="space-y-2">
+            <div className={LIST_BOX}>
               {participated.length === 0 ? (
                 <EmptyLine text="No events joined this session." />
               ) : (

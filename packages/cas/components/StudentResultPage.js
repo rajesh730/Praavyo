@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import { useRememberedState } from '@pravyo/ui/rememberedState';
 import Link from 'next/link';
-import { Calculator as FaCalculator, Download as FaDownload, Eye as FaEye, FileText as FaFileAlt, Send as FaPaperPlane, Printer as FaPrint, Search as FaSearch, Undo2 as FaUndo } from 'lucide-react';
+import { Calculator as FaCalculator, Download as FaDownload, Eye as FaEye, FileText as FaFileAlt, Send as FaPaperPlane, Printer as FaPrint, Search as FaSearch } from 'lucide-react';
 import { hasAttendance, hasExtraActivities } from '@pravyo/core/casSupplementary';
 import { DEFAULT_CAS_EXAM_TERM } from '@pravyo/core/casExamTerms';
 import { useCas } from './CasLayout.js';
@@ -32,11 +32,12 @@ const FILTERS = [
 /**
  * Student Result — every student's report card for a grade and academic year.
  *
- * Publish and Unpublish live only at the top and act on the ticked students, or
- * on everyone in view when none are ticked. Publishing sends each card to the
- * student and every guardian linked to them; unpublishing takes it back from
- * both. Each card offers only what concerns that one sheet: its calculation,
- * print and download.
+ * Publish lives only at the top and acts on the ticked students, or on
+ * everyone in view when none are ticked. Publishing sends each card to the
+ * student and every guardian linked to them. There is no unpublish here:
+ * results are taken down a whole exam at a time on Published Results, which
+ * deletes the cards. Each card offers only what concerns that one sheet: its
+ * calculation, print and download.
  *
  * Every academic year stays here. Choosing an earlier year shows that year's
  * results exactly as they were published, including students who have since
@@ -158,7 +159,6 @@ export default function StudentResultPage() {
   // Actions apply to the ticked students, or to everyone in view.
   const scope = chosen.length ? chosen : visibleCards;
   const toPublish = scope.filter((student) => student.status === 'PREVIEW');
-  const toUnpublish = scope.filter((student) => student.status === 'PUBLISHED');
   const missingRecords = visibleCards.filter(missesRecords);
   const missingCredits = (students.find((s) => s.report)?.report.snapshot.subjects || [])
     .filter((subject) => subject.creditHours == null);
@@ -255,36 +255,6 @@ export default function StudentResultPage() {
     }
   }
 
-  async function unpublish() {
-    if (!toUnpublish.length || !academicYear?.id) return;
-    if (!window.confirm(
-      `Unpublish the result of ${describe(toUnpublish)}?\n\n` +
-      'Students and parents will no longer see it, and its assessments unlock so they can be corrected. ' +
-      'You can publish it again afterwards.',
-    )) return;
-    setOutcome(null);
-    const result = await run('/api/cas/results/unpublish', {
-      method: 'POST',
-      body: {
-        academicYear: academicYear.id,
-        grade,
-        ...(section ? { section } : {}),
-        examTerm,
-        resultMode,
-        ...(resultMode === 'EXAM' && selectedExam ? { examId: selectedExam.id } : {}),
-        includePrevious,
-        themeAssignmentIds,
-        students: toUnpublish.map((student) => student.id),
-      },
-    });
-    if (result.ok) {
-      const count = result.data?.unpublished ?? 0;
-      setSuccess(`${count} result${count === 1 ? '' : 's'} unpublished. Students and parents no longer see ${count === 1 ? 'it' : 'them'}.`);
-      setSelected(new Set());
-      reload();
-    }
-  }
-
   function toggle(set, setter, id) {
     const next = new Set(set);
     if (next.has(id)) next.delete(id);
@@ -309,10 +279,6 @@ export default function StudentResultPage() {
         actions={
           canPublish && (
             <div className="flex flex-wrap gap-2">
-              <Button variant="secondary" disabled={pending || toUnpublish.length === 0} onClick={unpublish}>
-                <FaUndo className="text-xs" />
-                {t(`Unpublish (${toUnpublish.length})`, `अप्रकाशित (${toUnpublish.length})`)}
-              </Button>
               <Button disabled={pending || toPublish.length === 0} onClick={() => setConfirmingPublish(true)}>
                 <FaPaperPlane className="text-xs" />
                 {pending
@@ -779,8 +745,8 @@ function PublishConfirmDialog({ t, students, grade, section, examName, formatLab
         </h2>
         <p className="mt-1 text-sm text-muted">
           {t(
-            'Each report card is sent to the student and every linked parent straight away. It stays locked until you unpublish it.',
-            'हरेक नतिजा पत्र तुरुन्तै विद्यार्थी र अभिभावकलाई पठाइन्छ। अप्रकाशित नगरेसम्म यो लक रहन्छ।',
+            'Each report card is sent to the student and every linked parent straight away. To take results down, unpublish the whole exam on Published Results.',
+            'हरेक नतिजा पत्र तुरुन्तै विद्यार्थी र अभिभावकलाई पठाइन्छ। नतिजा हटाउन Published Results मा पूरै परीक्षा अप्रकाशित गर्नुहोस्।',
           )}
         </p>
 
@@ -824,10 +790,6 @@ function PublishConfirmDialog({ t, students, grade, section, examName, formatLab
 function missesRecords(student) {
   const snapshot = student.report?.snapshot || {};
   return !hasAttendance(snapshot.attendance) || !hasExtraActivities(snapshot.extraActivities);
-}
-
-function describe(targets) {
-  return targets.length === 1 ? targets[0].name : `${targets.length} students`;
 }
 
 function initials(name) {

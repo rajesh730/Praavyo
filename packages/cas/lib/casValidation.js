@@ -393,20 +393,19 @@ export const reportCardsQuery = z
   }));
 
 /** Take a grade's published results back from parents and students. */
-export const gradeUnpublishInput = z
+/**
+ * Unpublish a whole exam for a grade — never single students. `exam` is a
+ * CasExam id, or WHOLE_YEAR for the cards that belong to no exam (the
+ * whole-year final result).
+ */
+export const WHOLE_YEAR_EXAM = 'WHOLE_YEAR';
+export const examUnpublishInput = z
   .object({
     academicYear: objectId,
     grade,
-    section,
-    examTerm,
-    examId,
-    resultMode,
-    includePrevious,
-    themeAssignmentIds,
-    students: z.array(objectId).min(1).max(300),
+    exam: z.union([objectId, z.literal(WHOLE_YEAR_EXAM)]),
   })
-  .strict()
-  .superRefine(validateResultScope);
+  .strict();
 
 /** Snapshot and publish a grade's results in one step. */
 export const gradePublishInput = reportBaseInput

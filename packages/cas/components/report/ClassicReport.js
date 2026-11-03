@@ -17,7 +17,7 @@ export default function ClassicReport({ report, lang = 'en' }) {
 
   const t = stringsFor(lang);
   const pick = picker(lang);
-  const { logoUrl, reportImageUrl } = report.branding || {};
+  const { logoUrl, reportImageUrl, principalName, classTeachers } = report.branding || {};
 
   return (
     // cas-a4-fit + cas-a4-foot hold the signatures at the foot of the page.
@@ -120,8 +120,9 @@ export default function ClassicReport({ report, lang = 'en' }) {
 
       <footer className="cas-avoid-break cas-a4-foot pt-10">
         <div className="flex items-end justify-between gap-6">
-          <Signature label={t.classTeacher} name="" />
-          <Signature label={t.principal} name={s.school?.principalName || ''} />
+          {/* Live from the school's records; the snapshot copy is only a fallback. */}
+          <Signature label={t.classTeacher} name={classTeachers?.[s.student?.grade] || ''} />
+          <Signature label={t.principal} name={principalName || s.school?.principalName || ''} />
           <Signature label={t.issueDate} name={issueDateOf(report)} />
         </div>
         {/* Only an unpublished preview is labelled; a published card stays clean. */}

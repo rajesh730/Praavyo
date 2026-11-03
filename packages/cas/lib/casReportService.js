@@ -15,7 +15,8 @@ import ensureCasIndexes from './casIndexes.js';
 import { assert, requireSchoolAdmin } from './casAccess.js';
 import {
   reportInput, publishInput, gradePublishInput, gradeResultsQuery, reportCardsQuery,
-  gradeUnpublishInput,
+  examUnpublishInput,
+  WHOLE_YEAR_EXAM,
 } from './casValidation.js';
 import { subjectResult, consolidate, getAcceptedLevel } from '@pravyo/core/casResults';
 import {
@@ -853,7 +854,8 @@ export async function loadReports(actor, {
     ...(grade ? { grade } : {}),
     ...(status ? { status } : {}),
     ...(section ? { 'snapshot.student.section': section } : {}),
-    ...(exam ? { exam } : {}),
+    // WHOLE_YEAR = cards that belong to no exam (the whole-year final result).
+    ...(exam ? { exam: exam === WHOLE_YEAR_EXAM ? null : exam } : {}),
     ...(format ? { format } : {}),
   };
   const trimmedSearch = String(search || '').trim();
@@ -979,40 +981,34 @@ export async function publishGradeResults(actor, input) {
 }
 
 /**
- * Take published results back. Parents and students stop seeing them, the
- * notifications that pointed at them are withdrawn, and the students'
- * assessments unlock so the school can correct them and publish again.
+ * Unpublish a whole exam for a grade: every section, every student, at once.
+ *
+ * Unpublishing DELETES the report cards (published and any stray drafts) and
+ * the notifications that pointed at them. Nothing is kept: the results are
+ * still in the assessments, and publishing the exam again from Student Result
+ * builds fresh cards. Students' assessments unlock because no published card
+ * exists any more.
  */
-export async function unpublishGradeResults(actor, input) {
+export async function unpublishExamResults(actor, input) {
   requireSchoolAdmin(actor);
-  const data = gradeUnpublishInput.parse(input);
+  const data = examUnpublishInput.parse(input);
   await connectDB();
-  const [year, school] = await Promise.all([
-    loadAcademicYear(actor, data.academicYear),
-    loadSchool(actor),
-  ]);
-  const sections = sectionsForGrade(school.gradeSections, data.grade);
-  assert(!data.section || sections.includes(data.section), 'Choose a section configured for this grade', 400);
-  const exam = data.examId ? await CasExam.findOne({ _id: data.examId, school: actor.school, academicYear: year.id, status: { $in: ['ACTIVE', 'ARCHIVED'] }, mergedInto: { $exists: false } }).lean() : null;
-  assert(!data.examId || exam, 'Exam unavailable for this grade and year', 404);
-  const reports = await CasReport.find(withReportTerm({
+  const year = await loadAcademicYear(actor, data.academicYear);
+  const wholeYear = data.exam === WHOLE_YEAR_EXAM;
+  if (!wholeYear) {
+    const exam = await CasExam.exists({ _id: data.exam, school: actor.school, academicYear: year.id });
+    assert(exam, 'Exam unavailable for this academic year', 404);
+  }
+  const filter = {
     school: actor.school,
     academicYear: year.id,
     grade: data.grade,
-    student: { $in: data.students },
-    status: 'PUBLISHED',
-    ...(data.section ? { 'snapshot.student.section': data.section } : {}),
-  }, data.examTerm, data.examId, data.resultMode, data.includePrevious, data.themeAssignmentIds)).select('_id').lean();
-  if (!reports.length) return { unpublished: 0 };
+    exam: wholeYear ? null : data.exam,
+  };
+  const ids = (await CasReport.find(filter).select('_id').lean()).map((row) => row._id);
+  if (!ids.length) return { unpublished: 0 };
 
-  const ids = reports.map((report) => report._id);
-  await CasReport.updateMany(
-    { _id: { $in: ids }, school: actor.school, status: 'PUBLISHED' },
-    {
-      $set: { status: 'DRAFT', publishedAt: null, publishedBy: null },
-      $unset: { notifiedAt: '' },
-    },
-  );
+  await CasReport.deleteMany({ _id: { $in: ids }, school: actor.school });
   await UserNotification.deleteMany({ entityId: { $in: ids.map(String) } });
   return { unpublished: ids.length };
 }

@@ -1,3 +1,4 @@
+import { gradeFor } from '@pravyo/core/casGrading';
 import { GRADE_SCALE, picker, issueDateOf, examTitleOf, valueOrDash } from './reportText.js';
 
 /**
@@ -18,8 +19,16 @@ export default function InternalExamReport({ report, lang = 'en' }) {
 
   const pick = picker(lang);
   const subjects = s.subjects || [];
-  const { logoUrl, reportImageUrl } = report.branding || {};
+  const { logoUrl, reportImageUrl, principalName, classTeachers } = report.branding || {};
   const issueDate = issueDateOf(report);
+  // The remark follows the result: the grade band's own words when passed,
+  // otherwise the subjects that were not passed.
+  const notPassed = subjects.filter((line) => line.entered && !line.passed).map((line) => pick(line.titleEn, line.titleNe));
+  const remark = s.passed
+    ? (lang === 'ne' ? gradeFor(s.percent)?.remarkNe : gradeFor(s.percent)?.remarkEn) || '-'
+    : notPassed.length
+      ? `${lang === 'ne' ? 'सुधार आवश्यक' : 'Needs improvement in'}: ${notPassed.join(', ')}`
+      : '-';
   const summary = [
     ['Total marks', `${valueOrDash(s.obtained)} / ${valueOrDash(s.fullMarks)}`],
     ['Percentage', s.percent == null ? '-' : `${s.percent}%`],
@@ -150,7 +159,7 @@ export default function InternalExamReport({ report, lang = 'en' }) {
           <div className="text-[11px]">
             <h3 className="mb-1 text-xs font-bold" style={{ color: BRAND }}>Remarks</h3>
             <div className="min-h-[4rem] rounded-md border border-[#c9d3ea] p-2 italic">
-              {s.passed ? 'Good result. Keep it up.' : 'Needs improvement. Work harder in the subjects marked in red.'}
+              {remark}
             </div>
             <p className="mt-2 text-[10px] text-[#555]">
               Pass marks are {s.passPercent ?? 35}% of each subject&apos;s full marks.
@@ -159,9 +168,9 @@ export default function InternalExamReport({ report, lang = 'en' }) {
         </div>
 
         <footer className="cas-a4-foot mt-8 grid grid-cols-3 gap-8 text-center text-[10px]">
-          <Signature value={issueDate ? `Issue Date: ${issueDate}` : ''} label="Class Teacher" />
-          <Signature label="Exam Coordinator" />
-          <Signature label="Principal" />
+          <Signature value={classTeachers?.[s.student?.grade] || ''} label="Class Teacher" />
+          <Signature value={principalName || ''} label="Principal" />
+          <Signature value={issueDate} label="Issue Date" />
         </footer>
       </div>
     </article>
@@ -193,7 +202,7 @@ function ScaleCell({ children, head = false }) {
 function Signature({ value = '', label }) {
   return (
     <div>
-      <p className="h-5 border-b border-[#111] text-left text-[11px] font-semibold leading-5">{value}</p>
+      <p className="h-5 border-b border-[#111] text-center text-[11px] font-semibold leading-5">{value}</p>
       <p className="pt-1">{label}</p>
     </div>
   );

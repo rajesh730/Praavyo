@@ -273,10 +273,16 @@ describe('student book persistence on an isolated MongoDB replica set', {
     result = await cards();
     assert.equal(byId(f.students[0]).report.format, 'CLASSIC', 'first terminal stays separate from second terminal');
 
-    const undone = await reports.unpublishGradeResults(f.actor, {
+    // Unpublishing is per exam and grade, and deletes the cards outright.
+    // Both cards above were published without an exam, so they unpublish together.
+    await assert.rejects(reports.unpublishExamResults(f.actor, {
       academicYear: f.scope.academicYear, grade: 'Grade 3', students: [String(f.students[0])],
+    }), 'single students cannot be unpublished');
+    const undone = await reports.unpublishExamResults(f.actor, {
+      academicYear: f.scope.academicYear, grade: 'Grade 3', exam: 'WHOLE_YEAR',
     });
-    assert.equal(undone.unpublished, 1);
+    assert.equal(undone.unpublished, 2);
+    assert.equal(await Report.countDocuments({ school: f.actor.school }), 0, 'unpublished cards are deleted, not kept');
     result = await cards();
     assert.equal(byId(f.students[0]).status, 'PREVIEW', 'an unpublished result is a live preview again');
     const open = rowsFrom(await service.loadStudentSheet(f.actor, f.scope));

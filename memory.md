@@ -2,6 +2,139 @@
 
 Newest sections first. Where sections disagree, the newer one wins.
 
+## Exams = CAS + Internal Exam, result rules - 2026-11-03 (read first)
+
+Owner decisions made over one long session. Supersedes anything older about
+report formats, unpublishing and the Grades 6–10 gap.
+
+### Two result tracks
+- **CAS** — the government continuous assessment, **Grades 1–5 only**, by
+  theme and learning outcome, exactly as before. Calculation unchanged (demo
+  PDF rules, `packages/cas/lib/casResultSheet.js`).
+- **Internal Exam** — the school's own written papers, **Grades 1–10**, plain
+  marks per student per subject.
+- Grades 1–5 therefore get **two report cards a term**; Grades 6–10 get one.
+  The two publish **separately** (neither waits for the other); parents see
+  both under Student Result, labelled "CAS" / "Internal exam".
+- School sidebar item "CAS" was renamed **Exams** → `/school/exams`, a chooser
+  page with two cards (CAS → `/school/cas/assessment`, Internal Exam →
+  `/school/internal-exam/marks`). Both workspaces share the CAS shell
+  (`CasLayout`, prop `area="cas" | "internal"`) and link to each other in the
+  sidebar. Teachers see CAS Assessment + Internal Exam mark entry only; their
+  dashboard Assessment tab has an "Internal exam marks" card.
+- In the CAS area `school.grades` is filtered through `usesResultSheet`
+  (Grades 1–5) inside `CasLayout`, so every CAS dropdown hides 6–10. The super
+  admin's theme library keeps its own grade list.
+
+### Report formats (owner's naming wins over the code's old names)
+- The owner calls the blue-header outcome sheet **Classic** and the grade
+  sheet with Attendance/Extra Activities "modern". The code had these
+  inverted (`CLASSIC` used to render `ModernReport.js`).
+- Now `components/report/ReportCard.js` **always** renders `ClassicReport.js`
+  for every CAS card, ignoring the stored `format`, on every screen, print
+  route and the parent/student portal. No format dropdown anywhere
+  (Student Result, Published Results). `ModernReport.js` is unused by CAS.
+  The Classic sheet has **no Attendance / Extra Activities section** — the
+  data is still saved; owner was asked whether to add it back (open).
+- The **Modern** card is the internal exam's own:
+  `components/report/InternalExamReport.js`.
+- Classic card layout changes: signatures (Class Teacher, Principal,
+  **Issue Date**) sit at the foot of the A4 page (`cas-a4-fit` +
+  `cas-a4-foot`); the long "Achievement levels run from 1 to 4…" note, the
+  credit-hour note and "Published report. Figures are fixed…" were removed.
+  Only an unpublished preview still says "DRAFT — not published".
+
+### Report-card data comes from the database at read time
+`packages/cas/lib/casBranding.js` (`loadReportBranding` / `withBranding`)
+attaches, whenever any CAS or internal card is read:
+- `logoUrl` — Public Profile school logo (`schoolshowcaseprofiles.coverImageUrl`);
+- `reportImageUrl` — Settings → Report card images (`SchoolConfig.reportCardImageUrl`);
+- `principalName` — school account (`User.principalName`), live; the snapshot
+  copy is only a fallback;
+- `classTeachers` — `{ grade: names }` from `TeacherTeachingAssignment`
+  `CLASS_TEACHER` rows, only teachers with an ACTIVE membership.
+So changing the logo, principal or class teacher shows on every card without
+republishing. Internal-exam remark is derived from the result (grade band's
+words if passed, else "Needs improvement in: <subjects>"), not fixed text.
+
+### Issue date
+- Set per exam in **Manage Exams** (CAS: `CasExam.issueDate`; internal:
+  `InternalExam.issueDate`). The Classic card labels it "Issue Date".
+- `updateExam` in `casExamService.js` now also rewrites
+  `snapshot.issueDate` on every CasReport of that exam (published included),
+  so a later change reaches existing cards. Whole-year (exam-less) cards take
+  the latest exam's date at generation and only change when regenerated.
+
+### Publishing and unpublishing CAS results (owner rule)
+- **Student Result only publishes.** The per-student Unpublish button and the
+  old `unpublishGradeResults` were removed.
+- **Unpublish happens only on Published Results, a whole exam at a time** for
+  the chosen grade: every section, every student. Button "Unpublish exam" is
+  enabled once a specific exam is chosen in the filter; the exam filter also
+  offers "Whole year (final result)" (`WHOLE_YEAR` = cards with `exam: null`).
+- **Unpublish = delete.** `unpublishExamResults` (`casReportService.js`, route
+  `POST /api/cas/results/unpublish` with `{ academicYear, grade, exam }`)
+  deletes every CasReport for school + year + grade + exam (any status) and
+  the `UserNotification`s pointing at them. Nothing is kept as DRAFT; the
+  assessments remain, so the school simply publishes that exam again from
+  Student Result to rebuild the cards. Owner's reason: kept drafts are an
+  extra burden on the database.
+- Old behaviour left DRAFT rows behind from earlier unpublishes; they were NOT
+  cleaned from production (would need the owner's go-ahead).
+
+### Internal Exam module (built 2026-11-03)
+- Models (`packages/db/models/cas/`): `InternalExam` (school, academicYear,
+  grade, term FIRST/SECOND/THIRD/FINAL, name, `fullMarks` default for every
+  subject, `subjectFullMarks` overrides, `passPercent` default 35, issueDate,
+  publishedAt), `InternalExamMark` (exam + student + subject unique; `marks`
+  or `absent`), `InternalExamReport` (frozen snapshot per student).
+- Service `packages/cas/lib/internalExamService.js`; routes under
+  `/api/cas/internal-exams` (list/create/update/delete, `sheet`, `marks`,
+  `cards`, `publish` with `{ exam, publish: true|false }`).
+- Maths `packages/core/internalExamResult.js`: subject % = marks ÷ full marks,
+  so out-of-50 and out-of-100 grade on one scale; same `GRADE_BANDS` as CAS;
+  absent = 0 and fails; GPA by credit hours, or equal weights when the grade
+  has no credit hours at all. Tests `packages/cas/tests/internalExamResult.test.mjs`.
+- Screens: Manage Exams, Mark Entry (grid student × subject, `AB` = absent,
+  Enter moves down, live total/%/GPA/grade, per-subject entered/expected),
+  Results (preview cards → Publish; publish blocked until every mark is
+  entered; publishing locks marks; Unpublish deletes the cards and unlocks).
+- Access: school admin edits everything; a teacher edits only subjects they
+  hold as `SUBJECT_TEACHER` on the Teachers page; a `CLASS_TEACHER` reads the
+  grade's grid. Subjects come from the subject register (`CasSubject`,
+  examined, active); optional subjects only for assigned students.
+- Not built (owner: later): theory / practical / internal-assessment split,
+  combining terminals into a final result, guardian notification on publish.
+
+### Smaller fixes the same day
+- CAS filter rows always show **Section** (disabled "No sections" when the
+  grade has none) on Assessment, Attendance/Extra Activities and Student
+  Progress, so every grade's row looks the same.
+- `useCasQuery` (`lib/client/useCas.js`) keeps showing the current data while
+  the same URL reloads (`loading` = first load only, new `refreshing` flag).
+  Fixes Manage Exams' theme panel collapsing on every tick (a reload swapped
+  the list for a spinner). Internal Mark Entry swaps in the saved sheet
+  before clearing drafts.
+- Teacher Login Card QR now signs the teacher in by itself
+  (`packages/auth/teacherCardToken.js`, HMAC of teacher id + `cardVersion`
+  with NEXTAUTH_SECRET; teachers at several schools get a username-only card).
+  "Reset password" sets `password@123` and bumps `cardVersion` (old cards stop
+  working). Teachers change their password on My Profile.
+- Green Villege's logo field is empty (latest SCHOOL_LOGO asset, uploaded
+  2026-11-01 09:04, was marked DELETED at 11:41 the same day). Note:
+  `app/api/media/r2/[id]` auto-clears a logo when storage reports the file
+  missing, without revalidating the public page — a cached public profile can
+  still show a logo the database no longer has. Cause not confirmed.
+
+### Tests
+- `packages/cas` unit tests: 72 pass. Integration tests need
+  `CAS_TEST_MONGOD="C:/Program Files/MongoDB/Server/6.0/bin/mongod.exe"`;
+  2 of 13 fail **before and independent of these changes** — their fixtures
+  assess without an exam, which the app now requires ("Exam unavailable",
+  NOT_ASSESSED). The preview/unpublish test was updated to the new
+  exam-wide delete behaviour but cannot reach those lines until its fixture
+  creates an exam first.
+
 ## Project scope and phases - 2026-11-01 (read first)
 
 - **Phase 1 — Grades 1–5 (built).** CAS = curriculum (subjects → themes →
@@ -9,6 +142,8 @@ Newest sections first. Where sections disagree, the newer one wins.
 - **Phase 2 — Grades 6–10 (not built).** A different exam and assessment
   process. Do not stretch Grades 1–5 logic (theme library, result calculation,
   report formats) over Grades 6–10; wait for the agreed Phase 2 design.
+  *(2026-11-03: Grades 6–10 now get results through the Internal Exam — see
+  the section above. CAS itself stays Grades 1–5.)*
 - Live at https://www.praavyo.com (formerly pravyo.infobytesnepal.com). One
   Next.js app at `apps/pravyo`; CAS domain code in `packages/cas`, shared
   models in `packages/db`, shared helpers in `packages/core`.
