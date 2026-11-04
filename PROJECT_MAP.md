@@ -126,12 +126,19 @@ reassessments), `CasStudentRecord` (attendance, extra activities), `CasReport`
 **Global default curriculum.** One library under the reserved school id
 `LIBRARY_SCHOOL_ID` (`packages/core/themeLibrary.js`), edited by the super admin
 at `/admin/theme-library`, Grades 1–5 (content today: Grades 1–3 — English,
-Mathematics, Nepali, Our Surroundings). `provisionDefaultCurriculum`
+Mathematics, Nepali, Our Surroundings; Grade 4 — Nepali, English, Mathematics,
+Social Studies, Science, Health/Physical/Creative Arts, credit hours from the
+book's GPA table). Books are transcribed to `data/curriculum/books/grade-N-*.txt`,
+built with `node scripts/build-curriculum-books.mjs`, and loaded into the
+library with `node scripts/load-library-grade.mjs <grade-N.json> [--apply]`
+(insert-only). `provisionDefaultCurriculum`
 (`casLibraryService.js`) gives each school its own linked copy on approval;
 each library subject reaches a school once (`User.casDefaultSubjects`); grades
 a school built itself are skipped; edits stay local; library updates are
-opt-in per theme ("Update available"). After adding a library grade run
-`npm run provision:curriculum -- --dry-run` then `--apply`.
+opt-in per theme ("Update available"). Library subjects added later (a new
+grade) reach approved schools automatically: `syncDefaultCurriculum` runs on
+`/api/cas/context` and `loadCurriculum` (throttled to once a minute per
+school). `npm run provision:curriculum` still exists to push to every school at once.
 
 **Exams = CAS + Internal Exam (since 2026-11-03).** The school sidebar's
 "Exams" (`/school/exams`) chooses between:

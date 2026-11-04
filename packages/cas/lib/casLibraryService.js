@@ -3,6 +3,7 @@ import connectDB from '@pravyo/db';
 import CasSubject from '@pravyo/db/models/cas/CasSubject';
 import CasLearningOutcome from '@pravyo/db/models/cas/CasLearningOutcome';
 import CasAssessment from '@pravyo/db/models/cas/CasAssessment';
+import User from '@pravyo/db/models/User';
 import { LIBRARY_GRADES, LIBRARY_SCHOOL_ID, sameGrade } from '@pravyo/core/themeLibrary';
 import ensureCasIndexes from './casIndexes.js';
 import { bySequence, outcomeContent, themeHash } from './casThemeHash.js';
@@ -283,6 +284,57 @@ export async function provisionDefaultCurriculum(school, { createdBy = null, rec
     }
   }
   return result;
+}
+
+// School id → when it was last checked, so a busy CAS session does not re-check
+// on every request. Per server process; a missed check only delays the copy.
+const lastSync = new Map();
+const SYNC_INTERVAL_MS = 60 * 1000;
+
+/**
+ * Give an approved school any default-library subjects it has not received
+ * yet — e.g. a grade the super admin added to the library after the school
+ * was approved. Called whenever the school opens CAS, so nobody has to run the
+ * provisioning script by hand.
+ *
+ * Same rules as approval: each library subject reaches a school once (a
+ * subject the school deleted never comes back), and grades the school built
+ * itself are left alone. Never throws: a failure is logged and retried on a
+ * later visit.
+ */
+export async function syncDefaultCurriculum(school) {
+  const id = String(school || '');
+  if (!id || id === LIBRARY_SCHOOL_ID) return null;
+  const now = Date.now();
+  if (now - (lastSync.get(id) || 0) < SYNC_INTERVAL_MS) return null;
+  lastSync.set(id, now);
+
+  try {
+    await connectDB();
+    const account = await User.findOne({
+      _id: id, role: 'SCHOOL_ADMIN', status: { $in: ['APPROVED', 'SUBSCRIBED'] },
+    }).select('casDefaultSubjects').lean();
+    if (!account) return null;
+
+    const received = (account.casDefaultSubjects || []).map(String);
+    const pending = await CasSubject.exists({
+      school: LIBRARY_SCHOOL_ID, status: 'ACTIVE', grade: { $in: LIBRARY_GRADES }, _id: { $nin: received },
+    });
+    if (!pending) return null;
+
+    const result = await provisionDefaultCurriculum(id, { received });
+    if (result.copied.length) {
+      await User.updateOne({ _id: id }, { $addToSet: { casDefaultSubjects: { $each: result.copied } } });
+      console.info('[cas] default curriculum synced for school', id,
+        { subjects: result.subjects, themes: result.themes, outcomes: result.outcomes });
+    }
+    if (result.error) throw result.error;
+    return result;
+  } catch (error) {
+    lastSync.delete(id);
+    console.error('[cas] default curriculum sync failed for school', id, error.message);
+    return null;
+  }
 }
 
 async function themePair(actor, { subject, themeKey }) {

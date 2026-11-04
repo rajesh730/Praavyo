@@ -1,0 +1,3847 @@
+{
+  "grade": "Grade 4",
+  "subjects": [
+    {
+      "code": "ENG",
+      "titleEn": "English",
+      "titleNe": "अङ्ग्रेजी",
+      "creditHours": 5,
+      "source": "grade 4.pdf — विद्यार्थीको सिकाइ उपलब्धि मूल्याङ्कन अभिलेख पुस्तिका, कक्षा ४, English, pages 11–21",
+      "notes": [
+        "Credit hours are from the book's GPA table (page 60): Nepali 5, English 5, Mathematics 5, Science 5, Social Studies 5, Health/Physical/Creative Arts 3, Local Subject 4 (32 in all). The book has no outcome pages for the Local Subject.",
+        "Each unit lists its learning outcome indicators under the language skills Listening, Speaking, Reading and Writing; the skill is stored as the outcome's assessment area.",
+        "The book prints no working hours for English units.",
+        "Unit 2 prints \"Expression Possession\" and the cumulative record prints unit 15 as \"Aggreging and disagreeing\"; both are stored with corrected spelling."
+      ],
+      "themes": [
+        {
+          "sequence": 1,
+          "titleEn": "Greeting, Introducing and Leave Taking",
+          "titleNe": "",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "Recognise familiar words and basic phrases, and expressions related to themselves.",
+              "titleNe": "",
+              "assessmentAspect": "Listening",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Use appropriate phrases and sentences to introduce themselves.",
+              "titleNe": "",
+              "assessmentAspect": "Speaking",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Read exponents and sentences used for greeting, introducing and leave taking.",
+              "titleNe": "",
+              "assessmentAspect": "Reading",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Read and extract specific information from a personal profile.",
+              "titleNe": "",
+              "assessmentAspect": "Reading",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Write date, name, nationality, address, age and date of birth in a registration form.",
+              "titleNe": "",
+              "assessmentAspect": "Writing",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Copy out short texts presented in standard printed format considering the use of punctuation marks and capitalisation.",
+              "titleNe": "",
+              "assessmentAspect": "Writing",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Write simple sentences describing a friend.",
+              "titleNe": "",
+              "assessmentAspect": "Writing",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 2,
+          "titleEn": "Expressing Possession",
+          "titleNe": "",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "Respond to rhymes and songs having simple structures and rhyming patterns.",
+              "titleNe": "",
+              "assessmentAspect": "Listening",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Participate in a short and simple conversation for expressing possession.",
+              "titleNe": "",
+              "assessmentAspect": "Speaking",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Extract specific information (names and possession) from short and simple texts.",
+              "titleNe": "",
+              "assessmentAspect": "Reading",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Recite a short and simple poem and guess the meaning of unfamiliar words.",
+              "titleNe": "",
+              "assessmentAspect": "Reading",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Write a short simple thank you note/message to a friend.",
+              "titleNe": "",
+              "assessmentAspect": "Writing",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 3,
+          "titleEn": "Asking for Information",
+          "titleNe": "",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "Listen and extract specific information from a short and simple conversation.",
+              "titleNe": "",
+              "assessmentAspect": "Listening",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Ask and answer simple questions in areas of immediate needs.",
+              "titleNe": "",
+              "assessmentAspect": "Speaking",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Extract ideas from reading texts with the help of visual support.",
+              "titleNe": "",
+              "assessmentAspect": "Reading",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Write simple classroom rules and regulations.",
+              "titleNe": "",
+              "assessmentAspect": "Writing",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 4,
+          "titleEn": "Requesting and Responding",
+          "titleNe": "",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "Recognise familiar expressions related to requesting and responding.",
+              "titleNe": "",
+              "assessmentAspect": "Listening",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Participate in a conversation to request and respond.",
+              "titleNe": "",
+              "assessmentAspect": "Speaking",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Extract information (date, person, time and place) from a personal letter.",
+              "titleNe": "",
+              "assessmentAspect": "Reading",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Read and understand a short and simple story.",
+              "titleNe": "",
+              "assessmentAspect": "Reading",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Write a short and simple letter to a friend.",
+              "titleNe": "",
+              "assessmentAspect": "Writing",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 5,
+          "titleEn": "Expressing Quantity",
+          "titleNe": "",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "Extract specific information from a slow and carefully spoken conversation.",
+              "titleNe": "",
+              "assessmentAspect": "Listening",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Use numbers, quantities, cost and time while speaking.",
+              "titleNe": "",
+              "assessmentAspect": "Speaking",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Extract specific information (number, quantity, cost and time) from reading text.",
+              "titleNe": "",
+              "assessmentAspect": "Reading",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Read and understand a short and simple story.",
+              "titleNe": "",
+              "assessmentAspect": "Reading",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Prepare a shopping list.",
+              "titleNe": "",
+              "assessmentAspect": "Writing",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 6,
+          "titleEn": "Making Comparison",
+          "titleNe": "",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "Understand and respond to a slow and carefully spoken audio related to comparison.",
+              "titleNe": "",
+              "assessmentAspect": "Listening",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Use numbers, quantities, cost and time, etc., to make comparison.",
+              "titleNe": "",
+              "assessmentAspect": "Speaking",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Read, locate and pick up specific information from a short factual text.",
+              "titleNe": "",
+              "assessmentAspect": "Reading",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Write a short and simple paragraph comparing people, places and things.",
+              "titleNe": "",
+              "assessmentAspect": "Writing",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 7,
+          "titleEn": "Describing Location",
+          "titleNe": "",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "Get information about the location of places and objects from a simple spoken description/conversation.",
+              "titleNe": "",
+              "assessmentAspect": "Listening",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Give a simple description of location with the help of pictures.",
+              "titleNe": "",
+              "assessmentAspect": "Speaking",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Read a story and guess the meanings of unfamiliar words from the contexts.",
+              "titleNe": "",
+              "assessmentAspect": "Reading",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Find out specific information (location) from a short and simple text.",
+              "titleNe": "",
+              "assessmentAspect": "Reading",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Write a short and simple paragraph describing location of a person/place/thing.",
+              "titleNe": "",
+              "assessmentAspect": "Writing",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 8,
+          "titleEn": "Stating Truth and Facts",
+          "titleNe": "",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "Identify specific information (e.g., time, place, person and date) from the texts on familiar topics of everyday life.",
+              "titleNe": "",
+              "assessmentAspect": "Listening",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Initiate and respond to simple statements to state truths and facts.",
+              "titleNe": "",
+              "assessmentAspect": "Speaking",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Read and find out information from a short factual text.",
+              "titleNe": "",
+              "assessmentAspect": "Reading",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Write a simple factual paragraph on a familiar topic.",
+              "titleNe": "",
+              "assessmentAspect": "Writing",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 9,
+          "titleEn": "Giving Direction",
+          "titleNe": "",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "Follow short and simple directions.",
+              "titleNe": "",
+              "assessmentAspect": "Listening",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Ask and answer simple questions in areas of immediate needs.",
+              "titleNe": "",
+              "assessmentAspect": "Speaking",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Read and follow short and simple written directions to get from one place to another.",
+              "titleNe": "",
+              "assessmentAspect": "Reading",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Write a short letter or an e-mail giving directions.",
+              "titleNe": "",
+              "assessmentAspect": "Writing",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 10,
+          "titleEn": "Narrating Past Events",
+          "titleNe": "",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "Listen to a description and respond appropriately.",
+              "titleNe": "",
+              "assessmentAspect": "Listening",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Narrate/tell a short and simple story.",
+              "titleNe": "",
+              "assessmentAspect": "Speaking",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Use dictionary to look for the meanings.",
+              "titleNe": "",
+              "assessmentAspect": "Reading",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Read and understand a short simple story and biography.",
+              "titleNe": "",
+              "assessmentAspect": "Reading",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Write a short and simple story using basic punctuation marks correctly.",
+              "titleNe": "",
+              "assessmentAspect": "Writing",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 11,
+          "titleEn": "Giving Reasons",
+          "titleNe": "",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "Identify specific information (e.g., time, place, person and date) from a familiar topic of everyday life.",
+              "titleNe": "",
+              "assessmentAspect": "Listening",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Communicate in a simple way that involves repetition and rephrasing.",
+              "titleNe": "",
+              "assessmentAspect": "Speaking",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Make simple inferences from reading materials.",
+              "titleNe": "",
+              "assessmentAspect": "Reading",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Write a paragraph on a familiar topic linking words or sentences with basic connectors (and, but, because).",
+              "titleNe": "",
+              "assessmentAspect": "Writing",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 12,
+          "titleEn": "Describing People and Places",
+          "titleNe": "",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "Retrieve required information from a simple description about a person/a place/an object.",
+              "titleNe": "",
+              "assessmentAspect": "Listening",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Give simple description of a person/ a place/ an object/ a picture.",
+              "titleNe": "",
+              "assessmentAspect": "Speaking",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Read and retrieve information from a short factual text.",
+              "titleNe": "",
+              "assessmentAspect": "Reading",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Describe a person/place/thing in simple sentences using adjectives.",
+              "titleNe": "",
+              "assessmentAspect": "Writing",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 13,
+          "titleEn": "Expressing Likes and Dislikes",
+          "titleNe": "",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "Recognise basic expressions that express likes and dislikes.",
+              "titleNe": "",
+              "assessmentAspect": "Listening",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Participate in a short and simple conversation to express likes and dislikes.",
+              "titleNe": "",
+              "assessmentAspect": "Speaking",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Read and retrieve information from short factual text related to hobbies and interests.",
+              "titleNe": "",
+              "assessmentAspect": "Reading",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Write a short and simple paragraph expressing likes and dislikes.",
+              "titleNe": "",
+              "assessmentAspect": "Writing",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 14,
+          "titleEn": "Expressing Ability",
+          "titleNe": "",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "Extract specific information from audio text related to expressing ability.",
+              "titleNe": "",
+              "assessmentAspect": "Listening",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Ask and answer simple questions about ability.",
+              "titleNe": "",
+              "assessmentAspect": "Speaking",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Retrieve the required information from a short and simple text.",
+              "titleNe": "",
+              "assessmentAspect": "Reading",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Write a short paragraph expressing ability using modal verbs.",
+              "titleNe": "",
+              "assessmentAspect": "Writing",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 15,
+          "titleEn": "Agreeing and Disagreeing",
+          "titleNe": "",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "Recognise expressions related to agreeing and disagreeing.",
+              "titleNe": "",
+              "assessmentAspect": "Listening",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Express agreement and disagreement using short and simple phrases.",
+              "titleNe": "",
+              "assessmentAspect": "Speaking",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Read and understand a short and simple poem.",
+              "titleNe": "",
+              "assessmentAspect": "Reading",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Read and make simple inferences from a simple story.",
+              "titleNe": "",
+              "assessmentAspect": "Reading",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Write a short paragraph expressing agreement and disagreement.",
+              "titleNe": "",
+              "assessmentAspect": "Writing",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 16,
+          "titleEn": "Talking about Future Plan",
+          "titleNe": "",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "Respond to a slow and carefully articulated text.",
+              "titleNe": "",
+              "assessmentAspect": "Listening",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Participate in a short and simple conversation about future plan.",
+              "titleNe": "",
+              "assessmentAspect": "Speaking",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Get ideas of the content of simple informational text.",
+              "titleNe": "",
+              "assessmentAspect": "Reading",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Write a letter to a friend sharing the list of planned activities for upcoming vacation.",
+              "titleNe": "",
+              "assessmentAspect": "Writing",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "HPA",
+      "titleEn": "Health, Physical and Creative Arts",
+      "titleNe": "स्वास्थ्य, शारीरिक तथा सिर्जनात्मक कला",
+      "creditHours": 3,
+      "source": "grade 4.pdf — विद्यार्थीको सिकाइ उपलब्धि मूल्याङ्कन अभिलेख पुस्तिका, कक्षा ४, स्वास्थ्य, शारीरिक तथा सिर्जनात्मक कला, pages 48–59",
+      "notes": [
+        "Credit hours are from the book's GPA table (page 60): Nepali 5, English 5, Mathematics 5, Science 5, Social Studies 5, Health/Physical/Creative Arts 3, Local Subject 4 (32 in all). The book has no outcome pages for the Local Subject.",
+        "Outcomes are printed in Nepali and English, with no content-area column.",
+        "The book prints no working hours for these themes.",
+        "Garbled English is rewritten from the Nepali where the printed text was wrong: theme 6 row 2 (drill commands), theme 7 row 2 (hop race), theme 10 rows 5–7, theme 11 rows 4 and 7, theme 12 rows 1–3 and 5, theme 13 rows 1–2 (\"rhythm and rhythm\" → \"rhythm and beat\"). Theme 6 title prints \"Physucal\"."
+      ],
+      "themes": [
+        {
+          "sequence": 1,
+          "titleEn": "Personal Hygiene",
+          "titleNe": "व्यक्तिगत स्वच्छता",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "To explain the need for body care and hygiene.",
+              "titleNe": "शरीरको हेरचाह र सरसफाइको आवश्यकता बताउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To clean the face, hair, hands and nails.",
+              "titleNe": "अनुहार, कपाल, हातगोडा र नङको सरसफाइ गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To demonstrate how to wash hands.",
+              "titleNe": "हात धुने तरिका प्रदर्शन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To brush teeth at the appropriate time and method.",
+              "titleNe": "उपयुक्त समय र तरिकाबाट दाँत माझ्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To introduce menstruation.",
+              "titleNe": "महिनावारीको परिचय दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 2,
+          "titleEn": "Environmental Sanitation",
+          "titleNe": "वातावरणीय सरसफाइ",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "To introduce environmental hygiene.",
+              "titleNe": "वातावरणीय सरसफाइको परिचय दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To keep the environment around the house clean.",
+              "titleNe": "घर वरपरको वातावरण सफा राख्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To participate in cleaning the school and surrounding environment in the classroom.",
+              "titleNe": "कक्षाकोठामा विद्यालय र वरपरको वातावरण सरसफाइमा सहभागी हुन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To explain the need and importance of using a toilet.",
+              "titleNe": "चर्पी प्रयोगको आवश्यकता र महत्त्व बताउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To explain the introduction and causes of environmental pollution.",
+              "titleNe": "वातावरण प्रदूषणको परिचय र कारण बताउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To identify problems caused by the lack of proper disposal of waste.",
+              "titleNe": "फोहोरमैलाको उचित विसर्जनको अभावमा समस्याहरू पहिचान गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 3,
+          "titleEn": "Food and Nutrition",
+          "titleNe": "खाना र पोषण",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "To define food and tell its function.",
+              "titleNe": "खानाको परिचय र कार्य बताउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To classify basic types of food based on source.",
+              "titleNe": "स्रोतका आधारमा खानाका आधारभूत प्रकारहरू वर्गीकरण गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To introduce balanced diet.",
+              "titleNe": "सन्तुलित खानाको परिचय दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To select and use healthy food.",
+              "titleNe": "स्वस्थकर खानाको छनोट र प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To introduce junk food.",
+              "titleNe": "जङ्क फुडको परिचय दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To be aware of junk food usage.",
+              "titleNe": "जङ्क फुडको प्रयोगप्रति सचेत रहन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 4,
+          "titleEn": "Disease, Smoking and Alcoholism",
+          "titleNe": "रोग, धूम्रपान र मद्यपान",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "To introduce communicable diseases.",
+              "titleNe": "सरुवा रोगको परिचय दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To explain the means of transmission of communicable diseases.",
+              "titleNe": "सरुवा रोग सर्ने माध्यमहरू बताउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To introduce diseases transmitted through contaminated food and water.",
+              "titleNe": "दूषित खाना र पानीबाट सर्ने रोगको परिचय दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To adopt preventive measures against diseases transmitted through contaminated food and water.",
+              "titleNe": "दूषित खाना र पानीबाट सर्ने रोगहरूको रोकथामका उपाय अवलम्बन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To introduce diseases transmitted through contaminated air.",
+              "titleNe": "दूषित हावाबाट सर्ने रोगहरूको परिचय दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To adopt preventive measures against diseases transmitted through contaminated air.",
+              "titleNe": "दूषित हावाबाट सर्ने रोगहरूको रोकथामका उपायहरू अवलम्बन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To introduce smoking.",
+              "titleNe": "धूम्रपानको परिचय दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To explain the causes of smoking.",
+              "titleNe": "धूम्रपानको कारण बताउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To make a list of the effects of smoking on individuals, families and communities.",
+              "titleNe": "धूम्रपानको प्रयोगले व्यक्ति, परिवार समुदायमा पार्ने असरको सूची बनाउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To explain ways to avoid smoking.",
+              "titleNe": "धूम्रपानबाट बच्ने उपायहरू बताउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 5,
+          "titleEn": "Safety and First Aid",
+          "titleNe": "सुरक्षा र प्राथमिक उपचार",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "To introduce safety and security education.",
+              "titleNe": "सुरक्षा र सुरक्षा शिक्षाको परिचय दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To explain the importance of safety education.",
+              "titleNe": "सुरक्षा शिक्षाको महत्त्व बताउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To adopt measures to prevent accidents that may occur at home, school and playground.",
+              "titleNe": "घर विद्यालय र खेल मैदानमा हुन सक्ने दुर्घटनाबाट बच्ने उपाय अपनाउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To adopt safety measures to prevent injuries.",
+              "titleNe": "घाउचोटबाट बच्नका लागि सुरक्षाका उपाय अपनाउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To adopt safety measures to prevent burns.",
+              "titleNe": "पोलाइबाट बच्नका लागि सुरक्षाका उपाय अपनाउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 6,
+          "titleEn": "Drill and Physical Exercise",
+          "titleNe": "कवाज र शारीरिक कसरत",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "To introduce drill and physical exercise.",
+              "titleNe": "कवाज र शारीरिक कसरतको परिचय दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To practise feet apart, foot march, halt and attention, and to perform these tasks correctly as ordered.",
+              "titleNe": "गोडा फाट, गोडा चाल, अड र सतर्कको अभ्यास गर्न एवम् आदेशानुसार ठिक किसिमले सो कार्य प्रदर्शन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To perform right turns, left turns and full turns correctly.",
+              "titleNe": "दायाँ फर्क, बायाँ फर्क र पूरा फर्क ठिक किसिमले प्रदर्शन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To perform physical exercises as prescribed.",
+              "titleNe": "तोकिएको नियमअनुसार शारीरिक कसरत गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 7,
+          "titleEn": "Athletics and Gymnastics",
+          "titleNe": "एथ्लेटिक्स र जिम्नास्टिकस",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "To perform 50 m. and 75 m. race correctly.",
+              "titleNe": "५० मि. र ७५ मि. को दौड ठिक किसिमले प्रदर्शन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To demonstrate hopping, direction-changing hop races and skipping in pairs to increase jumping ability.",
+              "titleNe": "उफ्रने क्षमता बढाउन हपिङ, दिशा बदली गर्ने हप दौड र जोडीमा खेल्ने स्किपिङको प्रदर्शन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To demonstrate the skill of throwing the ball with both hands.",
+              "titleNe": "दुई हातले बल फ्याँक्ने सिपको प्रदर्शन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To demonstrate the skill of aiming the ball at the designated place.",
+              "titleNe": "तोकिएका ठाउँमा बलले निशाना लगाउने सिपको प्रदर्शन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To practice swinging and stretching correctly.",
+              "titleNe": "ठिक तरिकाले झुल्ने र तन्किने कसरत गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To practice pulling and flexing correctly.",
+              "titleNe": "ठिक तरिकाले तान्ने र लच्किने कसरत गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To practice hanging, climbing and falling correctly.",
+              "titleNe": "ठिक तरिकाले झुन्डिने, चढ्ने र झर्ने कसरत गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To demonstrate the skill of slowly turning over from the front.",
+              "titleNe": "अगाडिबाट बिस्तारै पल्टने सिपको प्रदर्शन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To balance the body with both hands and head on the floor and placing them on the knees.",
+              "titleNe": "दुवै हात र टाउकाले भुइँ टेकी गोडामाथि राखी शरीर सन्तुलनमा राख्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To balance the body with both arms and legs stretched straight with only the stomach touching the floor.",
+              "titleNe": "पेटले मात्र भुइँ छोई दुवै हात र गोडा सिधा तन्काई शरीर सन्तुलनमा राख्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 8,
+          "titleEn": "Simple Local and Ball Games",
+          "titleNe": "साधारण स्थानीय र बल खेलहरू",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "To introduce simple games.",
+              "titleNe": "साधारण खेलको परिचय दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To introduce local games.",
+              "titleNe": "स्थानीय खेलको परिचय दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To perform simple games played in a specific place according to the rules.",
+              "titleNe": "ठाउँ विशेषमा खेलिने साधारण खेलहरू नियमअनुसार प्रदर्शन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To search for local games and demonstrate the skills of local games.",
+              "titleNe": "स्थानीय खेलहरूको खोजी गर्न र स्थानीय खेलहरूको सिप प्रदर्शन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To practice tapping skills in football and demonstrate that skill correctly.",
+              "titleNe": "फुटबलमा ट्यापिङ सिपको अभ्यास गर्न र ठिक किसिमले सो सिप प्रदर्शन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To practice football passing skills and demonstrate that skill correctly.",
+              "titleNe": "फुटबल पासिङ सिपको अभ्यास गर्न र ठिक किसिमले सो सिप प्रदर्शन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Practice passing skills in basketball and perform the skill correctly.",
+              "titleNe": "बास्केटबलमा पासिङ सिपको अभ्यास गर्न र ठिक किसिमले सो सिप प्रदर्शन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Develop catching skills in basketball.",
+              "titleNe": "बास्केटबलमा क्याचिङ सिपको विकास गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Practice and perform relay ball.",
+              "titleNe": "रिले बलको अभ्यास गर्न र प्रदर्शन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Demonstrate passing skills in dodgeball.",
+              "titleNe": "डजबलमा पासिङ सिपको प्रदर्शन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Demonstrate catching skills in dodgeball.",
+              "titleNe": "डजबलमा क्याचिङ सिपको प्रदर्शन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Demonstrate football, basketball and dodgeball games in a group.",
+              "titleNe": "समूहमा फुटबल बास्केटबल र डजबल खेलको प्रदर्शन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 9,
+          "titleEn": "Yoga",
+          "titleNe": "योग",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "Give a brief introduction to yoga.",
+              "titleNe": "योगको सङ्क्षिप्त परिचय दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Give a brief introduction to pranayama.",
+              "titleNe": "प्राणायामको सङ्क्षिप्त परिचय दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Tell the aspects to be paid attention to while doing yoga.",
+              "titleNe": "योगासन गर्दा ध्यान दिनुपर्ने पक्ष बताउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Give an introduction to Sukhasana and perform the skill correctly.",
+              "titleNe": "सुखासनको परिचय दिन र ठिक तरिकाबाट सिप प्रदर्शन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Give an introduction to Vajrasana and perform the skill correctly.",
+              "titleNe": "वज्रासनको परिचय दिन र ठिक तरिकाबाट सिप प्रदर्शन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Give an introduction to Ardhahalasana and perform the skill correctly.",
+              "titleNe": "अर्धहलासनको परिचय दिन र ठिक तरिकाबाट सिप प्रदर्शन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 10,
+          "titleEn": "Drawing and Coloring",
+          "titleNe": "रेखाचित्र र रङ",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "Give an introduction to colors.",
+              "titleNe": "रङको परिचय दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Create secondary colors from primary colors.",
+              "titleNe": "प्राथमिक रङबाट द्वितीय रङको निर्माण गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Create pictures using different types of lines.",
+              "titleNe": "विभिन्न प्रकारका रेखाहरूको प्रयोगबाट चित्र निर्माण गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Draw pictures of objects of different geometric shapes and shade them.",
+              "titleNe": "विभिन्न ज्यामितीय आकारका वस्तुको चित्र कोर्न र त्यसमा छाया दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Draw pictures of objects observed and colour them.",
+              "titleNe": "अवलोकन गरेका वस्तुको चित्र कोर्न र रङ भर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To draw and color pictures based on imagination and on stories.",
+              "titleNe": "कल्पनामा आधारित र कथामा आधारित चित्र कोर्न र रङ भर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To practice face drawing and color them.",
+              "titleNe": "मुहार चित्रको अभ्यास गर्न र रङ भर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 11,
+          "titleEn": "Printing, Clay Work, Collage and Construction Work",
+          "titleNe": "छपाइ माटाको काम कोलाज र निर्माण कार्य",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "To introduce printing and print different types of shapes.",
+              "titleNe": "छपाइको परिचय दिन र विभिन्न किसिमका आकृतिको छपाइ गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To make and use Representational and Non-representational prints.",
+              "titleNe": "आकृतिमूलक (Representational) र आकृतिविहीन (Non-representational) प्रिन्टहरू निकाल्न र त्यसको प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To print stencils",
+              "titleNe": "स्टेन्सिल छपाइ गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To prepare patterns in clay using the coil and slab methods and to use colors.",
+              "titleNe": "क्वायल र स्ल्याब विधिबाट आकारमा माटामा नमुनाहरू तयार गर्न र रङको प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To create various simple shapes by bending pieces of wire.",
+              "titleNe": "तारका टुक्राहरू बङ्ग्याएर विभिन्न साधारण आकृतिहरू निर्माण गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To create a model of an object by cutting or tearing paper.",
+              "titleNe": "कागजलाई काटेर वा च्यातेर कुनै वस्तुको नमुना निर्माण गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To collect waste materials and assemble them using wire, sticks, paper, clay, glue, tape, etc.",
+              "titleNe": "खेर फालिने वस्तुहरू सङ्कलन गरी तार, सिन्का, कागज, माटो, गुद, टेप आदिको प्रयोग गरी जोडेर निर्माण गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 12,
+          "titleEn": "Singing and Playing",
+          "titleNe": "गायन र वादन",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "To sing the national anthem and class songs in a group with rhythm and beat.",
+              "titleNe": "राष्ट्रिय गान र कक्षागत गीतलाई लय र ताल मिलाई समूहमा गाउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To sing any one of the children's songs included in the textbook in a group with rhythm.",
+              "titleNe": "पाठ्यपुस्तकमा समावेश भएका बालगीतमध्ये कुनै एक गीत समूहमा लय मिलाई गाउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To practise the notes of the harmonium/keyboard.",
+              "titleNe": "हार्मोनियम/किबोर्डबाट निस्कने स्वरहरूको स्वर अभ्यास गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To identify local musical instruments.",
+              "titleNe": "स्थानीय बाजाहरूको पहिचान गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To play on a rhythm instrument, or clap, the beat of a song learned in class.",
+              "titleNe": "आफूले कक्षामा गाउन सिकेका बज्ने कुनै एउटाताललाई ताल वाद्यमा बजाउन वा हातमा ताली दिएर सामान्य अभ्यास गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 13,
+          "titleEn": "Dancing and Role playing",
+          "titleNe": "नृत्य र अभिनय",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "To dance with expressions to the beat of a class song.",
+              "titleNe": "कक्षागत गीतमा हाउभाउसहित ताल मिलाई नृत्य गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To dance with expressions to the rhythm and beat of a children's song learned in class.",
+              "titleNe": "आफ्नो कक्षामा गाउन सिकेका बालगीतमध्ये कुनै एक गीतमा लय र तालमा हाउभाउसहित नृत्य गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To act out one of the stories from any textbook in your class as a solo act.",
+              "titleNe": "आफ्नो कक्षामा कुनै पनि पाठ्यपुस्तकका कथावस्तुहरूमध्ये कुनै एकलाई एकल रूपमा अभिनय गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "MATH",
+      "titleEn": "Mathematics",
+      "titleNe": "गणित",
+      "creditHours": 5,
+      "source": "grade 4.pdf — विद्यार्थीको सिकाइ उपलब्धि मूल्याङ्कन अभिलेख पुस्तिका, कक्षा ४, गणित, pages 22–29",
+      "notes": [
+        "Credit hours are from the book's GPA table (page 60): Nepali 5, English 5, Mathematics 5, Science 5, Social Studies 5, Health/Physical/Creative Arts 3, Local Subject 4 (32 in all). The book has no outcome pages for the Local Subject.",
+        "Each outcome's विषयवस्तु (content area) is stored as its assessment area; the book prints both in Nepali and English.",
+        "The book prints no working hours for Mathematics themes.",
+        "Theme 1 row 4 prints \"cubes and polygons\" for घन र षड्मुखा and row 3 prints \"rectangle\" for चतुर्भुज; both are kept as printed. Theme 3 row 6 prints \"millimeters\" for मिलिमिटर (millilitres); kept as printed."
+      ],
+      "themes": [
+        {
+          "sequence": 1,
+          "titleEn": "Geometry",
+          "titleNe": "ज्यामिति",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "Measure and draw the angles of 0° to 180° that are divisible by 10 using a protractor",
+              "titleNe": "चाँदको प्रयोग गरी १० ले निःशेष भाग जाने 0° देखि 180° सम्मका कोणहरू नाप्न र खिच्न",
+              "assessmentAspect": "Measurement of angles and construction",
+              "assessmentAspectNe": "कोणहरूको नाप र रचना",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To identify the vertices, sides and angles of triangle and quadrilateral.",
+              "titleNe": "त्रिभुज र चतुर्भुजका शीर्षबिन्दु, भुजा र कोणहरू पहिचान गर्न",
+              "assessmentAspect": "Parts of triangle and quadrilateral",
+              "assessmentAspectNe": "त्रिभुज र चतुर्भुजका भागहरू",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To measure the sides of triangle and quadrilateral",
+              "titleNe": "त्रिभुज र चतुर्भुजका भुजाहरूको लम्बाइ नाप्न",
+              "assessmentAspect": "Measurement of the sides of triangle and rectangle",
+              "assessmentAspectNe": "त्रिभुज र चतुर्भुजका भुजाको नाप",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Identify the vertices, edges and surfaces of cubes and polygons.",
+              "titleNe": "घन र षड्मुखाका शीर्षबिन्दु, किनारा र सतह छुट्याउन",
+              "assessmentAspect": "Solid Objects",
+              "assessmentAspectNe": "ठोस वस्तुहरू",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 2,
+          "titleEn": "Arithmetic",
+          "titleNe": "अङ्कगणित",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "To present, read and write the numbers up to 7 digits in a place-value table according to the national system, using Devanagari and Hindu Arabic numerals",
+              "titleNe": "देवनागरी र हिन्दु अरेबिक अङ्क प्रयोग गरी राष्ट्रिय पद्धतिअनुसार सात अङ्कसम्मका सङ्ख्यालाई स्थानमान तालिकामा प्रस्तुत गर्न, पढ्न र लेख्न",
+              "assessmentAspect": "Number knowledge",
+              "assessmentAspectNe": "सङ्ख्याको ज्ञान",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Rounding up the numbers up to 4 digits to the nearest ten and hundred.",
+              "titleNe": "चार अङ्कसम्मले बनेका सङ्ख्यालाई नजिकको दश र सयमा शून्यान्त गर्न",
+              "assessmentAspect": "Rounding up numbers",
+              "assessmentAspectNe": "सङ्ख्याको शुन्यान्त",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To add numbers made up of up to 5 digits.",
+              "titleNe": "पाँच अङ्कसम्मले बनेका सङ्ख्याको जोड गर्न",
+              "assessmentAspect": "Addition",
+              "assessmentAspectNe": "जोड",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To subtract numbers made up of up to 5 digits.",
+              "titleNe": "पाँच अङ्कसम्मले बनेका सङ्ख्याको घटाउ गर्न",
+              "assessmentAspect": "Subtraction",
+              "assessmentAspectNe": "घटाउ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To multiply a number up to 3 digits by a number up to 3 digits.",
+              "titleNe": "तीन अङ्कसम्मको सङ्ख्यालाई तीन अङ्कसम्मको सङ्ख्याले गुणन गर्न",
+              "assessmentAspect": "Multiplication",
+              "assessmentAspectNe": "गुणन",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To divide a number up to 3 digits by a number of 2 digits.",
+              "titleNe": "तीन अङ्कसम्मको सङ्ख्यालाई दुई अङ्कसम्मको सङ्ख्याले भाग गर्न",
+              "assessmentAspect": "Divide",
+              "assessmentAspectNe": "भाग",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To solve the problems that have addition and subtraction symbols.",
+              "titleNe": "जोड र घटाउ क्रिया प्रयोग भएका समस्याहरू हल गर्न",
+              "assessmentAspect": "Simplify",
+              "assessmentAspectNe": "सरलीकरण",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To compare fractions with the same denominator.",
+              "titleNe": "समान हर भएका भिन्नहरूको तुलना गर्न",
+              "assessmentAspect": "Comparison of Fraction",
+              "assessmentAspectNe": "भिन्नको तुलना",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Distinguish between proper fractions, improper fractions and mixed numbers.",
+              "titleNe": "उपयुक्त भिन्न, अनुपयुक्त भिन्न र मिश्रित सङ्ख्या छुट्याउन",
+              "assessmentAspect": "Proper fractions, improper fractions and mixed numbers",
+              "assessmentAspectNe": "उपयुक्त भिन्न, अनुपयुक्त भिन्न र मिश्रित सङ्ख्या",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To represent decimals and percents in pictures, fractions, and decimals",
+              "titleNe": "दशांश र सयांशलाई चित्र, भिन्न र दशमलवमा प्रस्तुत गर्न",
+              "assessmentAspect": "Decimals",
+              "assessmentAspectNe": "दशमलव",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To establish the relationship between fractions, decimals, and percentages through pictures",
+              "titleNe": "भिन्न, दशमलव र प्रतिशतको सम्बन्ध चित्रका माध्यमबाट स्थापित गर्न",
+              "assessmentAspect": "Relationship between fractions, decimals, and percentages",
+              "assessmentAspectNe": "भिन्न, दशमलव र प्रतिशतको सम्बन्ध",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 3,
+          "titleEn": "Measurement",
+          "titleNe": "नाप",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "Convert time units to each other",
+              "titleNe": "समयका एकाइहरू एक अर्कामा रूपान्तर गर्न",
+              "assessmentAspect": "Time unit conversion",
+              "assessmentAspectNe": "समयका एकाइको रूपान्तर",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Add and subtract time units (years and months, days and hours, hours and minutes, weeks and days)",
+              "titleNe": "समयका एकाइको जोड र घटाउ गर्न (वर्ष र महिना, दिन र घण्टा, घण्टा र मिनेट, हप्ता र दिन)",
+              "assessmentAspect": "Add and subtract time units",
+              "assessmentAspectNe": "समयका एकाइको जोड र घटाउ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Multiply and divide rupees and paisa",
+              "titleNe": "रुपियाँ तथा पैसासम्बन्धी गुणन र भाग गर्न",
+              "assessmentAspect": "Multiply and divide currency units",
+              "assessmentAspectNe": "मुद्राका एकाइको गुणन र भाग",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Convert distance units to each other (centimeters and millimeters, meters and centimeters, kilometers and meters)",
+              "titleNe": "दुरीका एकाइहरूलाई एकअर्कामा रूपान्तर गर्न (सेन्टिमिटर र मिलिमिटर, मिटर र सेन्टिमिटर, किलोमिटर र मिटर)",
+              "assessmentAspect": "Distance unit conversion",
+              "assessmentAspectNe": "दुरीका एकाइको रूपान्तर",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Add and subtract centimeters and meters, meters and kilometers",
+              "titleNe": "सेन्टिमिटर र मिटर, मिटर र किलोमिटरसम्बन्धी जोड र घटाउ गर्न",
+              "assessmentAspect": "Add and subtract of distance units",
+              "assessmentAspectNe": "दुरीका एकाइको जोड र घटाउ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Convert liters and millimeters to each other",
+              "titleNe": "लिटर र मिलिमिटरलाई एकआपसमा रूपान्तर गर्न",
+              "assessmentAspect": "Capacity unit conversion",
+              "assessmentAspectNe": "क्षमताका एकाइको रूपान्तरण",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Add and subtract liters and milliliters",
+              "titleNe": "लिटर र मिलिलिटरको जोड र घटाउ गर्न",
+              "assessmentAspect": "Addition and subtraction of Capacity unit",
+              "assessmentAspectNe": "क्षमताको एकाइको जोड र घटाउ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Convert weight units to each other (kilograms and grams, kilograms and quintals).",
+              "titleNe": "तौलका एकाइहरूलाई एकआपसमा रूपान्तर गर्न (किलोग्राम र ग्राम, किलोग्राम र क्विन्टल)",
+              "assessmentAspect": "Weight unit conversion",
+              "assessmentAspectNe": "तौलका एकाइको रूपान्तर",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Add and subtract grams, kilograms and quintals",
+              "titleNe": "ग्राम, किलोग्राम र क्विन्टलसम्बन्धी जोड तथा घटाउ गर्न",
+              "assessmentAspect": "Addition and subtraction of weight units",
+              "assessmentAspectNe": "तौलका एकाइको जोड र घटाउ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To find the area and perimeter of rectangular and square surfaces using square rooms",
+              "titleNe": "वर्गाकार कोठाहरू प्रयोग गरेर आयताकार र वर्गाकार सतहको क्षेत्रफल र परिमिति पत्ता लगाउन",
+              "assessmentAspect": "Area and Perimeter of Rectangular and Square surface",
+              "assessmentAspectNe": "आयताकार र वर्गाकार सतहको क्षेत्रफल र परिमिति",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 4,
+          "titleEn": "Statistics",
+          "titleNe": "तथ्याङ्कशास्त्र",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "Get and give information by looking at the bill",
+              "titleNe": "बिल हेरी सूचना लिन र दिन",
+              "assessmentAspect": "Bill",
+              "assessmentAspectNe": "बील",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Get and give information by looking at the general budget",
+              "titleNe": "साधारण बजेट हेरी जानकारी लिन र दिन",
+              "assessmentAspect": "Budget",
+              "assessmentAspectNe": "बजेट",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Get and give information from the given bar chart",
+              "titleNe": "दिइएको स्तम्भचित्रबाट जानकारी लिन र दिन",
+              "assessmentAspect": "Bar Chart",
+              "assessmentAspectNe": "स्तम्भचित्र",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 5,
+          "titleEn": "Algebra",
+          "titleNe": "बीजगणित",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "Add, subtract, multiply and divide by using room symbols",
+              "titleNe": "कोठा सङ्केत प्रयोग गरी जोड, घटाउ, गुणन र भाग गर्न",
+              "assessmentAspect": "Addition, subtraction, multiplication, and division using room symbols",
+              "assessmentAspectNe": "कोठा सङ्केत प्रयोग गरी जोड, घटाउ, गुणन र भाग",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To identify variable and fixed amounts",
+              "titleNe": "चल र अचल राशि पहिचान गर्न",
+              "assessmentAspect": "Variable and fixed amounts",
+              "assessmentAspectNe": "चल अचल राशि",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "NEP",
+      "titleEn": "Nepali",
+      "titleNe": "नेपाली",
+      "creditHours": 5,
+      "source": "grade 4.pdf — विद्यार्थीको सिकाइ उपलब्धि मूल्याङ्कन अभिलेख पुस्तिका, कक्षा ४, नेपाली, pages 1–10",
+      "notes": [
+        "Credit hours are from the book's GPA table (page 60): Nepali 5, English 5, Mathematics 5, Science 5, Social Studies 5, Health/Physical/Creative Arts 3, Local Subject 4 (32 in all). The book has no outcome pages for the Local Subject.",
+        "Each theme has the same six areas (सुनाइ, बोलाइ, पढाइ, लेखाइ, शब्दभण्डार, भाषिक संरचना), one outcome each; the summary record (page 10) prints 15 themes × 6 = 90 outcomes.",
+        "The book prints no working hours for Nepali themes."
+      ],
+      "themes": [
+        {
+          "sequence": 1,
+          "titleEn": "",
+          "titleNe": "कविता (नीतिपरक)",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "",
+              "titleNe": "सुनाइ पाठका आधारमा छलफल गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "सुनाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "सन्दर्भका आधारमा स्वपरिचय प्रस्तुत गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "बोलाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "गति, यति, लयसहित कविता वाचन र विषयवस्तु बोध गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "पढाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "निर्धारित अनुच्छेद अनुलेखन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "लेखाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "लय मिल्ने शब्द पहिचान गरी प्रस्तुत गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "शब्दभण्डार",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "नाम र सर्वनाम पदको पहिचान र प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "भाषिक संरचना",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 2,
+          "titleEn": "",
+          "titleNe": "कथा (लोक)",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "",
+              "titleNe": "सुनाइ पाठका आधारमा प्रतिक्रिया दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "सुनाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "सन्दर्भमा आधारित भई आदर सत्कारपूर्ण भाषाशैलीमा संवादात्मक प्रस्तुति दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "बोलाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "पाठ पढेर मुख्य मुख्य विषयवस्तु बताउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "पढाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "निर्धारित अनुच्छेद श्रुतिलेखन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "लेखाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "पर्यायवाची र विपरीतार्थी शब्दको पहिचान र प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "शब्दभण्डार",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "विशेषण शब्दको पहिचान र प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "भाषिक संरचना",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 3,
+          "titleEn": "",
+          "titleNe": "निबन्ध (शिक्षा)",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "",
+              "titleNe": "सुनाइ पाठका आधारमा छलफल गरी प्रतिक्रिया दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "सुनाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "सन्दर्भमा आधारित भई स्वागतपूर्ण प्रस्तुति दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "बोलाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "पाठ पढी विषयवस्तु बोध गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "पढाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "निर्देशनका आधारमा अनुच्छेद लेखन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "लेखाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "अनेकार्थी शब्दको पहिचान र प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "शब्दभण्डार",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "क्रियापदको पहिचान र प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "भाषिक संरचना",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 4,
+          "titleEn": "",
+          "titleNe": "चिठी (घरायसी)",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "",
+              "titleNe": "सुनाइ पाठका आधारमा अनुमान गरी बताउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "सुनाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "सन्दर्भमा आधारित भई शिष्टतापूर्ण भाषाशैलीमा शुभकामना आदानप्रदान गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "बोलाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "पाठ पढी संरचना र विषयवस्तु बोध गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "पढाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "चिठीको प्रत्युत्तर लेखन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "लेखाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "शिष्टाचार र सम्बोधनबोधक शब्द पहिचान र प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "शब्दभण्डार",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "अव्यय शब्दको पहिचान र प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "भाषिक संरचना",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 5,
+          "titleEn": "",
+          "titleNe": "संवाद (खेलकुद)",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "",
+              "titleNe": "सुनाइ पाठका आधारमा प्रतिक्रिया दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "सुनाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "सन्दर्भमा परिवेश र अवस्थाअनुसार भूमिका निर्वाह गरी प्रस्तुति दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "बोलाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "पाठ पढी विषयवस्तुको वर्णन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "पढाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "विषयवस्तुका आधारमा संवाद पूरा गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "लेखाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "श्रुतिसमभिन्नार्थी शब्दको पहिचान र प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "शब्दभण्डार",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "शब्दवर्ग (नाम, सर्वनाम, विशेषण र क्रियापद) को पहिचान र प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "भाषिक संरचना",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 6,
+          "titleEn": "",
+          "titleNe": "कथा (सामाजिक)",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "",
+              "titleNe": "सुनाइ पाठका आधारमा प्रश्नोत्तर गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "सुनाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "परिवेश र अवस्थाअनुसार कुराकानी प्रस्तुत गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "बोलाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "पाठ पढी संरचना, पात्र र घटना पहिचान गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "पढाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "निर्देशनका आधारमा स्वसंस्कृतिको वर्णन गरी लेख्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "लेखाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "सामाजिक परिवेशका शब्दको पहिचान र प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "शब्दभण्डार",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "लेख्यचिह्नको पहिचान र प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "भाषिक संरचना",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 7,
+          "titleEn": "",
+          "titleNe": "जीवनी (राष्ट्रिय)",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "",
+              "titleNe": "सुनाइ पाठका आधारमा अनुमान र कल्पनामा आधारित वर्णन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "सुनाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "सन्दर्भमा परिवेश र अवस्थाअनुसार अनुमति र निर्देशनात्मक शैलीको प्रस्तुति गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "बोलाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "पाठ पढी मुख्य मुख्य घटनाक्रम पहिचान गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "पढाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "दिइएको जानकारीका आधारमा जीवनी रचना गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "लेखाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "सङ्क्षिप्त शब्दको पहिचान र प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "शब्दभण्डार",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "भूतकालको पहिचान र प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "भाषिक संरचना",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 8,
+          "titleEn": "",
+          "titleNe": "निबन्ध (कृषि)",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "",
+              "titleNe": "सुनाइ पाठका आधारमा मुख्य विषयवस्तु टिपोट गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "सुनाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "सन्दर्भमा परिवेश र अवस्थाअनुसार कृषिसँग सम्बन्धित प्रयोजनपरक भाषिक सञ्चार गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "बोलाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "पाठ पढी मुख्य विषयवस्तु प्रस्तुत गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "पढाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "सूचनाका आधारमा अनुच्छेद रचना गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "लेखाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "स्थानीय प्रविधि तथा औजारसँग सम्बन्धित शब्दको पहिचान र प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "शब्दभण्डार",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "वर्तमान कालको पहिचान र प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "भाषिक संरचना",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 9,
+          "titleEn": "",
+          "titleNe": "कथा (पौराणिक)",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "",
+              "titleNe": "सुनाइ पाठका आधारमा प्रतिक्रिया दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "सुनाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "सन्दर्भका आधारमा विषयवस्तु अनुमान गरी मौखिक प्रस्तुति दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "बोलाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "पाठ पढी प्रश्नोत्तर गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "पढाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "निर्देशित कथा लेखन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "लेखाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "समावेशी र समावेश्य शब्दको पहिचान एवम् प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "शब्दभण्डार",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "भविष्यत् कालको पहिचान र प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "भाषिक संरचना",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 10,
+          "titleEn": "",
+          "titleNe": "कविता (गीति)",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "",
+              "titleNe": "सुनाइ पाठका आधारमा अन्तरक्रिया र प्रश्नोत्तर गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "सुनाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "सन्दर्भ, परिवेश र अवस्थाअनुसार अनुरोधात्मक प्रस्तुति दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "बोलाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "पाठ पढी विषयवस्तु बोध गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "पढाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "स्थानीय लोकगीत सङ्कलन र लेखन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "लेखाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "लयात्मक शब्दमा ध्वनि परिवर्तन गरी शब्द निर्माण गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "शब्दभण्डार",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "कालका अपूर्ण र पूर्ण पक्षको पहिचान र प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "भाषिक संरचना",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 11,
+          "titleEn": "",
+          "titleNe": "निबन्ध (ऐतिहासिक/सांस्कृतिक)",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "",
+              "titleNe": "सुनाइ पाठका आधारमा विषयवस्तुको सार प्रस्तुत गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "सुनाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "सन्दर्भ, परिवेश र अवस्थाअनुसार जिज्ञासा प्रस्तुत गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "बोलाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "मौन पठन गरी विषयवस्तु बोध गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "पढाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "निर्देशित अनुच्छेदको सारांश लेखन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "लेखाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "पारिभाषिक तथा प्राविधिक शब्द पहिचान एवम् प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "शब्दभण्डार",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "विभक्ति लागेका शब्दको पहिचान एवम् प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "भाषिक संरचना",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 12,
+          "titleEn": "",
+          "titleNe": "कथा (सामाजिक)",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "",
+              "titleNe": "सुनाइ पाठका आधारमा पूर्वानुमान गरी तार्किक प्रस्तुति गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "सुनाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "सन्दर्भ, परिवेश र अवस्थाअनुसार स्वचाहना प्रस्तुत गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "बोलाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "सस्वर पठन गरी विषयवस्तुको घटनाक्रम मिलाउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "पढाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "विषयवस्तुका आधारमा कथा लेखन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "लेखाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "समूहवाचक शब्दको पहिचान र प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "शब्दभण्डार",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "लिङ्ग सङ्गतिको पहिचान र प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "भाषिक संरचना",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 13,
+          "titleEn": "",
+          "titleNe": "नियात्रा",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "",
+              "titleNe": "सुनाइ पाठका आधारमा अनुमान, कल्पना र धारणा प्रस्तुत गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "सुनाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "सन्दर्भ, परिवेश र अवस्थाअनुसार यात्रा वर्णन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "बोलाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "मौन पठन गरी विषयवस्तु बोध गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "पढाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "स्वअनुभव मिलान गरी स्वतन्त्र रचना गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "लेखाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "परम्परागत नापतौल तथा मुद्रासम्बन्धी शब्दको पहिचान र प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "शब्दभण्डार",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "वचन सङ्गतिको पहिचान र प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "भाषिक संरचना",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 14,
+          "titleEn": "",
+          "titleNe": "कविता (प्रकृतिपरक)",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "",
+              "titleNe": "सुनाइ पाठका आधारमा विषयवस्तुको मौखिक प्रस्तुति दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "सुनाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "आफ्नो लक्ष्यका बारेमा वर्णन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "बोलाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "लयबद्ध पठन गरी सन्दर्भ बोध गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "पढाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "विषयवस्तुका आधारमा निर्देशित लेखन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "लेखाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "लय मिल्ने शब्दको पहिचान एवम् प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "शब्दभण्डार",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "पुरुष सङ्गतिको पहिचान र प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "भाषिक संरचना",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 15,
+          "titleEn": "",
+          "titleNe": "कथा (बालमनोविज्ञान)",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "",
+              "titleNe": "सुनाइ पाठका आधारमा प्रश्नोत्तर र छलफल गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "सुनाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "सन्दर्भका आधारमा संवेगात्मक प्रस्तुति दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "बोलाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "पाठ पढी घटनाक्रम पहिचान गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "पढाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "विषयवस्तुका आधारमा निर्देशित लेखन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "लेखाइ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "पेसा, नाता, गहना र बाजा सम्बद्ध शब्दको पहिचान र प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "शब्दभण्डार",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "आदर सङ्गतिको पहिचान र प्रयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "भाषिक संरचना",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "SCI",
+      "titleEn": "Science and Technology",
+      "titleNe": "विज्ञान तथा प्रविधि",
+      "creditHours": 5,
+      "source": "grade 4.pdf — विद्यार्थीको सिकाइ उपलब्धि मूल्याङ्कन अभिलेख पुस्तिका, कक्षा ४, विज्ञान तथा प्रविधि, pages 38–47",
+      "notes": [
+        "Credit hours are from the book's GPA table (page 60): Nepali 5, English 5, Mathematics 5, Science 5, Social Studies 5, Health/Physical/Creative Arts 3, Local Subject 4 (32 in all). The book has no outcome pages for the Local Subject.",
+        "Outcomes are printed in Nepali and English, with no content-area column.",
+        "The book prints no working hours for Science themes.",
+        "Obvious English misprints are corrected to match the Nepali: \"vertibrate/invertibate\" (4.1), \"breed\" for फुल पार्ने (4.2, now \"lay eggs\"), \"(thermal)\" dropped from 6.5 and 6.11, \"hydroelectric power\" for पानीघट्ट (6.7, now \"water mills\")."
+      ],
+      "themes": [
+        {
+          "sequence": 1,
+          "titleEn": "Scientific Learning",
+          "titleNe": "वैज्ञानिक सिकाइ",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "To perform general activities related to observation, classification and testing in scientific studies and to find out their importance.",
+              "titleNe": "वैज्ञानिक अध्ययनमा अवलोकन (Observation), वर्गीकरण (Classification) र परीक्षण (Testing) सम्बन्धी सामान्य क्रियाकलापहरू गर्न र तिनको महत्त्व पत्ता लगाउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To identify scientific instruments and draw their schematic drawings.",
+              "titleNe": "वैज्ञानिक उपकरणहरू चिन्न र तिनीहरूको स्केमाटिक (Schematic) चित्र बनाउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To state and follow the precautions to be taken while conducting scientific experiments.",
+              "titleNe": "वैज्ञानिक प्रयोग (Scientific experiment) गर्दा अपनाउनु पर्ने सावधानी बताउन र पालना गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To introduce measurement and find examples of measurement in daily life.",
+              "titleNe": "नापको परिचय दिन र दैनिक जीवनमा नापका उदाहरणहरू खोजी गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To state the importance of measurement in scientific experiments.",
+              "titleNe": "वैज्ञानिक प्रयोगमा नापको महत्त्व बताउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 2,
+          "titleEn": "Information and Communication Technology",
+          "titleNe": "सूचना तथा सञ्चार प्रविधि",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "To identify newspapers, letters, notice boards, TV, radio, telephone, mobile phone as sources of information and communication.",
+              "titleNe": "पत्रपत्रिका, चिठी, सूचनापाटी, टिभी, रेडियो, टेलिफोन, मोबाइल फोनलाई सूचना तथा सञ्चारका स्रोतका रूपमा पहिचान गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To give a general introduction of computers along with the examples of its usages.",
+              "titleNe": "कम्प्युटरको सामान्य परिचयसहित यसको प्रयोगका उदाहरणहरू खोजी गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To operate Paint software and Typing software.",
+              "titleNe": "Paint software र Typing software चलाउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To adopt personal safety measures and computer security measures while using computers and mobile phones.",
+              "titleNe": "कम्प्युटर तथा मोबाइल फोन प्रयोग गर्दा व्यक्तिगत सुरक्षाका उपायहरू अपनाउन तथा कम्प्युटर सुरक्षाका उपायहरू अवलम्बन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To search for information and data from the Internet.",
+              "titleNe": "इन्टरनेटबाट सूचना तथा जानकारीहरू खोज्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 3,
+          "titleEn": "Organisms and Environment",
+          "titleNe": "जीव र वातावरण",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "Identify the environmental factors (light, heat, air, water, soil, and other organisms) that affect organisms.",
+              "titleNe": "जीवहरूलाई असर पार्ने वातावरणीय तत्त्वहरू (प्रकाश, ताप, हावा, पानी, माटो र अन्य जीवहरू) पहिचान गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Describe the interrelationships between organisms and environmental factors.",
+              "titleNe": "जीव र वातावरणीय तत्त्वहरूबिचको अन्तरसम्बन्ध वर्णन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Explain the impact of increasing numbers of human and other organisms on the environment.",
+              "titleNe": "मानिस र अन्य जीवहरूको सङ्ख्या वृद्धिले वातावरणमा पार्ने असर बताउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 4,
+          "titleEn": "Classification of Organism",
+          "titleNe": "जीवहरूको वर्गीकरण",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "Identify vertebrate and invertebrate animals.",
+              "titleNe": "मेरुदण्ड भएका र नभएका जनावरहरूको पहिचान गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Identify animals that lay eggs and give birth and differentiate between them based on characteristics.",
+              "titleNe": "फुल पार्ने र बच्चा जन्माउने जनावरहरू पहिचान गर्न र विशेषताका आधारमा तिनीहरूबिच भिन्नता छुट्याउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Identify terrestrial and aquatic animals and compare their characteristics.",
+              "titleNe": "जमिनमा बस्ने र पानीमा बस्ने जनावरहरू चिन्न र तिनीहरूका विशेषता पहिचान गरी तुलना गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Identify different parts of plants and draw pictures of them and name the various parts.",
+              "titleNe": "विभिन्न किसिमका बिरुवाका भागहरू चिन्न तथा तिनीहरूको चित्र कोरी विभिन्न भागको नामाङ्कन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Classify plants into herbs, shrubs and trees and differentiate between them.",
+              "titleNe": "बिरुवाहरूलाई झारपात, बुट्यान र रुखमा वर्गीकरण गर्न र तिनीहरूबिच भिन्नता छुट्याउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Identify plants found on land and in water and compare their characteristics.",
+              "titleNe": "जमिनमा पाइने र पानीमा पाइने बिरुवाहरू चिन्न र तिनीहरूको विशेषता पहिचान गरी तुलना गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 5,
+          "titleEn": "Life-Cycle",
+          "titleNe": "जीवन प्रक्रिया",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "To describe the stages of animal development.",
+              "titleNe": "जनावरका विकासका चरणहरू वर्णन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To observe and identify the different stages of the life cycle of a butterfly and describe those stages.",
+              "titleNe": "पुतलीको जीवनचक्रको विभिन्न अवस्था अवलोकन गरी पहिचान गर्न र ती अवस्थाहरूको वर्णन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To grow plants from seeds and observe and describe the different stages.",
+              "titleNe": "बिउबाट बिरुवा हुर्काउन र विभिन्न चरणहरू अवलोकन गरी वर्णन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 6,
+          "titleEn": "Matter",
+          "titleNe": "पदार्थ",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "To identify the properties of water",
+              "titleNe": "पानीका गुणहरू पहिचान गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To identify the three states of water and to mention the role of heat in the process of changing the state of water",
+              "titleNe": "पानीको तीन अवस्था चिन्न र पानीको अवस्था परिवर्तन प्रक्रियामा तापको भूमिका उल्लेख गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To observe and describe the processes of evaporation, liquefaction, freezing, and melting",
+              "titleNe": "वाष्पीकरण, द्रवीकरण, जम्ने र पग्लने प्रक्रियाको अवलोकन गरी वर्णन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To prepare and demonstrate a model of the water cycle",
+              "titleNe": "जलचक्र प्रक्रियाको नमुना तयार गरी प्रदर्शन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To explain the undesirable changes in the physical properties of water as water pollution",
+              "titleNe": "पानीको भौतिक गुणमा हुने अनिच्छित (Undesirable) परिवर्तनलाई जल प्रदूषणका रूपमा व्याख्या गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "Investigate the causes of pollution of water sources around your area and the measures that have been or can be taken to reduce pollution.",
+              "titleNe": "आफ्नो क्षेत्र वरपर रहेको पानीका स्रोतहरू प्रदूषित हुनुका कारणहरू र प्रदूषण कम गर्न अपनाइएका वा अपनाउन सकिने उपायहरू खोजी गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To use water in technologies such as water mills and hydroelectricity.",
+              "titleNe": "पानीघट्ट र जलविद्युत् जस्ता प्रविधिमा पानीको प्रयोग बताउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To explain the measures to conserve water sources.",
+              "titleNe": "पानीको स्रोतको संरक्षण गर्ने उपाय बताउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To define air as a mixture of various gases, water vapor and dust particles",
+              "titleNe": "हावालाई विभिन्न ग्यासहरू, पानीको वाष्प तथा धूलाका कणहरूसहितको मिश्रणका रूपमा परिभाषित गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To identify the physical properties of air and explain the uses of air with examples",
+              "titleNe": "हावाका भौतिक गुणहरू पहिचान र हावाको उपयोगिता उदाहरणसहित व्याख्या गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To define the undesirable changes in the properties of the surrounding air as air pollution",
+              "titleNe": "वरपरको हावाको गुणमा हुने अनिच्छित (Undesirable) परिवर्तनलाई वायु प्रदूषणका रूपमा परिभाषित गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To present the causes, effects and mitigation measures of air pollution at the local level.",
+              "titleNe": "स्थानीय स्तरमा वायु प्रदूषणका कारण, असर र न्यूनीकरण गर्ने उपायहरू प्रस्तुत गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To identify rocks and classify them into hard and soft rocks.",
+              "titleNe": "चट्टान पहिचान गर्न तथा कडा र नरम चट्टानमा वर्गीकरण गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To explain the physical properties and common uses of rocks.",
+              "titleNe": "चट्टानका भौतिक गुणहरू र साधारण उपयोग बताउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 7,
+          "titleEn": "Power in Daily Life",
+          "titleNe": "दैनिक जीवनमा शक्ति",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "To define power as the ability to do work with examples.",
+              "titleNe": "शक्तिलाई काम गर्न सक्ने क्षमताका रूपमा उदाहरणसहित परिभाषित गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To identify the sources of power required for humans, animals and engines.",
+              "titleNe": "मानिस, जनावर तथा इन्जिनलाई आवश्यक पर्ने शक्तिका स्रोतहरू पहिचान गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To give examples of the use of electricity in daily life.",
+              "titleNe": "दैनिक जीवनमा विद्युत्को प्रयोगका उदाहरणहरू दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To identify and explain the sources of electricity.",
+              "titleNe": "विद्युत्का स्रोतहरू चिन्न र बताउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To distinguish between conductor and insulator objects",
+              "titleNe": "चालक (Conductor) र अवरोधक (Insulator) वस्तु छुट्याउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To distinguish between magnetic and non-magnetic objects with the help of a magnet.",
+              "titleNe": "चुम्बकको सहायताले चुम्बकीय र अचुम्बकीय वस्तु छुट्याउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To demonstrate the properties of magnets and compare the magnetic potential of different magnets.",
+              "titleNe": "चुम्बकका गुणहरू प्रदर्शन गर्न र विभिन्न चुम्बकको चुम्बकीय क्षमता तुलना गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To explain the use of magnets in daily life.",
+              "titleNe": "दैनिक जीवनमा चुम्बकको प्रयोग बताउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 8,
+          "titleEn": "Earth and Space",
+          "titleNe": "पृथ्वी र अन्तरिक्ष",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "To describe the shape and size of the Earth.",
+              "titleNe": "पृथ्वीको स्वरूप र आकारको वर्णन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To introduce the lithosphere, hydrosphere and atmosphere.",
+              "titleNe": "स्थलमण्डल, जलमण्डल र वायुमण्डलको परिचय दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To introduce different types of weather and describe human activities in that weather.",
+              "titleNe": "विभिन्न प्रकारका मौसमको परिचय दिन र उक्त मौसममा मानिसका गतिविधिको वर्णन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To predict the weather.",
+              "titleNe": "मौसमको पूर्वानुमान गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "To introduce and explain the effects of natural disasters and to adopt measures to avoid them.",
+              "titleNe": "प्राकृतिक विपत्को परिचय र असर बताउन तथा तिनीहरूबाट बच्ने उपायहरू अवलम्बन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "code": "SOC",
+      "titleEn": "Social Studies and Human Value Education",
+      "titleNe": "सामाजिक अध्ययन तथा मानवमूल्य शिक्षा",
+      "creditHours": 5,
+      "source": "grade 4.pdf — विद्यार्थीको सिकाइ उपलब्धि मूल्याङ्कन अभिलेख पुस्तिका, कक्षा ४, सामाजिक अध्ययन तथा मानवमूल्य शिक्षा, pages 30–37",
+      "notes": [
+        "Credit hours are from the book's GPA table (page 60): Nepali 5, English 5, Mathematics 5, Science 5, Social Studies 5, Health/Physical/Creative Arts 3, Local Subject 4 (32 in all). The book has no outcome pages for the Local Subject.",
+        "Each outcome's विषयवस्तु (content) is stored as its assessment area.",
+        "Theme 1 rows 2 and 3 print the same outcome (\"आफ्ना छिमेकीहरूसँग उचित व्यवहार गर्न\") under different content (उचित व्यवहार; काम र पेसा); both are kept as printed, as the book counts them.",
+        "The summary record (page 37) lists 4, 5, 5, 3, 4, 5 and 6 outcomes per theme (32) but prints the total as ९० / ३६०, copied from the Nepali record; 32 is correct.",
+        "The book prints no working hours for Social Studies themes."
+      ],
+      "themes": [
+        {
+          "sequence": 1,
+          "titleEn": "",
+          "titleNe": "हामी र हाम्रो समुदाय",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "",
+              "titleNe": "निकट छिमेकीहरूको सम्बन्ध पहिचान गरी सहयोग आदानप्रदान गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "छिमेकीहरूसँगको सम्बन्ध र सहयोग",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "आफ्ना छिमेकीहरूसँग उचित व्यवहार गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "छिमेकीहरूप्रति गरिने उचित व्यवहार",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "आफ्ना छिमेकीहरूसँग उचित व्यवहार गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "आफ्ना छिमेकीहरूको काम र पेसा",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "विभिन्न पेसा तथा व्यवसायमा प्रयोग हुने सामग्रीहरूको पहिचान र सुरक्षित प्रयोग गरी तिनीहरूको हिफाजत गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "पेसागत र व्यावसायिक सामग्रीहरूको पहिचान र सुरक्षा",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 2,
+          "titleEn": "",
+          "titleNe": "हाम्रा मानव मूल्यमान्यता",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "",
+              "titleNe": "मान्यजनको सम्मान गरी उनीहरूबाट प्रेरणा प्राप्त गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "मान्यजनको सम्मान र प्रेरणा",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "असल बानी बसाल्न र व्यवहार गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "असल बानी व्यवहार",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "आफ्नो समुदायका विभिन्न भाषा, वेषभूषा, रहनसहन र चाडपर्वको पहिचान र सम्मान गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "समुदायका भाषा, वेशभूषा, रहनसहन र चाडपर्व",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "आफ्नो जन्मस्थानको महत्त्व बोध गरी अपनत्व प्रदर्शन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "आफ्नो जन्मस्थान",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "हाम्रा केही राष्ट्रिय विभूतिको सामान्य परिचय दिन र प्रेरणा प्राप्त गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "हाम्रा केही राष्ट्रिय विभूति",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 3,
+          "titleEn": "",
+          "titleNe": "नागरिक चेतना, कर्तव्य र अधिकार",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "",
+              "titleNe": "व्यक्तिगत र पारिवारिक सुरक्षाको आवश्यकता बताउन र सुरक्षाका उपायहरू अपनाउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "व्यक्तिगत र पारिवारिक सुरक्षा",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "आफ्नो अधिकारप्रति सजग रही कर्तव्य पूरा गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "अधिकार र कर्तव्य",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "स्थानीय क्षेत्रका सार्वजनिक सम्पदाहरूको पहिचान गरी तिनीहरूको उचित उपयोग र संरक्षणमा सहभागी हुन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "आफ्नो स्थानीय क्षेत्रमा भएका सार्वजनिक सम्पदाहरूको संरक्षण",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "आफ्नो समुदायमा भएका विभिन्न व्यक्तिहरूसँग समान व्यवहार गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "स्थानीय समुदायका मानिससँग समान व्यवहार, सम्मान र सहयोग",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "स्थानीय स्तरका सेवा प्रदायक निकायले प्रदान गर्ने सेवाहरूको पहिचान र उपयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "स्थानीय स्तरका सेवा प्रदान गर्ने निकायहरू",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 4,
+          "titleEn": "",
+          "titleNe": "सामाजिक समस्या र समाधान",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "",
+              "titleNe": "असल समाजको परिचय दिन र विशेषता बताउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "असल समाज",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "सामाजिक समस्याहरूको पहिचान गर्न र समाधानका उपायहरू बताउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "सामाजिक समस्या",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "सामाजिक समस्या समाधानमा स्थानीय टोल/समुदाय स्तरमा भएका सङ्घसंस्थाहरूको योगदान बताउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "स्थानीयस्तरमा भएका सङ्घसंस्थाहरू",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 5,
+          "titleEn": "",
+          "titleNe": "हाम्रो विगत",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "",
+              "titleNe": "आफ्नो परिवार र छिमेकीको विगत बताउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "आफ्नो परिवार र छिमेकीको विगत",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "आफ्नो गाउँ ठाउँको नाम र सो नाम रहनुको कारण बताउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "आफ्नो गाउँ ठाउँ",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "आफ्नो समुदायको विकासमा योगदान पुर्‍याउने व्यक्तिहरूको भूमिका बताउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "आफ्नो समुदायको विकासमा योगदान पुर्‍याउने व्यक्ति",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "आफ्ना पूर्खाको योगदानको पहिचान र सम्मान गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "आफ्नो पूर्खाको योगदान",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 6,
+          "titleEn": "",
+          "titleNe": "हाम्रा आर्थिक क्रियाकलाप",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "",
+              "titleNe": "आफ्नो समुदायका मानिसले गर्ने कामको पहिचान गरी सम्मान गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "आफ्नो समुदायमा गरिने कामको पहिचान र सम्मान",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "आफ्नो स्थानीय क्षेत्रमा उत्पादित तथा निर्मित वस्तुहरूको पहिचान र उपयोग गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "आफ्नो स्थानीय क्षेत्रमा उत्पादित तथा निर्मित वस्तुहरू",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "समुदायमा हुने आर्थिक क्रियाकलापको अवलोकन गरी विवरण प्रस्तुत गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "समुदायका आर्थिक क्रियाकलापहरूको अवलोकन र विवरण सङ्कलन",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "दैनिक जीवनमा प्रयोग हुने वस्तुहरूको उपयोगमा मितव्ययिता अपनाउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "दैनिक जीवनमा प्रयोग हुने वस्तुहरूको उपयोगमा मितव्ययिता",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "स्थानीय हाटबजार/बजारमा हुने आर्थिक क्रियाकलापको अवलोकन गरी महत्त्व बताउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "स्थानीय हाटबजार/बजार तथा मेला पर्वमा हुने आर्थिक क्रियाकलाप",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        },
+        {
+          "sequence": 7,
+          "titleEn": "",
+          "titleNe": "हाम्रो पृथ्वी",
+          "workingHours": null,
+          "outcomes": [
+            {
+              "titleEn": "",
+              "titleNe": "हाम्रो पृथ्वीको सामान्य परिचय दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "पृथ्वी र यसका परिवार",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "पृथ्वीबाट हामीले प्राप्त गर्ने विभिन्न साधन स्रोतको पहिचान गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "पृथ्वीबाट हामीले प्राप्त गर्ने साधन स्रोतहरू",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "आफू बसेको स्थानीय तहको भौगोलिक स्वरूप, जनसङ्ख्या र सामाजिक रहनसहनको परिचय दिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "आफू बसेको स्थानीय तह",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "विपत्को परिचय दिन र सावधानीका उपाय अवलम्बन गर्न",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "स्थानीय विपत्",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "हाम्रो गाउँ/टोल र विद्यालयको भौगोलिक अवस्थिति पहिचान गरी नक्सामा हुने मुख्य तथ्य सम्बन्धमा जानकारी लिन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "हाम्रो गाउँ/टोल र विद्यालय",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            },
+            {
+              "titleEn": "",
+              "titleNe": "आफू रहेको स्थानीय तह र जिल्लाको नक्सा उतार गरी सङ्केतमा देखाउन",
+              "assessmentAspect": "",
+              "assessmentAspectNe": "नक्साको सामान्य परिचय (सिमाना, दिशा, प्रमुख सङ्केतहरू)",
+              "assessmentTool": "",
+              "assessmentToolNe": "",
+              "descriptors": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

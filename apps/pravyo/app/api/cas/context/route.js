@@ -1,5 +1,6 @@
 import { handler } from '@pravyo/cas/lib/casRoute';
 import { loadSchool, loadAcademicYears } from '@pravyo/cas/lib/casContext';
+import { syncDefaultCurriculum } from '@pravyo/cas/lib/casLibraryService';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,6 +9,9 @@ export const dynamic = 'force-dynamic';
  * its academic years. One request instead of three.
  */
 export const GET = handler(async ({ actor }) => {
+  // Library subjects added since the school was approved (a new grade) arrive here.
+  if (!actor.library) await syncDefaultCurriculum(actor.school);
+
   const [school, years] = await Promise.all([
     loadSchool(actor),
     loadAcademicYears(actor),

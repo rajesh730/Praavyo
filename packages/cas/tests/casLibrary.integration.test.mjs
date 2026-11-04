@@ -205,6 +205,39 @@ describe('default theme library on an isolated MongoDB replica set', {
     await Subject.deleteMany({ school: LIBRARY_SCHOOL_ID, grade: { $in: ['Grade 4', 'Grade 6'] } });
   });
 
+  it('syncs an approved school automatically when a grade is added to the library', async () => {
+    const { default: User } = await import('@pravyo/db/models/User');
+    await fixture();
+    const school = id();
+    await User.collection.insertOne({ _id: school, role: 'SCHOOL_ADMIN', status: 'APPROVED', email: `s${school}@test.local` });
+    const pending = id();
+    await User.collection.insertOne({ _id: pending, role: 'SCHOOL_ADMIN', status: 'PENDING', email: `p${pending}@test.local` });
+
+    const first = await library.syncDefaultCurriculum(school);
+    assert.ok(first.subjects > 0);
+    const received = (await User.findById(school).lean()).casDefaultSubjects.map(String);
+    assert.deepEqual(received.sort(), first.copied.map(String).sort());
+    assert.equal(await library.syncDefaultCurriculum(pending), null);
+    assert.equal(await Subject.countDocuments({ school: pending }), 0);
+
+    // The library gains Grade 4; the next visit (after the throttle) delivers it.
+    const grade4 = await Subject.create({
+      school: LIBRARY_SCHOOL_ID, grade: 'Grade 4', code: 'SYNC4', titleEn: 'Science',
+      themes: [{ key: 's4-t1', titleEn: 'Matter', sequence: 1 }],
+    });
+    assert.equal(await library.syncDefaultCurriculum(school), null, 'throttled within a minute');
+    const realNow = Date.now;
+    Date.now = () => realNow() + 2 * 60 * 1000;
+    try {
+      const later = await library.syncDefaultCurriculum(school);
+      assert.deepEqual(later.copied.map(String), [String(grade4._id)]);
+      assert.equal(await Subject.countDocuments({ school, grade: 'Grade 4' }), 1);
+    } finally {
+      Date.now = realNow;
+    }
+    await Subject.deleteOne({ _id: grade4._id });
+  });
+
   it('leaves a grade the school set up itself alone and still fills the others', async () => {
     const { school, own } = await fixture();
     const grade1 = await Subject.create({ school: LIBRARY_SCHOOL_ID, grade: 'Grade 1', code: 'G1ENG', titleEn: 'English' });

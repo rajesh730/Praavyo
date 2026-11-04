@@ -10,6 +10,7 @@ import ensureCasIndexes from './casIndexes.js';
 import { assessmentColumns } from './casBilingual.js';
 import { assert, requireSchoolAdmin } from './casAccess.js';
 import { assignedSubjectIds } from './casTeacherAssignmentService.js';
+import { syncDefaultCurriculum } from './casLibraryService.js';
 import {
   subjectInput,
   subjectUpdateInput,
@@ -178,6 +179,8 @@ export function serializeOutcome(row) {
 export async function loadCurriculum(actor, { grade, subject, academicYear } = {}) {
   await connectDB();
   await ensureCasIndexes();
+  // The curriculum request can race the shell's context request; either one syncs.
+  if (!actor.library) await syncDefaultCurriculum(actor.school);
 
   let allowedSubjects = null;
   if (actor.role === 'TEACHER') {

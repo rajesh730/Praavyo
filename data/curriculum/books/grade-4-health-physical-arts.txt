@@ -1,0 +1,119 @@
+@grade Grade 4
+@subject HPA | Health, Physical and Creative Arts | स्वास्थ्य, शारीरिक तथा सिर्जनात्मक कला | 3
+@source grade 4.pdf — विद्यार्थीको सिकाइ उपलब्धि मूल्याङ्कन अभिलेख पुस्तिका, कक्षा ४, स्वास्थ्य, शारीरिक तथा सिर्जनात्मक कला, pages 48–59
+@note Credit hours are from the book's GPA table (page 60): Nepali 5, English 5, Mathematics 5, Science 5, Social Studies 5, Health/Physical/Creative Arts 3, Local Subject 4 (32 in all). The book has no outcome pages for the Local Subject.
+@note Outcomes are printed in Nepali and English, with no content-area column.
+@note The book prints no working hours for these themes.
+@note Garbled English is rewritten from the Nepali where the printed text was wrong: theme 6 row 2 (drill commands), theme 7 row 2 (hop race), theme 10 rows 5–7, theme 11 rows 4 and 7, theme 12 rows 1–3 and 5, theme 13 rows 1–2 ("rhythm and rhythm" → "rhythm and beat"). Theme 6 title prints "Physucal".
+
+# 1 | व्यक्तिगत स्वच्छता | Personal Hygiene | | 5
+- शरीरको हेरचाह र सरसफाइको आवश्यकता बताउन || To explain the need for body care and hygiene.
+- अनुहार, कपाल, हातगोडा र नङको सरसफाइ गर्न || To clean the face, hair, hands and nails.
+- हात धुने तरिका प्रदर्शन गर्न || To demonstrate how to wash hands.
+- उपयुक्त समय र तरिकाबाट दाँत माझ्न || To brush teeth at the appropriate time and method.
+- महिनावारीको परिचय दिन || To introduce menstruation.
+
+# 2 | वातावरणीय सरसफाइ | Environmental Sanitation | | 6
+- वातावरणीय सरसफाइको परिचय दिन || To introduce environmental hygiene.
+- घर वरपरको वातावरण सफा राख्न || To keep the environment around the house clean.
+- कक्षाकोठामा विद्यालय र वरपरको वातावरण सरसफाइमा सहभागी हुन || To participate in cleaning the school and surrounding environment in the classroom.
+- चर्पी प्रयोगको आवश्यकता र महत्त्व बताउन || To explain the need and importance of using a toilet.
+- वातावरण प्रदूषणको परिचय र कारण बताउन || To explain the introduction and causes of environmental pollution.
+- फोहोरमैलाको उचित विसर्जनको अभावमा समस्याहरू पहिचान गर्न || To identify problems caused by the lack of proper disposal of waste.
+
+# 3 | खाना र पोषण | Food and Nutrition | | 6
+- खानाको परिचय र कार्य बताउन || To define food and tell its function.
+- स्रोतका आधारमा खानाका आधारभूत प्रकारहरू वर्गीकरण गर्न || To classify basic types of food based on source.
+- सन्तुलित खानाको परिचय दिन || To introduce balanced diet.
+- स्वस्थकर खानाको छनोट र प्रयोग गर्न || To select and use healthy food.
+- जङ्क फुडको परिचय दिन || To introduce junk food.
+- जङ्क फुडको प्रयोगप्रति सचेत रहन || To be aware of junk food usage.
+
+# 4 | रोग, धूम्रपान र मद्यपान | Disease, Smoking and Alcoholism | | 10
+- सरुवा रोगको परिचय दिन || To introduce communicable diseases.
+- सरुवा रोग सर्ने माध्यमहरू बताउन || To explain the means of transmission of communicable diseases.
+- दूषित खाना र पानीबाट सर्ने रोगको परिचय दिन || To introduce diseases transmitted through contaminated food and water.
+- दूषित खाना र पानीबाट सर्ने रोगहरूको रोकथामका उपाय अवलम्बन गर्न || To adopt preventive measures against diseases transmitted through contaminated food and water.
+- दूषित हावाबाट सर्ने रोगहरूको परिचय दिन || To introduce diseases transmitted through contaminated air.
+- दूषित हावाबाट सर्ने रोगहरूको रोकथामका उपायहरू अवलम्बन गर्न || To adopt preventive measures against diseases transmitted through contaminated air.
+- धूम्रपानको परिचय दिन || To introduce smoking.
+- धूम्रपानको कारण बताउन || To explain the causes of smoking.
+- धूम्रपानको प्रयोगले व्यक्ति, परिवार समुदायमा पार्ने असरको सूची बनाउन || To make a list of the effects of smoking on individuals, families and communities.
+- धूम्रपानबाट बच्ने उपायहरू बताउन || To explain ways to avoid smoking.
+
+# 5 | सुरक्षा र प्राथमिक उपचार | Safety and First Aid | | 5
+- सुरक्षा र सुरक्षा शिक्षाको परिचय दिन || To introduce safety and security education.
+- सुरक्षा शिक्षाको महत्त्व बताउन || To explain the importance of safety education.
+- घर विद्यालय र खेल मैदानमा हुन सक्ने दुर्घटनाबाट बच्ने उपाय अपनाउन || To adopt measures to prevent accidents that may occur at home, school and playground.
+- घाउचोटबाट बच्नका लागि सुरक्षाका उपाय अपनाउन || To adopt safety measures to prevent injuries.
+- पोलाइबाट बच्नका लागि सुरक्षाका उपाय अपनाउन || To adopt safety measures to prevent burns.
+
+# 6 | कवाज र शारीरिक कसरत | Drill and Physical Exercise | | 4
+- कवाज र शारीरिक कसरतको परिचय दिन || To introduce drill and physical exercise.
+- गोडा फाट, गोडा चाल, अड र सतर्कको अभ्यास गर्न एवम् आदेशानुसार ठिक किसिमले सो कार्य प्रदर्शन गर्न || To practise feet apart, foot march, halt and attention, and to perform these tasks correctly as ordered.
+- दायाँ फर्क, बायाँ फर्क र पूरा फर्क ठिक किसिमले प्रदर्शन गर्न || To perform right turns, left turns and full turns correctly.
+- तोकिएको नियमअनुसार शारीरिक कसरत गर्न || To perform physical exercises as prescribed.
+
+# 7 | एथ्लेटिक्स र जिम्नास्टिकस | Athletics and Gymnastics | | 10
+- ५० मि. र ७५ मि. को दौड ठिक किसिमले प्रदर्शन गर्न || To perform 50 m. and 75 m. race correctly.
+- उफ्रने क्षमता बढाउन हपिङ, दिशा बदली गर्ने हप दौड र जोडीमा खेल्ने स्किपिङको प्रदर्शन गर्न || To demonstrate hopping, direction-changing hop races and skipping in pairs to increase jumping ability.
+- दुई हातले बल फ्याँक्ने सिपको प्रदर्शन गर्न || To demonstrate the skill of throwing the ball with both hands.
+- तोकिएका ठाउँमा बलले निशाना लगाउने सिपको प्रदर्शन गर्न || To demonstrate the skill of aiming the ball at the designated place.
+- ठिक तरिकाले झुल्ने र तन्किने कसरत गर्न || To practice swinging and stretching correctly.
+- ठिक तरिकाले तान्ने र लच्किने कसरत गर्न || To practice pulling and flexing correctly.
+- ठिक तरिकाले झुन्डिने, चढ्ने र झर्ने कसरत गर्न || To practice hanging, climbing and falling correctly.
+- अगाडिबाट बिस्तारै पल्टने सिपको प्रदर्शन गर्न || To demonstrate the skill of slowly turning over from the front.
+- दुवै हात र टाउकाले भुइँ टेकी गोडामाथि राखी शरीर सन्तुलनमा राख्न || To balance the body with both hands and head on the floor and placing them on the knees.
+- पेटले मात्र भुइँ छोई दुवै हात र गोडा सिधा तन्काई शरीर सन्तुलनमा राख्न || To balance the body with both arms and legs stretched straight with only the stomach touching the floor.
+
+# 8 | साधारण स्थानीय र बल खेलहरू | Simple Local and Ball Games | | 12
+- साधारण खेलको परिचय दिन || To introduce simple games.
+- स्थानीय खेलको परिचय दिन || To introduce local games.
+- ठाउँ विशेषमा खेलिने साधारण खेलहरू नियमअनुसार प्रदर्शन गर्न || To perform simple games played in a specific place according to the rules.
+- स्थानीय खेलहरूको खोजी गर्न र स्थानीय खेलहरूको सिप प्रदर्शन गर्न || To search for local games and demonstrate the skills of local games.
+- फुटबलमा ट्यापिङ सिपको अभ्यास गर्न र ठिक किसिमले सो सिप प्रदर्शन गर्न || To practice tapping skills in football and demonstrate that skill correctly.
+- फुटबल पासिङ सिपको अभ्यास गर्न र ठिक किसिमले सो सिप प्रदर्शन गर्न || To practice football passing skills and demonstrate that skill correctly.
+- बास्केटबलमा पासिङ सिपको अभ्यास गर्न र ठिक किसिमले सो सिप प्रदर्शन गर्न || Practice passing skills in basketball and perform the skill correctly.
+- बास्केटबलमा क्याचिङ सिपको विकास गर्न || Develop catching skills in basketball.
+- रिले बलको अभ्यास गर्न र प्रदर्शन गर्न || Practice and perform relay ball.
+- डजबलमा पासिङ सिपको प्रदर्शन गर्न || Demonstrate passing skills in dodgeball.
+- डजबलमा क्याचिङ सिपको प्रदर्शन गर्न || Demonstrate catching skills in dodgeball.
+- समूहमा फुटबल बास्केटबल र डजबल खेलको प्रदर्शन गर्न || Demonstrate football, basketball and dodgeball games in a group.
+
+# 9 | योग | Yoga | | 6
+- योगको सङ्क्षिप्त परिचय दिन || Give a brief introduction to yoga.
+- प्राणायामको सङ्क्षिप्त परिचय दिन || Give a brief introduction to pranayama.
+- योगासन गर्दा ध्यान दिनुपर्ने पक्ष बताउन || Tell the aspects to be paid attention to while doing yoga.
+- सुखासनको परिचय दिन र ठिक तरिकाबाट सिप प्रदर्शन गर्न || Give an introduction to Sukhasana and perform the skill correctly.
+- वज्रासनको परिचय दिन र ठिक तरिकाबाट सिप प्रदर्शन गर्न || Give an introduction to Vajrasana and perform the skill correctly.
+- अर्धहलासनको परिचय दिन र ठिक तरिकाबाट सिप प्रदर्शन गर्न || Give an introduction to Ardhahalasana and perform the skill correctly.
+
+# 10 | रेखाचित्र र रङ | Drawing and Coloring | | 7
+- रङको परिचय दिन || Give an introduction to colors.
+- प्राथमिक रङबाट द्वितीय रङको निर्माण गर्न || Create secondary colors from primary colors.
+- विभिन्न प्रकारका रेखाहरूको प्रयोगबाट चित्र निर्माण गर्न || Create pictures using different types of lines.
+- विभिन्न ज्यामितीय आकारका वस्तुको चित्र कोर्न र त्यसमा छाया दिन || Draw pictures of objects of different geometric shapes and shade them.
+- अवलोकन गरेका वस्तुको चित्र कोर्न र रङ भर्न || Draw pictures of objects observed and colour them.
+- कल्पनामा आधारित र कथामा आधारित चित्र कोर्न र रङ भर्न || To draw and color pictures based on imagination and on stories.
+- मुहार चित्रको अभ्यास गर्न र रङ भर्न || To practice face drawing and color them.
+
+# 11 | छपाइ माटाको काम कोलाज र निर्माण कार्य | Printing, Clay Work, Collage and Construction Work | | 7
+- छपाइको परिचय दिन र विभिन्न किसिमका आकृतिको छपाइ गर्न || To introduce printing and print different types of shapes.
+- आकृतिमूलक (Representational) र आकृतिविहीन (Non-representational) प्रिन्टहरू निकाल्न र त्यसको प्रयोग गर्न || To make and use Representational and Non-representational prints.
+- स्टेन्सिल छपाइ गर्न || To print stencils
+- क्वायल र स्ल्याब विधिबाट आकारमा माटामा नमुनाहरू तयार गर्न र रङको प्रयोग गर्न || To prepare patterns in clay using the coil and slab methods and to use colors.
+- तारका टुक्राहरू बङ्ग्याएर विभिन्न साधारण आकृतिहरू निर्माण गर्न || To create various simple shapes by bending pieces of wire.
+- कागजलाई काटेर वा च्यातेर कुनै वस्तुको नमुना निर्माण गर्न || To create a model of an object by cutting or tearing paper.
+- खेर फालिने वस्तुहरू सङ्कलन गरी तार, सिन्का, कागज, माटो, गुद, टेप आदिको प्रयोग गरी जोडेर निर्माण गर्न || To collect waste materials and assemble them using wire, sticks, paper, clay, glue, tape, etc.
+
+# 12 | गायन र वादन | Singing and Playing | | 5
+- राष्ट्रिय गान र कक्षागत गीतलाई लय र ताल मिलाई समूहमा गाउन || To sing the national anthem and class songs in a group with rhythm and beat.
+- पाठ्यपुस्तकमा समावेश भएका बालगीतमध्ये कुनै एक गीत समूहमा लय मिलाई गाउन || To sing any one of the children's songs included in the textbook in a group with rhythm.
+- हार्मोनियम/किबोर्डबाट निस्कने स्वरहरूको स्वर अभ्यास गर्न || To practise the notes of the harmonium/keyboard.
+- स्थानीय बाजाहरूको पहिचान गर्न || To identify local musical instruments.
+- आफूले कक्षामा गाउन सिकेका बज्ने कुनै एउटाताललाई ताल वाद्यमा बजाउन वा हातमा ताली दिएर सामान्य अभ्यास गर्न || To play on a rhythm instrument, or clap, the beat of a song learned in class.
+
+# 13 | नृत्य र अभिनय | Dancing and Role playing | | 3
+- कक्षागत गीतमा हाउभाउसहित ताल मिलाई नृत्य गर्न || To dance with expressions to the beat of a class song.
+- आफ्नो कक्षामा गाउन सिकेका बालगीतमध्ये कुनै एक गीतमा लय र तालमा हाउभाउसहित नृत्य गर्न || To dance with expressions to the rhythm and beat of a children's song learned in class.
+- आफ्नो कक्षामा कुनै पनि पाठ्यपुस्तकका कथावस्तुहरूमध्ये कुनै एकलाई एकल रूपमा अभिनय गर्न || To act out one of the stories from any textbook in your class as a solo act.

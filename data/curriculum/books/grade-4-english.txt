@@ -1,0 +1,176 @@
+@grade Grade 4
+@subject ENG | English | अङ्ग्रेजी | 5
+@source grade 4.pdf — विद्यार्थीको सिकाइ उपलब्धि मूल्याङ्कन अभिलेख पुस्तिका, कक्षा ४, English, pages 11–21
+@note Credit hours are from the book's GPA table (page 60): Nepali 5, English 5, Mathematics 5, Science 5, Social Studies 5, Health/Physical/Creative Arts 3, Local Subject 4 (32 in all). The book has no outcome pages for the Local Subject.
+@note Each unit lists its learning outcome indicators under the language skills Listening, Speaking, Reading and Writing; the skill is stored as the outcome's assessment area.
+@note The book prints no working hours for English units.
+@note Unit 2 prints "Expression Possession" and the cumulative record prints unit 15 as "Aggreging and disagreeing"; both are stored with corrected spelling.
+
+# 1 | | Greeting, Introducing and Leave Taking | | 7
+@area Listening
+- Recognise familiar words and basic phrases, and expressions related to themselves.
+@area Speaking
+- Use appropriate phrases and sentences to introduce themselves.
+@area Reading
+- Read exponents and sentences used for greeting, introducing and leave taking.
+- Read and extract specific information from a personal profile.
+@area Writing
+- Write date, name, nationality, address, age and date of birth in a registration form.
+- Copy out short texts presented in standard printed format considering the use of punctuation marks and capitalisation.
+- Write simple sentences describing a friend.
+
+# 2 | | Expressing Possession | | 5
+@area Listening
+- Respond to rhymes and songs having simple structures and rhyming patterns.
+@area Speaking
+- Participate in a short and simple conversation for expressing possession.
+@area Reading
+- Extract specific information (names and possession) from short and simple texts.
+- Recite a short and simple poem and guess the meaning of unfamiliar words.
+@area Writing
+- Write a short simple thank you note/message to a friend.
+
+# 3 | | Asking for Information | | 4
+@area Listening
+- Listen and extract specific information from a short and simple conversation.
+@area Speaking
+- Ask and answer simple questions in areas of immediate needs.
+@area Reading
+- Extract ideas from reading texts with the help of visual support.
+@area Writing
+- Write simple classroom rules and regulations.
+
+# 4 | | Requesting and Responding | | 5
+@area Listening
+- Recognise familiar expressions related to requesting and responding.
+@area Speaking
+- Participate in a conversation to request and respond.
+@area Reading
+- Extract information (date, person, time and place) from a personal letter.
+- Read and understand a short and simple story.
+@area Writing
+- Write a short and simple letter to a friend.
+
+# 5 | | Expressing Quantity | | 5
+@area Listening
+- Extract specific information from a slow and carefully spoken conversation.
+@area Speaking
+- Use numbers, quantities, cost and time while speaking.
+@area Reading
+- Extract specific information (number, quantity, cost and time) from reading text.
+- Read and understand a short and simple story.
+@area Writing
+- Prepare a shopping list.
+
+# 6 | | Making Comparison | | 4
+@area Listening
+- Understand and respond to a slow and carefully spoken audio related to comparison.
+@area Speaking
+- Use numbers, quantities, cost and time, etc., to make comparison.
+@area Reading
+- Read, locate and pick up specific information from a short factual text.
+@area Writing
+- Write a short and simple paragraph comparing people, places and things.
+
+# 7 | | Describing Location | | 5
+@area Listening
+- Get information about the location of places and objects from a simple spoken description/conversation.
+@area Speaking
+- Give a simple description of location with the help of pictures.
+@area Reading
+- Read a story and guess the meanings of unfamiliar words from the contexts.
+- Find out specific information (location) from a short and simple text.
+@area Writing
+- Write a short and simple paragraph describing location of a person/place/thing.
+
+# 8 | | Stating Truth and Facts | | 4
+@area Listening
+- Identify specific information (e.g., time, place, person and date) from the texts on familiar topics of everyday life.
+@area Speaking
+- Initiate and respond to simple statements to state truths and facts.
+@area Reading
+- Read and find out information from a short factual text.
+@area Writing
+- Write a simple factual paragraph on a familiar topic.
+
+# 9 | | Giving Direction | | 4
+@area Listening
+- Follow short and simple directions.
+@area Speaking
+- Ask and answer simple questions in areas of immediate needs.
+@area Reading
+- Read and follow short and simple written directions to get from one place to another.
+@area Writing
+- Write a short letter or an e-mail giving directions.
+
+# 10 | | Narrating Past Events | | 5
+@area Listening
+- Listen to a description and respond appropriately.
+@area Speaking
+- Narrate/tell a short and simple story.
+@area Reading
+- Use dictionary to look for the meanings.
+- Read and understand a short simple story and biography.
+@area Writing
+- Write a short and simple story using basic punctuation marks correctly.
+
+# 11 | | Giving Reasons | | 4
+@area Listening
+- Identify specific information (e.g., time, place, person and date) from a familiar topic of everyday life.
+@area Speaking
+- Communicate in a simple way that involves repetition and rephrasing.
+@area Reading
+- Make simple inferences from reading materials.
+@area Writing
+- Write a paragraph on a familiar topic linking words or sentences with basic connectors (and, but, because).
+
+# 12 | | Describing People and Places | | 4
+@area Listening
+- Retrieve required information from a simple description about a person/a place/an object.
+@area Speaking
+- Give simple description of a person/ a place/ an object/ a picture.
+@area Reading
+- Read and retrieve information from a short factual text.
+@area Writing
+- Describe a person/place/thing in simple sentences using adjectives.
+
+# 13 | | Expressing Likes and Dislikes | | 4
+@area Listening
+- Recognise basic expressions that express likes and dislikes.
+@area Speaking
+- Participate in a short and simple conversation to express likes and dislikes.
+@area Reading
+- Read and retrieve information from short factual text related to hobbies and interests.
+@area Writing
+- Write a short and simple paragraph expressing likes and dislikes.
+
+# 14 | | Expressing Ability | | 4
+@area Listening
+- Extract specific information from audio text related to expressing ability.
+@area Speaking
+- Ask and answer simple questions about ability.
+@area Reading
+- Retrieve the required information from a short and simple text.
+@area Writing
+- Write a short paragraph expressing ability using modal verbs.
+
+# 15 | | Agreeing and Disagreeing | | 5
+@area Listening
+- Recognise expressions related to agreeing and disagreeing.
+@area Speaking
+- Express agreement and disagreement using short and simple phrases.
+@area Reading
+- Read and understand a short and simple poem.
+- Read and make simple inferences from a simple story.
+@area Writing
+- Write a short paragraph expressing agreement and disagreement.
+
+# 16 | | Talking about Future Plan | | 4
+@area Listening
+- Respond to a slow and carefully articulated text.
+@area Speaking
+- Participate in a short and simple conversation about future plan.
+@area Reading
+- Get ideas of the content of simple informational text.
+@area Writing
+- Write a letter to a friend sharing the list of planned activities for upcoming vacation.

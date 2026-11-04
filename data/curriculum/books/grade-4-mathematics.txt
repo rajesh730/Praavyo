@@ -1,0 +1,77 @@
+@grade Grade 4
+@subject MATH | Mathematics | गणित | 5
+@source grade 4.pdf — विद्यार्थीको सिकाइ उपलब्धि मूल्याङ्कन अभिलेख पुस्तिका, कक्षा ४, गणित, pages 22–29
+@note Credit hours are from the book's GPA table (page 60): Nepali 5, English 5, Mathematics 5, Science 5, Social Studies 5, Health/Physical/Creative Arts 3, Local Subject 4 (32 in all). The book has no outcome pages for the Local Subject.
+@note Each outcome's विषयवस्तु (content area) is stored as its assessment area; the book prints both in Nepali and English.
+@note The book prints no working hours for Mathematics themes.
+@note Theme 1 row 4 prints "cubes and polygons" for घन र षड्मुखा and row 3 prints "rectangle" for चतुर्भुज; both are kept as printed. Theme 3 row 6 prints "millimeters" for मिलिमिटर (millilitres); kept as printed.
+
+# 1 | ज्यामिति | Geometry | | 4
+@area कोणहरूको नाप र रचना || Measurement of angles and construction
+- चाँदको प्रयोग गरी १० ले निःशेष भाग जाने 0° देखि 180° सम्मका कोणहरू नाप्न र खिच्न || Measure and draw the angles of 0° to 180° that are divisible by 10 using a protractor
+@area त्रिभुज र चतुर्भुजका भागहरू || Parts of triangle and quadrilateral
+- त्रिभुज र चतुर्भुजका शीर्षबिन्दु, भुजा र कोणहरू पहिचान गर्न || To identify the vertices, sides and angles of triangle and quadrilateral.
+@area त्रिभुज र चतुर्भुजका भुजाको नाप || Measurement of the sides of triangle and rectangle
+- त्रिभुज र चतुर्भुजका भुजाहरूको लम्बाइ नाप्न || To measure the sides of triangle and quadrilateral
+@area ठोस वस्तुहरू || Solid Objects
+- घन र षड्मुखाका शीर्षबिन्दु, किनारा र सतह छुट्याउन || Identify the vertices, edges and surfaces of cubes and polygons.
+
+# 2 | अङ्कगणित | Arithmetic | | 11
+@area सङ्ख्याको ज्ञान || Number knowledge
+- देवनागरी र हिन्दु अरेबिक अङ्क प्रयोग गरी राष्ट्रिय पद्धतिअनुसार सात अङ्कसम्मका सङ्ख्यालाई स्थानमान तालिकामा प्रस्तुत गर्न, पढ्न र लेख्न || To present, read and write the numbers up to 7 digits in a place-value table according to the national system, using Devanagari and Hindu Arabic numerals
+@area सङ्ख्याको शुन्यान्त || Rounding up numbers
+- चार अङ्कसम्मले बनेका सङ्ख्यालाई नजिकको दश र सयमा शून्यान्त गर्न || Rounding up the numbers up to 4 digits to the nearest ten and hundred.
+@area जोड || Addition
+- पाँच अङ्कसम्मले बनेका सङ्ख्याको जोड गर्न || To add numbers made up of up to 5 digits.
+@area घटाउ || Subtraction
+- पाँच अङ्कसम्मले बनेका सङ्ख्याको घटाउ गर्न || To subtract numbers made up of up to 5 digits.
+@area गुणन || Multiplication
+- तीन अङ्कसम्मको सङ्ख्यालाई तीन अङ्कसम्मको सङ्ख्याले गुणन गर्न || To multiply a number up to 3 digits by a number up to 3 digits.
+@area भाग || Divide
+- तीन अङ्कसम्मको सङ्ख्यालाई दुई अङ्कसम्मको सङ्ख्याले भाग गर्न || To divide a number up to 3 digits by a number of 2 digits.
+@area सरलीकरण || Simplify
+- जोड र घटाउ क्रिया प्रयोग भएका समस्याहरू हल गर्न || To solve the problems that have addition and subtraction symbols.
+@area भिन्नको तुलना || Comparison of Fraction
+- समान हर भएका भिन्नहरूको तुलना गर्न || To compare fractions with the same denominator.
+@area उपयुक्त भिन्न, अनुपयुक्त भिन्न र मिश्रित सङ्ख्या || Proper fractions, improper fractions and mixed numbers
+- उपयुक्त भिन्न, अनुपयुक्त भिन्न र मिश्रित सङ्ख्या छुट्याउन || Distinguish between proper fractions, improper fractions and mixed numbers.
+@area दशमलव || Decimals
+- दशांश र सयांशलाई चित्र, भिन्न र दशमलवमा प्रस्तुत गर्न || To represent decimals and percents in pictures, fractions, and decimals
+@area भिन्न, दशमलव र प्रतिशतको सम्बन्ध || Relationship between fractions, decimals, and percentages
+- भिन्न, दशमलव र प्रतिशतको सम्बन्ध चित्रका माध्यमबाट स्थापित गर्न || To establish the relationship between fractions, decimals, and percentages through pictures
+
+# 3 | नाप | Measurement | | 10
+@area समयका एकाइको रूपान्तर || Time unit conversion
+- समयका एकाइहरू एक अर्कामा रूपान्तर गर्न || Convert time units to each other
+@area समयका एकाइको जोड र घटाउ || Add and subtract time units
+- समयका एकाइको जोड र घटाउ गर्न (वर्ष र महिना, दिन र घण्टा, घण्टा र मिनेट, हप्ता र दिन) || Add and subtract time units (years and months, days and hours, hours and minutes, weeks and days)
+@area मुद्राका एकाइको गुणन र भाग || Multiply and divide currency units
+- रुपियाँ तथा पैसासम्बन्धी गुणन र भाग गर्न || Multiply and divide rupees and paisa
+@area दुरीका एकाइको रूपान्तर || Distance unit conversion
+- दुरीका एकाइहरूलाई एकअर्कामा रूपान्तर गर्न (सेन्टिमिटर र मिलिमिटर, मिटर र सेन्टिमिटर, किलोमिटर र मिटर) || Convert distance units to each other (centimeters and millimeters, meters and centimeters, kilometers and meters)
+@area दुरीका एकाइको जोड र घटाउ || Add and subtract of distance units
+- सेन्टिमिटर र मिटर, मिटर र किलोमिटरसम्बन्धी जोड र घटाउ गर्न || Add and subtract centimeters and meters, meters and kilometers
+@area क्षमताका एकाइको रूपान्तरण || Capacity unit conversion
+- लिटर र मिलिमिटरलाई एकआपसमा रूपान्तर गर्न || Convert liters and millimeters to each other
+@area क्षमताको एकाइको जोड र घटाउ || Addition and subtraction of Capacity unit
+- लिटर र मिलिलिटरको जोड र घटाउ गर्न || Add and subtract liters and milliliters
+@area तौलका एकाइको रूपान्तर || Weight unit conversion
+- तौलका एकाइहरूलाई एकआपसमा रूपान्तर गर्न (किलोग्राम र ग्राम, किलोग्राम र क्विन्टल) || Convert weight units to each other (kilograms and grams, kilograms and quintals).
+@area तौलका एकाइको जोड र घटाउ || Addition and subtraction of weight units
+- ग्राम, किलोग्राम र क्विन्टलसम्बन्धी जोड तथा घटाउ गर्न || Add and subtract grams, kilograms and quintals
+@area आयताकार र वर्गाकार सतहको क्षेत्रफल र परिमिति || Area and Perimeter of Rectangular and Square surface
+- वर्गाकार कोठाहरू प्रयोग गरेर आयताकार र वर्गाकार सतहको क्षेत्रफल र परिमिति पत्ता लगाउन || To find the area and perimeter of rectangular and square surfaces using square rooms
+
+# 4 | तथ्याङ्कशास्त्र | Statistics | | 3
+@area बील || Bill
+- बिल हेरी सूचना लिन र दिन || Get and give information by looking at the bill
+@area बजेट || Budget
+- साधारण बजेट हेरी जानकारी लिन र दिन || Get and give information by looking at the general budget
+@area स्तम्भचित्र || Bar Chart
+- दिइएको स्तम्भचित्रबाट जानकारी लिन र दिन || Get and give information from the given bar chart
+
+# 5 | बीजगणित | Algebra | | 2
+@area कोठा सङ्केत प्रयोग गरी जोड, घटाउ, गुणन र भाग || Addition, subtraction, multiplication, and division using room symbols
+- कोठा सङ्केत प्रयोग गरी जोड, घटाउ, गुणन र भाग गर्न || Add, subtract, multiply and divide by using room symbols
+@area चल अचल राशि || Variable and fixed amounts
+- चल र अचल राशि पहिचान गर्न || To identify variable and fixed amounts

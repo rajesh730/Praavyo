@@ -1,0 +1,72 @@
+@grade Grade 4
+@subject SCI | Science and Technology | विज्ञान तथा प्रविधि | 5
+@source grade 4.pdf — विद्यार्थीको सिकाइ उपलब्धि मूल्याङ्कन अभिलेख पुस्तिका, कक्षा ४, विज्ञान तथा प्रविधि, pages 38–47
+@note Credit hours are from the book's GPA table (page 60): Nepali 5, English 5, Mathematics 5, Science 5, Social Studies 5, Health/Physical/Creative Arts 3, Local Subject 4 (32 in all). The book has no outcome pages for the Local Subject.
+@note Outcomes are printed in Nepali and English, with no content-area column.
+@note The book prints no working hours for Science themes.
+@note Obvious English misprints are corrected to match the Nepali: "vertibrate/invertibate" (4.1), "breed" for फुल पार्ने (4.2, now "lay eggs"), "(thermal)" dropped from 6.5 and 6.11, "hydroelectric power" for पानीघट्ट (6.7, now "water mills").
+
+# 1 | वैज्ञानिक सिकाइ | Scientific Learning | | 5
+- वैज्ञानिक अध्ययनमा अवलोकन (Observation), वर्गीकरण (Classification) र परीक्षण (Testing) सम्बन्धी सामान्य क्रियाकलापहरू गर्न र तिनको महत्त्व पत्ता लगाउन || To perform general activities related to observation, classification and testing in scientific studies and to find out their importance.
+- वैज्ञानिक उपकरणहरू चिन्न र तिनीहरूको स्केमाटिक (Schematic) चित्र बनाउन || To identify scientific instruments and draw their schematic drawings.
+- वैज्ञानिक प्रयोग (Scientific experiment) गर्दा अपनाउनु पर्ने सावधानी बताउन र पालना गर्न || To state and follow the precautions to be taken while conducting scientific experiments.
+- नापको परिचय दिन र दैनिक जीवनमा नापका उदाहरणहरू खोजी गर्न || To introduce measurement and find examples of measurement in daily life.
+- वैज्ञानिक प्रयोगमा नापको महत्त्व बताउन || To state the importance of measurement in scientific experiments.
+
+# 2 | सूचना तथा सञ्चार प्रविधि | Information and Communication Technology | | 5
+- पत्रपत्रिका, चिठी, सूचनापाटी, टिभी, रेडियो, टेलिफोन, मोबाइल फोनलाई सूचना तथा सञ्चारका स्रोतका रूपमा पहिचान गर्न || To identify newspapers, letters, notice boards, TV, radio, telephone, mobile phone as sources of information and communication.
+- कम्प्युटरको सामान्य परिचयसहित यसको प्रयोगका उदाहरणहरू खोजी गर्न || To give a general introduction of computers along with the examples of its usages.
+- Paint software र Typing software चलाउन || To operate Paint software and Typing software.
+- कम्प्युटर तथा मोबाइल फोन प्रयोग गर्दा व्यक्तिगत सुरक्षाका उपायहरू अपनाउन तथा कम्प्युटर सुरक्षाका उपायहरू अवलम्बन गर्न || To adopt personal safety measures and computer security measures while using computers and mobile phones.
+- इन्टरनेटबाट सूचना तथा जानकारीहरू खोज्न || To search for information and data from the Internet.
+
+# 3 | जीव र वातावरण | Organisms and Environment | | 3
+- जीवहरूलाई असर पार्ने वातावरणीय तत्त्वहरू (प्रकाश, ताप, हावा, पानी, माटो र अन्य जीवहरू) पहिचान गर्न || Identify the environmental factors (light, heat, air, water, soil, and other organisms) that affect organisms.
+- जीव र वातावरणीय तत्त्वहरूबिचको अन्तरसम्बन्ध वर्णन गर्न || Describe the interrelationships between organisms and environmental factors.
+- मानिस र अन्य जीवहरूको सङ्ख्या वृद्धिले वातावरणमा पार्ने असर बताउन || Explain the impact of increasing numbers of human and other organisms on the environment.
+
+# 4 | जीवहरूको वर्गीकरण | Classification of Organism | | 6
+- मेरुदण्ड भएका र नभएका जनावरहरूको पहिचान गर्न || Identify vertebrate and invertebrate animals.
+- फुल पार्ने र बच्चा जन्माउने जनावरहरू पहिचान गर्न र विशेषताका आधारमा तिनीहरूबिच भिन्नता छुट्याउन || Identify animals that lay eggs and give birth and differentiate between them based on characteristics.
+- जमिनमा बस्ने र पानीमा बस्ने जनावरहरू चिन्न र तिनीहरूका विशेषता पहिचान गरी तुलना गर्न || Identify terrestrial and aquatic animals and compare their characteristics.
+- विभिन्न किसिमका बिरुवाका भागहरू चिन्न तथा तिनीहरूको चित्र कोरी विभिन्न भागको नामाङ्कन गर्न || Identify different parts of plants and draw pictures of them and name the various parts.
+- बिरुवाहरूलाई झारपात, बुट्यान र रुखमा वर्गीकरण गर्न र तिनीहरूबिच भिन्नता छुट्याउन || Classify plants into herbs, shrubs and trees and differentiate between them.
+- जमिनमा पाइने र पानीमा पाइने बिरुवाहरू चिन्न र तिनीहरूको विशेषता पहिचान गरी तुलना गर्न || Identify plants found on land and in water and compare their characteristics.
+
+# 5 | जीवन प्रक्रिया | Life-Cycle | | 3
+- जनावरका विकासका चरणहरू वर्णन गर्न || To describe the stages of animal development.
+- पुतलीको जीवनचक्रको विभिन्न अवस्था अवलोकन गरी पहिचान गर्न र ती अवस्थाहरूको वर्णन गर्न || To observe and identify the different stages of the life cycle of a butterfly and describe those stages.
+- बिउबाट बिरुवा हुर्काउन र विभिन्न चरणहरू अवलोकन गरी वर्णन गर्न || To grow plants from seeds and observe and describe the different stages.
+
+# 6 | पदार्थ | Matter | | 14
+- पानीका गुणहरू पहिचान गर्न || To identify the properties of water
+- पानीको तीन अवस्था चिन्न र पानीको अवस्था परिवर्तन प्रक्रियामा तापको भूमिका उल्लेख गर्न || To identify the three states of water and to mention the role of heat in the process of changing the state of water
+- वाष्पीकरण, द्रवीकरण, जम्ने र पग्लने प्रक्रियाको अवलोकन गरी वर्णन गर्न || To observe and describe the processes of evaporation, liquefaction, freezing, and melting
+- जलचक्र प्रक्रियाको नमुना तयार गरी प्रदर्शन गर्न || To prepare and demonstrate a model of the water cycle
+- पानीको भौतिक गुणमा हुने अनिच्छित (Undesirable) परिवर्तनलाई जल प्रदूषणका रूपमा व्याख्या गर्न || To explain the undesirable changes in the physical properties of water as water pollution
+- आफ्नो क्षेत्र वरपर रहेको पानीका स्रोतहरू प्रदूषित हुनुका कारणहरू र प्रदूषण कम गर्न अपनाइएका वा अपनाउन सकिने उपायहरू खोजी गर्न || Investigate the causes of pollution of water sources around your area and the measures that have been or can be taken to reduce pollution.
+- पानीघट्ट र जलविद्युत् जस्ता प्रविधिमा पानीको प्रयोग बताउन || To use water in technologies such as water mills and hydroelectricity.
+- पानीको स्रोतको संरक्षण गर्ने उपाय बताउन || To explain the measures to conserve water sources.
+- हावालाई विभिन्न ग्यासहरू, पानीको वाष्प तथा धूलाका कणहरूसहितको मिश्रणका रूपमा परिभाषित गर्न || To define air as a mixture of various gases, water vapor and dust particles
+- हावाका भौतिक गुणहरू पहिचान र हावाको उपयोगिता उदाहरणसहित व्याख्या गर्न || To identify the physical properties of air and explain the uses of air with examples
+- वरपरको हावाको गुणमा हुने अनिच्छित (Undesirable) परिवर्तनलाई वायु प्रदूषणका रूपमा परिभाषित गर्न || To define the undesirable changes in the properties of the surrounding air as air pollution
+- स्थानीय स्तरमा वायु प्रदूषणका कारण, असर र न्यूनीकरण गर्ने उपायहरू प्रस्तुत गर्न || To present the causes, effects and mitigation measures of air pollution at the local level.
+- चट्टान पहिचान गर्न तथा कडा र नरम चट्टानमा वर्गीकरण गर्न || To identify rocks and classify them into hard and soft rocks.
+- चट्टानका भौतिक गुणहरू र साधारण उपयोग बताउन || To explain the physical properties and common uses of rocks.
+
+# 7 | दैनिक जीवनमा शक्ति | Power in Daily Life | | 8
+- शक्तिलाई काम गर्न सक्ने क्षमताका रूपमा उदाहरणसहित परिभाषित गर्न || To define power as the ability to do work with examples.
+- मानिस, जनावर तथा इन्जिनलाई आवश्यक पर्ने शक्तिका स्रोतहरू पहिचान गर्न || To identify the sources of power required for humans, animals and engines.
+- दैनिक जीवनमा विद्युत्को प्रयोगका उदाहरणहरू दिन || To give examples of the use of electricity in daily life.
+- विद्युत्का स्रोतहरू चिन्न र बताउन || To identify and explain the sources of electricity.
+- चालक (Conductor) र अवरोधक (Insulator) वस्तु छुट्याउन || To distinguish between conductor and insulator objects
+- चुम्बकको सहायताले चुम्बकीय र अचुम्बकीय वस्तु छुट्याउन || To distinguish between magnetic and non-magnetic objects with the help of a magnet.
+- चुम्बकका गुणहरू प्रदर्शन गर्न र विभिन्न चुम्बकको चुम्बकीय क्षमता तुलना गर्न || To demonstrate the properties of magnets and compare the magnetic potential of different magnets.
+- दैनिक जीवनमा चुम्बकको प्रयोग बताउन || To explain the use of magnets in daily life.
+
+# 8 | पृथ्वी र अन्तरिक्ष | Earth and Space | | 5
+- पृथ्वीको स्वरूप र आकारको वर्णन गर्न || To describe the shape and size of the Earth.
+- स्थलमण्डल, जलमण्डल र वायुमण्डलको परिचय दिन || To introduce the lithosphere, hydrosphere and atmosphere.
+- विभिन्न प्रकारका मौसमको परिचय दिन र उक्त मौसममा मानिसका गतिविधिको वर्णन गर्न || To introduce different types of weather and describe human activities in that weather.
+- मौसमको पूर्वानुमान गर्न || To predict the weather.
+- प्राकृतिक विपत्को परिचय र असर बताउन तथा तिनीहरूबाट बच्ने उपायहरू अवलम्बन गर्न || To introduce and explain the effects of natural disasters and to adopt measures to avoid them.
