@@ -43,9 +43,9 @@ export default function StudentFeedbackPage() {
       <div className="mx-auto max-w-5xl">
         <PageHeader
           icon={FaCommentDots}
-          eyebrow="Student feedback"
-          title="Feedback"
-          description="Share what is working well or what should be improved."
+          eyebrow="Feedback"
+          title="Feedback to your school"
+          description="Tell your school what is going well or what could be better. Your school reads every message."
         />
         <div className="mt-5">
           <FeedbackForm audience="student" />

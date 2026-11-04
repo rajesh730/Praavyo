@@ -81,14 +81,15 @@ export async function loadProgressOptions(actor, { academicYear, grade = '', sec
 }
 
 /**
- * A parent's view of their child's progress this year: every subject the
- * child takes, each theme's achievement and the level per learning outcome.
- * Read-only, and only for Grades 1–5 (CAS).
+ * A parent's (or the student's own) view of progress this year: every
+ * subject the child takes, each theme's achievement and the level per
+ * learning outcome — counted from PUBLISHED results only. Read-only, and only
+ * for Grades 1–5 (CAS).
  *
  * `buildSubjectProgress` is casSheetService's builder, passed in to avoid a
  * circular import.
  */
-export async function loadChildProgress(student, buildSubjectProgress) {
+export async function loadChildProgress(student, buildSubjectProgress, { role = 'PARENT' } = {}) {
   await connectDB();
   const school = String(student.school || '');
   const enrollment = [...(student.enrollments || [])]
@@ -100,7 +101,7 @@ export async function loadChildProgress(student, buildSubjectProgress) {
   const year = await AcademicYear.findOne({ school, yearStart: enrollment.academicYearStart }).select('_id').lean();
   if (!year) return { available: false, reason: 'NO_YEAR', grade: enrollment.grade };
 
-  const actor = { school, role: 'PARENT' };
+  const actor = { school, role };
   const subjectRows = await CasSubject.find({ school, grade: enrollment.grade, status: 'ACTIVE', ...EXAMINED_FILTER })
     .select('kind sections sequence titleEn').sort({ sequence: 1, titleEn: 1 }).lean();
   const taken = subjectRows.filter((row) => studentTakesSubject(row, {
@@ -134,5 +135,5 @@ export async function loadChildProgress(student, buildSubjectProgress) {
       // A subject the child cannot be shown (e.g. removed) is left out.
     }
   }
-  return { available: true, grade: enrollment.grade, yearStart: enrollment.academicYearStart, subjects };
+  return { available: true, publishedOnly: true, grade: enrollment.grade, yearStart: enrollment.academicYearStart, subjects };
 }

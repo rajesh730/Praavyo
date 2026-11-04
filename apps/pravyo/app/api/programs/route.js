@@ -35,8 +35,12 @@ export const GET = defineRoute(
       filter.date = { $gte: today };
     }
 
+    // The list shows the newest program first; the Overview countdown
+    // (?upcoming=1) shows the soonest first.
     const programs = await populateProgram(
-      PerformanceProgram.find(filter).sort({ date: url.searchParams.get("upcoming") === "1" ? 1 : -1 })
+      PerformanceProgram.find(filter).sort(
+        url.searchParams.get("upcoming") === "1" ? { date: 1 } : { createdAt: -1, _id: -1 }
+      )
     );
 
     return successResponse(200, "Programs loaded", {

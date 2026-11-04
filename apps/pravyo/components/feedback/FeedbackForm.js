@@ -20,7 +20,29 @@ const initialForm = {
   message: "",
 };
 
-export default function FeedbackForm({ audience = "school" }) {
+/**
+ * audience:
+ *   "school"  — the school's feedback to Praavyo
+ *   "student" — a student's feedback to their school
+ *   "parent"  — a parent's feedback to their child's school (needs studentId)
+ */
+const COPY = {
+  school: {
+    title: "Help improve Praavyo",
+    text: "Tell the Praavyo team what is working, what is confusing, or what should be improved for schools.",
+  },
+  student: {
+    title: "Feedback to your school",
+    text: "Tell your school what is going well or what could be better. Your school reads every message.",
+  },
+  parent: {
+    title: "Feedback to the school",
+    text: "Tell the school what is going well or what could be better. The school reads every message.",
+  },
+};
+
+export default function FeedbackForm({ audience = "school", studentId = "", schoolName = "" }) {
+  const copy = COPY[audience] || COPY.school;
   const [form, setForm] = useState(initialForm);
   const [feedback, setFeedback] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -63,6 +85,7 @@ export default function FeedbackForm({ audience = "school" }) {
         body: JSON.stringify({
           ...form,
           rating: form.rating ? Number(form.rating) : null,
+          ...(audience === "parent" ? { studentId } : {}),
         }),
       });
       const payload = await res.json().catch(() => ({}));
@@ -94,12 +117,9 @@ export default function FeedbackForm({ audience = "school" }) {
             Feedback
           </p>
           <h2 className="mt-2 font-semibold text-ink">
-            Help improve Praavyo
+            {audience !== "school" && schoolName ? `Feedback to ${schoolName}` : copy.title}
           </h2>
-          <p className="mt-2 text-sm leading-6 text-muted">
-            Share what is working, what is confusing, or what should be improved
-            for {audience === "student" ? "students" : "schools"}.
-          </p>
+          <p className="mt-2 text-sm leading-6 text-muted">{copy.text}</p>
         </div>
 
         <div className="grid gap-4 md:grid-cols-[1fr_180px]">

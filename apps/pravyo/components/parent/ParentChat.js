@@ -14,6 +14,7 @@ import {
   formatFileSize,
 } from "@/lib/parentFormat";
 import Glyph from "@/components/ui/Glyph";
+import { withDayBreaks } from "@/lib/messageDays";
 
 /**
  * The guardian's conversation with the school — messages and a composer.
@@ -40,7 +41,8 @@ export default function ParentChat({ conversationId = null, onLoaded }) {
   });
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
-  const bottomRef = useRef(null);
+  // Scroll the message list itself, never the page (scrollIntoView would).
+  const scrollerRef = useRef(null);
 
   const load = useCallback(async () => {
     if (!selectedChildId) return;
@@ -102,7 +104,8 @@ export default function ParentChat({ conversationId = null, onLoaded }) {
   }, [load]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ block: "end" });
+    const el = scrollerRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
   }, [state.messages.length]);
 
   // Live: a reply appears without pulling to refresh, and ✓✓ turns on when the
@@ -184,29 +187,50 @@ export default function ParentChat({ conversationId = null, onLoaded }) {
   }
 
   return (
-    <div className="-mx-3 flex h-[calc(100dvh-11.5rem)] flex-col overflow-hidden sm:-mx-4 md:mx-0 md:h-[calc(100dvh-10rem)]">
-      <div className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain bg-surface-2 px-3 pb-0 pt-4 sm:px-4 md:pb-4">
+    <div className="-mx-3 flex h-[calc(100dvh-11.5rem)] flex-col overflow-hidden sm:-mx-4 md:mx-0 md:h-[calc(100dvh-10rem)] md:rounded-card md:border md:border-line">
+      {/* Who this conversation is with: the school, about this child. */}
+      <div className="flex items-center gap-3 border-b border-line bg-surface px-4 py-3">
+        <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand text-sm font-bold text-white">
+          {(selectedChild?.school?.name || "S").slice(0, 1).toUpperCase()}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-semibold text-ink">{selectedChild?.school?.name || t("messages.title")}</p>
+          {selectedChild?.name ? (
+            <p className="truncate text-xs text-muted">{t("messages.about", { name: selectedChild.name })}</p>
+          ) : null}
+        </div>
+      </div>
+
+      <div ref={scrollerRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain bg-surface-2 px-3 pb-0 pt-4 sm:px-4 md:pb-4">
         {state.messages.length === 0 ? (
           <div className="flex h-full flex-col items-center justify-center px-6 text-center">
-            <span aria-hidden="true" className="text-2xl">
+            <span aria-hidden="true" className="grid h-14 w-14 place-items-center rounded-full bg-brand-soft text-2xl">
               <Glyph emoji="💬" />
             </span>
             <p className="mt-3 font-semibold text-ink">
               {t("messages.empty")}
             </p>
-            <p className="mt-1 text-sm text-muted">
-              {selectedChild?.school?.name}
+            <p className="mt-1 max-w-xs text-sm text-muted">
+              {t("messages.startHint")}
             </p>
           </div>
         ) : (
-          state.messages.map((message) => (
-            <MessageBubble key={message.id} message={message} t={t} />
-          ))
+          withDayBreaks(state.messages).map((item) =>
+            item.type === "day" ? (
+              <div key={item.key} className="flex items-center gap-3 py-1" role="separator" aria-label={item.label}>
+                <span className="h-px flex-1 bg-line" />
+                <span className="rounded-full bg-surface px-3 py-0.5 text-2xs font-semibold text-muted shadow-card">{item.label}</span>
+                <span className="h-px flex-1 bg-line" />
+              </div>
+            ) : (
+              <MessageBubble key={item.key} message={item.message} t={t} />
+            )
+          )
         )}
         {/* A real spacer, rather than only padding, gives scrollIntoView an
             endpoint above the fixed phone composer. This keeps the newest
             bubble from sitting half-hidden behind the message box. */}
-        <div ref={bottomRef} className="h-28 shrink-0 md:h-0" aria-hidden="true" />
+        <div className="h-28 shrink-0 md:h-0" aria-hidden="true" />
       </div>
 
       {state.error ? (
@@ -299,7 +323,7 @@ function MessageBubble({ message, t }) {
           ].join(" ")}
         >
           {formatParentTime(message.createdAt)}
-          {mine && message.readByStaff ? " · ✓✓" : ""}
+          {mine ? ` · ${message.readByStaff ? `✓✓ ${t("messages.read")}` : t("messages.sent")}` : ""}
         </p>
       </div>
     </div>

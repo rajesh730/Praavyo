@@ -3,6 +3,7 @@ import Achievement from "@/models/Achievement";
 import SchoolMagazineArticle from "@/models/SchoolMagazineArticle";
 import User from "@/models/User";
 import "@/models/Event";
+import "@/models/PerformanceProgram";
 import { successResponse, internalServerError } from "@/lib/apiResponse";
 import { requireParentChild } from "@/lib/parentAccess";
 import { isActiveCertificateRecord } from "@/lib/certificates";
@@ -56,9 +57,11 @@ export async function GET(request) {
         .sort({ awardedAt: -1 })
         .limit(100)
         .select(
-          "title description placement level awardedAt school event certificateUrl certificateCode certificateIssuedAt certificateState"
+          "title description placement level awardedAt school event program certificateUrl certificateCode certificateIssuedAt certificateState"
         )
         .populate("event", "title date")
+        // Performance-program certificates (Dashain, Tihar) have no event.
+        .populate("program", "title date")
         .lean(),
       SchoolMagazineArticle.find({
         authorStudent: student._id,
@@ -122,8 +125,8 @@ export async function GET(request) {
       placement: String(a.placement || "PARTICIPANT").replaceAll("_", " "),
       emoji: PLACEMENT_ICONS[a.placement] || "🏆",
       level: a.level,
-      eventTitle: a.event?.title || "",
-      date: a.awardedAt || a.event?.date || null,
+      eventTitle: a.event?.title || a.program?.title || "",
+      date: a.awardedAt || a.event?.date || a.program?.date || null,
       schoolName: schoolName(a.school),
       verified: isActiveCertificateRecord(a),
     }));
@@ -135,7 +138,7 @@ export async function GET(request) {
       .map((a) => ({
         id: String(a._id),
         title: a.title,
-        eventTitle: a.event?.title || "",
+        eventTitle: a.event?.title || a.program?.title || "",
         issuedAt: a.certificateIssuedAt,
         schoolName: schoolName(a.school),
         certificateCode: a.certificateCode || "",

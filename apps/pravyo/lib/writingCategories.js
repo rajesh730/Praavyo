@@ -35,3 +35,8 @@ export function getWritingCategoryLabel(value) {
     .toLowerCase()
     .replace(/\b\w/g, (char) => char.toUpperCase());
 }
+
+/** Where a student sends a writing: "MAGAZINE" or the school wall ("FREE_WRITE"). */
+export function normalizeSubmissionSource(value) {
+  return String(value || "").toUpperCase() === "MAGAZINE" ? "MAGAZINE" : "FREE_WRITE";
+}

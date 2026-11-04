@@ -4,6 +4,7 @@ import PerformanceProgram from "@/models/PerformanceProgram";
 import Achievement from "@/models/Achievement";
 import {
   applyStudentAction,
+  isPerformanceLocked,
   loadProgram,
   programStage,
 } from "@/lib/performancePrograms";
@@ -58,6 +59,7 @@ export const GET = defineRoute({ roles: ["STUDENT"] }, async ({ session }) => {
           _id: String(performance._id),
           title: performance.title,
           performanceType: performance.performanceType,
+          locked: isPerformanceLocked(program, performance),
           performerCount: (performance.performers || []).length,
           joined: Boolean(mine),
           myStatus: mine?.status || "",

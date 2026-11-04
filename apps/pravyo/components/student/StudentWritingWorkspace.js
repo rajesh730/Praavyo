@@ -218,7 +218,9 @@ function getPlacements(writing) {
       : null,
     writing.isMagazinePublished
       ? { key: "magazine", label: "School Magazine", icon: FaBookOpen }
-      : null,
+      : writing.submissionSource === "MAGAZINE" && String(writing.status || "").toUpperCase() !== "DRAFT"
+        ? { key: "magazine-sent", label: "Sent to magazine", icon: FaBookOpen }
+        : null,
     writing.isPublished
       ? { key: "home", label: "Homepage", icon: FaHome }
       : null,
@@ -303,6 +305,10 @@ function buildEmptyForm() {
     title: "",
     content: "",
     category: "BLOG_ARTICLE",
+    // Where it goes when posted: the school wall or the school magazine.
+    submissionSource: "FREE_WRITE",
+    // The magazine (open for writing) it is written for.
+    requestedIssue: "",
     status: "DRAFT",
     images: [],
     coverImage: null,
@@ -720,6 +726,28 @@ function WritingEditor({
   const [showCoverImage, setShowCoverImage] = useState(Boolean(form.coverImage));
   const [showTags, setShowTags] = useState(Boolean(form.tags?.length));
   const tagsInputId = useId();
+  const forMagazine = form.submissionSource === "MAGAZINE";
+  const [openIssues, setOpenIssues] = useState(null);
+  useEffect(() => {
+    if (!forMagazine || portfolioOnly) return undefined;
+    let live = true;
+    fetch("/api/student/magazine-issues", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : { issues: [] }))
+      .then((payload) => {
+        if (!live) return;
+        const issues = Array.isArray(payload.issues) ? payload.issues : [];
+        setOpenIssues(issues);
+        // Only one magazine open: choose it for them.
+        if (issues.length === 1) {
+          setForm((current) => (current.requestedIssue ? current : { ...current, requestedIssue: issues[0].id }));
+        }
+      })
+      .catch(() => live && setOpenIssues([]));
+    return () => {
+      live = false;
+    };
+  }, [forMagazine, portfolioOnly, setForm]);
+  const chosenIssueOpen = Boolean(form.requestedIssue && openIssues?.some((issue) => issue.id === form.requestedIssue));
   const previewLeadImage = getWritingLeadImage(form.coverImage, form.images);
   const previewBodyImages = getWritingBodyImages(form.coverImage, form.images);
 
@@ -774,6 +802,58 @@ function WritingEditor({
           ))}
         </select>
       </div>
+
+      {!portfolioOnly && (
+        <div className="flex flex-col gap-2 px-4 pb-3 sm:flex-row sm:items-center">
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted">Send to</span>
+          <div role="group" aria-label="Send to" className="grid grid-cols-2 rounded-control border border-line bg-surface-2 p-0.5 sm:inline-grid">
+            {[
+              { id: "FREE_WRITE", label: "School wall", icon: FaSchool },
+              { id: "MAGAZINE", label: "School magazine", icon: FaBookOpen },
+            ].map(({ id, label, icon: Icon }) => {
+              const on = (form.submissionSource || "FREE_WRITE") === id;
+              return (
+                <button key={id} type="button" aria-pressed={on}
+                  onClick={() => setForm((current) => ({ ...current, submissionSource: id }))}
+                  className={`inline-flex min-h-10 items-center justify-center gap-2 rounded-control px-3 py-1.5 text-sm font-semibold transition-colors ${on ? "bg-brand text-white shadow-card" : "text-muted hover:text-ink"}`}>
+                  <Icon aria-hidden /> {label}
+                </button>
+              );
+            })}
+          </div>
+          <span className="text-xs text-muted">
+            {forMagazine
+              ? "Your school chooses which writing goes into the magazine. It does not appear on the school wall."
+              : "Classmates see it on the school wall after you post it."}
+          </span>
+        </div>
+      )}
+
+      {!portfolioOnly && forMagazine && (
+        <div className="px-4 pb-3">
+          {openIssues === null ? (
+            <p className="text-xs text-muted">Loading magazines…</p>
+          ) : openIssues.length === 0 ? (
+            <p className="rounded-control border border-warning-line bg-warning-soft px-3 py-2 text-sm text-warning">
+              Your school has no magazine open for writing right now. Save it privately and send it when one opens.
+            </p>
+          ) : (
+            <label className="flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
+              <span className="text-xs font-semibold uppercase tracking-wide text-muted">Which magazine?</span>
+              <select
+                className="input sm:max-w-sm"
+                value={chosenIssueOpen ? form.requestedIssue : ""}
+                onChange={(event) => setForm((current) => ({ ...current, requestedIssue: event.target.value }))}
+              >
+                <option value="">Choose a magazine…</option>
+                {openIssues.map((issue) => (
+                  <option key={issue.id} value={issue.id}>{issue.title}</option>
+                ))}
+              </select>
+            </label>
+          )}
+        </div>
+      )}
 
       {editorMode === "WRITE" ? (
         <div className="relative">
@@ -911,12 +991,17 @@ function WritingEditor({
               </button>
               <button
                 type="button"
-                disabled={saving}
+                disabled={saving || (forMagazine && !chosenIssueOpen)}
+                title={forMagazine && !chosenIssueOpen ? "Choose a magazine first" : ""}
                 onClick={() => onSave("SUBMITTED")}
                 className="btn btn-primary btn-sm inline-flex items-center justify-center gap-2 transition-colors"
               >
                 <FaPaperPlane />
-                {saving ? "Posting..." : "Post to School Wall"}
+                {saving
+                  ? "Sending..."
+                  : form.submissionSource === "MAGAZINE"
+                    ? "Send to Magazine"
+                    : "Post to School Wall"}
               </button>
             </>
           )}
@@ -1385,6 +1470,8 @@ export default function StudentWritingWorkspace() {
       title: writing.title || "",
       content: writing.content || "",
       category: normalizeCategory(writing.category),
+      submissionSource: writing.submissionSource === "MAGAZINE" ? "MAGAZINE" : "FREE_WRITE",
+      requestedIssue: writing.requestedIssue || "",
       status: writing.status || "DRAFT",
       images: writing.images || [],
       coverImage: writing.coverImage || null,
@@ -1416,6 +1503,8 @@ export default function StudentWritingWorkspace() {
           title: form.title,
           content: form.content,
           category: form.category,
+          submissionSource: form.submissionSource,
+          requestedIssue: form.requestedIssue,
           status: nextStatus,
           images: form.images,
           coverImage: form.coverImage,
@@ -1453,6 +1542,8 @@ export default function StudentWritingWorkspace() {
           title: editForm.title,
           content: editForm.content,
           category: editForm.category,
+          submissionSource: editForm.submissionSource,
+          requestedIssue: editForm.requestedIssue,
           status: nextStatus,
           images: editForm.images,
           coverImage: editForm.coverImage,

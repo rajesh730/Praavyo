@@ -10,12 +10,12 @@ const feedbackSchema = new mongoose.Schema(
     },
     submitterModel: {
       type: String,
-      enum: ["User", "Student"],
+      enum: ["User", "Student", "Parent"],
       required: true,
     },
     submitterRole: {
       type: String,
-      enum: ["SCHOOL_ADMIN", "STUDENT"],
+      enum: ["SCHOOL_ADMIN", "STUDENT", "PARENT"],
       required: true,
       index: true,
     },
@@ -34,6 +34,31 @@ const feedbackSchema = new mongoose.Schema(
       ref: "User",
       default: null,
       index: true,
+    },
+    // Who reads it: PLATFORM = Praavyo (feedback from a school), SCHOOL = the
+    // school (feedback from its students and parents).
+    recipient: {
+      type: String,
+      enum: ["PLATFORM", "SCHOOL"],
+      default: "PLATFORM",
+      index: true,
+    },
+    // A parent's feedback is about one of their children.
+    aboutStudent: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Student",
+      default: null,
+    },
+    aboutStudentName: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    // The student's grade (the student's own, or the parent's child's).
+    grade: {
+      type: String,
+      default: "",
+      trim: true,
     },
     schoolName: {
       type: String,

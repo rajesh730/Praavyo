@@ -323,7 +323,7 @@ export async function PUT(req, { params }) {
       });
       return successResponse(
         200,
-        "Admission rejected. The student can choose another school."
+        "Admission rejected. The family can choose another school."
       );
     }
 

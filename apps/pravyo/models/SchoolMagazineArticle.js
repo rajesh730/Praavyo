@@ -87,9 +87,12 @@ const SchoolMagazineArticleSchema = new mongoose.Schema(
       enum: ALL_WRITING_CATEGORIES,
       default: "BLOG_ARTICLE",
     },
+    // Where the student sent it: FREE_WRITE = the school wall, MAGAZINE =
+    // the school magazine. Only MAGAZINE writings can go into an issue, and
+    // they stay off the school wall.
     submissionSource: {
       type: String,
-      enum: ["FREE_WRITE"],
+      enum: ["FREE_WRITE", "MAGAZINE"],
       default: "FREE_WRITE",
       index: true,
     },
@@ -147,6 +150,21 @@ const SchoolMagazineArticleSchema = new mongoose.Schema(
       default: false,
       index: true,
     },
+    // Set when the school corrects the writing (title, text, type). The one
+    // document is what the wall, magazine, home page and the student's
+    // portfolio all read, so an edit shows everywhere at once.
+    schoolEditedAt: {
+      type: Date,
+      default: null,
+    },
+    // The magazine the student wrote this for (a DRAFT issue, i.e. one still
+    // open for writing). The school then chooses whether to include it.
+    requestedIssue: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "MagazineIssue",
+      default: null,
+      index: true,
+    },
     magazineIssue: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "MagazineIssue",
@@ -196,6 +214,11 @@ const SchoolMagazineArticleSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "Student",
       default: null,
+    },
+    // "SCHOOL" when the school deleted it (deletedBy then stays null).
+    deletedByRole: {
+      type: String,
+      default: "",
     },
   },
   { timestamps: true }

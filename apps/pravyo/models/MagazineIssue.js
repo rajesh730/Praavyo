@@ -13,6 +13,12 @@ const MagazineIssueSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    // true once the school renamed it; otherwise the title is the automatic
+    // "<Month> Magazine <n>".
+    titleEdited: {
+      type: Boolean,
+      default: false,
+    },
     weekStart: {
       type: Date,
       required: true,

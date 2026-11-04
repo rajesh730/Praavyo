@@ -227,14 +227,32 @@ export async function buildStudentSubjectProgress(actor, input) {
   const year = await loadAcademicYear(actor, data.academicYear);
   const { subjectRow, outcomes: allOutcomes } = await subjectAndOutcomes(actor, data);
   const { student, enrollment } = await studentAndEnrollment(actor, data, year);
+
+  // Only the school sees marks as they are entered. Teachers, parents and the
+  // student see progress from PUBLISHED results only: the exams whose report
+  // card is published for this student (a published whole-year card counts
+  // for every exam).
+  const publishedOnly = actor.role !== 'SCHOOL_ADMIN';
+  let publishedExams = null;
+  if (publishedOnly) {
+    const published = await CasReport.find({ ...reportScope(actor, year, student._id), status: 'PUBLISHED' })
+      .select('exam').lean();
+    if (!published.some((report) => !report.exam)) {
+      publishedExams = published.map((report) => report.exam).filter(Boolean);
+    }
+  }
+  const examFilter = publishedExams ? { exam: { $in: publishedExams } } : {};
+
   const records = await CasAssessment.find({
     ...reportScope(actor, year, student._id),
     grade: data.grade, subject: subjectRow._id,
     outcome: { $in: allOutcomes.map((outcome) => outcome._id) },
+    ...examFilter,
   }).lean();
   const recordsByOutcome = new Map(records.map((record) => [String(record.outcome), record]));
   const assignments = await CasThemeExam.find({
     school: actor.school, academicYear: year.id, grade: data.grade, subject: subjectRow._id,
+    ...examFilter,
   }).select('themeKey').lean();
   const assignedThemes = new Set(assignments.map((row) => row.themeKey));
   // Keep existing marks visible even if an assignment is later adjusted.
@@ -277,6 +295,8 @@ export async function buildStudentSubjectProgress(actor, input) {
     themes: progressThemes,
     totals: gradeTotals(data.grade, progressThemes.flatMap((theme) => theme.rows)),
     resultAvailable: usesResultSheet(data.grade),
+    // true when only published results are counted (everyone but the school)
+    publishedOnly,
     locked: false,
     canRecord: actor.role === 'SCHOOL_ADMIN',
   };

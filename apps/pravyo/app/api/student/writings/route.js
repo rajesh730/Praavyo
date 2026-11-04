@@ -5,7 +5,8 @@ import Student from "@/models/Student";
 import SchoolMagazineArticle from "@/models/SchoolMagazineArticle";
 import { publishWorkIndicatorsUpdate } from "@/lib/workIndicatorRealtime";
 import { notifySchoolMagazineSubmitted } from "@/lib/magazineNotifications";
-import { normalizeWritingCategory } from "@/lib/writingCategories";
+import { normalizeSubmissionSource, normalizeWritingCategory } from "@/lib/writingCategories";
+import { findOpenMagazineIssue } from "@/lib/magazineIssues";
 import { buildAuthoredEraSnapshot } from "@/lib/studentEnrollment";
 import { buildStudentLookupForSession } from "@/lib/studentIdentity";
 import {
@@ -75,6 +76,7 @@ export async function GET() {
             String(article.school?._id || article.school || "") !==
             currentSchoolId,
           submissionSource: article.submissionSource || "FREE_WRITE",
+          requestedIssue: article.requestedIssue ? String(article.requestedIssue) : "",
           status: article.status,
           reviewNote: article.reviewNote || "",
           isPublished: Boolean(article.isPublished),
@@ -138,6 +140,15 @@ export async function POST(request) {
     const title = String(body.title || "").trim();
     const content = String(body.content || "").trim();
     const category = normalizeWritingCategory(body.category);
+    const submissionSource = normalizeSubmissionSource(body.submissionSource);
+    // A magazine piece goes to the school for the magazine, not the wall.
+    const onWall = (status) => status === "SUBMITTED" && submissionSource !== "MAGAZINE";
+    // The magazine it is written for: must be one still open for writing.
+    const openIssue =
+      submissionSource === "MAGAZINE"
+        ? await findOpenMagazineIssue(student.school, body.requestedIssue)
+        : null;
+    const requestedIssue = openIssue?._id || null;
     const tags = normalizeWritingTags(body.tags);
     const resubmissionOf = String(
       body.resubmissionOf || body.articleId || body.id || ""
@@ -146,6 +157,12 @@ export async function POST(request) {
       String(body.status || "").toUpperCase() === "SUBMITTED"
         ? "SUBMITTED"
         : "DRAFT";
+    if (submissionSource === "MAGAZINE" && requestedStatus === "SUBMITTED" && !requestedIssue) {
+      return NextResponse.json(
+        { message: "Choose a magazine that is open for writing." },
+        { status: 400 }
+      );
+    }
 
     let images;
     let coverImage;
@@ -202,7 +219,9 @@ export async function POST(request) {
         article.coverImage = coverImage;
         article.tags = tags;
         article.status = requestedStatus;
-        article.showOnSchoolWall = requestedStatus === "SUBMITTED";
+        article.submissionSource = submissionSource;
+        article.requestedIssue = requestedIssue;
+        article.showOnSchoolWall = onWall(requestedStatus);
         article.isMagazinePublished = false;
         article.isPublished = false;
         article.magazinePublishedAt = null;
@@ -259,7 +278,7 @@ export async function POST(request) {
         return NextResponse.json({
           message:
             requestedStatus === "SUBMITTED"
-              ? "Posted to school wall"
+              ? (submissionSource === "MAGAZINE" ? "Sent to the school magazine" : "Posted to school wall")
               : "Private writing updated",
           article,
         });
@@ -277,9 +296,10 @@ export async function POST(request) {
       coverImage,
       tags,
       category,
-      submissionSource: "FREE_WRITE",
+      submissionSource,
+      requestedIssue,
       status: requestedStatus,
-      showOnSchoolWall: requestedStatus === "SUBMITTED",
+      showOnSchoolWall: onWall(requestedStatus),
       isMagazinePublished: false,
       isPublished: false,
       submittedAt,
@@ -317,7 +337,7 @@ export async function POST(request) {
       {
         message:
           requestedStatus === "SUBMITTED"
-            ? "Posted to school wall"
+            ? (submissionSource === "MAGAZINE" ? "Sent to the school magazine" : "Posted to school wall")
             : "Private writing saved",
         article,
       },

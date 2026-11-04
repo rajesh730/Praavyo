@@ -2,10 +2,16 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Send as FaPaperPlane, X as FaTimes, CheckCheck as FaCheckDouble } from "lucide-react";
+import { Send as FaPaperPlane, ArrowLeft, CheckCheck as FaCheckDouble } from "lucide-react";
 import { formatParentTime, formatDuration } from "@/lib/parentFormat";
 import useRealtimeChannel from "@/lib/client/useRealtimeChannel";
 import { MESSAGE_EVENTS } from "@/lib/messagingChannels";
+import { withDayBreaks } from "@/lib/messageDays";
+
+function initials(name) {
+  const parts = String(name || "").trim().split(/\s+/).filter(Boolean);
+  return ((parts[0]?.[0] || "") + (parts.length > 1 ? parts[parts.length - 1][0] : "")).toUpperCase() || "?";
+}
 
 /**
  * One parent conversation, from the school side.
@@ -28,7 +34,10 @@ export default function SchoolConversation({
   const [state, setState] = useState({ loading: true, data: null, error: "" });
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
-  const bottomRef = useRef(null);
+  // The message list scrolls itself to the newest message. Never
+  // scrollIntoView: that also scrolls the PAGE, which pushed the reply box
+  // off the bottom of the screen.
+  const scrollerRef = useRef(null);
 
   const load = useCallback(async () => {
     try {
@@ -48,7 +57,8 @@ export default function SchoolConversation({
   }, [load]);
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({ block: "end" });
+    const el = scrollerRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
   }, [state.data?.messages?.length]);
 
   // Live thread: reload on anything touching THIS conversation. Both event
@@ -94,7 +104,7 @@ export default function SchoolConversation({
   };
 
   if (state.loading) {
-    return <div className="h-full min-h-[400px] animate-pulse bg-surface-2" />;
+    return <div className="h-full min-h-0 flex-1 animate-pulse bg-surface-2" />;
   }
 
   if (!state.data) {
@@ -110,8 +120,19 @@ export default function SchoolConversation({
   const { conversation, messages } = state.data;
 
   return (
-    <div className="flex h-full min-h-[400px] flex-col">
-      <header className="flex items-start gap-3 border-b border-line px-4 py-3">
+    <div className="flex h-full min-h-0 w-full flex-col">
+      <header className="flex shrink-0 items-center gap-3 border-b border-line px-4 py-3">
+        <button
+          type="button"
+          onClick={onClose}
+          aria-label="Back to all parents"
+          className="btn-icon btn-ghost flex shrink-0 items-center justify-center lg:hidden"
+        >
+          <ArrowLeft aria-hidden size={18} />
+        </button>
+        <span aria-hidden className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-brand-soft text-sm font-bold text-brand-strong">
+          {initials(conversation.guardianName)}
+        </span>
         <div className="min-w-0 flex-1">
           <p className="truncate font-semibold text-ink">
             {conversation.guardianName}
@@ -140,34 +161,33 @@ export default function SchoolConversation({
           </span>
         ) : null}
 
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close conversation"
-          className="btn-icon btn-ghost flex shrink-0 items-center justify-center lg:hidden"
-        >
-          <FaTimes />
-        </button>
       </header>
 
-      <div className="flex-1 space-y-3 overflow-y-auto bg-surface px-4 py-4">
+      <div ref={scrollerRef} className="min-h-0 flex-1 space-y-3 overflow-y-auto overscroll-contain bg-surface-2 px-4 py-4">
         {messages.length === 0 ? (
           <p className="py-6 text-center text-sm text-muted">
             No messages yet.
           </p>
         ) : (
-          messages.map((message) => (
-            <Bubble key={message.id} message={message} />
-          ))
+          withDayBreaks(messages).map((item) =>
+            item.type === "day" ? (
+              <div key={item.key} className="flex items-center gap-3 py-1" role="separator" aria-label={item.label}>
+                <span className="h-px flex-1 bg-line" />
+                <span className="rounded-full bg-surface px-3 py-0.5 text-2xs font-semibold text-muted shadow-card">{item.label}</span>
+                <span className="h-px flex-1 bg-line" />
+              </div>
+            ) : (
+              <Bubble key={item.key} message={item.message} />
+            )
+          )
         )}
-        <div ref={bottomRef} />
       </div>
 
       {state.error ? (
         <p className="bg-danger-soft px-4 py-2 text-xs text-danger">{state.error}</p>
       ) : null}
 
-      <footer className="border-t border-line p-3">
+      <footer className="shrink-0 border-t border-line bg-surface p-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] lg:pb-3">
         <div className="flex items-end gap-2">
           <textarea
             rows={2}
@@ -251,8 +271,12 @@ function Bubble({ message }) {
         >
           {formatParentTime(message.createdAt)}
           {/* Only meaningful on our own messages: has the parent seen it? */}
-          {mine && message.readByParent ? (
-            <FaCheckDouble className="h-2.5 w-2.5" title="Read by parent" />
+          {mine ? (
+            message.readByParent ? (
+              <span className="inline-flex items-center gap-0.5"><FaCheckDouble className="h-3 w-3" aria-hidden /> Read</span>
+            ) : (
+              <span>Sent</span>
+            )
           ) : null}
         </p>
       </div>

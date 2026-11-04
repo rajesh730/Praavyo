@@ -25,12 +25,15 @@ export async function GET(request) {
     const status = String(searchParams.get("status") || "ALL").toUpperCase();
     const search = String(searchParams.get("search") || "").trim();
     const grade = String(searchParams.get("grade") || "ALL").trim();
+    const year = Number.parseInt(searchParams.get("year") || "", 10);
     const { page, limit, skip } = parsePagination(searchParams, {
       limit: 20,
       maxLimit: 100,
     });
 
-    const query = { school: session.user.id, isDeleted: { $ne: true } };
+    // Free writing only: pieces sent to the magazine are handled inside
+    // their magazine.
+    const query = { school: session.user.id, isDeleted: { $ne: true }, submissionSource: { $ne: "MAGAZINE" } };
     if (status === "POSTED") {
       query.status = { $in: ["SUBMITTED", "APPROVED"] };
     } else if (status !== "ALL") {
@@ -41,6 +44,23 @@ export async function GET(request) {
       query.$or = [
         { title: { $regex: safeSearch, $options: "i" } },
         { content: { $regex: safeSearch, $options: "i" } },
+      ];
+    }
+    // Academic year = the session the student wrote it in (stamped on the
+    // writing). Older writings without the stamp fall back to when they were
+    // created; a session runs April to March.
+    if (Number.isFinite(year)) {
+      query.$and = [
+        ...(query.$and || []),
+        {
+          $or: [
+            { authorAcademicYearStart: year },
+            {
+              authorAcademicYearStart: null,
+              createdAt: { $gte: new Date(year, 3, 1), $lt: new Date(year + 1, 3, 1) },
+            },
+          ],
+        },
       ];
     }
     if (grade && grade.toUpperCase() !== "ALL") {
@@ -62,16 +82,27 @@ export async function GET(request) {
       .lean();
     const wallSeenAt = wallSeenState?.seenAt ? new Date(wallSeenState.seenAt) : null;
 
-    const [totalSubmissions, submissions, newCount] = await Promise.all([
+    const yearsPromise = SchoolMagazineArticle.aggregate([
+      { $match: { school: new SchoolMagazineArticle.base.Types.ObjectId(String(session.user.id)), isDeleted: { $ne: true }, submissionSource: { $ne: "MAGAZINE" }, status: { $in: ["SUBMITTED", "APPROVED"] } } },
+      {
+        $group: {
+          _id: {
+            $ifNull: [
+              "$authorAcademicYearStart",
+              { $cond: [{ $gte: [{ $month: "$createdAt" }, 4] }, { $year: "$createdAt" }, { $subtract: [{ $year: "$createdAt" }, 1] }] },
+            ],
+          },
+        },
+      },
+    ]);
+
+    const [totalSubmissions, submissions, newCount, yearRows] = await Promise.all([
       SchoolMagazineArticle.countDocuments(query),
       SchoolMagazineArticle.find(query)
         .populate("authorStudent", "name grade rollNumber")
         .populate("magazineIssue")
-        .sort({
-          status: status === "SUBMITTED" ? 1 : -1,
-          submittedAt: -1,
-          updatedAt: -1,
-        })
+        // Newest post first (the time the student posted it).
+        .sort({ submittedAt: -1, createdAt: -1, _id: -1 })
         .skip(skip)
         .limit(limit)
         .lean(),
@@ -81,6 +112,7 @@ export async function GET(request) {
             submittedAt: { $gt: wallSeenAt },
           })
         : Promise.resolve(0),
+      yearsPromise,
     ]);
     const pagination = buildPagination({
       page,
@@ -138,6 +170,7 @@ export async function GET(request) {
         totalSubmissions,
       },
       newCount,
+      years: yearRows.map((row) => row._id).filter((value) => Number.isFinite(value)).sort((a, b) => b - a),
     });
   } catch (error) {
     console.error("GET /api/school/magazine-submissions error:", error);

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { CircleCheck as FaCheckCircle, ExternalLink as FaExternalLinkAlt, TriangleAlert, Trophy, PenLine, ScrollText } from "lucide-react";
 import {
   useParentApp,
@@ -32,13 +33,26 @@ const TABS = [
   { key: "certificates", labelKey: "child.certificates" },
 ];
 
+// `?tab=certificates` opens that tab directly — where a "certificate is
+// ready" notification lands.
 export default function ParentChildPage() {
+  return (
+    <Suspense fallback={null}>
+      <ParentChildPortfolio />
+    </Suspense>
+  );
+}
+
+function ParentChildPortfolio() {
   const { t, selectedChildId, preferences } = useParentApp();
   const { loading, error, data, reload } = useParentResource(
     "/api/parent/portfolio"
   );
 
-  const [tab, setTab] = useState("profile");
+  const requestedTab = useSearchParams().get("tab");
+  const [tab, setTab] = useState(
+    TABS.some((entry) => entry.key === requestedTab) ? requestedTab : "profile"
+  );
   const [openWritingId, setOpenWritingId] = useState(null);
 
   if (!selectedChildId) return null;

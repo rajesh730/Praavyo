@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRememberedState } from "@pravyo/ui/rememberedState";
-import { BookOpen as FaBookOpen, CalendarDays as FaCalendarAlt, CircleCheck as FaCheckCircle, Eye as FaEye, FileText as FaFileAlt, House as FaHome, Inbox as FaInbox, Plus as FaPlus, Newspaper as FaRegNewspaper, X as FaTimes } from "lucide-react";
+import { bsAcademicYearLabel, formatMonthYear } from "@pravyo/core/nepaliDate";
+import { ArrowLeft as FaArrowLeft, BookOpen as FaBookOpen, CalendarDays as FaCalendarAlt, CircleCheck as FaCheckCircle, SquarePen as FaEdit, House as FaHome, Inbox as FaInbox, Plus as FaPlus, Newspaper as FaRegNewspaper, X as FaTimes } from "lucide-react";
 import SchoolMagazineReviewManager from "@/components/school/SchoolMagazineReviewManager";
 import AlertBanner from "@/components/ui/AlertBanner";
 import LoadingState from "@/components/ui/LoadingState";
@@ -15,17 +16,28 @@ import {
 import AppDate from "@/components/common/AppDate";
 import useWorkIndicators from "@/lib/client/useWorkIndicators";
 import { getWritingCategoryLabel } from "@/lib/writingCategories";
+import PublishingTable, { PlacementSwitch } from "@/components/school/PublishingTable";
+import WritingEditForm from "@/components/school/WritingEditForm";
 
 function getReadMinutes(content) {
   return Math.max(1, Math.ceil(wordCount(content) / 180));
 }
 
-function formatIssueMonth(issue) {
-  const date = new Date(issue.weekStart || issue.publishedAt || issue.createdAt || new Date());
-  return date.toLocaleDateString("en-US", {
-    month: "long",
-    year: "numeric",
-  });
+/**
+ * Where a magazine sits for the filters: its academic year (a session runs
+ * from April / Baisakh, shown in BS like the rest of the dates) and its
+ * month, both from the date it was created.
+ */
+function issueFacts(issue) {
+  const date = new Date(issue.weekStart || issue.publishedAt || issue.createdAt || Date.now());
+  const yearStart = date.getMonth() >= 3 ? date.getFullYear() : date.getFullYear() - 1;
+  const month = formatMonthYear(date, "BS");
+  return {
+    yearKey: String(yearStart),
+    yearLabel: `${bsAcademicYearLabel(yearStart)} BS`,
+    monthKey: month,
+    monthLabel: month,
+  };
 }
 
 function getArticleFreshDate(article) {
@@ -36,6 +48,11 @@ function getArticleFreshDate(article) {
       article.updatedAt ||
       0
   );
+}
+
+/** Only writings the student sent to the magazine can go into an issue. */
+function isSentToMagazine(article) {
+  return article.submissionSource === "MAGAZINE";
 }
 
 function isFreshForMagazine(article) {
@@ -59,81 +76,36 @@ function MagazineTabButton({
   onClick,
   icon: Icon,
   label,
-  helper,
   count = 0,
-  tone = "neutral",
   dot = false,
 }) {
   const isActive = activeTab === id;
-  // On the brand-coloured active tab the count is a white pill with brand text;
-  // white-on-white made the number invisible.
-  const pillClass = isActive
-    ? "bg-white text-brand-strong"
-    : tone === "attention"
-    ? "bg-warning-soft text-warning"
-    : "bg-brand-soft text-brand-strong";
-  // The red "new activity here" dot stays visible (even on the active tab)
-  // until the tab is clicked, which marks its content seen.
-  const showDot = dot;
-
+  // One clean line: icon, name, count. The active tab is marked by an
+  // underline and brand text; the red dot means new posts to look at.
   return (
     <button
       type="button"
+      role="tab"
+      aria-selected={isActive}
       onClick={() => onClick(id)}
-      aria-pressed={isActive}
-      // Card-style tab, not `.btn`: the button height clipped the two-line
-      // label, and `.btn-secondary:hover` turned the active tab's background
-      // grey under white text.
-      className={`flex min-h-14 w-full items-center gap-3 rounded-card border px-3 py-2.5 text-left transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
-        isActive
-          ? "border-brand bg-brand text-white shadow-sm"
-          : "border-line bg-surface text-brand-strong hover:border-brand-line hover:bg-brand-soft/40"
+      className={`relative inline-flex shrink-0 items-center gap-2 px-3 py-3 text-sm font-semibold transition-colors sm:px-4 ${
+        isActive ? "text-brand-strong" : "text-muted hover:text-ink"
       }`}
     >
-      <span
-        className={`relative flex h-10 w-10 shrink-0 items-center justify-center rounded-control border ${
-          isActive
-            ? "border-white/30 bg-white/15 text-white"
-            : "border-brand-line bg-brand-soft text-brand-strong"
-        }`}
-      >
-        <Icon />
-        {showDot && (
-          <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-danger" />
-        )}
+      <span className="relative">
+        <Icon aria-hidden size={17} />
+        {dot && <span className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-danger ring-2 ring-surface" aria-label="New" />}
       </span>
-      <span className="min-w-0">
-        <span className="block text-sm font-semibold leading-tight">{label}</span>
-        <span
-          className={`mt-0.5 block text-2xs font-semibold ${
-            isActive ? "text-white" : "text-muted"
-          }`}
-        >
-          {helper}
-        </span>
-      </span>
+      {label}
       {count > 0 && (
-        <span
-          className={`ml-auto inline-flex h-6 min-w-6 items-center justify-center rounded-full px-1.5 text-2xs font-semibold ${pillClass}`}
-        >
+        <span className={`inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-2xs font-bold ${
+          isActive ? "bg-brand text-white" : "bg-surface-2 text-muted"
+        }`}>
           {count}
         </span>
       )}
+      <span aria-hidden className={`absolute inset-x-2 bottom-0 h-0.5 rounded-full ${isActive ? "bg-brand" : "bg-transparent"}`} />
     </button>
-  );
-}
-
-function MetricCard({ label, value, icon: Icon, tone }) {
-  return (
-    <div className={`card px-4 py-4 ${tone}`}>
-      <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 items-center justify-center rounded-control bg-surface">
-          <Icon />
-        </span>
-        <strong className="text-2xl font-semibold text-ink">{value}</strong>
-      </div>
-      <div className="mt-2 text-2xs font-semibold text-muted">{label}</div>
-    </div>
   );
 }
 
@@ -177,141 +149,74 @@ function isInIssue(article, issue) {
   return article.magazineIssue.id === issue.id;
 }
 
-function ModeStatusPill({ article, mode }) {
-  if (mode === "magazine") {
-    if (article.isMagazinePublished) {
-      return (
-        <span className="badge badge-success w-fit uppercase">
-          Shown
-        </span>
-      );
-    }
-    if (article.magazineIssue && !article.isMagazinePublished) {
-      return (
-        <span className="badge badge-warning w-fit uppercase">
-          Used: {getIssueLabel(article)}
-        </span>
-      );
-    }
-    return (
-      <span className="badge badge-neutral w-fit uppercase">
-        Hidden
-      </span>
-    );
-  }
-
-  return article.isPublished ? (
-    <span className="badge badge-brand w-fit uppercase">
-      Shown Public
-    </span>
-  ) : (
-    <span className="badge badge-neutral w-fit uppercase">
-      Hidden Public
-    </span>
-  );
-}
-
 function WritingTable({ articles, busyId, emptyState, mode, onRead, onAction }) {
   if (articles.length === 0) return emptyState;
 
-  const modeConfig = {
-    magazine: {
-      actionLabel: (article) =>
-        article.isMagazinePublished
-          ? "Hide"
-          : article.magazineIssue
-          ? "Used"
-          : "Add",
-      action: (article) =>
-        article.isMagazinePublished ? "UNPUBLISH_MAGAZINE" : "PUBLISH_MAGAZINE",
-      locked: (article) =>
-        Boolean(article.magazineIssue) && !article.isMagazinePublished,
-      title: (article) =>
-        article.magazineIssue && !article.isMagazinePublished
-          ? `Already used in ${getIssueLabel(article)}`
-          : undefined,
-      className:
-        "bg-brand text-white hover:bg-brand-strong",
-    },
-    home: {
-      actionLabel: (article) => (article.isPublished ? "Hide" : "Show"),
-      action: (article) =>
-        article.isPublished ? "UNPUBLISH_HOMEPAGE" : "PUBLISH_HOMEPAGE",
-      locked: () => false,
-      title: () => undefined,
-      className: "bg-brand text-white hover:bg-brand-strong",
-    },
-  }[mode];
+  const busy = (article) => busyId === article.id;
 
+  if (mode === "home") {
+    return (
+      <PublishingTable
+        rows={articles}
+        statusHeader="Home page"
+        onOpen={onRead}
+        renderStatus={(article) => (article.isPublished ? "Shown" : "Not shown")}
+        renderActions={(article) => (
+          <button type="button" disabled={busy(article)}
+            onClick={() => onAction(article, article.isPublished ? "UNPUBLISH_HOMEPAGE" : "PUBLISH_HOMEPAGE")}
+            className="btn btn-secondary btn-sm whitespace-nowrap">
+            {busy(article) ? "Updating…" : article.isPublished ? "Hide from home" : "Show on home"}
+          </button>
+        )}
+      />
+    );
+  }
+
+  // Writing inside a magazine, or sent to it and waiting to be added: one
+  // switch, like School wall / Global wall in Free Writing.
   return (
-    <div className="card overflow-x-auto">
-      <div className="grid min-w-[920px] grid-cols-[minmax(230px,1.45fr)_140px_90px_125px_190px_170px] gap-3 border-b border-line bg-surface px-4 py-3 text-2xs font-semibold uppercase text-muted">
-        <span>Writing</span>
-        <span>Student</span>
-        <span>Grade</span>
-        <span>Type</span>
-        <span>Status</span>
-        <span className="text-right">Action</span>
-      </div>
-      <div>
-        {articles.map((article) => {
-          const locked = modeConfig.locked(article);
-
-          return (
-            <div
-              key={article.id}
-              className="grid min-w-[920px] grid-cols-[minmax(230px,1.45fr)_140px_90px_125px_190px_170px] gap-3 border-b border-line px-4 py-4 text-sm last:border-b-0"
-            >
-            <div className="min-w-0">
-              <p className="truncate font-semibold text-ink">{article.title}</p>
-              <p className="mt-1 text-2xs font-semibold text-muted">
-                Posted <AppDate value={article.submittedAt || article.updatedAt} mode="dateTime" />
-              </p>
-            </div>
-            <span className="truncate font-semibold text-ink">
-              {article.authorStudent?.name || "Student"}
-            </span>
-            <span className="font-semibold text-muted">
-              {article.authorStudent?.grade || "Grade"}
-            </span>
-            <span className="font-semibold text-muted">
-              {getWritingCategoryLabel(article.category)}
-            </span>
-            <ModeStatusPill article={article} mode={mode} />
-            <div className="flex justify-end gap-1.5">
-              <button
-                type="button"
-                onClick={() => onRead(article)}
-                className="btn btn-primary inline-flex items-center justify-center gap-2 transition-colors"
-              >
-                <FaEye />
-                Read
-              </button>
-              <button
-                type="button"
-                onClick={() => onAction(article, modeConfig.action(article))}
-                disabled={busyId === article.id || locked}
-                title={modeConfig.title(article)}
-                className={`btn btn-ghost inline-flex min-w-20 items-center justify-center transition-colors ${modeConfig.className}`}
-              >
-                {busyId === article.id ? "Updating..." : modeConfig.actionLabel(article)}
-              </button>
-            </div>
-          </div>
-          );
-        })}
-      </div>
-    </div>
+    <PublishingTable
+      rows={articles}
+      statusHeader="In magazine"
+      onOpen={onRead}
+      renderStatus={(article) =>
+        article.magazineIssue && !article.isMagazinePublished ? (
+          <span className="text-sm text-muted">Used in {getIssueLabel(article)}</span>
+        ) : (
+          <PlacementSwitch
+            on={Boolean(article.isMagazinePublished)}
+            busy={busy(article)}
+            label={`In magazine: ${article.title}`}
+            onText="Added"
+            offText="Not added"
+            onToggle={() => onAction(article, article.isMagazinePublished ? "UNPUBLISH_MAGAZINE" : "PUBLISH_MAGAZINE")}
+          />
+        )
+      }
+      renderActions={(article) => (
+        <button type="button" disabled={busy(article)} onClick={() => onAction(article, "DELETE")}
+          className="btn btn-soft-danger btn-sm whitespace-nowrap">
+          Delete
+        </button>
+      )}
+    />
   );
 }
 
 export default function SchoolMagazineManager() {
   const { getIndicator, markSurfaceSeen } = useWorkIndicators();
   // Remembered until the page is refreshed.
-  const [activeTab, setActiveTab] = useRememberedState("magazine:tab", "wall");
+  const [rememberedTab, setActiveTab] = useRememberedState("magazine:tab", "wall");
+  // "Show To Home" merged into Free Writing (its Global wall switch).
+  const activeTab = rememberedTab === "magazine" ? "magazine" : "wall";
   const [activeGrade, setActiveGrade] = useRememberedState("magazine:grade", "ALL");
   const [gradeOptions, setGradeOptions] = useState([]);
-  const [readingArticle, setReadingArticle] = useState(null);
+  const [readingArticle, setReadingArticleState] = useState(null);
+  const [editingArticle, setEditingArticle] = useState(false);
+  const setReadingArticle = (article) => {
+    setReadingArticleState(article);
+    setEditingArticle(false);
+  };
   const [approvedArticles, setApprovedArticles] = useState([]);
   const [publishedArticles, setPublishedArticles] = useState([]);
   const [pendingCount, setPendingCount] = useState(0);
@@ -335,9 +240,10 @@ export default function SchoolMagazineManager() {
 
   const buildGradeQuery = useCallback((baseParams = {}) => {
     const params = new URLSearchParams(baseParams);
-    if (activeGrade !== "ALL") params.set("grade", activeGrade);
+    // The magazine and home lists cover every grade; the School Wall tab
+    // has its own grade filter.
     return params.toString();
-  }, [activeGrade]);
+  }, []);
 
   const loadArticles = useCallback(async () => {
     try {
@@ -391,11 +297,6 @@ export default function SchoolMagazineManager() {
           if (exists) return currentSelected;
         }
         return payload.currentIssue?.id || payload.issues?.[0]?.id || "";
-      });
-      setSelectedIssueMonth((currentMonth) => {
-        if (currentMonth) return currentMonth;
-        const firstIssue = payload.currentIssue || payload.issues?.[0];
-        return firstIssue ? `${firstIssue.year}-${firstIssue.month}` : "";
       });
     } catch (issueLoadError) {
       setError(
@@ -516,7 +417,8 @@ export default function SchoolMagazineManager() {
             : [payload.issue, ...existingIssues];
         });
         setSelectedIssueId(payload.issue.id);
-        setSelectedIssueMonth(`${payload.issue.year}-${payload.issue.month}`);
+        // Clear the month filter so the new magazine is in view.
+        setSelectedIssueMonth("");
         setIsIssueWorkspaceOpen(true);
       }
       void loadMagazineIssues();
@@ -555,6 +457,32 @@ export default function SchoolMagazineManager() {
       await loadMagazineIssues();
     } catch (publishError) {
       setError(publishError.message || "Failed to publish magazine");
+    } finally {
+      setIssueBusy(false);
+    }
+  };
+
+  const handleRenameIssue = async (issueId, title) => {
+    try {
+      setIssueBusy(true);
+      setError("");
+      setSuccess("");
+      const res = await fetch("/api/school/magazine-issues", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "RENAME", issueId, title }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(payload.message || "Failed to rename magazine");
+      setSuccess(payload.message || "Magazine renamed");
+      if (payload.issue?.id) {
+        setCurrentIssue((current) => (current?.id === payload.issue.id ? payload.issue : current));
+        setMagazineIssues((existing) => existing.map((issue) => (issue.id === payload.issue.id ? payload.issue : issue)));
+      }
+      return true;
+    } catch (renameError) {
+      setError(renameError.message || "Failed to rename magazine");
+      return false;
     } finally {
       setIssueBusy(false);
     }
@@ -632,10 +560,28 @@ export default function SchoolMagazineManager() {
   };
 
   const handleAction = async (articleId, action, options = {}) => {
+    if (action === "DELETE") {
+      const title = options.title ? `“${options.title}”` : "this writing";
+      if (!window.confirm(`Delete ${title}?
+
+It is removed from the magazine, the school wall, the global wall and the student's portfolio.`)) return;
+    }
     try {
       setBusyId(articleId);
       setError("");
       setSuccess("");
+
+      if (action === "DELETE") {
+        const res = await fetch(`/api/school/magazine/${articleId}`, { method: "DELETE" });
+        const payload = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(payload.message || "Failed to delete writing");
+        setSuccess(payload.message || "Writing deleted");
+        if (readingArticle?.id === articleId) setReadingArticle(null);
+        await loadArticles();
+        await loadOverview();
+        await loadMagazineIssues();
+        return;
+      }
 
       const res = await fetch(`/api/school/magazine/${articleId}`, {
         method: "PATCH",
@@ -663,56 +609,20 @@ export default function SchoolMagazineManager() {
     }
   };
 
-  const shownPublicly = approvedArticles.filter((article) => article.isPublished).length;
 
-  const metrics = [
-    ["School Wall Posts", pendingCount, FaFileAlt, "border-brand-line bg-brand-soft text-brand-strong"],
-    ["Fresh For Magazine", approvedArticles.filter((article) => !article.magazineIssue && isFreshForMagazine(article)).length, FaCheckCircle, "border-success-line bg-success-soft text-success"],
-    ["Created Magazines", magazineIssues.length, FaCalendarAlt, "border-warning-line bg-warning-soft text-warning"],
-    ["In Magazines", publishedArticles.length, FaBookOpen, "border-brand-line bg-brand-soft text-brand-strong"],
-  ];
 
   return (
     <div className="space-y-4 text-ink">
-      <section className="card p-4">
-        <div className="flex flex-col gap-5 xl:flex-row xl:items-center xl:justify-between">
-          <div className="flex items-start gap-4">
-            <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-brand-soft text-2xl text-brand-strong">
-              <FaBookOpen />
-            </span>
-            <div>
-              <p className="text-2xs font-semibold uppercase tracking-wide text-brand-strong">
-                Student Publishing
-              </p>
-              <h1 className="mt-2 font-semibold leading-tight">Student Publishing</h1>
-              <p className="mt-2 max-w-2xl text-sm font-semibold leading-6 text-muted">
-                School Wall, School Magazine, and Show To Home are separate
-                publishing decisions.
-              </p>
-              <p className="mt-3 max-w-2xl rounded-control border border-brand-line bg-brand-soft px-4 py-3 text-xs font-semibold leading-5 text-brand-strong">
-                Students post freely to the school wall. Your school chooses
-                what stays visible on the school wall, what becomes a school
-                magazine piece, and what appears on the public home page.
-              </p>
-            </div>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-            {metrics.map(([label, value, Icon, tone]) => (
-              <MetricCard key={label} label={label} value={value} icon={Icon} tone={tone} />
-            ))}
-          </div>
-        </div>
-      </section>
+      <h1 className="font-semibold leading-tight">Student Publishing</h1>
 
-      <section className="card p-4">
-        <div className="grid gap-3 xl:grid-cols-[repeat(3,minmax(0,1fr))_auto] xl:items-center">
+      <section className="card px-2 sm:px-3">
+        <div role="tablist" aria-label="Student publishing" className="-mb-px flex overflow-x-auto">
           <MagazineTabButton
             id="wall"
             activeTab={activeTab}
             onClick={handleSelectTab}
             icon={FaInbox}
-            label="School Wall"
-            helper="Student posts"
+            label="Free Writing"
             count={pendingCount}
             dot={getIndicator("school.magazine").count > 0}
           />
@@ -722,33 +632,8 @@ export default function SchoolMagazineManager() {
             onClick={handleSelectTab}
             icon={FaRegNewspaper}
             label="School Magazine"
-            helper="Created magazines"
             count={magazineIssues.length}
           />
-          <MagazineTabButton
-            id="home"
-            activeTab={activeTab}
-            onClick={handleSelectTab}
-            icon={FaHome}
-            label="Show To Home"
-            helper="Shown publicly"
-            count={shownPublicly}
-          />
-          <label className="flex items-center gap-2 text-sm font-semibold text-muted">
-            Grade
-            <select
-              value={activeGrade}
-              onChange={(event) => setActiveGrade(event.target.value)}
-              className="input min-w-32"
-            >
-              <option value="ALL">All</option>
-              {gradeOptions.map((grade) => (
-                <option key={grade} value={grade}>
-                  {grade}
-                </option>
-              ))}
-            </select>
-          </label>
         </div>
       </section>
 
@@ -784,32 +669,7 @@ export default function SchoolMagazineManager() {
               onPublishIssue={handlePublishIssue}
               onDeleteIssue={handleDeleteIssue}
               onToggleIssueHome={handleToggleIssueHome}
-              onAction={handleAction}
-              onRead={setReadingArticle}
-            />
-          ) : activeTab === "home" ? (
-            <PublishingPanel
-              mode="home"
-              loading={loading}
-              error={error}
-              success={success}
-              approvedArticles={approvedArticles}
-              publishedArticles={approvedArticles.filter((article) => article.isPublished)}
-              currentIssue={null}
-              magazineIssues={[]}
-              selectedIssueId=""
-              onSelectIssue={() => {}}
-              selectedIssueMonth=""
-              onSelectIssueMonth={() => {}}
-              isIssueWorkspaceOpen={false}
-              onOpenIssueWorkspace={() => {}}
-              onCloseIssueWorkspace={() => {}}
-              issueBusy={false}
-              busyId={busyId}
-              onCreateIssue={() => {}}
-              onPublishIssue={() => {}}
-              onDeleteIssue={() => {}}
-              onToggleIssueHome={() => {}}
+              onRenameIssue={handleRenameIssue}
               onAction={handleAction}
               onRead={setReadingArticle}
             />
@@ -845,15 +705,37 @@ export default function SchoolMagazineManager() {
                   </span>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => setReadingArticle(null)}
-                className="btn-icon btn-ghost flex items-center justify-center"
-                aria-label="Close article"
-              >
-                <FaTimes />
-              </button>
+              <div className="flex shrink-0 items-center gap-2">
+                {!editingArticle && (
+                  <button type="button" onClick={() => setEditingArticle(true)} className="btn btn-secondary btn-sm">
+                    Edit
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setReadingArticle(null)}
+                  className="btn-icon btn-ghost flex items-center justify-center"
+                  aria-label="Close article"
+                >
+                  <FaTimes />
+                </button>
+              </div>
             </div>
+            {editingArticle ? (
+              <WritingEditForm
+                article={readingArticle}
+                onCancel={() => setEditingArticle(false)}
+                onSaved={(saved, message) => {
+                  const merge = (item) => (item.id === readingArticle.id ? { ...item, ...saved, id: item.id } : item);
+                  setApprovedArticles((current) => current.map(merge));
+                  setPublishedArticles((current) => current.map(merge));
+                  setReadingArticleState((current) => (current ? merge(current) : current));
+                  setEditingArticle(false);
+                  setSuccess(message || "Changes saved");
+                }}
+              />
+            ) : (
+            <>
             <WritingCover
               coverImage={readingArticle.coverImage}
               images={readingArticle.images}
@@ -877,6 +759,8 @@ export default function SchoolMagazineManager() {
               <span>{wordCount(readingArticle.content)} words</span>
               <StatusPill article={readingArticle} />
             </div>
+            </>
+            )}
           </div>
         </div>
       )}
@@ -906,6 +790,7 @@ function PublishingPanel({
   onPublishIssue,
   onDeleteIssue,
   onToggleIssueHome,
+  onRenameIssue = async () => false,
   onAction,
   onRead,
 }) {
@@ -914,12 +799,12 @@ function PublishingPanel({
       title: "School Magazine",
       eyebrow: "School Magazine",
       helper:
-        "Create a monthly magazine issue, then select the best unused student writing for it.",
+        "Create a monthly magazine issue, then choose from the writing students sent to the magazine.",
       loadingTitle: "Loading magazine writing",
       loadingMessage: "Preparing student writing for the magazine issue.",
       emptyTitle: "No writing ready for magazine",
       emptyDescription:
-        "Student writing will appear here after students post it to school.",
+        "Writing appears here when a student chooses Send to: School magazine.",
       currentLabel: "In Latest Magazine",
       count: publishedArticles.length,
       icon: FaRegNewspaper,
@@ -960,29 +845,32 @@ function PublishingPanel({
         allMagazineIssues[0] ||
         null
       : null;
-  const issueMonths = useMemo(() => {
-    const monthMap = new Map();
+  const [issueYear, setIssueYear] = useRememberedState("magazine:issue-year", "");
+  const [issueStatus, setIssueStatus] = useRememberedState("magazine:issue-status", "");
+  const issueYears = useMemo(() => {
+    const map = new Map();
     allMagazineIssues.forEach((issue) => {
-      const key = `${issue.year}-${issue.month}`;
-      if (!monthMap.has(key)) {
-        monthMap.set(key, {
-          key,
-          label: formatIssueMonth(issue),
-        });
-      }
+      const facts = issueFacts(issue);
+      map.set(facts.yearKey, facts.yearLabel);
     });
-    return Array.from(monthMap.values());
+    return [...map.entries()].sort((x, y) => Number(y[0]) - Number(x[0]));
   }, [allMagazineIssues]);
-  const filteredMagazineIssues =
-    mode === "magazine" && selectedIssueMonth
-      ? allMagazineIssues.filter(
-          (issue) => `${issue.year}-${issue.month}` === selectedIssueMonth
-        )
-      : allMagazineIssues;
-  const visibleMagazineIssues =
-    filteredMagazineIssues.length > 0
-      ? filteredMagazineIssues
-      : allMagazineIssues;
+  const issuesInYear = allMagazineIssues.filter((issue) => !issueYear || issueFacts(issue).yearKey === issueYear);
+  const issueMonths = useMemo(() => {
+    const map = new Map();
+    issuesInYear.forEach((issue) => {
+      const facts = issueFacts(issue);
+      if (!map.has(facts.monthKey)) map.set(facts.monthKey, { key: facts.monthKey, label: facts.monthLabel });
+    });
+    return [...map.values()];
+  }, [issuesInYear]);
+  const activeMonth = issueMonths.some((month) => month.key === selectedIssueMonth) ? selectedIssueMonth : "";
+  const visibleMagazineIssues = issuesInYear.filter(
+    (issue) =>
+      (!activeMonth || issueFacts(issue).monthKey === activeMonth) &&
+      (!issueStatus || issue.status === issueStatus)
+  );
+  const issueFiltersOn = Boolean(issueYear || activeMonth || issueStatus);
   const selectedMagazineArticles =
     mode === "magazine"
       ? approvedArticles.filter(
@@ -996,7 +884,12 @@ function PublishingPanel({
             (article) =>
               !article.isMagazinePublished &&
               !article.magazineIssue &&
-              isFreshForMagazine(article)
+              isSentToMagazine(article) &&
+              // written for this magazine (older pieces, sent before
+              // students picked a magazine, still show while fresh)
+              (article.requestedIssue
+                ? article.requestedIssue === selectedIssue.id
+                : isFreshForMagazine(article))
           )
         : []
       : approvedArticles;
@@ -1016,67 +909,46 @@ function PublishingPanel({
       ) : (
         <>
           {mode === "magazine" && isIssueWorkspaceOpen && selectedIssue && (
+            // One line: back · name (rename) · status · date and count · the one action.
             <section className="card p-4">
-              <div className="grid gap-4 lg:grid-cols-[1fr_320px]">
-                <div>
-                  <p className="text-2xs font-semibold uppercase tracking-wide text-success">
-                    Open Magazine
-                  </p>
-                  <h2 className="mt-2 flex items-center gap-2 font-semibold text-ink">
-                    <FaRegNewspaper className="text-success" />
-                    {selectedIssue.title}
-                  </h2>
-                  <div className="mt-3 flex flex-wrap gap-2 text-xs font-semibold text-muted">
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-success-soft px-3 py-1 text-success">
-                      <FaCalendarAlt />
-                      <AppDate value={selectedIssue.publishedAt || selectedIssue.weekStart} />
-                    </span>
-                    <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-soft px-3 py-1 text-brand-strong">
-                      <FaBookOpen />
-                      {selectedMagazineArticles.length} selected
-                    </span>
-                    <span className={`inline-flex rounded-full px-3 py-1 ${
-                      selectedIssue.status === "PUBLISHED"
-                        ? "bg-success-soft text-success"
-                        : "bg-warning-soft text-warning"
-                    }`}>
-                      {selectedIssue.status === "PUBLISHED" ? "Published" : "Draft"}
-                    </span>
-                  </div>
-                  <p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-muted">
-                    Manage the writing inside this magazine. Add fresh student
-                    writing, remove mistakes, then publish to students when ready.
-                  </p>
+              <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
+                <div className="flex min-w-0 flex-1 flex-wrap items-center gap-x-3 gap-y-2">
+                  <button type="button" onClick={onCloseIssueWorkspace}
+                    className="inline-flex items-center gap-1 text-sm font-semibold text-muted hover:text-ink">
+                    <FaArrowLeft aria-hidden /> Magazines
+                  </button>
+                  <span aria-hidden className="text-line-strong">/</span>
+                  <IssueTitle
+                    key={selectedIssue.id + selectedIssue.title}
+                    issue={selectedIssue}
+                    busy={issueBusy}
+                    onRename={(title) => onRenameIssue(selectedIssue.id, title)}
+                  />
+                  <span className={`badge text-xs ${selectedIssue.status === "PUBLISHED" ? "badge-success" : "badge-warning"}`}>
+                    {selectedIssue.status === "PUBLISHED" ? "Published" : "Draft"}
+                  </span>
+                  <span className="text-sm text-muted">
+                    <AppDate value={selectedIssue.publishedAt || selectedIssue.weekStart} /> ·{" "}
+                    {selectedMagazineArticles.length} writing{selectedMagazineArticles.length === 1 ? "" : "s"}
+                  </span>
                 </div>
-                <div className="flex flex-col justify-between gap-3 rounded-control border border-success-line bg-success-soft p-4">
-                  <div>
-                    <div className="text-2xl font-semibold text-ink">
-                      {selectedMagazineArticles.length}
-                    </div>
-                    <div className="mt-1 text-2xs font-semibold uppercase text-success">
-                      In Open Magazine
-                    </div>
-                  </div>
+                {selectedIssue.status !== "PUBLISHED" && (
                   <button
                     type="button"
-                    onClick={onCloseIssueWorkspace}
-                    className="btn btn-secondary inline-flex items-center justify-center"
+                    onClick={() => onPublishIssue(selectedIssue.id)}
+                    disabled={issueBusy || selectedMagazineArticles.length === 0}
+                    title={selectedMagazineArticles.length === 0 ? "Add writing first" : ""}
+                    className="btn btn-primary inline-flex items-center justify-center gap-2"
                   >
-                    Back to Magazines
+                    <FaCheckCircle aria-hidden /> Publish to students
                   </button>
-                  {selectedIssue && selectedIssue.status !== "PUBLISHED" && (
-                    <button
-                      type="button"
-                      onClick={() => onPublishIssue(selectedIssue.id)}
-                      disabled={issueBusy || selectedMagazineArticles.length === 0}
-                      className="btn btn-primary inline-flex items-center justify-center gap-2"
-                    >
-                      <FaCheckCircle />
-                      Publish to Students
-                    </button>
-                  )}
-                </div>
+                )}
               </div>
+              <p className="mt-2 text-sm text-muted">
+                {selectedIssue.status === "PUBLISHED"
+                  ? "Published. Students read it in the magazine section, and it is closed for new writing."
+                  : "Open for writing. Students can choose this magazine when they write; switch on the writing you want, then publish."}
+              </p>
             </section>
           )}
 
@@ -1088,40 +960,52 @@ function PublishingPanel({
                     Created Magazines
                   </p>
                   <h3 className="mt-2 font-semibold text-ink">
-                    Open a magazine to manage its writing
+                    {allMagazineIssues.length
+                      ? `${visibleMagazineIssues.length} of ${allMagazineIssues.length} magazine${allMagazineIssues.length === 1 ? "" : "s"}`
+                      : "Open a magazine to manage its writing"}
                   </h3>
+                  {issueFiltersOn && (
+                    <button type="button" className="mt-1 text-xs font-semibold text-brand hover:underline"
+                      onClick={() => { setIssueYear(""); setIssueStatus(""); onSelectIssueMonth(""); }}>
+                      Clear filters
+                    </button>
+                  )}
                 </div>
-                <div className="flex flex-col gap-2 sm:flex-row sm:items-end">
-                  {issueMonths.length > 0 && (
-                    <label className="block min-w-0 sm:w-64">
-                      <span className="text-2xs font-semibold uppercase text-muted">
-                        Filter by month
-                      </span>
-                      <select
-                        value={selectedIssueMonth}
-                        onChange={(event) => {
-                          const nextMonth = event.target.value;
-                          onSelectIssueMonth(nextMonth);
-                          const nextIssue = allMagazineIssues.find(
-                            (issue) => `${issue.year}-${issue.month}` === nextMonth
-                          );
-                          if (nextIssue) onSelectIssue(nextIssue.id);
-                        }}
-                        className="input mt-2 w-full"
-                      >
-                        {issueMonths.map((month) => (
-                          <option key={month.key} value={month.key}>
-                            {month.label}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-end">
+                  {allMagazineIssues.length > 0 && (
+                    <>
+                      <label className="block min-w-0 sm:w-40">
+                        <span className="text-2xs font-semibold uppercase text-muted">Academic year</span>
+                        <select value={issueYear} onChange={(event) => { setIssueYear(event.target.value); onSelectIssueMonth(""); }}
+                          className="input mt-2 w-full">
+                          <option value="">All years</option>
+                          {issueYears.map(([key, label]) => <option key={key} value={key}>{label}</option>)}
+                        </select>
+                      </label>
+                      <label className="block min-w-0 sm:w-44">
+                        <span className="text-2xs font-semibold uppercase text-muted">Month</span>
+                        <select value={activeMonth} onChange={(event) => onSelectIssueMonth(event.target.value)}
+                          className="input mt-2 w-full">
+                          <option value="">All months</option>
+                          {issueMonths.map((month) => <option key={month.key} value={month.key}>{month.label}</option>)}
+                        </select>
+                      </label>
+                      <label className="block min-w-0 sm:w-36">
+                        <span className="text-2xs font-semibold uppercase text-muted">Status</span>
+                        <select value={issueStatus} onChange={(event) => setIssueStatus(event.target.value)}
+                          className="input mt-2 w-full">
+                          <option value="">All</option>
+                          <option value="DRAFT">Draft (open for writing)</option>
+                          <option value="PUBLISHED">Published</option>
+                        </select>
+                      </label>
+                    </>
                   )}
                   <button
                     type="button"
                     onClick={onCreateIssue}
                     disabled={issueBusy}
-                    className="btn btn-primary inline-flex items-center justify-center gap-2"
+                    className="btn btn-primary inline-flex items-center justify-center gap-2 self-end"
                   >
                     <FaPlus />
                     {issueBusy ? "Creating..." : "Create Magazine"}
@@ -1133,95 +1017,26 @@ function PublishingPanel({
                 <p className="mt-4 rounded-control border border-line bg-surface px-4 py-3 text-sm font-semibold text-muted">
                   No magazines yet. Create the first magazine to begin.
                 </p>
-              ) : (
-                <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-                  {visibleMagazineIssues.map((issue) => {
-                    const isSelected = selectedIssue?.id === issue.id;
-                    const openIssue = () => {
-                      onSelectIssue(issue.id);
-                      onOpenIssueWorkspace();
-                    };
-
-                    return (
-                    <article
-                      key={issue.id}
-                      role="button"
-                      tabIndex={0}
-                      onClick={openIssue}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          openIssue();
-                        }
-                      }}
-                      className={`card p-4 text-left text-ink transition-colors cursor-pointer ${
-                        isSelected
-                          ? "border-brand bg-brand-soft"
-                          : "border-line bg-surface hover:border-brand-line"
-                      }`}
-                    >
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="font-semibold">{issue.title}</div>
-                      <span
-                        className={`badge badge-neutral uppercase ${
-                          issue.status === "PUBLISHED"
-                            ? "bg-success-soft text-success"
-                            : "bg-warning-soft text-warning"
-                        }`}
-                      >
-                        {issue.status === "PUBLISHED" ? "Published" : "Draft"}
-                      </span>
-                    </div>
-                    <div className="mt-2 text-xs font-semibold text-muted">
-                      <AppDate value={issue.publishedAt || issue.weekStart} />
-                    </div>
-                    <div className="badge badge-neutral mt-3 inline-flex uppercase">
-                      {issue.articleCount || 0} writings
-                    </div>
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      {issue.status !== "PUBLISHED" && (
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            onPublishIssue(issue.id);
-                          }}
-                          disabled={issueBusy || (issue.articleCount || 0) === 0}
-                          className="btn btn-primary btn-sm inline-flex items-center justify-center"
-                        >
-                          Publish
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          onToggleIssueHome(issue);
-                        }}
-                        disabled={issueBusy || issue.status !== "PUBLISHED"}
-                        className={`btn btn-ghost btn-sm inline-flex items-center justify-center ${
-                          issue.showOnHome
-                            ? "bg-brand-soft text-brand-strong hover:bg-brand-soft"
-                            : "bg-brand-soft text-brand-strong hover:bg-brand-soft"
-                        }`}
-                      >
-                        {issue.showOnHome ? "Hide from Home" : "Show to Home"}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          onDeleteIssue(issue.id);
-                        }}
-                        disabled={issueBusy}
-                        className="btn btn-soft-danger btn-sm inline-flex items-center justify-center"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                    </article>
-                  )})}
+              ) : visibleMagazineIssues.length === 0 ? (
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-2 rounded-control border border-line bg-surface px-4 py-3 text-sm font-semibold text-muted">
+                  No magazines match these filters.
+                  <button type="button" className="btn btn-ghost btn-sm" onClick={() => { setIssueYear(""); setIssueStatus(""); onSelectIssueMonth(""); }}>
+                    Clear filters
+                  </button>
                 </div>
+              ) : (
+                <IssueTable
+                  issues={visibleMagazineIssues}
+                  selectedId={selectedIssue?.id}
+                  busy={issueBusy}
+                  onOpen={(issue) => {
+                    onSelectIssue(issue.id);
+                    onOpenIssueWorkspace();
+                  }}
+                  onPublish={(issue) => onPublishIssue(issue.id)}
+                  onToggleHome={onToggleIssueHome}
+                  onDelete={(issue) => onDeleteIssue(issue.id)}
+                />
               )}
             </section>
           )}
@@ -1266,6 +1081,7 @@ function PublishingPanel({
                 onAction={(article, action) =>
                   onAction(article.id, action, {
                     magazineIssueId: selectedIssue?.id,
+                    title: article.title,
                   })
                 }
                 emptyState={null}
@@ -1276,13 +1092,17 @@ function PublishingPanel({
           {(mode !== "magazine" || (isIssueWorkspaceOpen && selectedIssue)) && (
           <section className="space-y-3">
             <h3 className="font-semibold text-ink">
-              Available School Wall Writing ({availableMagazineArticles.length})
+              {mode === "magazine" ? "Sent to this magazine" : "Available School Wall Writing"} ({availableMagazineArticles.length})
             </h3>
             {availableMagazineArticles.length === 0 ? (
               <p className="rounded-control border border-line bg-surface px-4 py-3 text-sm font-semibold text-muted">
                 {mode === "magazine" && !selectedIssue
                   ? "Create or open a magazine to add writing."
-                  : "No fresh unused writing is available right now."}
+                  : mode === "magazine"
+                    ? selectedIssue?.status === "PUBLISHED"
+                      ? "This magazine is published, so students can no longer send writing to it."
+                      : "No writing has been sent to this magazine yet. Students choose “Send to: School magazine” and then this magazine when they write."
+                    : "No fresh unused writing is available right now."}
               </p>
             ) : (
               <WritingTable
@@ -1293,6 +1113,7 @@ function PublishingPanel({
                 onAction={(article, action) =>
                   onAction(article.id, action, {
                     magazineIssueId: selectedIssue?.id,
+                    title: article.title,
                   })
                 }
                 emptyState={null}
@@ -1302,6 +1123,130 @@ function PublishingPanel({
           )}
         </>
       )}
+    </div>
+  );
+}
+
+/** The open magazine's name, with an inline rename. */
+function IssueTitle({ issue, busy, onRename }) {
+  const [editing, setEditing] = useState(false);
+  const [title, setTitle] = useState(issue.title || "");
+  if (editing) {
+    return (
+      <form
+        className="flex flex-wrap items-center gap-2"
+        onSubmit={async (event) => {
+          event.preventDefault();
+          if (await onRename(title)) setEditing(false);
+        }}
+      >
+        <input className="input max-w-md flex-1" value={title} autoFocus maxLength={120}
+          onChange={(event) => setTitle(event.target.value)} aria-label="Magazine name" required />
+        <button type="submit" disabled={busy || !title.trim()} className="btn btn-primary btn-sm">Save</button>
+        <button type="button" className="btn btn-ghost btn-sm" onClick={() => { setTitle(issue.title || ""); setEditing(false); }}>Cancel</button>
+      </form>
+    );
+  }
+  return (
+    <h2 className="inline-flex items-center gap-1.5 text-lg font-bold text-ink">
+      {issue.title}
+      <button type="button" onClick={() => setEditing(true)} aria-label="Rename magazine" title="Rename"
+        className="grid h-7 w-7 place-items-center rounded-control text-muted hover:bg-surface-2 hover:text-brand">
+        <FaEdit aria-hidden size={15} />
+      </button>
+    </h2>
+  );
+}
+
+/**
+ * The school's magazine issues as a table: name, date, writings, status,
+ * home-page visibility and the actions. Clicking a row opens the issue to
+ * manage its writing. On phones the same rows stack.
+ */
+function IssueTable({ issues, selectedId, busy, onOpen, onPublish, onToggleHome, onDelete }) {
+  const stop = (fn) => (event) => {
+    event.stopPropagation();
+    fn();
+  };
+
+  const status = (issue) => (
+    <span className={`badge whitespace-nowrap text-xs ${issue.status === "PUBLISHED" ? "badge-success" : "badge-warning"}`}>
+      {issue.status === "PUBLISHED" ? "Published" : "Draft"}
+    </span>
+  );
+
+  const actions = (issue) => (
+    <div className="flex flex-wrap justify-end gap-2">
+      {issue.status !== "PUBLISHED" && (
+        <button type="button" onClick={stop(() => onPublish(issue))} disabled={busy || (issue.articleCount || 0) === 0}
+          title={(issue.articleCount || 0) === 0 ? "Add writing first" : ""} className="btn btn-primary btn-sm whitespace-nowrap">
+          Publish
+        </button>
+      )}
+      <button type="button" onClick={stop(() => onDelete(issue))} disabled={busy} className="btn btn-soft-danger btn-sm whitespace-nowrap">
+        Delete
+      </button>
+    </div>
+  );
+
+  const homeSwitch = (issue) => (
+    <PlacementSwitch
+      on={Boolean(issue.showOnHome)}
+      busy={busy}
+      disabled={issue.status !== "PUBLISHED"}
+      title={issue.status !== "PUBLISHED" ? "Publish the magazine first" : ""}
+      label={`Home page: ${issue.title}`}
+      onToggle={() => onToggleHome(issue)}
+    />
+  );
+
+  return (
+    <div className="mt-4 overflow-hidden rounded-card border border-line">
+      <table className="hidden w-full text-left text-sm md:table">
+        <thead className="border-b border-line bg-surface-2 text-xs font-semibold uppercase tracking-wide text-muted">
+          <tr>
+            <th scope="col" className="px-4 py-3">Magazine</th>
+            <th scope="col" className="px-4 py-3">Date</th>
+            <th scope="col" className="px-4 py-3 text-center">Writings</th>
+            <th scope="col" className="px-4 py-3">Status</th>
+            <th scope="col" className="px-4 py-3">Home page</th>
+            <th scope="col" className="px-4 py-3 text-right"><span className="sr-only">Actions</span></th>
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-line">
+          {issues.map((issue) => (
+            <tr key={issue.id} onClick={() => onOpen(issue)}
+              className={`cursor-pointer transition-colors ${selectedId === issue.id ? "bg-brand-soft" : "hover:bg-surface-2"}`}>
+              <td className="px-4 py-3 font-semibold text-ink">{issue.title}</td>
+              <td className="whitespace-nowrap px-4 py-3 text-muted"><AppDate value={issue.publishedAt || issue.weekStart} /></td>
+              <td className="px-4 py-3 text-center font-semibold tabular-nums text-ink">{issue.articleCount || 0}</td>
+              <td className="px-4 py-3">{status(issue)}</td>
+              <td className="px-4 py-3" onClick={(event) => event.stopPropagation()}>{homeSwitch(issue)}</td>
+              <td className="px-4 py-3">{actions(issue)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+
+      <ul className="divide-y divide-line md:hidden">
+        {issues.map((issue) => (
+          <li key={issue.id} className={selectedId === issue.id ? "bg-brand-soft" : ""}>
+            <button type="button" onClick={() => onOpen(issue)} className="block w-full px-4 pt-3 text-left">
+              <span className="flex items-start justify-between gap-2">
+                <span className="min-w-0 font-semibold text-ink">{issue.title}</span>
+                {status(issue)}
+              </span>
+              <span className="mt-1 block text-xs text-muted">
+                <AppDate value={issue.publishedAt || issue.weekStart} /> · {issue.articleCount || 0} writings
+              </span>
+            </button>
+            <div className="flex flex-wrap items-center justify-between gap-2 px-4 pb-3 pt-2">
+              <span className="inline-flex items-center gap-2 text-xs text-muted">Home page {homeSwitch(issue)}</span>
+              {actions(issue)}
+            </div>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }

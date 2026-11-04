@@ -2,8 +2,12 @@ import UserNotification from "@/models/UserNotification";
 import User from "@/models/User";
 import { publishRealtimeEvent } from "@/lib/realtimeBus";
 import { publishWorkIndicatorsUpdate } from "@/lib/workIndicatorRealtime";
+import { notifyGuardians } from "@/lib/parentNotifications";
 
-const STUDENT_TRANSFER_HREF = "/student/transfer";
+// The family follows a transfer in the parent app; the student still gets a
+// note in their own notifications.
+const STUDENT_TRANSFER_HREF = "/student/dashboard";
+const PARENT_TRANSFER_HREF = "/parent/transfer";
 const SCHOOL_TRANSFER_HREF = "/school/dashboard?tab=student-transfers";
 
 function withReason(message, reason) {
@@ -61,6 +65,24 @@ async function dispatch({ transfer, docs, kind, notifiedStudent, schoolIds }) {
 
   await UserNotification.insertMany(validDocs);
 
+  // Whatever the student is told, their guardians are told too — they are the
+  // ones who act on it now.
+  const studentDocs = validDocs.filter((doc) => doc.targetRole === "STUDENT");
+  await Promise.all(
+    studentDocs.map((doc) =>
+      notifyGuardians({
+        studentId: transfer.student,
+        category: "TRANSFER",
+        title: doc.title,
+        message: doc.message,
+        href: PARENT_TRANSFER_HREF,
+        metadata: doc.metadata,
+      }).catch((error) => {
+        console.error("[transferNotifications] guardian delivery failed:", error.message);
+      })
+    )
+  );
+
   if (notifiedStudent) {
     publishRealtimeEvent("student-notifications", {
       kind,
@@ -91,7 +113,7 @@ export async function notifyReleaseRequested({ transfer } = {}) {
         transfer,
         schoolId: transfer.fromSchool,
         title: "New transfer request",
-        message: `${name} requested a transfer release from your school. Review it to approve or reject.`,
+        message: `A transfer was requested for ${name}. Review it to approve or reject.`,
       }),
     ],
     kind: "transfer-release-requested",
@@ -112,7 +134,7 @@ export async function notifyReleaseApproved({ transfer } = {}) {
       buildStudentNotification({
         transfer,
         title: "Transfer release approved",
-        message: `Your school approved your release. Choose the school you are joining.${code}`,
+        message: `The school approved the release. Now choose the new school.${code}`,
       }),
     ],
     kind: "transfer-release-approved",
@@ -154,7 +176,7 @@ export async function notifyAdmissionApproved({ transfer } = {}) {
       // notification is filed under the destination school they now belong to.
       schoolId: transfer.toSchool,
       title: "Admission approved",
-      message: `Welcome to ${toSchoolName}! Your transfer is complete and you are now enrolled.`,
+      message: `The transfer to ${toSchoolName} is complete. Welcome to the new school!`,
     }),
   ];
   if (transfer.fromSchool) {
@@ -199,7 +221,7 @@ export async function notifyTransferRejected({ transfer, type, reason } = {}) {
         transfer,
         title: "Transfer request rejected",
         message: withReason(
-          "Your current school declined your transfer release request.",
+          "The current school declined the transfer request.",
           reason
         ),
       })
@@ -211,7 +233,7 @@ export async function notifyTransferRejected({ transfer, type, reason } = {}) {
         transfer,
         title: "Admission request rejected",
         message: withReason(
-          "The school you selected declined your admission. You can choose another school.",
+          "The new school declined the admission. You can choose another school.",
           reason
         ),
       })

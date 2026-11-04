@@ -37,6 +37,9 @@
 :is(.cas-a4, .certificate-viewport) :is(td, th) { border-color: #e4e8e0; }
 .cas-avoid-break { break-inside: avoid; }
 @media (max-width: 639px) { .cas-a4 { width: 100%; min-height: 0; padding: 1rem; } }
+/* Parent/student result view: keep the true A4 sheet; A4Viewport shrinks it. */
+.cas-a4-scale .cas-a4, .cas-a4-scale .cas-a4.cas-a4 { width: 210mm; min-height: 297mm; padding: 14mm; margin-bottom: 0; }
+.cas-a4-scale .cas-a4 + .cas-a4 { margin-top: 1.5rem; }
 /* Held at A4 while a sheet is drawn into a downloaded PDF, even on a phone. */
 .cas-a4.pdf-capture { width: 210mm; min-height: 297mm; }
 
@@ -221,10 +224,15 @@
   .cas-print-hide, .cas-print-hide * { display: none !important; }
   .cas-print-flush { margin-left: 0 !important; }
   .cas-print-flush main > div { max-width: none; padding: 0; }
+  .cas-a4-scale { height: auto !important; overflow: visible !important; }
+  .cas-a4-scale-inner { position: static !important; width: auto !important; transform: none !important; }
   .cas-a4 { width: auto; min-height: 0; margin: 0; border: 0; box-shadow: none; padding: 0; break-after: page; }
   .cas-a4:last-child { break-after: auto; }
   .cas-a4.cas-a4-fit { display: flex; min-height: 281mm; height: 281mm; flex-direction: column; padding: 3.5mm 4mm; break-inside: avoid; }
   .cas-a4.cas-a4-fit .cas-a4-foot { margin-top: auto; }
+  .cas-a4-scale .cas-a4, .cas-a4-scale .cas-a4.cas-a4 { width: auto; min-height: 0; margin: 0; padding: 0; }
+  .cas-a4-scale .cas-a4.cas-a4-fit { min-height: 281mm; height: 281mm; padding: 3.5mm 4mm; }
+  .cas-a4-scale .cas-a4 + .cas-a4 { margin-top: 0; }
   .cas-book-scroll, .cas-result-card-sheet { overflow: visible; }
   .cas-book-table { min-width: 0; font-size: 9pt; }
   .cas-book-actions, .cas-book-theme-bar > div:last-child, .cas-book-theme-footer { display: none; }

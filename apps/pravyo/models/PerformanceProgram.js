@@ -8,8 +8,10 @@ import mongoose from "mongoose";
  *     └─ Performance (Group dance on Deusi song · GROUP)
  *          └─ Performer (student, REGISTERED → PERFORMED / NOT_PERFORMED)
  *
- * Students, assigned teachers and the school add performers while the list is
- * open. The school locks the list once it is final. On the day the school or
+ * Students, assigned teachers and the school add performers while a
+ * performance's list is open. The school or an assigned teacher locks each
+ * performance's list once it is final; only the school unlocks it. The
+ * program is "locked" (`participantsLocked`) when every performance is. On the day the school or
  * an assigned teacher ticks who performed. When the school publishes, every
  * PERFORMED student gets a participation Achievement (certificate) for that
  * performance. Unpublishing deletes those certificates again.
@@ -32,7 +34,13 @@ const performerSchema = new mongoose.Schema(
 
 const performanceSchema = new mongoose.Schema({
   title: { type: String, required: true, trim: true, maxlength: 160 },
+  // What the certificate prints for this performance; blank = `title`.
+  certificateTitle: { type: String, default: "", trim: true, maxlength: 160 },
   performanceType: { type: String, enum: ["SOLO", "GROUP"], default: "SOLO" },
+  // Each performance's name list is locked on its own. The program counts
+  // as locked (`participantsLocked`) once every performance is.
+  locked: { type: Boolean, default: false },
+  lockedAt: { type: Date, default: null },
   performers: { type: [performerSchema], default: [] },
 });
 

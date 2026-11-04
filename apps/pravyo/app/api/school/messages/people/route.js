@@ -93,7 +93,10 @@ export async function GET(request) {
     // have to find the same row, so the search hits students AND parents and
     // takes the union of their links.
     if (search) {
-      const safe = escapeRegex(search);
+      // Names that START with what was typed — at the first name or at any
+      // later word ("Ri" → Riyan Shrestha, "Sh" → Riyan Shrestha), never a
+      // match in the middle of a word ("a" must not hit every name).
+      const safe = `(^|\\s)${escapeRegex(search)}`;
       const [students, parents] = await Promise.all([
         Student.find({
           school: schoolId,

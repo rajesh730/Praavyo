@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { signOut } from "next-auth/react";
 import { useParentApp } from "@/components/parent/ParentAppContext";
 import { LOCALE_LABELS, SUPPORTED_LOCALES } from "@/lib/parentI18n";
@@ -28,6 +29,24 @@ export default function ParentSettingsPage() {
       <h1 className="font-semibold text-ink">
         {t("settings.title")}
       </h1>
+
+      {/* Moving the child to another school. */}
+      <Link href="/parent/transfer" className="card flex items-center justify-between gap-3 p-4 transition-colors hover:bg-surface-2">
+        <span className="min-w-0">
+          <span className="block font-semibold text-ink">{t("transfer.open")}</span>
+          <span className="block text-sm text-muted">{t("transfer.openHint")}</span>
+        </span>
+        <span aria-hidden className="text-lg text-muted">›</span>
+      </Link>
+
+      {/* Feedback to the child's school (the school reads it in its inbox). */}
+      <Link href="/parent/feedback" className="card flex items-center justify-between gap-3 p-4 transition-colors hover:bg-surface-2">
+        <span className="min-w-0">
+          <span className="block font-semibold text-ink">{t("feedback.open")}</span>
+          <span className="block text-sm text-muted">{t("feedback.openHint")}</span>
+        </span>
+        <span aria-hidden className="text-lg text-muted">›</span>
+      </Link>
 
       {/* --- Language: highly visible, per §8 ----------------------------- */}
       <section className="card p-4">

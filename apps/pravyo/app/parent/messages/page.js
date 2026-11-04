@@ -14,21 +14,14 @@ import ParentChat from "@/components/parent/ParentChat";
  * categorise it first.
  */
 export default function ParentMessagesPage() {
-  const { t, selectedChildId, selectedChild } = useParentApp();
+  const { t, selectedChildId } = useParentApp();
 
   if (!selectedChildId) return null;
 
   return (
     <div className="space-y-3">
-      <div>
-        <h1 className="font-semibold text-ink">
-          {t("messages.title")}
-        </h1>
-        {/* Who they are talking to — the school, about this child. */}
-        <p className="text-sm text-muted">
-          {selectedChild?.school?.name}
-        </p>
-      </div>
+      {/* Who they are talking to sits in the chat's own header. */}
+      <h1 className="font-semibold text-ink">{t("messages.title")}</h1>
 
       <ParentChat />
     </div>

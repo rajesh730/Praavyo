@@ -6,6 +6,7 @@ import Report from './Report';
 import styles from './PublishedResults.module.css';
 import { academicYearDisplayLabel } from '@pravyo/core/nepaliDate';
 import { LearningSwitch } from '@/components/parent/ChildProgress';
+import { StudentLearningSwitch } from './StudentProgress';
 
 /**
  * Student Result — the report cards a school has published, as a guardian or
@@ -45,7 +46,7 @@ function Results({ role, childId, reportId }) {
   if (!list.data) return <p role="status">Loading student result…</p>;
 
   return <section className={styles.page}>
-    {role === 'parent' && <LearningSwitch />}
+    {role === 'parent' ? <LearningSwitch /> : <StudentLearningSwitch />}
     <header className={styles.header}>
       <p>Student Result / विद्यार्थी नतिजा</p>
       <h1>Student Result</h1>

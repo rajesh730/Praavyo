@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { useEffect, useRef, useState } from "react";
-import { LogOut as FaSignOutAlt, School as FaSchool, X as FaTimes, ArrowLeftRight as FaExchangeAlt, CalendarDays as FaCalendarAlt, GraduationCap as FaUserGraduate } from "lucide-react";
+import { LogOut as FaSignOutAlt, School as FaSchool, X as FaTimes, ArrowLeftRight as FaExchangeAlt, CalendarDays as FaCalendarAlt, GraduationCap as FaUserGraduate, MessageSquareText as FaCommentDots } from "lucide-react";
 import PravyoLogo from "@/components/brand/PravyoLogo";
 import NavItemLink from "@/components/navigation/NavItemLink";
 import { getRoleNavigationLinks, isNavLinkActive } from "@/components/navigation/appNavigation";
@@ -62,6 +62,7 @@ const SCHOOL_NAV_GROUPS = [
       "Exams",
       "Parents & Guardians",
       "Parent Messages",
+      "Feedback",
       "Teachers",
       "School Events",
       "Platform Events",
@@ -75,7 +76,7 @@ const SCHOOL_NAV_GROUPS = [
   },
   {
     title: "Platform",
-    names: ["Feedback", "Settings", "History"],
+    names: ["Settings", "History"],
   },
 ];
 
@@ -113,6 +114,20 @@ export default function Sidebar({
   });
   const [accountMenuOpen, setAccountMenuOpen] = useState(false);
   const accountMenuRef = useRef(null);
+  // The school's logo (Public Profile) beside its name; initials until it loads.
+  const [schoolLogo, setSchoolLogo] = useState("");
+  const isSchoolAccount = session?.user?.role === "SCHOOL_ADMIN";
+  useEffect(() => {
+    if (!isSchoolAccount) return undefined;
+    let live = true;
+    fetch("/api/school/brand", { cache: "no-store" })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((payload) => live && payload?.logoUrl && setSchoolLogo(payload.logoUrl))
+      .catch(() => {});
+    return () => {
+      live = false;
+    };
+  }, [isSchoolAccount]);
 
   useEffect(() => {
     if (session?.error === "SessionRevoked") {
@@ -249,16 +264,29 @@ export default function Sidebar({
                 aria-haspopup="menu"
                 className="flex w-full items-center gap-2.5 rounded-control p-2 text-left transition-colors hover:bg-surface-2"
               >
-                <AccountSummary initials={initials} userName={userName} role={getRoleLabel(userRole)} />
+                <AccountSummary initials={initials} logoUrl={userRole === "SCHOOL_ADMIN" ? schoolLogo : ""} userName={userName} role={getRoleLabel(userRole)} />
               </button>
             ) : (
               <div className="flex items-center gap-2.5 p-2">
-                <AccountSummary initials={initials} userName={userName} role={getRoleLabel(userRole)} />
+                <AccountSummary initials={initials} logoUrl={userRole === "SCHOOL_ADMIN" ? schoolLogo : ""} userName={userName} role={getRoleLabel(userRole)} />
               </div>
             )}
 
             {userRole === "SCHOOL_ADMIN" && accountMenuOpen && (
               <div className="absolute inset-x-0 bottom-full z-50 mb-2 rounded-card border border-line bg-surface p-1.5 shadow-pop" role="menu">
+                <Link
+                  href="/school/dashboard?tab=praavyo-feedback"
+                  role="menuitem"
+                  onClick={() => {
+                    setAccountMenuOpen(false);
+                    onNavigate?.();
+                  }}
+                  className="nav-item"
+                >
+                  <FaCommentDots />
+                  <span>Send feedback to Praavyo</span>
+                </Link>
+                <div className="my-1 border-t border-line" />
                 <p className="px-2.5 pb-1 pt-1.5 text-2xs font-semibold uppercase tracking-wide text-subtle">Analytics</p>
                 {SCHOOL_ANALYTICS_LINKS.map((link) => {
                   const Icon = link.icon;
@@ -299,12 +327,17 @@ export default function Sidebar({
   );
 }
 
-function AccountSummary({ initials, userName, role }) {
+function AccountSummary({ initials, logoUrl = "", userName, role }) {
   return (
     <>
-      <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-soft text-xs font-semibold text-brand-strong">
-        {initials}
-      </span>
+      {logoUrl ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={logoUrl} alt="" className="h-8 w-8 shrink-0 rounded-full border border-line bg-white object-contain p-0.5" />
+      ) : (
+        <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-brand-soft text-xs font-semibold text-brand-strong">
+          {initials}
+        </span>
+      )}
       <span className="min-w-0 flex-1">
         <span className="block truncate text-sm font-semibold leading-tight text-ink">{userName}</span>
         <span className="block truncate text-2xs text-muted">{role}</span>

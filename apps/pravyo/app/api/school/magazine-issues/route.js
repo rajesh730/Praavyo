@@ -52,9 +52,10 @@ function normalizeIssueTitles(issues = []) {
 
   return Promise.all(issues.map(async (issue) => {
     const serialized = await serializeIssueWithCount(issue);
-    return serialized
-      ? { ...serialized, title: titleById.get(String(issue._id)) || serialized.title }
-      : null;
+    if (!serialized) return null;
+    // A name the school typed is kept as it is.
+    if (issue.titleEdited) return serialized;
+    return { ...serialized, title: titleById.get(String(issue._id)) || serialized.title };
   }));
 }
 
@@ -71,9 +72,10 @@ export async function GET() {
 
     const [currentIssue, issues] = await Promise.all([
       getCurrentMagazineIssue(session.user.id),
+      // Every magazine, so the year and month filters can reach old ones.
       MagazineIssue.find({ school: session.user.id })
         .sort({ weekStart: -1 })
-        .limit(12)
+        .limit(300)
         .lean(),
     ]);
 
@@ -135,7 +137,7 @@ export async function PATCH(request) {
     const issueId = body.issueId;
     const action = String(body.action || "").toUpperCase();
 
-    if (!["PUBLISH", "SHOW_HOME", "HIDE_HOME"].includes(action)) {
+    if (!["PUBLISH", "SHOW_HOME", "HIDE_HOME", "RENAME"].includes(action)) {
       return NextResponse.json(
         { message: "Invalid magazine issue action" },
         { status: 400 }
@@ -154,6 +156,18 @@ export async function PATCH(request) {
         { message: "Magazine not found" },
         { status: 404 }
       );
+    }
+
+    if (action === "RENAME") {
+      const title = String(body.title || "").replace(/\s+/g, " ").trim().slice(0, 120);
+      if (!title) {
+        return NextResponse.json({ message: "Please give the magazine a name." }, { status: 400 });
+      }
+      issue.title = title;
+      issue.titleEdited = true;
+      await issue.save();
+      const serializedIssue = await serializeIssueWithCount(issue);
+      return NextResponse.json({ message: `Renamed to ${title}`, issue: serializedIssue });
     }
 
     if (action === "SHOW_HOME") {

@@ -65,7 +65,6 @@ export const STUDENT_NAV_LINKS = [
   { name: "My Activity", href: "/student/dashboard", icon: FaSchool },
   { name: "Events", href: "/student/events", icon: FaCalendarAlt },
   { name: "Notices", href: "/student/notices", icon: FaBell },
-  { name: "Transfer", href: "/student/transfer", icon: FaExchangeAlt },
   { name: "My Writing", href: "/student/writing", icon: FaFeatherAlt },
   { name: "My Journey", href: "/student/journey", icon: FaGraduationCap },
   { name: "School Wall", href: "/student/school-wall", icon: FaSchool },

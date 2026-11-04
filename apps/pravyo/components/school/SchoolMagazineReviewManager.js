@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useRememberedState } from "@pravyo/ui/rememberedState";
-import { BookOpen as FaBookOpen, Eye as FaEye, ListFilter as FaFilter, Search as FaSearch } from "lucide-react";
+import { bsAcademicYearLabel } from "@pravyo/core/nepaliDate";
+import { BookOpen as FaBookOpen, Search as FaSearch } from "lucide-react";
 import AlertBanner from "@/components/ui/AlertBanner";
 import LoadingState from "@/components/ui/LoadingState";
 import EmptyState from "@/components/EmptyState";
@@ -14,7 +15,8 @@ import {
   WritingTags,
 } from "@/components/WritingMedia";
 import { getWritingCategoryLabel } from "@/lib/writingCategories";
-import AppDate from "@/components/common/AppDate";
+import PublishingTable, { PlacementSwitch } from "@/components/school/PublishingTable";
+import WritingEditForm from "@/components/school/WritingEditForm";
 
 
 function categoryTone(category = "") {
@@ -40,7 +42,10 @@ export default function SchoolMagazineReviewManager({
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [selectedSubmission, setSelectedSubmission] = useState(null);
+  const [editingSubmission, setEditingSubmission] = useState(false);
   const [search, setSearch] = useRememberedState("magazine-review:search", "");
+  const [year, setYear] = useRememberedState("magazine-review:year", "");
+  const [years, setYears] = useState([]);
   const [pagination, setPagination] = useState({
     page: 1,
     totalPages: 1,
@@ -63,6 +68,7 @@ export default function SchoolMagazineReviewManager({
         });
         if (search.trim()) params.append("search", search.trim());
         if (effectiveGrade !== "ALL") params.append("grade", effectiveGrade);
+        if (year) params.append("year", year);
         const res = await fetch(`/api/school/magazine-submissions?${params}`, {
           cache: "no-store",
         });
@@ -73,6 +79,7 @@ export default function SchoolMagazineReviewManager({
         }
 
         setSubmissions(Array.isArray(payload.submissions) ? payload.submissions : []);
+        if (Array.isArray(payload.years)) setYears(payload.years);
         if (payload.pagination) {
           setPagination(payload.pagination);
           onStatsChange?.({
@@ -86,7 +93,7 @@ export default function SchoolMagazineReviewManager({
         setLoading(false);
       }
     },
-    [effectiveGrade, onStatsChange, search]
+    [effectiveGrade, onStatsChange, search, year]
   );
 
   useEffect(() => {
@@ -129,6 +136,7 @@ export default function SchoolMagazineReviewManager({
 
   const openSubmission = (submission) => {
     setSelectedSubmission(submission);
+    setEditingSubmission(false);
     setSuccess("");
     setError("");
 
@@ -175,12 +183,23 @@ export default function SchoolMagazineReviewManager({
                   ...item,
                   showOnSchoolWall:
                     payload.article.showOnSchoolWall ?? item.showOnSchoolWall,
+                  isPublished: payload.article.isPublished ?? item.isPublished,
+                  isGlobalWallPublished:
+                    payload.article.isGlobalWallPublished ?? item.isGlobalWallPublished,
                 }
               : item
           )
         );
       }
-      setSelectedSubmission(null);
+      setSelectedSubmission((current) =>
+        current && payload.article?.id === current.id
+          ? {
+              ...current,
+              showOnSchoolWall: payload.article.showOnSchoolWall ?? current.showOnSchoolWall,
+              isPublished: payload.article.isPublished ?? current.isPublished,
+            }
+          : current
+      );
     } catch (reviewError) {
       setError(reviewError.message || "Failed to update writing");
     } finally {
@@ -191,24 +210,27 @@ export default function SchoolMagazineReviewManager({
   return (
     <div className="space-y-4">
       <div>
-        <h2 className="font-semibold text-ink">School Wall</h2>
+        <h2 className="font-semibold text-ink">Free Writing</h2>
         <div className="mt-1 h-0.5 w-24 rounded-full bg-brand" />
       </div>
 
       {error && <AlertBanner type="error" title="School wall failed" message={error} />}
       {success && <AlertBanner type="success" title="School wall updated" message={success} />}
 
-      <div className="card p-3">
-        <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-        <div className="inline-flex min-h-11 w-full max-w-xs items-center justify-center rounded-control border border-brand-line bg-brand-soft px-4 text-xs font-semibold uppercase text-brand-strong">
-          Posted by Students
-        </div>
-
-        <div className="flex flex-col gap-2 lg:flex-row lg:flex-wrap lg:justify-end">
+      {/* One line: what this is, then grade, year and search. */}
+      <div className="card flex flex-col gap-2 p-3 lg:flex-row lg:items-center">
+        <p className="text-sm font-semibold text-ink lg:mr-auto">
+          Posted by students
+          {pagination.totalItems || pagination.totalSubmissions ? (
+            <span className="ml-1.5 font-normal text-muted">· {pagination.totalItems || pagination.totalSubmissions}</span>
+          ) : null}
+        </p>
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
           <select
             value={effectiveGrade}
             onChange={(event) => updateGrade(event.target.value)}
-            className="input"
+            className="input sm:w-40"
+            aria-label="Grade"
           >
             <option value="ALL">All grades</option>
             {effectiveGradeOptions.map((grade) => (
@@ -217,25 +239,22 @@ export default function SchoolMagazineReviewManager({
               </option>
             ))}
           </select>
-          <label className="relative block">
+          <select value={year} onChange={(event) => setYear(event.target.value)} className="input sm:w-36" aria-label="Academic year">
+            <option value="">All years</option>
+            {years.map((start) => (
+              <option key={start} value={String(start)}>{bsAcademicYearLabel(start)} BS</option>
+            ))}
+          </select>
+          <label className="relative col-span-2 block sm:w-72">
             <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-xs text-muted" />
             <input
               type="text"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search title or student..."
-              className="input w-full pl-9 pr-3 lg:w-80"
+              className="input w-full pl-9 pr-3"
             />
           </label>
-          <button
-            type="button"
-            onClick={() => loadSubmissions(1)}
-            className="btn btn-secondary btn-sm inline-flex items-center justify-center gap-2"
-          >
-            <FaFilter />
-            Filter
-          </button>
-        </div>
         </div>
       </div>
 
@@ -252,91 +271,33 @@ export default function SchoolMagazineReviewManager({
         />
       ) : (
         <div className="space-y-3">
-          <div className="card overflow-x-auto">
-            <div className="grid min-w-[980px] grid-cols-[minmax(240px,1.5fr)_150px_110px_150px_130px_210px] gap-3 border-b border-line bg-surface px-4 py-3 text-2xs font-semibold uppercase text-muted">
-              <span>Writing</span>
-              <span>Student</span>
-              <span>Grade</span>
-              <span>Type</span>
-              <span>Wall</span>
-              <span className="text-right">Action</span>
-            </div>
-            <div>
-              {submissions.map((submission) => {
-                // Per-post unread: stays marked until the school opens/reads it.
-                const isNew = Boolean(submission.isUnread);
-                return (
-                <div
-                  key={submission.id}
-                  className={`grid min-w-[980px] grid-cols-[minmax(240px,1.5fr)_150px_110px_150px_130px_210px] gap-3 border-b border-l border-line px-4 py-4 text-sm last:border-b-0 ${
-                    isNew ? "border-l-warning bg-warning-soft" : "border-l-transparent"
-                  }`}
-                >
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="truncate font-semibold text-ink">
-                        {submission.title}
-                      </p>
-                      {isNew && (
-                        <span className="badge badge-warning shrink-0 uppercase tracking-wide">
-                          New
-                        </span>
-                      )}
-                    </div>
-                    <p className="mt-1 text-2xs font-semibold text-muted">
-                      Posted{" "}
-                      <AppDate
-                        value={submission.submittedAt || submission.updatedAt}
-                        mode="dateTime"
-                      />
-                    </p>
-                  </div>
-                  <span className="truncate font-semibold text-ink">
-                    {submission.authorStudent?.name || "Student"}
-                  </span>
-                  <span className="font-semibold text-muted">
-                    {submission.authorStudent?.grade || "Grade"}
-                  </span>
-                  <span
-                    className={`badge badge-neutral w-fit uppercase leading-none ${categoryTone(
-                      submission.category
-                    )}`}
-                  >
-                    {getWritingCategoryLabel(submission.category)}
-                  </span>
-                  <span className="font-semibold text-muted">
-                    {submission.showOnSchoolWall ? "Visible" : "Hidden"}
-                  </span>
-                  <div className="flex justify-end gap-2">
-                    <button
-                      type="button"
-                      onClick={() => openSubmission(submission)}
-                      className="btn btn-primary inline-flex items-center justify-center gap-2 transition-colors"
-                    >
-                      <FaEye />
-                      Read
-                    </button>
-                    <button
-                      type="button"
-                      disabled={busyId === submission.id}
-                      onClick={() =>
-                        handleWallAction(
-                          submission,
-                          submission.showOnSchoolWall
-                            ? "HIDE_SCHOOL_WALL"
-                            : "SHOW_SCHOOL_WALL"
-                        )
-                      }
-                      className="btn btn-primary inline-flex items-center justify-center transition-colors"
-                    >
-                      {submission.showOnSchoolWall ? "Hide" : "Show"}
-                    </button>
-                  </div>
-                </div>
-                );
-              })}
-            </div>
-          </div>
+          <PublishingTable
+            rows={submissions}
+            isNew={(submission) => Boolean(submission.isUnread)}
+            onOpen={openSubmission}
+            statusHeader="School wall"
+            renderStatus={(submission) => (
+              <PlacementSwitch
+                on={Boolean(submission.showOnSchoolWall)}
+                busy={busyId === submission.id}
+                label={`School wall for ${submission.title}`}
+                onToggle={() =>
+                  handleWallAction(submission, submission.showOnSchoolWall ? "HIDE_SCHOOL_WALL" : "SHOW_SCHOOL_WALL")
+                }
+              />
+            )}
+            status2Header="Global wall"
+            renderStatus2={(submission) => (
+              <PlacementSwitch
+                on={Boolean(submission.isPublished)}
+                busy={busyId === submission.id}
+                label={`Global wall for ${submission.title}`}
+                onToggle={() =>
+                  handleWallAction(submission, submission.isPublished ? "UNPUBLISH_HOMEPAGE" : "PUBLISH_HOMEPAGE")
+                }
+              />
+            )}
+          />
 
           <PaginationControls
             currentPage={pagination.page || pagination.currentPage || 1}
@@ -368,14 +329,36 @@ export default function SchoolMagazineReviewManager({
                   {selectedSubmission.authorStudent?.rollNumber || "-"}
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => setSelectedSubmission(null)}
-                className="text-sm font-semibold text-muted hover:text-ink"
-              >
-                Close
-              </button>
+              <div className="flex shrink-0 items-center gap-2">
+                {!editingSubmission && (
+                  <button type="button" onClick={() => setEditingSubmission(true)} className="btn btn-secondary btn-sm">
+                    Edit
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => { setSelectedSubmission(null); setEditingSubmission(false); }}
+                  className="btn btn-ghost btn-sm"
+                >
+                  Close
+                </button>
+              </div>
             </div>
+
+            {editingSubmission ? (
+              <WritingEditForm
+                article={selectedSubmission}
+                onCancel={() => setEditingSubmission(false)}
+                onSaved={(saved, message) => {
+                  const merge = (item) => (item.id === selectedSubmission.id ? { ...item, ...saved, id: item.id } : item);
+                  setSubmissions((current) => current.map(merge));
+                  setSelectedSubmission((current) => (current ? merge(current) : current));
+                  setEditingSubmission(false);
+                  setSuccess(message || "Changes saved");
+                }}
+              />
+            ) : (
+            <>
 
             <WritingCover
               coverImage={selectedSubmission.coverImage}
@@ -396,26 +379,35 @@ export default function SchoolMagazineReviewManager({
               title={selectedSubmission.title}
               className="mt-5"
             />
+            </>
+            )}
 
-            <div className="mt-5 flex flex-wrap justify-end gap-3">
-              <button
-                type="button"
-                disabled={busyId === selectedSubmission.id}
-                onClick={() =>
-                  handleWallAction(
-                    selectedSubmission,
-                    selectedSubmission.showOnSchoolWall
-                      ? "HIDE_SCHOOL_WALL"
-                      : "SHOW_SCHOOL_WALL"
-                  )
-                }
-                className="btn btn-primary inline-flex items-center transition-colors"
-              >
-                {selectedSubmission.showOnSchoolWall
-                  ? "Hide from School Wall"
-                  : "Show on School Wall"}
-              </button>
+            {!editingSubmission && (
+            <div className="mt-5 flex flex-wrap items-center justify-end gap-6 border-t border-line pt-4 text-sm font-semibold text-ink">
+              <span className="inline-flex items-center gap-3">
+                School wall
+                <PlacementSwitch
+                  on={Boolean(selectedSubmission.showOnSchoolWall)}
+                  busy={busyId === selectedSubmission.id}
+                  label="School wall"
+                  onToggle={() =>
+                    handleWallAction(selectedSubmission, selectedSubmission.showOnSchoolWall ? "HIDE_SCHOOL_WALL" : "SHOW_SCHOOL_WALL")
+                  }
+                />
+              </span>
+              <span className="inline-flex items-center gap-3">
+                Global wall
+                <PlacementSwitch
+                  on={Boolean(selectedSubmission.isPublished)}
+                  busy={busyId === selectedSubmission.id}
+                  label="Global wall"
+                  onToggle={() =>
+                    handleWallAction(selectedSubmission, selectedSubmission.isPublished ? "UNPUBLISH_HOMEPAGE" : "PUBLISH_HOMEPAGE")
+                  }
+                />
+              </span>
             </div>
+            )}
           </div>
         </div>
       )}

@@ -8,7 +8,7 @@ export async function PATCH(request, props) {
   try {
     const { session, error: authError } = await requireApiSession();
     if (authError) return authError;
-    if (!session || session.user.role !== "SUPER_ADMIN") {
+    if (!session || !["SUPER_ADMIN", "SCHOOL_ADMIN"].includes(session.user.role)) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
@@ -27,7 +27,12 @@ export async function PATCH(request, props) {
       update.reviewedBy = session.user.id;
     }
 
-    const feedback = await Feedback.findByIdAndUpdate(params.id, update, {
+    // A school may only update feedback its own students and parents sent it.
+    const filter =
+      session.user.role === "SCHOOL_ADMIN"
+        ? { _id: params.id, school: session.user.id, submitterRole: { $in: ["STUDENT", "PARENT"] } }
+        : { _id: params.id };
+    const feedback = await Feedback.findOneAndUpdate(filter, update, {
       new: true,
     }).lean();
 

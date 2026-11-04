@@ -1,6 +1,7 @@
 import connectDB from "@/lib/db";
 import Student from "@/models/Student";
 import StudentTransfer from "@/models/StudentTransfer";
+import "@/models/Parent";
 import {
   successResponse,
   errorResponse,
@@ -31,28 +32,31 @@ export async function GET() {
 
     await connectDB();
 
-    const [releaseRequests, releasedTransfers, admissionRequests, incoming, outgoing] =
+    const [releaseRequests, releasedTransfers, admissionRequests, incoming, outgoing, history] =
       await Promise.all([
         StudentTransfer.find({ fromSchool: schoolId, status: "PENDING_RELEASE" })
           .sort({ createdAt: -1 })
-          .limit(50)
+          .limit(100)
           .populate("student", "name grade rollNumber platformStudentId")
           .populate("toSchool", "schoolName name")
+          .populate("requestedByParent", "name")
           .lean(),
         StudentTransfer.find({
           fromSchool: schoolId,
           status: { $in: ["RELEASED", "PENDING_ADMISSION"] },
         })
           .sort({ releasedAt: -1, createdAt: -1 })
-          .limit(50)
+          .limit(100)
           .populate("student", "name grade rollNumber platformStudentId")
           .populate("toSchool", "schoolName name")
+          .populate("requestedByParent", "name")
           .lean(),
         StudentTransfer.find({ toSchool: schoolId, status: "PENDING_ADMISSION" })
           .sort({ targetSelectedAt: -1, createdAt: -1 })
-          .limit(50)
+          .limit(100)
           .populate("student", "name grade rollNumber platformStudentId")
           .populate("fromSchool", "schoolName name")
+          .populate("requestedByParent", "name")
           .lean(),
         StudentTransfer.find({ fromSchool: schoolId, status: "PENDING" })
           .sort({ createdAt: -1 })
@@ -64,6 +68,18 @@ export async function GET() {
           .limit(50)
           .populate("fromSchool", "schoolName name")
           .lean(),
+        // Finished transfers either way, for the History view.
+        StudentTransfer.find({
+          $or: [{ fromSchool: schoolId }, { toSchool: schoolId }],
+          status: { $in: ["COMPLETED", "APPROVED", "REJECTED", "CANCELLED"] },
+        })
+          .sort({ updatedAt: -1 })
+          .limit(200)
+          .populate("student", "name grade rollNumber platformStudentId")
+          .populate("fromSchool", "schoolName name")
+          .populate("toSchool", "schoolName name")
+          .populate("requestedByParent", "name")
+          .lean(),
       ]);
 
     return successResponse(200, "Transfers loaded", {
@@ -72,6 +88,7 @@ export async function GET() {
       admissionRequests,
       incoming,
       outgoing,
+      history,
     });
   } catch (err) {
     console.error("GET /api/students/transfer error:", err);
@@ -79,8 +96,8 @@ export async function GET() {
   }
 }
 
-// Legacy school-initiated claim flow kept for compatibility. The new product
-// flow is student-initiated through /api/student/transfer.
+// Legacy school-initiated claim flow kept for compatibility. The product flow
+// is parent-initiated through /api/parent/transfer.
 export async function POST(req) {
   try {
     const { session, error } = await requireApiSession(["SCHOOL_ADMIN"]);

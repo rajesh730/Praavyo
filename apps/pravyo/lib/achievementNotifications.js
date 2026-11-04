@@ -77,7 +77,8 @@ export async function syncAchievementNotifications({ event, achievements = [] } 
           priority: "POSITIVE",
           title: doc.title,
           message: doc.message,
-          href: "/parent/portfolio",
+          // My Child → Certificates (there is no /parent/portfolio page).
+          href: "/parent/child?tab=certificates",
           metadata: doc.metadata,
         }).catch((error) => {
           // Results are already committed. Alert delivery is a side effect and

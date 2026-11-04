@@ -85,15 +85,30 @@ Auth: `packages/auth/authOptions.js` — one credentials setup, JWT session,
 - **Performance programs** (since 2026-11-04) — school events with no
   competition (Dashain, Tihar): program → performances (solo/group) →
   students. School Events opens on a Competition / Performance program choice.
-  Students, assigned teachers or the school add names; the school locks the
-  list; school or assigned teacher ticks who performed; the school publishes
+  Students, assigned teachers or the school add names; each performance's
+  list is locked on its own (`performances.locked`; school or assigned teacher
+  locks, only the school unlocks) and `participantsLocked` is derived = every
+  performance locked; ticking who performed needs that performance locked;
+  the school publishes
   and each PERFORMED student gets a private participation `Achievement`
   (`program` set, `isPublic: false`) seen by the student, their linked
-  guardians and school staff. Unpublish deletes them. `models/PerformanceProgram.js`,
+  guardians and school staff. Publishing is the "Publish result" button in the
+  program's Certificates section; it notifies each student and their guardians
+  (`syncAchievementNotifications`, keyed by program id as `metadata.eventId`;
+  parents land on My Child → Certificates). Unpublish deletes the certificates
+  and those notifications. `models/PerformanceProgram.js`,
   `lib/performancePrograms.js`, `app/api/programs/*`, `app/api/student/programs`,
   `components/programs/*`. Stamped with the academic year.
 - **Student writing / magazines** — writings, school & global walls, magazine
   issues, provenance and tags.
+- **Student transfers** (parent-driven since 2026-11-05) — the guardian asks
+  the current school to release (`/parent/transfer`, `app/api/parent/transfer`)
+  → school approves and issues a code → guardian chooses the new school → new
+  school admits with grade + roll. Students no longer request transfers
+  (`/api/student/transfer` is read-only). Family-side logic in
+  `lib/studentTransfers.js`; school actions in `app/api/students/transfer/[id]`;
+  school screen `components/dashboard/StudentTransferPanel.js` (one table:
+  Needs action / In progress / History). Notifications reach guardians.
 - **Guardians / parent app** — guardian roster, access cards with QR
   (`components/school/*Card*`, `components/parent/QrCardScanner.js`),
   messaging, notices with delivery receipts, notifications, web push.

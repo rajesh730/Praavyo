@@ -45,11 +45,8 @@ export async function GET(request) {
       .populate("authorStudent", "name grade rollNumber")
       .populate("reviewedBy", "name schoolName email")
       .populate("magazineIssue")
-      .sort({
-        publishedAt: -1,
-        reviewedAt: -1,
-        updatedAt: -1,
-      })
+      // Newest post first, whether or not it is on the home page yet.
+      .sort({ submittedAt: -1, createdAt: -1, _id: -1 })
       .lean();
 
     return NextResponse.json({
@@ -63,6 +60,7 @@ export async function GET(request) {
         coverImage: article.coverImage?.url ? article.coverImage : null,
         tags: article.tags || [],
         submissionSource: article.submissionSource || "FREE_WRITE",
+        requestedIssue: article.requestedIssue ? String(article.requestedIssue) : "",
         status: article.status,
         showOnSchoolWall:
           article.status !== "DRAFT" && article.showOnSchoolWall !== false,

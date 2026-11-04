@@ -48,6 +48,16 @@ const DashboardOverview = dynamic(
     ),
   }
 );
+// Feedback the school receives from its students and parents. (Its own
+// feedback to Praavyo is sent from the menu under the school's name.)
+const SchoolFeedbackInbox = dynamic(
+  () => import("@/components/school/SchoolFeedbackInbox"),
+  {
+    loading: () => (
+      <LoadingState title="Loading feedback" message="Collecting what students and parents sent." />
+    ),
+  }
+);
 const FeedbackForm = dynamic(
   () => import("@/components/feedback/FeedbackForm"),
   {
@@ -293,11 +303,12 @@ function SchoolDashboardContent() {
                   icon={FaSchool}
                   eyebrow="Student movement"
                   title="Student Transfer"
-                  description="Approve student release requests, manage issued transfer codes, and admit released students joining your school."
+                  description="Parents request a transfer for their child. Approve children leaving, and admit children joining."
                 />
                 <div className="mt-5">
                   <StudentTransferPanel
                     grades={schoolGrades}
+                    schoolId={session?.user?.id || ""}
                     onChanged={() => router.refresh()}
                   />
                 </div>
@@ -306,7 +317,8 @@ function SchoolDashboardContent() {
 
             {activeTab === "teachers" && <TeacherManager />}
             {activeTab === "showcase" && <ShowcaseProfileManager />}
-            {activeTab === "feedback" && <FeedbackForm audience="school" />}
+            {activeTab === "feedback" && <SchoolFeedbackInbox />}
+            {activeTab === "praavyo-feedback" && <FeedbackForm audience="school" />}
             {activeTab === "register-student" && (
               <EnhancedStudentRegistration
                 schoolId={session?.user?.id}

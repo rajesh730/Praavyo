@@ -3,6 +3,8 @@ import { requireApiSession } from "@/lib/authz";
 import connectDB from "@/lib/db";
 import SchoolMagazineArticle from "@/models/SchoolMagazineArticle";
 import { recordLifecycleAudit } from "@/lib/lifecycle";
+import { normalizeWritingCategory } from "@/lib/writingCategories";
+import { normalizeWritingTags } from "@/lib/writingTags";
 import MagazineIssue from "@/models/MagazineIssue";
 import {
   getCurrentMagazineIssue,
@@ -70,6 +72,48 @@ export async function PATCH(request, props) {
       );
     }
 
+    // The school corrects a writing: title, text, type, tags. Saved on the
+    // writing itself, so the change shows everywhere it appears.
+    if (action === "EDIT") {
+      const title = String(body.title ?? article.title).trim();
+      const content = String(body.content ?? article.content).trim();
+      if (!title) {
+        return NextResponse.json({ message: "The writing needs a title." }, { status: 400 });
+      }
+      if (!content) {
+        return NextResponse.json({ message: "The writing cannot be empty." }, { status: 400 });
+      }
+      if (title.length > 180) {
+        return NextResponse.json({ message: "The title can be at most 180 characters." }, { status: 400 });
+      }
+      if (content.length > 50000) {
+        return NextResponse.json({ message: "The writing can be at most 50,000 characters." }, { status: 400 });
+      }
+      const changes = {
+        title,
+        content,
+        category: normalizeWritingCategory(body.category ?? article.category),
+        schoolEditedAt: new Date(),
+      };
+      if (body.tags !== undefined) changes.tags = normalizeWritingTags(body.tags);
+
+      await SchoolMagazineArticle.updateOne(
+        { _id: article._id, school: session.user.id },
+        { $set: changes }
+      );
+      return NextResponse.json({
+        message: "Changes saved. They show everywhere this writing appears.",
+        article: {
+          id: String(article._id),
+          title: changes.title,
+          content: changes.content,
+          category: changes.category,
+          tags: changes.tags ?? article.tags ?? [],
+          schoolEditedAt: changes.schoolEditedAt,
+        },
+      });
+    }
+
     if (
       ![
         "PUBLISH",
@@ -105,28 +149,28 @@ export async function PATCH(request, props) {
     const updates = {};
     let assignedMagazineIssue = null;
 
+    // "Global wall" in the school's screen: the public home page and the
+    // cross-school global wall are one switch, so they never disagree.
     if (action === "PUBLISH" || action === "PUBLISH_HOMEPAGE") {
       updates.isPublished = true;
       updates.publishedAt = article.publishedAt || new Date();
+      updates.isGlobalWallPublished = true;
       updates.status = "APPROVED";
     }
 
     if (action === "UNPUBLISH" || action === "UNPUBLISH_HOMEPAGE") {
       updates.isPublished = false;
       updates.publishedAt = null;
+      updates.isGlobalWallPublished = false;
     }
 
     if (action === "PUBLISH_MAGAZINE") {
-      if (!isFreshForMagazine(article)) {
+      if (article.submissionSource !== "MAGAZINE" && !article.magazineIssue) {
         return NextResponse.json(
-          {
-            message:
-              "This writing is older than 2 months and cannot be added to a magazine.",
-          },
+          { message: "The student sent this writing to the school wall, not the magazine." },
           { status: 400 }
         );
       }
-
       const targetIssue = requestedIssueId
         ? await MagazineIssue.findOne({
             _id: requestedIssueId,
@@ -137,6 +181,25 @@ export async function PATCH(request, props) {
       if (!targetIssue) {
         return NextResponse.json(
           { message: "Create or open a magazine before adding writing." },
+          { status: 400 }
+        );
+      }
+
+      const writtenFor = article.requestedIssue ? String(article.requestedIssue) : "";
+      const forThisIssue = writtenFor === String(targetIssue._id);
+      if (writtenFor && !forThisIssue && !article.magazineIssue) {
+        return NextResponse.json(
+          { message: "The student wrote this for a different magazine." },
+          { status: 400 }
+        );
+      }
+      // Writing sent to this very magazine is never "too old" for it.
+      if (!forThisIssue && !isFreshForMagazine(article)) {
+        return NextResponse.json(
+          {
+            message:
+              "This writing is older than 2 months and cannot be added to a magazine.",
+          },
           { status: 400 }
         );
       }
@@ -268,10 +331,10 @@ export async function PATCH(request, props) {
     });
 
     const messageByAction = {
-      PUBLISH: "Writing shown on the homepage",
-      PUBLISH_HOMEPAGE: "Writing shown on the homepage",
-      UNPUBLISH: "Writing hidden from the homepage",
-      UNPUBLISH_HOMEPAGE: "Writing hidden from the homepage",
+      PUBLISH: "Writing shown on the global wall",
+      PUBLISH_HOMEPAGE: "Writing shown on the global wall",
+      UNPUBLISH: "Writing hidden from the global wall",
+      UNPUBLISH_HOMEPAGE: "Writing hidden from the global wall",
       PUBLISH_MAGAZINE: "Writing shown in the school magazine",
       UNPUBLISH_MAGAZINE: "Writing hidden from the school magazine",
       SHOW_SCHOOL_WALL: "Writing shown on the school wall",
@@ -299,5 +362,65 @@ export async function PATCH(request, props) {
       { message },
       { status: 500 }
     );
+  }
+}
+
+/**
+ * DELETE /api/school/magazine/[id] — the school deletes a student writing.
+ * A soft delete, like a student's own: it disappears from the school wall,
+ * the global wall, the home page, any magazine and the student's portfolio,
+ * but the record (and its photos) are kept, so a mistake can be undone.
+ */
+export async function DELETE(_request, props) {
+  try {
+    const { session, error: authError } = await requireApiSession();
+    if (authError) return authError;
+    if (!session || session.user.role !== "SCHOOL_ADMIN") {
+      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    }
+
+    await connectDB();
+    const params = await props.params;
+    const article = await SchoolMagazineArticle.findOne({
+      _id: params.id,
+      school: session.user.id,
+      isDeleted: { $ne: true },
+    });
+    if (!article) {
+      return NextResponse.json({ message: "Writing not found" }, { status: 404 });
+    }
+
+    const previousIssue = article.magazineIssue;
+    await SchoolMagazineArticle.updateOne(
+      { _id: article._id, school: session.user.id },
+      {
+        $set: {
+          isDeleted: true,
+          deletedAt: new Date(),
+          deletedBy: null,
+          deletedByRole: "SCHOOL",
+          showOnSchoolWall: false,
+          isPublished: false,
+          isFeatured: false,
+          isMagazinePublished: false,
+          isGlobalWallPublished: false,
+          publishedAt: null,
+          magazinePublishedAt: null,
+          magazineIssue: null,
+          magazineIssueAssignedAt: null,
+        },
+      }
+    );
+    if (previousIssue) {
+      await MagazineIssue.updateOne(
+        { _id: previousIssue, school: session.user.id },
+        { $pull: { articles: article._id } }
+      );
+    }
+
+    return NextResponse.json({ message: `“${article.title}” deleted` });
+  } catch (error) {
+    console.error("DELETE /api/school/magazine/[id] error:", error);
+    return NextResponse.json({ message: "Failed to delete writing" }, { status: 500 });
   }
 }

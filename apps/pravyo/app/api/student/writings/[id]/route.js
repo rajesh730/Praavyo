@@ -6,7 +6,8 @@ import SchoolMagazineArticle from "@/models/SchoolMagazineArticle";
 import MagazineIssue from "@/models/MagazineIssue";
 import { publishWorkIndicatorsUpdate } from "@/lib/workIndicatorRealtime";
 import { notifySchoolMagazineSubmitted } from "@/lib/magazineNotifications";
-import { normalizeWritingCategory } from "@/lib/writingCategories";
+import { normalizeSubmissionSource, normalizeWritingCategory } from "@/lib/writingCategories";
+import { findOpenMagazineIssue } from "@/lib/magazineIssues";
 import { requireApiSession } from "@/lib/authz";
 import { buildStudentLookupForSession } from "@/lib/studentIdentity";
 import {
@@ -263,11 +264,22 @@ export async function PATCH(request, props) {
     const nextTitle = String(body.title || "").trim();
     const nextContent = String(body.content || "").trim();
     const nextCategory = normalizeWritingCategory(body.category || article.category);
+    const nextSource = normalizeSubmissionSource(body.submissionSource || article.submissionSource);
+    const nextIssue =
+      nextSource === "MAGAZINE"
+        ? (await findOpenMagazineIssue(article.school, body.requestedIssue ?? article.requestedIssue))?._id || null
+        : null;
     const nextTags = normalizeWritingTags(body.tags);
     const requestedStatus =
       String(body.status || "").toUpperCase() === "SUBMITTED"
         ? "SUBMITTED"
         : "DRAFT";
+    if (nextSource === "MAGAZINE" && requestedStatus === "SUBMITTED" && !nextIssue) {
+      return NextResponse.json(
+        { message: "Choose a magazine that is open for writing." },
+        { status: 400 }
+      );
+    }
 
     let images;
     let coverImage;
@@ -302,11 +314,14 @@ export async function PATCH(request, props) {
     article.title = nextTitle;
     article.content = nextContent;
     article.category = nextCategory;
+    article.submissionSource = nextSource;
+    article.requestedIssue = nextIssue;
     article.images = images;
     article.coverImage = coverImage;
     article.tags = nextTags;
     article.status = requestedStatus;
-    article.showOnSchoolWall = requestedStatus === "SUBMITTED";
+    // Magazine pieces stay off the school wall.
+    article.showOnSchoolWall = requestedStatus === "SUBMITTED" && nextSource !== "MAGAZINE";
     article.isMagazinePublished = false;
     article.isPublished = false;
     article.magazinePublishedAt = null;
@@ -355,7 +370,7 @@ export async function PATCH(request, props) {
     return NextResponse.json({
       message:
         requestedStatus === "SUBMITTED"
-          ? "Posted to school wall"
+          ? (nextSource === "MAGAZINE" ? "Sent to the school magazine" : "Posted to school wall")
           : "Private writing updated",
       article,
     });

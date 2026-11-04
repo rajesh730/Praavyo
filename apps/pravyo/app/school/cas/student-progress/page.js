@@ -162,6 +162,14 @@ export default function StudentProgressPage() {
 
       {!loading && !error && progress.data && (
         <>
+          {progress.data.publishedOnly && (
+            <Alert tone="info">
+              {t(
+                'Showing published results only. Marks from exams whose result is not published yet are not counted here.',
+                'प्रकाशित नतिजा मात्र देखाइएको छ। नतिजा प्रकाशित नभएका परीक्षाका अंक यहाँ गनिँदैनन्।',
+              )}
+            </Alert>
+          )}
           {progress.data.locked && (
             <Alert tone="warning">
               {t(

@@ -93,7 +93,7 @@ export default function StudentPrograms() {
                       <BadgeCheck aria-hidden size={14} /> Certificate
                     </Link>
                   )}
-                  {program.stage === "OPEN" && (
+                  {program.stage !== "PUBLISHED" && !performance.locked && (
                     performance.joined ? (
                       <button type="button" disabled={busy === performance._id} className="btn btn-ghost btn-sm" onClick={() => act(program._id, performance._id, "leave")}>
                         Leave

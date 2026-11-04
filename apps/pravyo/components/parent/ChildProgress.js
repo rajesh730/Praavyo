@@ -88,7 +88,7 @@ export default function ChildProgress() {
   );
 }
 
-function SubjectCard({ subject, pick, t }) {
+export function SubjectCard({ subject, pick, t }) {
   const [open, setOpen] = useState(false);
   const totals = subject.totals || {};
   return (

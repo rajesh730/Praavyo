@@ -2,12 +2,14 @@ import mongoose from "mongoose";
 import PerformanceProgram from "@/models/PerformanceProgram";
 import Achievement from "@/models/Achievement";
 import Student from "@/models/Student";
+import UserNotification from "@/models/UserNotification";
 import "@/models/Teacher";
 import { APIError } from "@/lib/apiResponse";
 import { getSessionSchoolId, isActiveStudentQuery, sameId } from "@/lib/authz";
 import { activeSchoolTeacherIds } from "@/lib/eventManagers";
 import { ensureActiveAcademicYear } from "@/lib/studentEnrollment";
 import { buildCertificateCode, buildCertificatePath } from "@/lib/results";
+import { syncAchievementNotifications } from "@/lib/achievementNotifications";
 
 /**
  * Performance programs (Dashain Program, Tihar Program, …): see
@@ -71,6 +73,14 @@ function performanceType(value) {
   return String(value || "").toUpperCase() === "GROUP" ? "GROUP" : "SOLO";
 }
 
+/**
+ * A performance's list is locked when it was locked itself, or when the
+ * program was locked as a whole before per-performance locks existed.
+ */
+export function isPerformanceLocked(program, performance) {
+  return Boolean(performance?.locked || program?.participantsLocked);
+}
+
 export function programStage(program) {
   if (program.certificatesPublishedAt) return "PUBLISHED";
   if (program.participantsLocked) return "LOCKED";
@@ -83,7 +93,9 @@ export function serializeProgram(program, { session } = {}) {
   const performances = (raw.performances || []).map((performance) => ({
     _id: String(performance._id),
     title: performance.title,
+    certificateTitle: performance.certificateTitle || "",
     performanceType: performance.performanceType,
+    locked: isPerformanceLocked(raw, performance),
     performers: (performance.performers || [])
       .filter((performer) => performer.student)
       .map((performer) => ({
@@ -168,15 +180,42 @@ function assertNotPublished(program) {
   }
 }
 
-function assertOpen(program) {
+function assertPerformanceOpen(program, performance) {
   assertNotPublished(program);
-  if (program.participantsLocked) {
+  if (performance.locked) {
     throw new APIError(
-      "The participant list is locked. The school must unlock it to make changes.",
+      `The list of “${performance.title}” is locked. The school must unlock it to make changes.`,
       409,
-      "PROGRAM_LOCKED"
+      "PERFORMANCE_LOCKED"
     );
   }
+}
+
+/**
+ * Programs locked as a whole (before per-performance locks) carry the lock
+ * onto each performance the first time they change, so the two never
+ * disagree. Afterwards the program-level flag is derived.
+ */
+function carryProgramLock(program) {
+  if (!program.participantsLocked) return;
+  program.performances.forEach((performance) => {
+    if (!performance.locked) {
+      performance.locked = true;
+      performance.lockedAt = performance.lockedAt || program.lockedAt || new Date();
+    }
+  });
+}
+
+function syncProgramLock(program) {
+  const all = program.performances.length > 0 && program.performances.every((p) => p.locked);
+  if (all && !program.participantsLocked) program.lockedAt = new Date();
+  if (!all) program.lockedAt = null;
+  program.participantsLocked = all;
+}
+
+function setLocked(performance, locked) {
+  performance.locked = locked;
+  performance.lockedAt = locked ? new Date() : null;
 }
 
 function requireSchool(session, program) {
@@ -217,6 +256,8 @@ export async function applyProgramAction(session, program, body) {
     throw new APIError("Forbidden", 403, "FORBIDDEN");
   }
   const action = String(body.action || "");
+  let issued = null;
+  carryProgramLock(program);
 
   switch (action) {
     case "update": {
@@ -237,10 +278,19 @@ export async function applyProgramAction(session, program, body) {
       break;
     }
     case "addPerformance": {
-      assertOpen(program);
+      assertNotPublished(program);
       const title = cleanText(body.title);
       if (!title) throw new APIError("Please name the performance", 400, "VALIDATION_ERROR");
-      program.performances.push({ title, performanceType: performanceType(body.performanceType) });
+      program.performances.push({
+        title,
+        certificateTitle: cleanText(body.certificateTitle),
+        performanceType: performanceType(body.performanceType),
+      });
+      // Students picked in the same form join the new performance at once.
+      if (Array.isArray(body.studentIds) && body.studentIds.length) {
+        const added = program.performances[program.performances.length - 1];
+        addPerformers(added, await schoolStudents(program, body.studentIds), session);
+      }
       break;
     }
     case "updatePerformance": {
@@ -251,25 +301,29 @@ export async function applyProgramAction(session, program, body) {
         if (!title) throw new APIError("Please name the performance", 400, "VALIDATION_ERROR");
         performance.title = title;
       }
+      if (body.certificateTitle !== undefined) {
+        performance.certificateTitle = cleanText(body.certificateTitle);
+      }
       if (body.performanceType !== undefined) {
         performance.performanceType = performanceType(body.performanceType);
       }
       break;
     }
     case "removePerformance": {
-      assertOpen(program);
-      findPerformance(program, body.performanceId).deleteOne();
+      const performance = findPerformance(program, body.performanceId);
+      assertPerformanceOpen(program, performance);
+      performance.deleteOne();
       break;
     }
     case "addPerformers": {
-      assertOpen(program);
       const performance = findPerformance(program, body.performanceId);
+      assertPerformanceOpen(program, performance);
       addPerformers(performance, await schoolStudents(program, body.studentIds), session);
       break;
     }
     case "removePerformer": {
-      assertOpen(program);
       const performance = findPerformance(program, body.performanceId);
+      assertPerformanceOpen(program, performance);
       performance.performers = performance.performers.filter(
         (p) => String(p.student) !== String(body.studentId)
       );
@@ -277,13 +331,16 @@ export async function applyProgramAction(session, program, body) {
     }
     case "markPerformer": {
       assertNotPublished(program);
-      if (!program.participantsLocked) {
-        throw new APIError("Lock the participant list before marking performances", 409, "PROGRAM_OPEN");
+      const performance = findPerformance(program, body.performanceId);
+      // Marking a whole performance from its card locks the list first:
+      // a result means the names are final.
+      if (!performance.locked && body.lock === true && !body.studentId) setLocked(performance, true);
+      if (!performance.locked) {
+        throw new APIError(`Lock the list of “${performance.title}” before marking who performed`, 409, "PERFORMANCE_OPEN");
       }
       const status = ["PERFORMED", "NOT_PERFORMED", "REGISTERED"].includes(body.status)
         ? body.status
         : "PERFORMED";
-      const performance = findPerformance(program, body.performanceId);
       const targets = body.studentId
         ? performance.performers.filter((p) => String(p.student) === String(body.studentId))
         : performance.performers; // whole performance at once
@@ -293,32 +350,47 @@ export async function applyProgramAction(session, program, body) {
       });
       break;
     }
-    case "lock": {
+    // One performance's list. The school or an assigned teacher locks it;
+    // only the school unlocks it again.
+    case "lockPerformance": {
+      assertNotPublished(program);
+      setLocked(findPerformance(program, body.performanceId), true);
+      break;
+    }
+    case "unlockPerformance": {
       requireSchool(session, program);
       assertNotPublished(program);
-      program.participantsLocked = true;
-      program.lockedAt = new Date();
+      setLocked(findPerformance(program, body.performanceId), false);
+      break;
+    }
+    // Every performance at once.
+    case "lock": {
+      assertNotPublished(program);
+      program.performances.forEach((performance) => {
+        if (!performance.locked) setLocked(performance, true);
+      });
       break;
     }
     case "unlock": {
       requireSchool(session, program);
       assertNotPublished(program);
-      program.participantsLocked = false;
-      program.lockedAt = null;
+      program.performances.forEach((performance) => setLocked(performance, false));
       break;
     }
     case "publish": {
       requireSchool(session, program);
       assertNotPublished(program);
+      syncProgramLock(program);
       if (!program.participantsLocked) {
-        throw new APIError("Lock the participant list first", 409, "PROGRAM_OPEN");
+        throw new APIError("Lock every performance's list first", 409, "PROGRAM_OPEN");
       }
-      await publishCertificates(program);
+      issued = await publishCertificates(program);
       break;
     }
     case "unpublish": {
       requireSchool(session, program);
       await Achievement.deleteMany({ program: program._id });
+      await clearProgramNotifications(program);
       program.certificatesPublishedAt = null;
       break;
     }
@@ -326,8 +398,35 @@ export async function applyProgramAction(session, program, body) {
       throw new APIError("Unknown action", 400, "VALIDATION_ERROR");
   }
 
+  syncProgramLock(program);
   await program.save();
+  if (issued) await notifyCertificates(program, issued);
   return program;
+}
+
+/**
+ * Tell each certified student, and their linked guardians, that the
+ * certificate is ready. Keyed by the program id (as `metadata.eventId`, the
+ * same key competition results use), so a republish replaces the batch and
+ * an unpublish removes it. The certificates are already saved: a failed
+ * delivery is logged, never turned into a failed publish.
+ */
+async function notifyCertificates(program, achievements) {
+  try {
+    await syncAchievementNotifications({
+      event: { _id: program._id, title: program.title },
+      achievements,
+    });
+  } catch (error) {
+    console.error("[performancePrograms] certificate notifications failed:", error.message);
+  }
+}
+
+async function clearProgramNotifications(program) {
+  await UserNotification.deleteMany({
+    category: "ACHIEVEMENT",
+    "metadata.eventId": String(program._id),
+  });
 }
 
 /** One participation certificate per PERFORMED student per performance. */
@@ -347,6 +446,7 @@ async function publishCertificates(program) {
     for (const performer of performance.performers) {
       if (performer.status !== "PERFORMED") continue;
       const _id = new mongoose.Types.ObjectId();
+      const printedTitle = performance.certificateTitle || performance.title;
       docs.push({
         _id,
         school: program.school,
@@ -354,9 +454,9 @@ async function publishCertificates(program) {
         recipientType: "STUDENT",
         program: program._id,
         performanceId: performance._id,
-        performanceTitle: performance.title,
+        performanceTitle: printedTitle,
         performanceType: performance.performanceType,
-        title: `${performance.title} · ${program.title}`,
+        title: `${printedTitle} · ${program.title}`,
         description: "",
         level: "SCHOOL",
         placement: "PARTICIPANT",
@@ -375,6 +475,7 @@ async function publishCertificates(program) {
   await Achievement.deleteMany({ program: program._id });
   await Achievement.insertMany(docs);
   program.certificatesPublishedAt = now;
+  return docs;
 }
 
 /** Students joining or leaving a performance themselves. */
@@ -382,8 +483,9 @@ export async function applyStudentAction(session, program, body) {
   if (!sameId(session.user.schoolId, program.school)) {
     throw new APIError("Program not found", 404, "NOT_FOUND");
   }
-  assertOpen(program);
+  carryProgramLock(program);
   const performance = findPerformance(program, body.performanceId);
+  assertPerformanceOpen(program, performance);
   const studentId = String(session.user.id);
 
   if (body.action === "join") {
@@ -405,5 +507,6 @@ export async function applyStudentAction(session, program, body) {
 export async function deleteProgram(session, program) {
   requireSchool(session, program);
   await Achievement.deleteMany({ program: program._id });
+  await clearProgramNotifications(program);
   await program.deleteOne();
 }

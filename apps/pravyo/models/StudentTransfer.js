@@ -1,8 +1,9 @@
 import mongoose from "mongoose";
 
 // A transfer record for moving an existing student between schools.
-// New flow: student requests release -> current school approves and issues a
-// transfer code -> student selects destination -> destination school admits.
+// Flow: a parent (guardian) requests release -> current school approves and
+// issues a transfer code -> the parent chooses the destination -> destination
+// school admits. (Older requests were made by the student.)
 // The SAME Student document is reused so achievements/writings/results stay
 // linked to the person.
 
@@ -36,6 +37,11 @@ const StudentTransferSchema = new mongoose.Schema(
     requestedByStudent: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Student",
+      default: null,
+    },
+    requestedByParent: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Parent",
       default: null,
     },
     status: {

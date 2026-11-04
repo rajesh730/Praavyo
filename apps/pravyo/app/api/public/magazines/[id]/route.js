@@ -35,6 +35,7 @@ function issueDate(issue) {
 }
 
 function getMonthIssueTitle(issue, issuesInMonth) {
+  if (issue.titleEdited && issue.title) return issue.title;
   const orderedIssues = [...issuesInMonth].sort(
     (a, b) => issueDate(a) - issueDate(b)
   );

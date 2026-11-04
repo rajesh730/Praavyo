@@ -55,9 +55,11 @@ export function serializeMagazineIssue(issue) {
   const year = issue.year || date.getFullYear();
   const weekNumber = issue.weekNumber || 1;
   const title =
-    month && year && weekNumber
-      ? buildIssueTitle({ issueNumber: weekNumber, month, year })
-      : issue.title;
+    issue.titleEdited && issue.title
+      ? issue.title
+      : month && year && weekNumber
+        ? buildIssueTitle({ issueNumber: weekNumber, month, year })
+        : issue.title;
 
   return {
     id: String(issue._id),
@@ -69,8 +71,28 @@ export function serializeMagazineIssue(issue) {
     monthLabel: month && year ? `${getMonthName(month, year)} ${year}` : "",
     year,
     status: issue.status,
+    titleEdited: Boolean(issue.titleEdited),
     publishedAt: issue.publishedAt,
     showOnHome: Boolean(issue.showOnHome),
     homeShownAt: issue.homeShownAt,
   };
+}
+
+/**
+ * Magazines a student can write for: the school's DRAFT issues. Once the
+ * school publishes one it is closed for writing and lives only in the
+ * magazine section.
+ */
+export async function listOpenMagazineIssues(schoolId) {
+  if (!schoolId) return [];
+  const issues = await MagazineIssue.find({ school: schoolId, status: "DRAFT" })
+    .sort({ weekStart: -1, createdAt: -1 })
+    .lean();
+  return issues.map(serializeMagazineIssue);
+}
+
+/** The open issue with this id at this school, or null. */
+export async function findOpenMagazineIssue(schoolId, issueId) {
+  if (!schoolId || !/^[a-f\d]{24}$/i.test(String(issueId || ""))) return null;
+  return MagazineIssue.findOne({ _id: issueId, school: schoolId, status: "DRAFT" }).lean();
 }

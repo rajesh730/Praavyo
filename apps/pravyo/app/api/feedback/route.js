@@ -6,6 +6,7 @@ import Student from "@/models/Student";
 import User from "@/models/User";
 import { publishWorkIndicatorsUpdate } from "@/lib/workIndicatorRealtime";
 import { buildStudentLookupForSession } from "@/lib/studentIdentity";
+import { requireParentChild, requireParentSession } from "@/lib/parentAccess";
 
 function clean(value) {
   return String(value || "").trim();
@@ -15,6 +16,9 @@ function serializeFeedback(feedback) {
   return {
     id: String(feedback._id),
     submitterRole: feedback.submitterRole,
+    recipient: feedback.recipient || "PLATFORM",
+    aboutStudentName: feedback.aboutStudentName || "",
+    grade: feedback.grade || "",
     submitterName: feedback.submitterName,
     submitterEmail: feedback.submitterEmail,
     schoolName: feedback.schoolName,
@@ -52,11 +56,27 @@ export async function GET(request) {
     const query = {};
 
     if (session.user.role === "SUPER_ADMIN") {
+      // Praavyo reads feedback meant for the platform, not schools' inboxes.
+      query.recipient = { $ne: "SCHOOL" };
       if (["NEW", "REVIEWED", "ARCHIVED"].includes(status)) query.status = status;
       if (["SCHOOL_ADMIN", "STUDENT"].includes(role)) query.submitterRole = role;
     } else if (session.user.role === "SCHOOL_ADMIN") {
-      query.submittedBy = session.user.id;
-      query.submitterModel = "User";
+      if (clean(searchParams.get("scope")).toLowerCase() === "inbox") {
+        // The school's inbox: everything its students and parents sent.
+        query.school = session.user.id;
+        query.submitterRole = { $in: ["STUDENT", "PARENT"] };
+        if (["NEW", "REVIEWED", "ARCHIVED"].includes(status)) query.status = status;
+        if (["STUDENT", "PARENT"].includes(role)) query.submitterRole = role;
+      } else {
+        // What the school itself sent to Praavyo.
+        query.submittedBy = session.user.id;
+        query.submitterModel = "User";
+      }
+    } else if (session.user.role === "PARENT") {
+      const { parent, error: parentError } = await requireParentSession();
+      if (parentError) return parentError;
+      query.submittedBy = parent._id;
+      query.submitterModel = "Parent";
     } else if (session.user.role === "STUDENT") {
       const student = await getStudentProfile(session);
       if (!student) {
@@ -70,7 +90,7 @@ export async function GET(request) {
 
     const feedback = await Feedback.find(query)
       .sort({ createdAt: -1 })
-      .limit(200)
+      .limit(500)
       .lean();
 
     return NextResponse.json({ feedback: feedback.map(serializeFeedback) });
@@ -87,7 +107,7 @@ export async function POST(request) {
   try {
     const { session, error: authError } = await requireApiSession();
     if (authError) return authError;
-    if (!session || !["SCHOOL_ADMIN", "STUDENT"].includes(session.user.role)) {
+    if (!session || !["SCHOOL_ADMIN", "STUDENT", "PARENT"].includes(session.user.role)) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
@@ -129,6 +149,7 @@ export async function POST(request) {
           { status: 404 }
         );
       }
+      // A student's feedback goes to their school.
       payload = {
         submittedBy: student._id,
         submitterModel: "Student",
@@ -137,6 +158,27 @@ export async function POST(request) {
         submitterEmail: student.email || session.user.email || "",
         school: student.school?._id || student.school || null,
         schoolName: student.school?.schoolName || "",
+        recipient: "SCHOOL",
+        grade: student.grade || "",
+      };
+    } else if (session.user.role === "PARENT") {
+      // A parent's feedback goes to the school of the child it is about.
+      const access = await requireParentChild(body.studentId);
+      if (access.error) return access.error;
+      const child = access.student;
+      const school = await User.findById(child.school).select("schoolName").lean();
+      payload = {
+        submittedBy: access.parent?._id || session.user.id,
+        submitterModel: "Parent",
+        submitterRole: "PARENT",
+        submitterName: access.parent?.name || session.user.name || "",
+        submitterEmail: access.parent?.email || session.user.email || "",
+        school: child.school || null,
+        schoolName: school?.schoolName || "",
+        recipient: "SCHOOL",
+        aboutStudent: child._id,
+        aboutStudentName: child.name || "",
+        grade: child.grade || "",
       };
     } else {
       const school = await User.findById(session.user.id)
@@ -150,6 +192,7 @@ export async function POST(request) {
         submitterEmail: school?.email || session.user.email || "",
         school: session.user.id,
         schoolName: school?.schoolName || session.user.name || "",
+        recipient: "PLATFORM",
       };
     }
 
@@ -168,7 +211,10 @@ export async function POST(request) {
 
     return NextResponse.json(
       {
-        message: "Feedback submitted. Thank you for helping improve Praavyo.",
+        message:
+          payload.recipient === "SCHOOL"
+            ? `Feedback sent to ${payload.schoolName || "your school"}. Thank you.`
+            : "Feedback submitted. Thank you for helping improve Praavyo.",
         feedback: serializeFeedback(feedback),
       },
       { status: 201 }

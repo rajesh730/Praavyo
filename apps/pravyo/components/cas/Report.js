@@ -6,6 +6,7 @@ import InternalExamReport from '@pravyo/cas/components/report/InternalExamReport
 import { downloadSheets } from '@pravyo/cas/lib/client/pdfDownload';
 import { picker } from '@pravyo/cas/components/report/reportText';
 import styles from './Report.module.css';
+import A4Viewport from './A4Viewport';
 
 /**
  * A published continuous-assessment report, as a guardian or student reads it.
@@ -60,10 +61,14 @@ export default function Report({ report }) {
         </button>
       </div>
 
-      <div ref={sheetRef}>
-        {/* CAS results always print as the Classic card. */}
-        {internal ? <InternalExamReport report={report} lang={lang} /> : <ReportCard report={report} lang={lang} format="CLASSIC" />}
-      </div>
+      {/* Exactly the A4 sheet the school prints — on a phone it is shrunk to
+          fit, never reflowed into a different layout. */}
+      <A4Viewport>
+        <div ref={sheetRef}>
+          {/* CAS results always print as the Classic card. */}
+          {internal ? <InternalExamReport report={report} lang={lang} /> : <ReportCard report={report} lang={lang} format="CLASSIC" />}
+        </div>
+      </A4Viewport>
 
       {detail && !internal && (
         <section className={`${styles.report} ${styles['report-details']}`}>
