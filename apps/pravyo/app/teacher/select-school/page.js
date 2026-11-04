@@ -80,7 +80,7 @@ export default function SelectSchoolPage() {
           </ul>
         )}
 
-        <button type="button" onClick={() => signOut({ callbackUrl: "/login?as=teacher" })} className="btn btn-ghost btn-sm mt-6">Sign out</button>
+        <button type="button" onClick={() => signOut({ callbackUrl: "/login" })} className="btn btn-ghost btn-sm mt-6">Sign out</button>
       </div>
     </main>
   );

@@ -407,7 +407,10 @@ function MetaItem({ label, value }) {
 // populated (student, captainStudent, school, event) with `schoolProfile`
 // attached, exactly like app/certificates/[id]/page.js prepares it.
 export default async function CertificateSheet({ achievement }) {
-  const ownershipType = resolveEventOwnership(achievement.event);
+  // A performance-program certificate (Dashain Program, …) has no event: it
+  // is always a school certificate for one performance.
+  const program = achievement.program || null;
+  const ownershipType = program ? "SCHOOL_EVENT" : resolveEventOwnership(achievement.event);
   const isPlatformEvent = ownershipType === "PLATFORM_EVENT";
 
   const isParticipantCertificate = achievement.placement === "PARTICIPANT";
@@ -417,7 +420,9 @@ export default async function CertificateSheet({ achievement }) {
 
   const placementUpper = formatPlacementLabel(achievement.placement); // e.g. FINALIST
   const placementTitle = toTitleCase(placementUpper); // e.g. Finalist
-  const eventTitle = achievement.event?.title || achievement.title || "Event";
+  const eventTitle =
+    program?.title || achievement.event?.title || achievement.title || "Event";
+  const performanceTitle = achievement.performanceTitle || "";
   const schoolName = achievement.school?.schoolName || "Participating School";
 
   const recipientName =
@@ -467,7 +472,11 @@ export default async function CertificateSheet({ achievement }) {
     ? [pravyoMark, schoolMark]
     : [schoolMark, pravyoMark];
 
-  const badgeLabel = isParticipantCertificate ? "Participant" : placementUpper;
+  const badgeLabel = program
+    ? "Performer"
+    : isParticipantCertificate
+      ? "Participant"
+      : placementUpper;
 
   // QR straight to the verify page — a printed copy stays self-verifying.
   let verifyQrSvg = "";
@@ -518,7 +527,7 @@ export default async function CertificateSheet({ achievement }) {
               <p
                 className={`${displaySerif.className} text-sm font-semibold tracking-[0.32em] text-[#16345f]`}
               >
-                OF ACHIEVEMENT
+                {program ? "OF PARTICIPATION" : "OF ACHIEVEMENT"}
               </p>
               <span className="h-px w-20" style={{ background: GOLD }} />
             </div>
@@ -564,7 +573,15 @@ export default async function CertificateSheet({ achievement }) {
           <p
             className={`${bodySerif.className} mx-auto mt-4 max-w-lg text-[15px] leading-7 text-[#344054]`}
           >
-            {isParticipantCertificate ? (
+            {program ? (
+              <>
+                for performing{" "}
+                <span className="font-semibold text-[#10142f]">‘{performanceTitle || "a performance"}’</span>
+                {achievement.performanceType === "GROUP" ? " (group performance)" : ""} in{" "}
+                <span className="font-semibold text-[#9c6b0a]">‘{eventTitle}’</span>, in
+                recognition of talent, courage and active participation.
+              </>
+            ) : isParticipantCertificate ? (
               <>
                 for active participation in{" "}
                 <span className="font-semibold text-[#9c6b0a]">‘{eventTitle}’</span>, in
@@ -600,12 +617,20 @@ export default async function CertificateSheet({ achievement }) {
           {/* details row */}
           <div className="grid w-full max-w-xl grid-cols-4 divide-x divide-[#e3cf96] border-t border-[#e3cf96] pt-4">
             <MetaItem
-              label="Event Date"
-              value={<AppDate value={achievement.event?.date} />}
+              label={program ? "Program Date" : "Event Date"}
+              value={<AppDate value={program?.date || achievement.event?.date} />}
             />
             <MetaItem
-              label="Position"
-              value={isParticipantCertificate ? "Participant" : placementTitle}
+              label={program ? "Performance" : "Position"}
+              value={
+                program
+                  ? achievement.performanceType === "GROUP"
+                    ? "Group"
+                    : "Solo"
+                  : isParticipantCertificate
+                    ? "Participant"
+                    : placementTitle
+              }
             />
             <MetaItem
               label="Date of Issue"

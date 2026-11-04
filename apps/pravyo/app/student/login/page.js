@@ -79,7 +79,7 @@ export default function StudentLogin() {
           <Button
             fullWidth
             variant="secondary"
-            onClick={() => signOut({ callbackUrl: "/student/login" })}
+            onClick={() => signOut({ callbackUrl: "/login" })}
           >
             Sign out and log in as student
           </Button>

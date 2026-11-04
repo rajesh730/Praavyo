@@ -128,7 +128,7 @@ export default function ParentLinkPage() {
           type="button"
           onClick={async () => {
             await detachCurrentParentPushDevice().catch(() => {});
-            await signOut({ callbackUrl: "/parent/login" });
+            await signOut({ callbackUrl: "/login" });
           }}
           className="mt-4 min-h-[44px] w-full text-sm font-semibold text-muted"
         >

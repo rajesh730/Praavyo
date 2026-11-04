@@ -5,8 +5,6 @@ import { getR2Object } from "@/lib/r2Storage";
 import MediaAsset from "@/models/MediaAsset";
 import ParentStudentLink from "@/models/ParentStudentLink";
 import SchoolMagazineArticle from "@/models/SchoolMagazineArticle";
-import SchoolShowcaseProfile from "@/models/SchoolShowcaseProfile";
-import SchoolConfig from "@/models/SchoolConfig";
 import Student from "@/models/Student";
 import { buildStudentLookupForSession } from "@/lib/studentIdentity";
 
@@ -16,42 +14,6 @@ function isMissingObjectError(error) {
       String(error?.name || error?.Code || error?.code || "")
     ) || Number(error?.$metadata?.httpStatusCode || 0) === 404
   );
-}
-
-async function reconcileMissingAsset(asset) {
-  const assetUrl = `/api/media/r2/${asset._id}`;
-  await MediaAsset.updateOne(
-    { _id: asset._id, status: "READY" },
-    { $set: { status: "DELETED", deletedAt: new Date() } }
-  );
-
-  if (asset.purpose === "SCHOOL_LOGO") {
-    await SchoolShowcaseProfile.updateOne(
-      { school: asset.school, coverImageUrl: assetUrl },
-      { $set: { coverImageUrl: "" } }
-    );
-  } else if (asset.purpose === "REPORT_CARD_IMAGE") {
-    await SchoolConfig.updateOne(
-      { school: asset.school, reportCardImageUrl: assetUrl },
-      { $set: { reportCardImageUrl: "" } }
-    );
-  } else if (asset.purpose === "SCHOOL_COVER") {
-    await SchoolShowcaseProfile.updateOne(
-      { school: asset.school, bannerImageUrl: assetUrl },
-      { $set: { bannerImageUrl: "" } }
-    );
-  } else if (asset.purpose === "WRITING_IMAGE") {
-    await Promise.all([
-      SchoolMagazineArticle.updateMany(
-        { "images.asset": asset._id },
-        { $pull: { images: { asset: asset._id } } }
-      ),
-      SchoolMagazineArticle.updateMany(
-        { "coverImage.asset": asset._id },
-        { $unset: { coverImage: 1 } }
-      ),
-    ]);
-  }
 }
 
 async function canReadPrivate(session, asset) {
@@ -137,10 +99,13 @@ export async function GET(_request, { params }) {
       },
     });
   } catch (readError) {
+    // A missing object is only reported, never "cleaned up". This database is
+    // shared by every deployment and by local dev, and each may point at a
+    // different bucket (or briefly fail). Marking the asset DELETED and
+    // blanking the logo here once wiped live schools' logos and report-card
+    // images just because someone opened them from the wrong environment.
     if (asset && isMissingObjectError(readError)) {
-      await reconcileMissingAsset(asset).catch((reconcileError) => {
-        console.error("Failed to reconcile missing R2 media:", reconcileError);
-      });
+      console.warn("R2 object missing for media asset:", String(asset._id), asset.purpose);
       return new Response("Not found", {
         status: 404,
         headers: { "Cache-Control": "no-store" },

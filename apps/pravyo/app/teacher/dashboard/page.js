@@ -5,6 +5,8 @@ import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from "next/navigation";
 import DashboardLayout from "@/components/DashboardLayout";
 import TeacherEventOperations from "@/components/teacher/TeacherEventOperations";
+import ProgramManager from "@/components/programs/ProgramManager";
+import UpcomingPrograms from "@/components/programs/UpcomingPrograms";
 import OverviewTab from "@/components/teacher/workspace/OverviewTab";
 import AssessmentTab from "@/components/teacher/workspace/AssessmentTab";
 import ResultsTab from "@/components/teacher/workspace/ResultsTab";
@@ -49,7 +51,7 @@ const TABS = {
   events: {
     icon: CalendarDays,
     title: () => "Events",
-    description: "Events you mentor: rounds, submissions and student selection.",
+    description: "Programs and competitions your school gave you to run.",
   },
   profile: {
     icon: UserRound,
@@ -84,7 +86,15 @@ function TeacherWorkspace() {
 
   let body;
   if (tabKey === "events") {
-    body = <TeacherEventOperations />;
+    body = (
+      <div className="space-y-6">
+        <ProgramManager mode="teacher" />
+        <div>
+          <h2 className="mb-3 text-lg font-semibold text-ink">Competitions</h2>
+          <TeacherEventOperations />
+        </div>
+      </div>
+    );
   } else if (error) {
     body = (
       <div className="space-y-3">
@@ -95,7 +105,14 @@ function TeacherWorkspace() {
   } else if (!workspace) {
     body = <LoadingState title="Loading your workspace" message="Checking your classes, subjects and students." />;
   } else {
-    body = <Component workspace={workspace} />;
+    body = (
+      <>
+        {tabKey === "overview" && (
+          <UpcomingPrograms className="mb-4" manageHref="/teacher/dashboard?tab=events" />
+        )}
+        <Component workspace={workspace} />
+      </>
+    );
   }
 
   return (

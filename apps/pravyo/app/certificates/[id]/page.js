@@ -12,6 +12,8 @@ import CertificateSheet, {
 } from "@/components/certificates/CertificateSheet";
 import CertificateViewport from "@/components/certificates/CertificateViewport";
 import "@/models/Event";
+import "@/models/PerformanceProgram";
+import ParentStudentLink from "@/models/ParentStudentLink";
 
 export const dynamic = "force-dynamic";
 
@@ -27,6 +29,7 @@ async function getCertificate(id) {
       select:
         "title eventType eventOwnershipType date visibility participationFormat eventScope resultsPublished",
     })
+    .populate("program", "title date venue certificatesPublishedAt")
     .lean();
 
   if (!achievement?.school?._id) {
@@ -46,6 +49,29 @@ async function getCertificate(id) {
 }
 
 /* ---------- access control ---------- */
+
+// Program (performance) certificates are private: the student, the student's
+// own linked guardians, and the school's staff. Never public.
+async function canViewProgramCertificate({ achievement, session }) {
+  const role = session?.user?.role;
+  const userId = String(session?.user?.id || "");
+  const schoolId = String(achievement.school?._id || achievement.school || "");
+  const studentId = String(achievement.student?._id || achievement.student || "");
+
+  if (role === "SUPER_ADMIN") return true;
+  if (role === "SCHOOL_ADMIN") return userId === schoolId;
+  if (role === "TEACHER") return String(session?.user?.schoolId || "") === schoolId;
+  if (role === "STUDENT") return userId === studentId;
+  if (role === "PARENT" && studentId) {
+    const link = await ParentStudentLink.exists({
+      parent: userId,
+      student: studentId,
+      status: "ACTIVE",
+    });
+    return Boolean(link);
+  }
+  return false;
+}
 
 function canViewCertificate({ achievement, session }) {
   if (isActiveCertificateRecord(achievement) && achievement?.event?.resultsPublished) {
@@ -86,9 +112,14 @@ export default async function CertificatePage({ params, searchParams }) {
   const canPreviewCertificate = ["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER"].includes(
     session?.user?.role
   );
+  const isProgramCertificate = Boolean(achievement?.program);
   const certificateActive =
     isActiveCertificateRecord(achievement) &&
-    Boolean(achievement?.event?.resultsPublished);
+    Boolean(
+      isProgramCertificate
+        ? achievement.program?.certificatesPublishedAt
+        : achievement?.event?.resultsPublished
+    );
 
   if (
     !achievement ||
@@ -97,7 +128,11 @@ export default async function CertificatePage({ params, searchParams }) {
     notFound();
   }
 
-  if (!canViewCertificate({ achievement, session })) {
+  if (
+    isProgramCertificate
+      ? !(await canViewProgramCertificate({ achievement, session }))
+      : !canViewCertificate({ achievement, session })
+  ) {
     notFound();
   }
 
@@ -107,7 +142,8 @@ export default async function CertificatePage({ params, searchParams }) {
   const isTeamCertificate =
     String(achievement.event?.participationFormat || "INDIVIDUAL").toUpperCase() ===
       "TEAM" || Boolean(achievement.teamName);
-  const eventTitle = achievement.event?.title || achievement.title || "Event";
+  const eventTitle =
+    achievement.program?.title || achievement.event?.title || achievement.title || "Event";
   const teamLabel =
     achievement.teamName || achievement.certificateRecipientName || "School Team";
 

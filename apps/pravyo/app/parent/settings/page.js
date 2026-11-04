@@ -20,7 +20,7 @@ export default function ParentSettingsPage() {
 
   const signOutSecurely = async () => {
     await detachCurrentParentPushDevice().catch(() => {});
-    await signOut({ callbackUrl: "/parent/login" });
+    await signOut({ callbackUrl: "/login" });
   };
 
   return (

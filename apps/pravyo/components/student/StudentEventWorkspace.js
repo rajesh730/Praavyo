@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect } from "react";
 import StudentEventsManager from "@/components/events/StudentEventsManager";
+import StudentPrograms from "@/components/programs/StudentPrograms";
 import StudentQuickNav from "@/components/student/StudentQuickNav";
 import StudentNotificationCenter from "@/components/student/StudentNotificationCenter";
 import useWorkIndicators from "@/lib/client/useWorkIndicators";
@@ -69,6 +70,8 @@ export default function StudentEventWorkspace() {
           </div>
           <StudentNotificationCenter />
         </div>
+
+        <StudentPrograms />
 
         <StudentEventsManager />
     </div>

@@ -6,6 +6,7 @@ import EmptyState from "@/components/EmptyState";
 import LoadingState from "@/components/ui/LoadingState";
 import SchoolAnalytics from "@/components/school/SchoolAnalytics";
 import AppDate from "@/components/common/AppDate";
+import UpcomingPrograms from "@/components/programs/UpcomingPrograms";
 
 function getCount(map = {}, key) {
   return Number(map?.[key] || 0);
@@ -157,6 +158,7 @@ export default function DashboardOverview() {
 
   return (
     <section className="space-y-4">
+      <UpcomingPrograms manageHref="/school/dashboard?tab=school-events" />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <MetricCard
           icon={FaUserGraduate}

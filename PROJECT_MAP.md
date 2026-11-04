@@ -82,6 +82,16 @@ Auth: `packages/auth/authOptions.js` — one credentials setup, JWT session,
   routes; `lib/event*.js`): rounds, participation requests, invitations,
   capacity locks, results, certificates (`lib/certificates.js`,
   `components/certificates/CertificateSheet.js`).
+- **Performance programs** (since 2026-11-04) — school events with no
+  competition (Dashain, Tihar): program → performances (solo/group) →
+  students. School Events opens on a Competition / Performance program choice.
+  Students, assigned teachers or the school add names; the school locks the
+  list; school or assigned teacher ticks who performed; the school publishes
+  and each PERFORMED student gets a private participation `Achievement`
+  (`program` set, `isPublic: false`) seen by the student, their linked
+  guardians and school staff. Unpublish deletes them. `models/PerformanceProgram.js`,
+  `lib/performancePrograms.js`, `app/api/programs/*`, `app/api/student/programs`,
+  `components/programs/*`. Stamped with the academic year.
 - **Student writing / magazines** — writings, school & global walls, magazine
   issues, provenance and tags.
 - **Guardians / parent app** — guardian roster, access cards with QR

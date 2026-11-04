@@ -63,6 +63,27 @@ const AchievementSchema = new mongoose.Schema(
       ref: "Event",
       default: null,
     },
+    // Participation certificates from a performance program (no competition).
+    // Set instead of `event`; see models/PerformanceProgram.js.
+    program: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "PerformanceProgram",
+      default: null,
+    },
+    performanceId: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: null,
+    },
+    performanceTitle: {
+      type: String,
+      default: "",
+      trim: true,
+    },
+    performanceType: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     title: {
       type: String,
       required: [true, "Please provide an achievement title"],
@@ -164,6 +185,7 @@ AchievementSchema.pre("validate", function () {
 AchievementSchema.index({ school: 1, awardedAt: -1 });
 AchievementSchema.index({ student: 1, awardedAt: -1 });
 AchievementSchema.index({ event: 1, placement: 1, awardedAt: -1 });
+AchievementSchema.index({ program: 1, student: 1 });
 AchievementSchema.index({ isPublic: 1, awardedAt: -1 });
 AchievementSchema.index({ school: 1, isPublic: 1, awardedAt: -1 });
 AchievementSchema.index(
@@ -181,7 +203,8 @@ const existingAchievementModel = mongoose.models.Achievement;
 if (
   existingAchievementModel &&
   (!existingAchievementModel.schema.path("recipientType") ||
-    !existingAchievementModel.schema.path("parentAchievement"))
+    !existingAchievementModel.schema.path("parentAchievement") ||
+    !existingAchievementModel.schema.path("program"))
 ) {
   delete mongoose.models.Achievement;
 }

@@ -8,6 +8,7 @@ import AppDate from "@/components/common/AppDate";
 import { ArrowRight as FaArrowRight, CircleCheck as FaCheckCircle, Shield as FaShieldAlt, CircleX as FaTimesCircle } from "lucide-react";
 import "@/models/Event";
 import "@/models/Student";
+import "@/models/PerformanceProgram";
 
 export const dynamic = "force-dynamic";
 
@@ -28,14 +29,18 @@ async function verifyCode(rawCode) {
     ...getActiveCertificateFilter(),
   })
     .select(
-      "certificateCode certificateUrl certificateIssuedAt placement title recipientType teamName certificateRecipientName"
+      "certificateCode certificateUrl certificateIssuedAt placement title recipientType teamName certificateRecipientName performanceTitle"
     )
     .populate("student", "name grade")
     .populate("school", "schoolName")
     .populate("event", "title date resultsPublished")
+    .populate("program", "title certificatesPublishedAt")
     .lean();
 
-  if (!achievement || !achievement.event?.resultsPublished) {
+  const published = achievement?.program
+    ? Boolean(achievement.program.certificatesPublishedAt)
+    : Boolean(achievement?.event?.resultsPublished);
+  if (!achievement || !published) {
     return { state: "INVALID", code };
   }
 
@@ -50,9 +55,11 @@ async function verifyCode(rawCode) {
     code,
     certificate: {
       recipient,
-      placement: formatPlacementLabel(achievement.placement),
+      placement: achievement.program
+        ? `Performer · ${achievement.performanceTitle || "Performance"}`
+        : formatPlacementLabel(achievement.placement),
       isTeam: String(achievement.recipientType || "STUDENT").toUpperCase() === "TEAM",
-      event: achievement.event?.title || achievement.title || "Event",
+      event: achievement.program?.title || achievement.event?.title || achievement.title || "Event",
       school: achievement.school?.schoolName || "School",
       issuedAt: achievement.certificateIssuedAt,
       certificateUrl: achievement.certificateUrl || "",
