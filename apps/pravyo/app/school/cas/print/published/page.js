@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/authOptions';
 import { getActor } from '@pravyo/cas/lib/casAccess';
 import { loadReport } from '@pravyo/cas/lib/casReportService';
 import ReportCard from '@pravyo/cas/components/report/ReportCard';
+import A4Viewport from '@pravyo/cas/components/report/A4Viewport';
 import ResultsPrintToolbar from '../results/ResultsPrintToolbar';
 
 export const dynamic = 'force-dynamic';
@@ -50,7 +51,7 @@ export default async function PublishedResultsPage({ searchParams }) {
         </p>
       )}
       {reports.map((report) => (
-        <ReportCard key={report.id} report={report} lang={lang} format={format} />
+        <A4Viewport key={report.id}><ReportCard report={report} lang={lang} format={format} /></A4Viewport>
       ))}
     </main>
   );

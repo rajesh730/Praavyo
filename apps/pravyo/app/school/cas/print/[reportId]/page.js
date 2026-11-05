@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/authOptions';
 import { getActor } from '@pravyo/cas/lib/casAccess';
 import { loadReport } from '@pravyo/cas/lib/casReportService';
 import ReportCard from '@pravyo/cas/components/report/ReportCard';
+import A4Viewport from '@pravyo/cas/components/report/A4Viewport';
 import PrintToolbar from './PrintToolbar';
 
 export const dynamic = 'force-dynamic';
@@ -36,7 +37,7 @@ export default async function PrintReportPage({ params, searchParams }) {
   return (
     <main className={lang === 'ne' ? 'cas-ne' : undefined}>
       <PrintToolbar reportId={reportId} lang={lang} status={report.status} />
-      <ReportCard report={report} lang={lang} />
+      <A4Viewport><ReportCard report={report} lang={lang} /></A4Viewport>
     </main>
   );
 }

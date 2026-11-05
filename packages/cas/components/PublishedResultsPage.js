@@ -2,14 +2,15 @@
 
 import { useState } from 'react';
 import { useRememberedState } from '@pravyo/ui/rememberedState';
-import { Download as FaDownload, Printer as FaPrint, Search as FaSearch, Trash2 as FaTrash } from 'lucide-react';
+import { Download as FaDownload, Printer as FaPrint, Search as FaSearch } from 'lucide-react';
 import { useCas } from './CasLayout.js';
-import { useCasMutation, useCasQuery } from '../lib/client/useCas.js';
+import { useCasQuery } from '../lib/client/useCas.js';
 import { downloadPdfFromPage } from '../lib/client/pdfDownload.js';
 import { sectionsForGrade } from '../lib/casSections.js';
 import ReportCard from './report/ReportCard.js';
+import A4Viewport from './report/A4Viewport.js';
 import {
-  PageHeader, Card, Button, EmptyState, Field, Input, Select, Spinner, Alert,
+  PageHeader, Card, Button, EmptyState, Field, Input, Select, Spinner,
 } from './ui/Kit.js';
 
 // CAS results are always drawn in the Classic layout, whatever format an
@@ -62,32 +63,7 @@ export default function PublishedResultsPage() {
       : null,
   );
   const reports = reportsQuery.data || [];
-  const { run, pending, error, success } = useCasMutation();
   const examOptions = examsQuery.data?.exams || [];
-  const examName = exam === WHOLE_YEAR
-    ? 'Whole year (final result)'
-    : examOptions.find((item) => item.id === exam)?.name || '';
-
-  /**
-   * Unpublish is all-or-nothing for an exam in a grade: every section and
-   * every student, and it DELETES the cards. Publishing the exam again from
-   * Student Result builds them afresh.
-   */
-  async function unpublishExam() {
-    if (!exam || !academicYear?.id) return;
-    if (!window.confirm(
-      `Unpublish ${examName} for ${grade}?
-
-` +
-      'Every report card of this exam in this grade is deleted — all sections, all students. ' +
-      'Students and parents stop seeing it straight away. To show it again, publish the exam again from Student Result.',
-    )) return;
-    const result = await run('/api/cas/results/unpublish', {
-      method: 'POST',
-      body: { academicYear: academicYear.id, grade, exam },
-    }, { successMessage: `${examName} unpublished for ${grade}.` });
-    if (result.ok) reportsQuery.reload();
-  }
 
   async function download(list, key) {
     setDownloading(key);
@@ -115,22 +91,13 @@ export default function PublishedResultsPage() {
       <div className="cas-print-hide">
         <PageHeader
           title="Published Results"
-          description="Published report cards are shown below. Use filters to narrow the cards before reviewing or printing them."
           actions={
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-nowrap gap-2">
               <Button variant="secondary" disabled={!reports.length} onClick={() => window.print()}>
                 <FaPrint className="text-xs" /> Print shown ({reports.length})
               </Button>
               <Button disabled={!reports.length || Boolean(downloading)} onClick={() => download(reports, 'all')}>
                 <FaDownload className="text-xs" /> {downloading === 'all' ? 'Preparing PDF...' : `Download PDF (${reports.length})`}
-              </Button>
-              <Button
-                variant="danger"
-                disabled={pending || !exam || !reports.length}
-                title={exam ? '' : 'Choose an exam to unpublish'}
-                onClick={unpublishExam}
-              >
-                <FaTrash className="text-xs" /> {pending ? 'Unpublishing...' : 'Unpublish exam'}
               </Button>
             </div>
           }
@@ -175,8 +142,6 @@ export default function PublishedResultsPage() {
             </Field>
           </div>
         </Card>
-        <Alert tone="danger">{error}</Alert>
-        <Alert tone="success">{success}</Alert>
       </div>
 
       {reportsQuery.loading ? <Card><Spinner label="Loading published report cards..." /></Card>
@@ -198,7 +163,8 @@ export default function PublishedResultsPage() {
                     </div>
                   </div>
                   {showAssessedThemes && <div className="cas-print-hide mx-auto mb-3 max-w-[210mm]"><Card title="Assessed themes">{themeSummary(report.snapshot?.selectedThemes)}</Card></div>}
-                  <ReportCard report={report} lang={lang} format={format || undefined} />
+                  {/* True A4 on every screen; a phone shows it shrunk, not reflowed. */}
+                  <A4Viewport><ReportCard report={report} lang={lang} format={format || undefined} /></A4Viewport>
                 </article>
               ))}
             </section>}

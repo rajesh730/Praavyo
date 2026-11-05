@@ -7,6 +7,7 @@ import { useCasMutation, useCasQuery } from '../lib/client/useCas.js';
 import { downloadSheets } from '../lib/client/pdfDownload.js';
 import { Alert, Badge, Button, Card, EmptyState, PageHeader, Spinner } from './ui/Kit.js';
 import InternalExamReport from './report/InternalExamReport.js';
+import A4Viewport from './report/A4Viewport.js';
 import { InternalExamFilterBar, useInternalExamFilters } from './InternalExamFilters.js';
 
 /**
@@ -106,7 +107,7 @@ export default function InternalResultsPage() {
             <div ref={sheetsRef} className={`space-y-6 ${lang === 'ne' ? 'cas-ne' : ''}`}>
               {cards.map((card) => (
                 <div key={card._id} className="mx-auto max-w-[210mm]">
-                  <InternalExamReport report={card} lang={lang} />
+                  <A4Viewport><InternalExamReport report={card} lang={lang} /></A4Viewport>
                 </div>
               ))}
             </div>

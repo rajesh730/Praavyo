@@ -4,6 +4,7 @@ import { authOptions } from '@/lib/authOptions';
 import { getActor } from '@pravyo/cas/lib/casAccess';
 import { loadGradeReportCards } from '@pravyo/cas/lib/casReportService';
 import ReportCard from '@pravyo/cas/components/report/ReportCard';
+import A4Viewport from '@pravyo/cas/components/report/A4Viewport';
 import ResultsPrintToolbar from './ResultsPrintToolbar';
 
 export const dynamic = 'force-dynamic';
@@ -68,7 +69,7 @@ export default async function PrintResultsPage({ searchParams }) {
       {/* Student Result's chosen format applies to published cards as well;
           ReportCard ignores an unknown value. */}
       {cards.map((student) => (
-        <ReportCard key={student.id} report={student.report} lang={lang} format={query?.format} />
+        <A4Viewport key={student.id}><ReportCard report={student.report} lang={lang} format={query?.format} /></A4Viewport>
       ))}
     </main>
   );

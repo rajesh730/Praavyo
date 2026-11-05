@@ -12,6 +12,7 @@ import { downloadPdfFromPage } from '../lib/client/pdfDownload.js';
 import {
   PageHeader, Card, Button, Field, Select, Alert, Spinner, EmptyState,
 } from './ui/Kit.js';
+import A4Viewport from './report/A4Viewport.js';
 import ReportCard, {
   REPORT_FORMATS,
   DEFAULT_REPORT_FORMAT,
@@ -637,7 +638,7 @@ function StudentCard({ student, lang, t, selected, onSelect, showWorking, onTogg
             <div className="cas-result-card-sheet">
               {/* The chosen format, published or not: both layouts read the
                   same snapshot, so this never changes the stored result. */}
-              <ReportCard report={report} lang={lang} format={format} />
+              <A4Viewport><ReportCard report={report} lang={lang} format={format} /></A4Viewport>
             </div>
           )}
         </>
