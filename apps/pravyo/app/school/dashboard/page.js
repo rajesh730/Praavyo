@@ -13,6 +13,7 @@ import AlertBanner from "@/components/ui/AlertBanner";
 import LoadingState from "@/components/ui/LoadingState";
 import PageHeader from "@/components/ui/PageHeader";
 import AuthenticatedPublicLinkGuard from "@/components/AuthenticatedPublicLinkGuard";
+import PlatformEventsKindSwitch from "@/components/trainings/PlatformEventsKindSwitch";
 
 const StudentManager = dynamic(
   () => import("@/components/dashboard/StudentManager"),
@@ -55,6 +56,23 @@ const SchoolFeedbackInbox = dynamic(
   {
     loading: () => (
       <LoadingState title="Loading feedback" message="Collecting what students and parents sent." />
+    ),
+  }
+);
+const SchoolTrainings = dynamic(
+  () => import("@/components/trainings/SchoolTrainings"),
+  {
+    loading: () => (
+      <LoadingState title="Loading trainings" message="Preparing Praavyo trainings for your school." />
+    ),
+  }
+);
+// Questions visitors send from the school's public page.
+const SchoolInquiryInbox = dynamic(
+  () => import("@/components/school/SchoolInquiryInbox"),
+  {
+    loading: () => (
+      <LoadingState title="Loading inquiries" message="Collecting questions from your public page." />
     ),
   }
 );
@@ -318,6 +336,7 @@ function SchoolDashboardContent() {
             {activeTab === "teachers" && <TeacherManager />}
             {activeTab === "showcase" && <ShowcaseProfileManager />}
             {activeTab === "feedback" && <SchoolFeedbackInbox />}
+            {activeTab === "inquiries" && <SchoolInquiryInbox />}
             {activeTab === "praavyo-feedback" && <FeedbackForm audience="school" />}
             {activeTab === "register-student" && (
               <EnhancedStudentRegistration
@@ -335,7 +354,13 @@ function SchoolDashboardContent() {
             {activeTab === "history" && <SchoolSettingsHistory />}
 
             {activeTab === "school-events" && <SchoolEventWorkspace />}
-            {activeTab === "platform-events" && <PlatformEventsManager />}
+            {activeTab === "platform-events" && (
+              <PlatformEventsKindSwitch
+                storageKey="school:platform-events:kind"
+                competitions={<PlatformEventsManager />}
+                trainings={<SchoolTrainings />}
+              />
+            )}
             {activeTab === "student-notices" && <StudentNoticeManager />}
             {activeTab === "notices" && <SchoolNoticeBoard />}
             {activeTab === "magazine" && <SchoolMagazineManager />}

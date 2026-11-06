@@ -410,7 +410,15 @@ export default async function CertificateSheet({ achievement }) {
   // A performance-program certificate (Dashain Program, …) has no event: it
   // is always a school certificate for one performance.
   const program = achievement.program || null;
-  const ownershipType = program ? "SCHOOL_EVENT" : resolveEventOwnership(achievement.event);
+  // A Praavyo training certificate: Praavyo trained at the school, so it is
+  // led by Praavyo with the school's logo beside it, like a platform event.
+  const training = achievement.training || null;
+  const isTeacherRecipient = String(achievement.recipientType || "").toUpperCase() === "TEACHER";
+  const ownershipType = training
+    ? "PLATFORM_EVENT"
+    : program
+      ? "SCHOOL_EVENT"
+      : resolveEventOwnership(achievement.event);
   const isPlatformEvent = ownershipType === "PLATFORM_EVENT";
 
   const isParticipantCertificate = achievement.placement === "PARTICIPANT";
@@ -421,7 +429,7 @@ export default async function CertificateSheet({ achievement }) {
   const placementUpper = formatPlacementLabel(achievement.placement); // e.g. FINALIST
   const placementTitle = toTitleCase(placementUpper); // e.g. Finalist
   const eventTitle =
-    program?.title || achievement.event?.title || achievement.title || "Event";
+    training?.title || program?.title || achievement.event?.title || achievement.title || "Event";
   const performanceTitle = achievement.performanceTitle || "";
   const schoolName = achievement.school?.schoolName || "Participating School";
 
@@ -433,13 +441,15 @@ export default async function CertificateSheet({ achievement }) {
   const teamLabel =
     achievement.teamName || achievement.certificateRecipientName || "School Team";
 
-  const recipientMeta = isTeamCertificate
-    ? achievement.captainStudent?.name
-      ? `Captain: ${achievement.captainStudent.name}`
-      : ""
-    : achievement.student?.grade || "";
+  const recipientMeta = isTeacherRecipient
+    ? "Teacher"
+    : isTeamCertificate
+      ? achievement.captainStudent?.name
+        ? `Captain: ${achievement.captainStudent.name}`
+        : ""
+      : achievement.student?.grade || "";
 
-  const schoolLine = isPlatformEvent ? "Associated School" : "School";
+  const schoolLine = training ? "School" : isPlatformEvent ? "Associated School" : "School";
 
   // Header logos: platform events lead with Pravyo, school events lead with school.
   // Rendered directly (not via PravyoLogo) so the certificate controls the
@@ -472,7 +482,9 @@ export default async function CertificateSheet({ achievement }) {
     ? [pravyoMark, schoolMark]
     : [schoolMark, pravyoMark];
 
-  const badgeLabel = program
+  const badgeLabel = training
+    ? "Participant"
+    : program
     ? "Performer"
     : isParticipantCertificate
       ? "Participant"
@@ -527,7 +539,7 @@ export default async function CertificateSheet({ achievement }) {
               <p
                 className={`${displaySerif.className} text-sm font-semibold tracking-[0.32em] text-[#16345f]`}
               >
-                {program ? "OF PARTICIPATION" : "OF ACHIEVEMENT"}
+                {program || training ? "OF PARTICIPATION" : "OF ACHIEVEMENT"}
               </p>
               <span className="h-px w-20" style={{ background: GOLD }} />
             </div>
@@ -573,7 +585,15 @@ export default async function CertificateSheet({ achievement }) {
           <p
             className={`${bodySerif.className} mx-auto mt-4 max-w-lg text-[15px] leading-7 text-[#344054]`}
           >
-            {program ? (
+            {training ? (
+              <>
+                for successfully participating in the training{" "}
+                <span className="font-semibold text-[#9c6b0a]">‘{eventTitle}’</span>
+                {training.duration ? ` (${training.duration})` : ""}, conducted by Praavyo at{" "}
+                <span className="font-semibold text-[#10142f]">{schoolName}</span>, in
+                recognition of the commitment to learning and growth.
+              </>
+            ) : program ? (
               <>
                 for performing{" "}
                 <span className="font-semibold text-[#10142f]">‘{performanceTitle || "a performance"}’</span>
@@ -617,13 +637,15 @@ export default async function CertificateSheet({ achievement }) {
           {/* details row */}
           <div className="grid w-full max-w-xl grid-cols-4 divide-x divide-[#e3cf96] border-t border-[#e3cf96] pt-4">
             <MetaItem
-              label={program ? "Program Date" : "Event Date"}
-              value={<AppDate value={program?.date || achievement.event?.date} />}
+              label={training ? "Training Date" : program ? "Program Date" : "Event Date"}
+              value={<AppDate value={training ? achievement.awardedAt : program?.date || achievement.event?.date} />}
             />
             <MetaItem
-              label={program ? "Performance" : "Position"}
+              label={training ? "Duration" : program ? "Performance" : "Position"}
               value={
-                program
+                training
+                  ? training.duration || "Training"
+                  : program
                   ? achievement.performanceType === "GROUP"
                     ? "Group"
                     : "Solo"

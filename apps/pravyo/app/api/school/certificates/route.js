@@ -9,6 +9,7 @@ import User from "@/models/User";
 import "@/models/Student";
 import "@/models/Event";
 import "@/models/PerformanceProgram";
+import "@/models/Training";
 
 export const dynamic = "force-dynamic";
 
@@ -38,13 +39,14 @@ export async function GET() {
       User.findById(session.user.id).select("calendarPreference").lean(),
       Achievement.find({ school: session.user.id, ...getActiveCertificateFilter() })
         .select(
-          "student captainStudent parentAchievement teamName recipientType certificateRecipientName event program performanceTitle title placement certificateIssuedAt awardedAt certificateCode certificateUrl"
+          "student teacher captainStudent parentAchievement teamName recipientType certificateRecipientName event program training performanceTitle title placement certificateIssuedAt awardedAt certificateCode certificateUrl"
         )
         .populate("parentAchievement", "certificateRecipientName teamName recipientType")
         .populate("captainStudent", "name grade section")
         .populate("student", "name grade section rollNumber")
         .populate("event", "title date eventType academicYearStart")
         .populate("program", "title date academicYearStart")
+        .populate("training", "title")
         .sort({ certificateIssuedAt: -1 })
         .lean(),
     ]);
@@ -54,7 +56,11 @@ export async function GET() {
       calendar === "BS" ? `${bsAcademicYearLabel(start)} BS` : `${start}-${String((start + 1) % 100).padStart(2, "0")}`;
 
     const rows = certificates.map((c) => {
-      const source = c.program || c.event || null;
+      // A training has no date of its own; the certificate's awardedAt is the
+      // day Praavyo trained at this school.
+      const source = c.training
+        ? { _id: c.training._id, title: c.training.title, date: c.awardedAt }
+        : c.program || c.event || null;
       const issued = c.certificateIssuedAt || c.awardedAt || null;
       let yearStart = Number.isFinite(source?.academicYearStart) ? source.academicYearStart : null;
       if (yearStart === null) {
@@ -74,9 +80,9 @@ export async function GET() {
           person?.name ||
           "School recipient",
         isTeam,
-        grade: person?.grade || "",
+        grade: person?.grade || (String(c.recipientType).toUpperCase() === "TEACHER" ? "Teacher" : ""),
         section: person?.section || "",
-        kind: c.program ? "PROGRAM" : "COMPETITION",
+        kind: c.training ? "TRAINING" : c.program ? "PROGRAM" : "COMPETITION",
         sourceId: source ? String(source._id) : "",
         sourceTitle: source?.title || c.title || "Certificate",
         performanceTitle: c.performanceTitle || "",

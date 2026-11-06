@@ -9,6 +9,7 @@ import SchoolMagazineArticle from "@/models/SchoolMagazineArticle";
 import MagazineIssue from "@/models/MagazineIssue";
 import UserSurfaceSeenState from "@/models/UserSurfaceSeenState";
 import Feedback from "@/models/Feedback";
+import SchoolInquiry from "@/models/SchoolInquiry";
 import { getSchoolNotificationPayload } from "@/lib/schoolNotifications";
 import { getStudentNotificationPayload } from "@/lib/studentNotifications";
 import { getEventWorkflowStatus } from "@/lib/eventWorkflow";
@@ -145,6 +146,7 @@ async function getSchoolAdminIndicators(session) {
     newEventInvitations,
     newEventRegistrations,
     newEventResults,
+    newInquiries,
   ] = await Promise.all([
     SchoolMagazineArticle.countDocuments({
       school: { $in: schoolIds },
@@ -199,8 +201,13 @@ async function getSchoolAdminIndicators(session) {
     }),
     Achievement.countDocuments({
       school: { $in: schoolIds },
+      // Praavyo training certificates are not event results. (`null` also
+      // matches older certificates that have no training field at all.)
+      training: null,
       awardedAt: { $gt: resultsSeenAt },
     }),
+    // Must stay the last count: the seen-state writes are spread after it.
+    SchoolInquiry.countDocuments({ school: { $in: schoolIds }, status: "NEW" }),
     ...seenBaselineInserts,
   ]);
 
@@ -224,6 +231,10 @@ async function getSchoolAdminIndicators(session) {
     label: `${magazineReview} new student post${
       magazineReview === 1 ? "" : "s"
     } on the school wall`,
+  });
+  addIndicator(indicators, "school.inquiries", newInquiries, {
+    tone: "new",
+    label: `${newInquiries} new inquir${newInquiries === 1 ? "y" : "ies"} from your public page`,
   });
   addIndicator(indicators, "school.studentTransfers", pendingTransfers, {
     label: `${pendingTransfers} student transfer${
@@ -336,6 +347,7 @@ async function getStudentIndicators(session) {
       }),
       Achievement.countDocuments({
         student: student._id,
+        training: null,
         awardedAt: { $gt: eventResultsSeenAt },
       }),
       baselineWrite,

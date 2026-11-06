@@ -12,6 +12,7 @@ import PublicSiteNav from "@/components/public/PublicSiteNav";
 import PublicExplorePanel from "@/components/public/PublicExplorePanel";
 import PublicShareButton from "@/components/public/PublicShareButton";
 import ExpandableStoryText from "@/components/public/ExpandableStoryText";
+import SchoolInquiryForm from "@/components/public/SchoolInquiryForm";
 import { stripWritingMarkup } from "@/components/WritingContent";
 import {
   serializeWritingImage,
@@ -591,6 +592,12 @@ export default async function PublicSchoolPage({ params }) {
         <div className="min-w-0 space-y-4">
         <div className="flex flex-wrap items-center justify-end gap-3 text-xs font-semibold text-muted">
           <div className="flex gap-2">
+            <a
+              href="#inquiry"
+              className="inline-flex items-center gap-2 rounded-control bg-brand px-3 py-2 text-white transition-colors hover:bg-brand-strong"
+            >
+              <FaEnvelope aria-hidden /> Send inquiry
+            </a>
             <PublicShareButton
               href={`/schools/${school._id}`}
               title={school.schoolName}
@@ -783,6 +790,24 @@ export default async function PublicSchoolPage({ params }) {
             />
           </aside>
         </div>
+
+        <section
+          id="inquiry"
+          className="scroll-mt-28 relative left-1/2 w-screen -translate-x-1/2 border border-line-strong bg-surface p-4 shadow-card sm:left-auto sm:w-auto sm:translate-x-0 sm:rounded-card sm:p-5"
+        >
+          <div className="mb-4 flex items-start gap-3">
+            <span className="grid h-10 w-10 shrink-0 place-items-center rounded-control bg-brand-soft text-brand-strong">
+              <FaEnvelope aria-hidden />
+            </span>
+            <div>
+              <h2 className="text-lg font-semibold text-ink">Send an inquiry</h2>
+              <p className="mt-0.5 text-sm text-muted">
+                Questions about admission, fees or activities? Write to {school.schoolName} directly — they reply by email or phone.
+              </p>
+            </div>
+          </div>
+          <SchoolInquiryForm schoolId={String(school._id)} schoolName={school.schoolName} />
+        </section>
 
         <section
           id="writings"

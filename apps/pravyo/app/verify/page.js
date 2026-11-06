@@ -9,6 +9,7 @@ import { ArrowRight as FaArrowRight, CircleCheck as FaCheckCircle, Shield as FaS
 import "@/models/Event";
 import "@/models/Student";
 import "@/models/PerformanceProgram";
+import "@/models/Training";
 
 export const dynamic = "force-dynamic";
 
@@ -35,11 +36,16 @@ async function verifyCode(rawCode) {
     .populate("school", "schoolName")
     .populate("event", "title date resultsPublished")
     .populate("program", "title certificatesPublishedAt")
+    .populate("training", "title")
     .lean();
 
-  const published = achievement?.program
-    ? Boolean(achievement.program.certificatesPublishedAt)
-    : Boolean(achievement?.event?.resultsPublished);
+  // A training certificate exists only once Praavyo completed the school's
+  // training, so its being active is enough.
+  const published = achievement?.training
+    ? true
+    : achievement?.program
+      ? Boolean(achievement.program.certificatesPublishedAt)
+      : Boolean(achievement?.event?.resultsPublished);
   if (!achievement || !published) {
     return { state: "INVALID", code };
   }
@@ -55,11 +61,13 @@ async function verifyCode(rawCode) {
     code,
     certificate: {
       recipient,
-      placement: achievement.program
-        ? `Performer · ${achievement.performanceTitle || "Performance"}`
-        : formatPlacementLabel(achievement.placement),
+      placement: achievement.training
+        ? `Training participant${String(achievement.recipientType).toUpperCase() === "TEACHER" ? " · Teacher" : ""}`
+        : achievement.program
+          ? `Performer · ${achievement.performanceTitle || "Performance"}`
+          : formatPlacementLabel(achievement.placement),
       isTeam: String(achievement.recipientType || "STUDENT").toUpperCase() === "TEAM",
-      event: achievement.program?.title || achievement.event?.title || achievement.title || "Event",
+      event: achievement.training?.title || achievement.program?.title || achievement.event?.title || achievement.title || "Event",
       school: achievement.school?.schoolName || "School",
       issuedAt: achievement.certificateIssuedAt,
       certificateUrl: achievement.certificateUrl || "",

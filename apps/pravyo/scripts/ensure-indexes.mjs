@@ -18,6 +18,9 @@ import SchoolConfig from "../models/SchoolConfig.js";
 import SchoolMagazineArticle from "../models/SchoolMagazineArticle.js";
 import SchoolPromotion from "../models/SchoolPromotion.js";
 import SchoolShowcaseProfile from "../models/SchoolShowcaseProfile.js";
+import SchoolInquiry from "../models/SchoolInquiry.js";
+import Training from "../models/Training.js";
+import TrainingRegistration from "../models/TrainingRegistration.js";
 import Student from "../models/Student.js";
 import Teacher from "../models/Teacher.js";
 import User from "../models/User.js";
@@ -46,6 +49,9 @@ const models = [
   SchoolMagazineArticle,
   SchoolPromotion,
   SchoolShowcaseProfile,
+  SchoolInquiry,
+  Training,
+  TrainingRegistration,
   Student,
   Teacher,
   User,

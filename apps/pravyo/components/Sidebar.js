@@ -22,6 +22,7 @@ const HREF_INDICATOR_KEYS = {
   "/school/dashboard?tab=student-notices": "school.studentNotices",
   "/school/dashboard?tab=notices": "school.receivedNotices",
   "/school/dashboard?tab=magazine": "school.magazine",
+  "/school/dashboard?tab=inquiries": "school.inquiries",
   "/student/events": "student.events",
   "/student/notices": "student.notices",
   "/student/school-wall": "student.schoolWall",

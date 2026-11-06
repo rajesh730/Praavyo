@@ -40,8 +40,15 @@ const AchievementSchema = new mongoose.Schema(
     },
     recipientType: {
       type: String,
-      enum: ["STUDENT", "TEAM"],
+      // TEACHER: a Praavyo training certificate for a teacher (`teacher` set,
+      // `student` null). Only trainings issue these.
+      enum: ["STUDENT", "TEAM", "TEACHER"],
       default: "STUDENT",
+    },
+    teacher: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Teacher",
+      default: null,
     },
     teamName: {
       type: String,
@@ -68,6 +75,19 @@ const AchievementSchema = new mongoose.Schema(
     program: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "PerformanceProgram",
+      default: null,
+    },
+    // Participation certificates from a Praavyo training (no competition),
+    // issued per school when that school's registration is completed.
+    // See models/Training.js and models/TrainingRegistration.js.
+    training: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Training",
+      default: null,
+    },
+    trainingRegistration: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "TrainingRegistration",
       default: null,
     },
     performanceId: {
@@ -186,6 +206,8 @@ AchievementSchema.index({ school: 1, awardedAt: -1 });
 AchievementSchema.index({ student: 1, awardedAt: -1 });
 AchievementSchema.index({ event: 1, placement: 1, awardedAt: -1 });
 AchievementSchema.index({ program: 1, student: 1 });
+AchievementSchema.index({ trainingRegistration: 1 });
+AchievementSchema.index({ teacher: 1, awardedAt: -1 });
 AchievementSchema.index({ isPublic: 1, awardedAt: -1 });
 AchievementSchema.index({ school: 1, isPublic: 1, awardedAt: -1 });
 AchievementSchema.index(
@@ -204,7 +226,8 @@ if (
   existingAchievementModel &&
   (!existingAchievementModel.schema.path("recipientType") ||
     !existingAchievementModel.schema.path("parentAchievement") ||
-    !existingAchievementModel.schema.path("program"))
+    !existingAchievementModel.schema.path("program") ||
+    !existingAchievementModel.schema.path("training"))
 ) {
   delete mongoose.models.Achievement;
 }

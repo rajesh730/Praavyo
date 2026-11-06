@@ -14,6 +14,8 @@ import LoadingState from "@/components/ui/LoadingState";
 import EmptyState from "@/components/EmptyState";
 import SendEventForm from "./SendEventForm";
 import EventCard from "./EventCard";
+import PlatformEventsKindSwitch from "@/components/trainings/PlatformEventsKindSwitch";
+import AdminTrainingsManager from "@/components/trainings/AdminTrainingsManager";
 
 import { Ban as FaBan, CalendarDays as FaCalendarAlt, Circle as FaCircle, ToggleRight as FaToggleOn, ToggleLeft as FaToggleOff, CircleCheck as FaCheckCircle, CircleX as FaTimesCircle, ListFilter as FaFilter, KeyRound as FaKey, Layers as FaLayerGroup, Plus as FaPlus, Search as FaSearch, Users as FaUsers } from "lucide-react";
 import {
@@ -878,6 +880,10 @@ function AdminDashboardContent() {
       {activeTab === "spotlight" && <SchoolPromotionManager />}
 
       {activeTab === "events" && (
+        <PlatformEventsKindSwitch
+          storageKey="admin:platform-events:kind"
+          trainings={<AdminTrainingsManager />}
+          competitions={
         <div className="space-y-4">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -1087,6 +1093,8 @@ function AdminDashboardContent() {
             </>
           )}
         </div>
+          }
+        />
       )}
 
       {/* Edit Event Modal */}

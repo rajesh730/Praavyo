@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ChevronRight, Repeat, School } from 'lucide-react';
 import AppDate from '@/components/common/AppDate';
+import TeacherCertificates from './TeacherCertificates';
 import { gradeSummaries, openMarkEntry, resultSummary } from './shared';
 
 /** The landing tab: where I work, what is waiting, what was just published. */
@@ -65,6 +66,8 @@ export default function OverviewTab({ workspace }) {
           )}
         </section>
       </div>
+
+      <TeacherCertificates />
     </div>
   );
 }

@@ -10,6 +10,7 @@ import CertificateSheet from "@/components/certificates/CertificateSheet";
 import CertificateViewport from "@/components/certificates/CertificateViewport";
 import "@/models/Event";
 import "@/models/PerformanceProgram";
+import "@/models/Training";
 
 export const dynamic = "force-dynamic";
 
@@ -65,6 +66,7 @@ export default async function BulkCertificatePage({ searchParams }) {
         "title eventType eventOwnershipType date visibility participationFormat eventScope resultsPublished",
     })
     .populate("program", "title date venue certificatesPublishedAt")
+    .populate("training", "title duration audience")
     .lean();
 
   const visibleCertificates = certificates.filter((certificate) =>

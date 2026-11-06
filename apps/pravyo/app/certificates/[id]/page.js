@@ -13,6 +13,7 @@ import CertificateSheet, {
 import CertificateViewport from "@/components/certificates/CertificateViewport";
 import "@/models/Event";
 import "@/models/PerformanceProgram";
+import "@/models/Training";
 import ParentStudentLink from "@/models/ParentStudentLink";
 
 export const dynamic = "force-dynamic";
@@ -30,6 +31,7 @@ async function getCertificate(id) {
         "title eventType eventOwnershipType date visibility participationFormat eventScope resultsPublished",
     })
     .populate("program", "title date venue certificatesPublishedAt")
+    .populate("training", "title duration audience")
     .lean();
 
   if (!achievement?.school?._id) {
@@ -50,17 +52,22 @@ async function getCertificate(id) {
 
 /* ---------- access control ---------- */
 
-// Program (performance) certificates are private: the student, the student's
-// own linked guardians, and the school's staff. Never public.
+// Program (performance) and training certificates are private: the student
+// (or, for a training, the teacher) it was issued to, the student's own
+// linked guardians, and the school's staff. Never public.
 async function canViewProgramCertificate({ achievement, session }) {
   const role = session?.user?.role;
   const userId = String(session?.user?.id || "");
   const schoolId = String(achievement.school?._id || achievement.school || "");
   const studentId = String(achievement.student?._id || achievement.student || "");
+  const teacherId = String(achievement.teacher?._id || achievement.teacher || "");
 
   if (role === "SUPER_ADMIN") return true;
   if (role === "SCHOOL_ADMIN") return userId === schoolId;
-  if (role === "TEACHER") return String(session?.user?.schoolId || "") === schoolId;
+  if (role === "TEACHER") {
+    // A teacher keeps their own training certificate after moving school.
+    return (teacherId && userId === teacherId) || String(session?.user?.schoolId || "") === schoolId;
+  }
   if (role === "STUDENT") return userId === studentId;
   if (role === "PARENT" && studentId) {
     const link = await ParentStudentLink.exists({
@@ -112,13 +119,17 @@ export default async function CertificatePage({ params, searchParams }) {
   const canPreviewCertificate = ["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER"].includes(
     session?.user?.role
   );
-  const isProgramCertificate = Boolean(achievement?.program);
+  const isTrainingCertificate = Boolean(achievement?.training);
+  // Program and training certificates share the private access rule.
+  const isProgramCertificate = Boolean(achievement?.program) || isTrainingCertificate;
   const certificateActive =
     isActiveCertificateRecord(achievement) &&
     Boolean(
-      isProgramCertificate
-        ? achievement.program?.certificatesPublishedAt
-        : achievement?.event?.resultsPublished
+      isTrainingCertificate
+        ? true // issued only when Praavyo completes the school's training
+        : achievement?.program
+          ? achievement.program?.certificatesPublishedAt
+          : achievement?.event?.resultsPublished
     );
 
   if (
@@ -143,7 +154,7 @@ export default async function CertificatePage({ params, searchParams }) {
     String(achievement.event?.participationFormat || "INDIVIDUAL").toUpperCase() ===
       "TEAM" || Boolean(achievement.teamName);
   const eventTitle =
-    achievement.program?.title || achievement.event?.title || achievement.title || "Event";
+    achievement.training?.title || achievement.program?.title || achievement.event?.title || achievement.title || "Event";
   const teamLabel =
     achievement.teamName || achievement.certificateRecipientName || "School Team";
 

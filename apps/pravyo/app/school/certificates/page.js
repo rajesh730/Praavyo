@@ -30,7 +30,11 @@ const TYPES = [
   { id: "", label: "All types" },
   { id: "COMPETITION", label: "Competitions" },
   { id: "PROGRAM", label: "Performance programs" },
+  { id: "TRAINING", label: "Praavyo trainings" },
 ];
+
+const KIND_LABEL = { PROGRAM: "Performance program", TRAINING: "Praavyo training", COMPETITION: "Competition" };
+const kindLabel = (kind) => KIND_LABEL[kind] || KIND_LABEL.COMPETITION;
 
 const AWARD_ORDER = ["WINNER", "RUNNER_UP", "THIRD_PLACE", "FINALIST", "MERIT", "SPECIAL_MENTION", "PARTICIPANT"];
 const AWARD_TONE = {
@@ -207,7 +211,7 @@ export default function SchoolCertificatesPage() {
                   options={sources.map((source) => ({
                     value: source.key,
                     label: source.title,
-                    hint: `${source.kind === "PROGRAM" ? "Program" : "Competition"} · ${source.count}`,
+                    hint: `${kindLabel(source.kind)} · ${source.count}`,
                   }))}
                 />
               </Filter>
@@ -294,7 +298,7 @@ export default function SchoolCertificatesPage() {
                         <td className="px-4 py-3">
                           <span className="block font-semibold text-ink">{row.sourceTitle}</span>
                           <span className="block text-xs text-muted">
-                            {row.kind === "PROGRAM" ? "Performance program" : "Competition"}
+                            {kindLabel(row.kind)}
                             {row.performanceTitle ? ` · ${row.performanceTitle}` : ""}
                           </span>
                         </td>
@@ -329,7 +333,7 @@ export default function SchoolCertificatesPage() {
                       </div>
                       <p className="mt-1.5 text-sm font-semibold text-ink">{row.sourceTitle}</p>
                       <p className="text-xs text-muted">
-                        {row.kind === "PROGRAM" ? "Performance program" : "Competition"}
+                        {kindLabel(row.kind)}
                         {row.performanceTitle ? ` · ${row.performanceTitle}` : ""} · {row.yearLabel}
                       </p>
                       <div className="mt-2 flex items-center justify-between gap-2">
