@@ -4,6 +4,7 @@ export const PUBLIC_NAV_LINKS = [
   { label: "Home", href: "/", key: "home", icon: FaHome },
   { label: "Schools", href: "/schools", key: "schools", icon: FaSchool },
   { label: "Events", href: "/events", key: "events", icon: FaCalendarAlt },
+  { label: "Trainings", href: "/trainings", key: "trainings", icon: FaChalkboardTeacher },
   { label: "Winners", href: "/winners", key: "winners", icon: FaTrophy },
 ];
 

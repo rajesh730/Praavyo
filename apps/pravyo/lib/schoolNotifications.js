@@ -5,6 +5,7 @@ import Event from "@/models/Event";
 import ParticipationRequest from "@/models/ParticipationRequest";
 import UserNotification from "@/models/UserNotification";
 import UserSurfaceSeenState from "@/models/UserSurfaceSeenState";
+import { ensureSchoolTrainingNotices } from "@/lib/trainingNotifications";
 
 export function getSchoolIds(session) {
   return Array.from(
@@ -125,6 +126,12 @@ export async function getSchoolRelevantEventIds(schoolIds) {
 
 export async function getSchoolNotificationPayload(session, limit = 20) {
   const schoolIds = getSchoolIds(session);
+
+  // Any open training this school was never told about (approved after it
+  // was published, or a send that failed) is announced now, before reading.
+  await ensureSchoolTrainingNotices(session?.user?.id).catch((error) =>
+    console.error("[schoolNotifications] training backfill failed:", error.message)
+  );
 
   const [unreadAfter, eventIds, platformNotices, userNotifications] = await Promise.all([
     getNotificationUnreadBaseline(session),

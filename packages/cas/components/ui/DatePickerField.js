@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { CalendarDays, X } from 'lucide-react';
 import { formatDate, formatWeekday, normalizeCalendar } from '@pravyo/core/nepaliDate';
 import NepaliCalendar, { dateOfIso } from './NepaliCalendar.js';
@@ -29,12 +30,50 @@ export default function DatePickerField({
   const nepali = system === 'BS';
   const [open, setOpen] = useState(false);
   const wrapRef = useRef(null);
+  const popRef = useRef(null);
+  const [pos, setPos] = useState(null);
   const date = dateOfIso(value);
+
+  // The calendar is rendered on <body> with fixed positioning, so a card or
+  // modal with overflow:hidden around the field can never cut it off. It sits
+  // under the field, or above it when there is not enough room below.
+  const place = useCallback(() => {
+    const field = wrapRef.current?.getBoundingClientRect();
+    const pop = popRef.current;
+    if (!field || !pop) return;
+    const gap = 6;
+    const margin = 8;
+    const width = pop.offsetWidth;
+    const height = pop.offsetHeight;
+    const below = window.innerHeight - field.bottom - gap - margin;
+    const above = field.top - gap - margin;
+    const top = below >= height || below >= above
+      ? Math.min(field.bottom + gap, Math.max(margin, window.innerHeight - height - margin))
+      : Math.max(margin, field.top - gap - height);
+    const wanted = align === 'right' ? field.right - width : field.left;
+    const left = Math.min(Math.max(margin, wanted), Math.max(margin, window.innerWidth - width - margin));
+    setPos({ top, left });
+  }, [align]);
+
+  useLayoutEffect(() => {
+    if (!open) { setPos(null); return undefined; }
+    place();
+    window.addEventListener('resize', place);
+    window.addEventListener('scroll', place, true);
+    return () => {
+      window.removeEventListener('resize', place);
+      window.removeEventListener('scroll', place, true);
+    };
+  }, [open, place]);
 
   useEffect(() => {
     if (!open) return undefined;
     const close = (event) => {
-      if (event.type === 'keydown' ? event.key === 'Escape' : !wrapRef.current?.contains(event.target)) setOpen(false);
+      if (event.type === 'keydown') {
+        if (event.key === 'Escape') setOpen(false);
+        return;
+      }
+      if (!wrapRef.current?.contains(event.target) && !popRef.current?.contains(event.target)) setOpen(false);
     };
     document.addEventListener('mousedown', close);
     document.addEventListener('keydown', close);
@@ -80,11 +119,19 @@ export default function DatePickerField({
         )}
       </button>
 
-      {open && (
+      {open && typeof document !== 'undefined' && createPortal(
         <div
+          ref={popRef}
           role="dialog"
           aria-label={nepali ? 'क्यालेन्डर' : 'Calendar'}
-          className={`card absolute top-full z-40 mt-1.5 w-[19.5rem] max-w-[calc(100vw-2rem)] p-3 shadow-[var(--shadow-pop)] ${align === 'right' ? 'right-0' : 'left-0'}`}
+          className="card fixed w-[19.5rem] max-w-[calc(100vw-1rem)] p-3 shadow-[var(--shadow-pop)]"
+          style={{
+            top: pos?.top ?? 0,
+            left: pos?.left ?? 0,
+            zIndex: 1000,
+            // Measured first, shown once placed — no flash in the corner.
+            visibility: pos ? 'visible' : 'hidden',
+          }}
         >
           <NepaliCalendar
             value={value}
@@ -93,7 +140,8 @@ export default function DatePickerField({
             max={max}
             onChange={(iso) => { onChange?.(iso); setOpen(false); }}
           />
-        </div>
+        </div>,
+        document.body,
       )}
     </div>
   );

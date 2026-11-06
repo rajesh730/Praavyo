@@ -129,6 +129,8 @@ export async function GET(req) {
             entry.academicYearStart ?? selectedYear.yearStart,
             selectedYear.calendar,
           ),
+          // The client shows this in the viewer's calendar (BS or AD).
+          academicYearStart: entry.academicYearStart ?? selectedYear.yearStart,
           type: transferredIn ? "TRANSFER_IN" : "ADMISSION",
         });
       }
@@ -149,6 +151,7 @@ export async function GET(req) {
               entry.academicYearStart ?? selectedYear.yearStart,
               selectedYear.calendar,
             ),
+            academicYearStart: entry.academicYearStart ?? selectedYear.yearStart,
             type: entry.status,
           });
         });

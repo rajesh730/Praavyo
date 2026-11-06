@@ -17,6 +17,7 @@ export const USER_NOTIFICATION_TYPES = [
   "MAGAZINE",
   "TRANSFER",
   "WRITING",
+  "TRAINING",
   "GENERAL",
 ];
 

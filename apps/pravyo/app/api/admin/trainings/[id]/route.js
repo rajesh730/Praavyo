@@ -10,6 +10,7 @@ import {
   serializeTraining,
 } from "@/lib/trainings";
 import { APIError, successResponse } from "@/lib/apiResponse";
+import { announceTraining, notifyRegistrationClosed } from "@/lib/trainingNotifications";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +39,10 @@ export const PATCH = defineRoute({ roles: ["SUPER_ADMIN"], errorMessage: "Failed
   const training = await loadTraining(params.id);
   const body = await request.json().catch(() => ({}));
 
+  let announce = false;
   if (body.action === "publish" || body.action === "reopen") {
+    // First publish tells every school (bell + Received Notices).
+    announce = training.status === "DRAFT";
     training.status = "PUBLISHED";
     training.publishedAt = training.publishedAt || new Date();
   } else if (body.action === "close") {
@@ -52,8 +56,22 @@ export const PATCH = defineRoute({ roles: ["SUPER_ADMIN"], errorMessage: "Failed
     Object.assign(training, data);
   }
   await training.save();
-  return successResponse(200, "Training updated", { training: serializeTraining(training.toObject()) });
+  let schoolsNotified = 0;
+  if (announce) schoolsNotified = await quietly(announceTraining(training), "announcing to schools");
+  // Registered schools learn the next step: attendance after the training.
+  if (body.action === "close") schoolsNotified = await quietly(notifyRegistrationClosed(training), "closing notices");
+  return successResponse(200, "Training updated", { training: serializeTraining(training.toObject()), schoolsNotified });
 });
+
+// The status change is saved; a failed notice must not undo it.
+async function quietly(task, label) {
+  try {
+    return await task;
+  } catch (error) {
+    console.error(`[trainings] ${label} failed:`, error);
+    return 0;
+  }
+}
 
 /** DELETE — only while nobody has been certified; registrations go with it. */
 export const DELETE = defineRoute({ roles: ["SUPER_ADMIN"], errorMessage: "Failed to delete the training" }, async ({ params }) => {

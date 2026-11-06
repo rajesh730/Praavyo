@@ -11,6 +11,7 @@ import {
   RefreshCw as FaSyncAlt,
   Search as FaSearch,
   ArrowRight,
+  Presentation,
   X,
 } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
@@ -28,6 +29,7 @@ const TYPES = {
   GENERAL: { label: "Platform", from: "Praavyo", icon: FaDesktop, badge: "badge-brand", open: "Open" },
   EVENT: { label: "Event", from: "Event team", icon: FaBullhorn, badge: "badge-danger", open: "Open event" },
   MAGAZINE: { label: "Magazine", from: "Magazine desk", icon: FaBookOpen, badge: "badge-warning", open: "Open magazine" },
+  TRAINING: { label: "Training", from: "Praavyo", icon: Presentation, badge: "badge-success", open: "Register" },
 };
 const typeOf = (value) => TYPES[value] || TYPES.GENERAL;
 

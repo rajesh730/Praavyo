@@ -267,6 +267,17 @@ export function bsAcademicYearLabel(yearStart) {
   return String(bs);
 }
 
+// An academic year shown in the VIEWER's calendar, from its canonical start
+// year: BS → "२०८३" (Devanagari, like every BS date), AD → "2026". The year a
+// school saved its session under does not matter — only the viewer's choice.
+export function academicYearInCalendar(yearStart, calendar = "BS") {
+  const start = Number.parseInt(yearStart, 10);
+  if (!Number.isFinite(start)) return "";
+  if (normalizeCalendar(calendar) === "BS") return toNepaliDigits(bsAcademicYearLabel(start));
+  // A start year already in BS (2060 onward) is turned back into AD.
+  return String(start >= 2060 ? start - 57 : start);
+}
+
 // One display label for both new academic-year records and historical labels.
 // `yearStart` is canonical for sorting and matching; `value` handles older
 // records that still carry a range such as "2083/84" or "2026-27".

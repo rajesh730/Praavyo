@@ -7,6 +7,8 @@ import { ArrowDown as FaArrowDown, ArrowUp as FaArrowUp, CalendarDays as FaCalen
 import LoadingState from "@/components/ui/LoadingState";
 import AlertBanner from "@/components/ui/AlertBanner";
 import AppDate from "@/components/common/AppDate";
+import useCalendarPreference from "@/lib/client/useCalendarPreference";
+import { academicYearInCalendar } from "@/lib/nepaliDate";
 
 const JOIN_TYPE = {
   ADMISSION: { label: "Admitted", classes: "bg-success-soft text-success" },
@@ -118,6 +120,10 @@ function Panel({ id, title, icon: Icon, children, sectionRef }) {
 export default function SchoolAnalytics() {
   const searchParams = useSearchParams();
   const sectionParam = searchParams.get("section");
+  // Years follow the viewer's calendar: BS → "२०८३", AD → "2026".
+  const { calendar } = useCalendarPreference();
+  const yearText = (yearStart, fallback = "") =>
+    academicYearInCalendar(yearStart, calendar) || fallback;
 
   const [data, setData] = useState(null);
   // The chosen session is remembered until the page is refreshed.
@@ -201,6 +207,7 @@ export default function SchoolAnalytics() {
 
   const cameTotal = joined.length;
   const leftTotal = left.length;
+  const selectedYearLabel = yearText(data.selectedYearStart, data.selectedYearLabel);
 
   return (
     <div className="space-y-4">
@@ -211,7 +218,7 @@ export default function SchoolAnalytics() {
             Academic Year Analysis
           </h2>
           <p className="mt-1 text-sm font-semibold text-muted">
-            Who came, who left, transfers, and events for {data.selectedYearLabel}.
+            Who came, who left, transfers, and events for {selectedYearLabel}.
           </p>
         </div>
         <label className="flex items-center gap-2">
@@ -227,7 +234,7 @@ export default function SchoolAnalytics() {
           >
             {data.years.map((y) => (
               <option key={y.yearStart} value={y.yearStart}>
-                {y.year}
+                {yearText(y.yearStart, y.year)}
                 {y.status === "ACTIVE" ? " (current)" : ""}
               </option>
             ))}
@@ -277,7 +284,7 @@ export default function SchoolAnalytics() {
         <div className="grid gap-5 lg:grid-cols-2">
           <div>
             <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-success">
-              <FaSignInAlt /> Came in {data.selectedYearLabel} ({joined.length})
+              <FaSignInAlt /> Came in {selectedYearLabel} ({joined.length})
             </p>
             <div className={LIST_BOX}>
               {joined.length === 0 ? (
@@ -288,7 +295,7 @@ export default function SchoolAnalytics() {
                     key={`${s.studentId}-in`}
                     name={s.name}
                     grade={s.grade}
-                    year={s.academicYear}
+                    year={yearText(s.academicYearStart, s.academicYear)}
                     chip={JOIN_TYPE[s.type]}
                   />
                 ))
@@ -297,7 +304,7 @@ export default function SchoolAnalytics() {
           </div>
           <div>
             <p className="mb-3 flex items-center gap-2 text-sm font-semibold text-danger">
-              <FaSignOutAlt /> Left in {data.selectedYearLabel} ({left.length})
+              <FaSignOutAlt /> Left in {selectedYearLabel} ({left.length})
             </p>
             <div className={LIST_BOX}>
               {left.length === 0 ? (
@@ -308,7 +315,7 @@ export default function SchoolAnalytics() {
                     key={`${s.studentId}-out`}
                     name={s.name}
                     grade={s.grade}
-                    year={s.academicYear}
+                    year={yearText(s.academicYearStart, s.academicYear)}
                     chip={LEAVE_TYPE[s.type]}
                   />
                 ))

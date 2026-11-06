@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen as FaBookOpen, Megaphone as FaBullhorn, CalendarDays as FaCalendarAlt, MessageSquareText as FaCommentDots, ArrowLeftRight as FaExchangeAlt, School as FaSchool, Trophy as FaTrophy } from "lucide-react";
+import { BookOpen as FaBookOpen, Megaphone as FaBullhorn, CalendarDays as FaCalendarAlt, MessageSquareText as FaCommentDots, ArrowLeftRight as FaExchangeAlt, Presentation as FaPresentation, School as FaSchool, Trophy as FaTrophy } from "lucide-react";
 
 // Per-type visual identity (icon + colored avatar) so each category is instantly
 // scannable, the way Instagram/Facebook colour-code notification kinds.
@@ -39,6 +39,11 @@ export const NOTIFICATION_TYPES = {
     label: "Event",
     Icon: FaCalendarAlt,
     circle: "bg-brand-soft text-brand-strong",
+  },
+  TRAINING: {
+    label: "Training",
+    Icon: FaPresentation,
+    circle: "bg-success-soft text-success",
   },
   GENERAL: {
     label: "Platform",
@@ -115,6 +120,7 @@ export function getNotificationTypeLabel(noticeType, { detailed = false } = {}) 
   if (noticeType === "MAGAZINE") return detailed ? "Magazine Notice" : "Magazine";
   if (noticeType === "ACHIEVEMENT") return detailed ? "Achievement" : "Achievement";
   if (noticeType === "TRANSFER") return detailed ? "Transfer Notice" : "Transfer";
+  if (noticeType === "TRAINING") return detailed ? "Training" : "Training";
   if (noticeType === "GENERAL") return detailed ? "Platform Notice" : "Platform";
   return detailed ? "School Notice" : "School";
 }

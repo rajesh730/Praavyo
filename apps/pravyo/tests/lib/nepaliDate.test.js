@@ -11,7 +11,18 @@ import {
   dateTileParts,
   toNepaliDigits,
   bsMonthLayout,
+  academicYearInCalendar,
 } from "@/lib/nepaliDate";
+
+describe("academicYearInCalendar", () => {
+  it("shows the viewer's calendar whatever the year was saved in", () => {
+    expect(academicYearInCalendar(2026, "BS")).toBe("२०८३");
+    expect(academicYearInCalendar(2026, "AD")).toBe("2026");
+    expect(academicYearInCalendar(2083, "BS")).toBe("२०८३");
+    expect(academicYearInCalendar(2083, "AD")).toBe("2026");
+    expect(academicYearInCalendar(null, "AD")).toBe("");
+  });
+});
 
 describe("normalizeCalendar", () => {
   it("accepts AD, defaults everything else to BS", () => {
