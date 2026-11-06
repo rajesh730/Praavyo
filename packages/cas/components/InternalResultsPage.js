@@ -1,7 +1,9 @@
 'use client';
 
 import { useRef, useState } from 'react';
+import Link from 'next/link';
 import { Download, Printer, Send, Undo2 } from 'lucide-react';
+import { hasAttendance, hasExtraActivities } from '@pravyo/core/casSupplementary';
 import { useCas } from './CasLayout.js';
 import { useCasMutation, useCasQuery } from '../lib/client/useCas.js';
 import { downloadSheets } from '../lib/client/pdfDownload.js';
@@ -32,6 +34,9 @@ export default function InternalResultsPage() {
 
   const incomplete = cards.filter((card) => (card.snapshot?.subjects || []).some((line) => !line.entered)).length;
   const passed = cards.filter((card) => card.snapshot?.passed).length;
+  // Not a blocker: an unfilled section is simply left off the card.
+  const missingRecords = cards.filter((card) =>
+    !hasAttendance(card.snapshot?.attendance) || !hasExtraActivities(card.snapshot?.extraActivities)).length;
 
   async function setPublished(publish) {
     const question = publish
@@ -92,6 +97,14 @@ export default function InternalResultsPage() {
             <span className="text-muted">{cards.length} {t('students', 'विद्यार्थी')} · {passed} {t('passed', 'उत्तीर्ण')}</span>
             {!exam.published && incomplete > 0 && (
               <Badge tone="warning">{t(`${incomplete} student${incomplete === 1 ? ' has' : 's have'} missing marks — publishing is blocked until every mark is entered`, `${incomplete} विद्यार्थीको अङ्क बाँकी`)}</Badge>
+            )}
+            {!exam.published && missingRecords > 0 && (
+              <Link href="/school/internal-exam/attendance" className="text-warning underline">
+                {t(
+                  `${missingRecords} card${missingRecords === 1 ? ' has' : 's have'} no attendance or extra activities — fill them in`,
+                  `${missingRecords} नतिजा पत्रमा हाजिरी वा अतिरिक्त क्रियाकलाप छैन — भर्नुहोस्`,
+                )}
+              </Link>
             )}
             {section && !exam.published && <span className="text-muted">{t('Publishing covers every section of the grade.', 'प्रकाशनले कक्षाका सबै सेक्सन समेट्छ।')}</span>}
           </div>

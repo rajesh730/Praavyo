@@ -139,16 +139,16 @@ function SchoolDashboardContent() {
   const searchParams = useSearchParams();
   const pathname = usePathname();
   const tabParam = searchParams.get("tab");
-  const [activeTab, setActiveTab] = useState("overview");
+  // The URL is the only source of the active tab. Overview's link has no
+  // `?tab=`, so a missing param must mean "overview" — keeping the tab in
+  // state that only updated when a param existed left the admin stuck on the
+  // previous tab (e.g. Student Transfer → Overview did nothing).
+  const activeTab = !tabParam
+    ? "overview"
+    : ["judging", "events"].includes(tabParam)
+      ? "school-events"
+      : tabParam;
   const [isNavOpen, setIsNavOpen] = useState(false);
-
-  useEffect(() => {
-    if (tabParam) {
-      setActiveTab(
-        ["judging", "events"].includes(tabParam) ? "school-events" : tabParam
-      );
-    }
-  }, [tabParam]);
 
   useEffect(() => {
     if (!isNavOpen) return;

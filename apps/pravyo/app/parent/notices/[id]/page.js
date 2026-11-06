@@ -11,6 +11,7 @@ import ListenButton from "@/components/parent/ListenButton";
 import ParentEmptyState from "@/components/parent/ParentEmptyState";
 import { getStatus } from "@/lib/parentStatus";
 import { formatParentDate } from "@/lib/parentFormat";
+import DateTile from "@/components/common/DateTile";
 
 /**
  * Notice detail (§11).
@@ -127,12 +128,17 @@ export default function ParentNoticeDetailPage() {
           </span>
         </div>
 
-        <h1 className="mt-2 break-words font-semibold leading-snug text-ink">
-          {notice.title}
-        </h1>
-        <p className="mt-1 text-xs text-muted">
-          {formatParentDate(notice.publishedAt, { calendar, relative: false })}
-        </p>
+        <div className="mt-3 flex items-start gap-3.5">
+          {notice.publishedAt && <DateTile value={notice.publishedAt} calendar={calendar} size="lg" />}
+          <div className="min-w-0">
+            <h1 className="break-words font-semibold leading-snug text-ink">
+              {notice.title}
+            </h1>
+            <p className="mt-1 text-xs text-muted">
+              {formatParentDate(notice.publishedAt, { calendar, relative: false })}
+            </p>
+          </div>
+        </div>
       </header>
 
       <ListenButton text={speechText} fullWidth />

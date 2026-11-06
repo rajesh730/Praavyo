@@ -4,10 +4,12 @@ import CasSubject from '@pravyo/db/models/cas/CasSubject';
 import InternalExam from '@pravyo/db/models/cas/InternalExam';
 import InternalExamMark from '@pravyo/db/models/cas/InternalExamMark';
 import InternalExamReport from '@pravyo/db/models/cas/InternalExamReport';
+import InternalExamRecord from '@pravyo/db/models/cas/InternalExamRecord';
 import TeacherTeachingAssignment from '@pravyo/db/models/TeacherTeachingAssignment';
 import { CAS_EXAM_TERM_VALUES, examTermOf } from '@pravyo/core/casExamTerms';
 import { EXAMINED_FILTER, studentTakesSubject } from '@pravyo/core/subjectScope';
 import { parseBsNumeric } from '@pravyo/core/nepaliDate';
+import { ECA_FIELDS, normalizeAttendance, normalizeExtraActivities } from '@pravyo/core/casSupplementary';
 import {
   DEFAULT_FULL_MARKS,
   DEFAULT_PASS_PERCENT,
@@ -23,6 +25,8 @@ import { loadAcademicYear, loadGradeSections, loadSchool, loadStudents } from '.
  *   - The school creates an exam per grade and sets full marks.
  *   - The school, or a subject teacher assigned on the Teachers page, enters
  *     marks; a class teacher may read the whole grade.
+ *   - The school records each student's attendance and extra activities per
+ *     exam (InternalExamRecord). CAS does not collect these.
  *   - The school publishes: every student gets a frozen report card that
  *     parents and students read next to their CAS card.
  *
@@ -71,9 +75,27 @@ const marksInput = z.object({
   }).strict()).min(1).max(5000),
 }).strict();
 
+const dayCountInput = z.union([z.number().int().min(0).max(400), z.null()]);
+const recordsInput = z.object({
+  exam: objectId,
+  section: z.string().trim().max(60).optional(),
+  rows: z.array(z.object({
+    student: objectId,
+    revision: z.number().int().min(0),
+    attendance: z.object({
+      workingDays: dayCountInput.optional(),
+      presentDays: dayCountInput.optional(),
+      absentDays: dayCountInput.optional(),
+    }).strict(),
+    extraActivities: z.object(Object.fromEntries(
+      ECA_FIELDS.map((field) => [field.key, z.string().trim().max(20).optional()]),
+    )).strict(),
+  }).strict()).min(1).max(1000),
+}).strict();
+
 let indexes = null;
 function ensureIndexes() {
-  indexes ||= Promise.all([InternalExam, InternalExamMark, InternalExamReport].map((model) => model.createIndexes()))
+  indexes ||= Promise.all([InternalExam, InternalExamMark, InternalExamReport, InternalExamRecord].map((model) => model.createIndexes()))
     .catch((error) => { indexes = null; throw error; });
   return indexes;
 }
@@ -189,6 +211,7 @@ export async function deleteExam(actor, { id }) {
   const exam = await loadExam(actor, id);
   assert(!exam.publishedAt, 'Unpublish the results before deleting this exam', 409);
   await InternalExamMark.deleteMany({ school: actor.school, exam: exam._id });
+  await InternalExamRecord.deleteMany({ school: actor.school, exam: exam._id });
   await InternalExam.deleteOne({ _id: exam._id, school: actor.school });
   return { id: String(exam._id) };
 }
@@ -315,8 +338,16 @@ export async function saveMarks(actor, input) {
   return { saved: operations.length };
 }
 
+/** Each student's attendance and extra activities for an exam, by student id. */
+async function recordsFor(actor, exam) {
+  const rows = await InternalExamRecord.find({ school: actor.school, exam: exam._id })
+    .select('student attendance extraActivities revision')
+    .lean();
+  return new Map(rows.map((row) => [String(row.student), row]));
+}
+
 /** The card a parent reads, frozen at publication. */
-function snapshotFor({ school, exam, year, student }) {
+function snapshotFor({ school, exam, year, student, record }) {
   const { result } = student;
   return {
     kind: 'INTERNAL',
@@ -347,6 +378,8 @@ function snapshotFor({ school, exam, year, student }) {
     gpa: result.gpa,
     overallGrade: result.overallGrade,
     passed: result.passed,
+    attendance: normalizeAttendance(record?.attendance),
+    extraActivities: normalizeExtraActivities(record?.extraActivities),
   };
 }
 
@@ -364,13 +397,17 @@ export async function loadCards(actor, { exam: examId, section = '' }) {
       .filter((row) => !section || row.snapshot?.student?.section === section)
       .map((row) => ({ _id: String(row._id), kind: 'INTERNAL', school: String(row.school), snapshot: row.snapshot, publishedAt: row.publishedAt }));
   }
-  const [school, sheet] = await Promise.all([loadSchool(actor), buildSheet(actor, exam, { section })]);
+  const [school, sheet, records] = await Promise.all([
+    loadSchool(actor),
+    buildSheet(actor, exam, { section }),
+    recordsFor(actor, exam),
+  ]);
   return sheet.students.map((student) => ({
     _id: student.id,
     kind: 'INTERNAL',
     school: actor.school,
     preview: true,
-    snapshot: snapshotFor({ school, exam, year: sheet.year, student }),
+    snapshot: snapshotFor({ school, exam, year: sheet.year, student, record: records.get(student.id) }),
   }));
 }
 
@@ -379,7 +416,7 @@ export async function publishExam(actor, { exam: examId }) {
   await ready();
   const exam = await loadExam(actor, examId);
   assert(!exam.publishedAt, 'These results are already published', 409);
-  const [school, sheet] = await Promise.all([loadSchool(actor), buildSheet(actor, exam)]);
+  const [school, sheet, records] = await Promise.all([loadSchool(actor), buildSheet(actor, exam), recordsFor(actor, exam)]);
   assert(sheet.students.length, 'No students are enrolled in this grade');
   const missing = sheet.students.reduce((sum, student) => sum + student.result.subjects.filter((line) => !line.entered).length, 0);
   assert(!missing, `${missing} mark${missing === 1 ? ' is' : 's are'} still missing. Enter them, or mark the student absent, before publishing.`, 409);
@@ -393,7 +430,7 @@ export async function publishExam(actor, { exam: examId }) {
     grade: exam.grade,
     student: student.id,
     examTerm: exam.term,
-    snapshot: snapshotFor({ school, exam, year: sheet.year, student }),
+    snapshot: snapshotFor({ school, exam, year: sheet.year, student, record: records.get(student.id) }),
     publishedBy: actor.id,
     publishedAt: now,
   })));
@@ -408,4 +445,137 @@ export async function unpublishExam(actor, { exam: examId }) {
   const { deletedCount } = await InternalExamReport.deleteMany({ school: actor.school, exam: exam._id });
   await InternalExam.updateOne({ _id: exam._id, school: actor.school }, { $set: { publishedAt: null, publishedBy: null } });
   return { unpublished: deletedCount };
+}
+
+/**
+ * Attendance and extra activities for an internal exam: one row per student
+ * on the grade's roster, in the shape the Attendance & Activities screen
+ * edits. School admin only, like publishing. Locked while published.
+ */
+async function buildRecordTable(actor, exam, { section = '' } = {}) {
+  const year = await loadAcademicYear(actor, String(exam.academicYear));
+  const [roster, records] = await Promise.all([
+    loadStudents(actor, { grade: exam.grade, yearStart: year.yearStart, history: Boolean(exam.publishedAt) }),
+    recordsFor(actor, exam),
+  ]);
+  const locked = Boolean(exam.publishedAt);
+  return {
+    year,
+    roster,
+    records,
+    table: {
+      exam: { id: String(exam._id), name: exam.name, published: locked },
+      grade: exam.grade,
+      section,
+      canRecord: actor.role === 'SCHOOL_ADMIN',
+      students: roster
+        .filter((student) => !section || student.section === section)
+        .map((student) => serializeRecordRow(student, records.get(student.id), locked)),
+    },
+  };
+}
+
+function serializeRecordRow(student, record, locked) {
+  return {
+    student: { id: student.id, name: student.name, rollNumber: student.rollNumber || '', section: student.section || '' },
+    attendance: normalizeAttendance(record?.attendance),
+    extraActivities: normalizeExtraActivities(record?.extraActivities),
+    revision: record?.revision ?? 0,
+    locked,
+  };
+}
+
+const hasAnyActivity = (values) => Object.values(values).some((value) => String(value || '').trim());
+
+export async function loadRecords(actor, { exam: examId, section = '' }) {
+  requireSchoolAdmin(actor);
+  await ready();
+  const exam = await loadExam(actor, examId);
+  const sections = await loadGradeSections(actor, exam.grade);
+  assert(!section || sections.includes(section), 'Choose a section configured for this grade');
+  const { table } = await buildRecordTable(actor, exam, { section });
+  return table;
+}
+
+export async function saveRecords(actor, input) {
+  requireSchoolAdmin(actor);
+  await ready();
+  const data = recordsInput.parse(input);
+  const exam = await loadExam(actor, data.exam);
+  assert(!exam.publishedAt, 'Results are published. Unpublish them to change attendance or extra activities.', 409);
+  const section = data.section || '';
+  if (section) {
+    const sections = await loadGradeSections(actor, exam.grade);
+    assert(sections.includes(section), 'Choose a section configured for this grade');
+  }
+  const { year, roster, records } = await buildRecordTable(actor, exam);
+  const rosterById = new Map(roster.map((student) => [student.id, student]));
+
+  // Check every row before writing any, so a stale row saves nothing.
+  const changes = [];
+  for (const row of data.rows) {
+    const student = rosterById.get(row.student);
+    assert(student, 'Every student must be enrolled in this grade for the exam\'s academic year', 409);
+    assert(!section || student.section === section, `${student.name} is not in the selected section`, 409);
+    const record = records.get(student.id);
+    const attendance = normalizeAttendance(row.attendance);
+    assert(
+      attendance.workingDays == null || attendance.presentDays == null || attendance.presentDays <= attendance.workingDays,
+      `${student.name}'s present days cannot be more than the working days`,
+    );
+    const extraActivities = normalizeExtraActivities(row.extraActivities);
+    const savedActivities = normalizeExtraActivities(record?.extraActivities);
+    // Extra activities are entered once per exam; a saved set is read-only.
+    assert(
+      !hasAnyActivity(savedActivities) || JSON.stringify(savedActivities) === JSON.stringify(extraActivities),
+      `${student.name}'s extra activities are already saved for this exam and cannot be changed.`,
+      409,
+    );
+    const changed = JSON.stringify(attendance) !== JSON.stringify(normalizeAttendance(record?.attendance)) ||
+      JSON.stringify(extraActivities) !== JSON.stringify(savedActivities);
+    if (!changed) continue;
+    assert(
+      (record?.revision ?? 0) === row.revision,
+      `${student.name}'s record changed while you were working. Reload before saving.`,
+      409,
+    );
+    changes.push({ student, record, attendance, extraActivities });
+  }
+
+  for (const { student, record, attendance, extraActivities } of changes) {
+    const payload = {
+      grade: exam.grade,
+      studentName: student.name,
+      attendance,
+      extraActivities,
+      recordedBy: actor.id,
+      recordedByName: actor.name || '',
+    };
+    if (record) {
+      const saved = await InternalExamRecord.findOneAndUpdate(
+        { _id: record._id, school: actor.school, revision: record.revision ?? 0 },
+        { $set: payload, $inc: { revision: 1 } },
+        { new: true, runValidators: true },
+      ).lean();
+      assert(saved, `${student.name}'s record changed while saving. Reload before saving.`, 409);
+    } else {
+      try {
+        await InternalExamRecord.create({
+          ...payload,
+          school: actor.school,
+          academicYear: year.id,
+          exam: exam._id,
+          student: student.id,
+          revision: 1,
+        });
+      } catch (error) {
+        // Two people saving the same new student at once: the unique index wins.
+        assert(error?.code !== 11000, `${student.name}'s record was just saved by someone else. Reload before saving.`, 409);
+        throw error;
+      }
+    }
+  }
+
+  const { table } = await buildRecordTable(actor, exam, { section });
+  return { saved: changes.length, table };
 }

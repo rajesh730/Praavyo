@@ -2,8 +2,7 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { BookOpen, ChevronRight, ClipboardCheck, GraduationCap, Repeat, School, Users } from 'lucide-react';
-import StatTile from '@/components/ui/StatTile';
+import { ChevronRight, Repeat, School } from 'lucide-react';
 import AppDate from '@/components/common/AppDate';
 import { gradeSummaries, openMarkEntry, resultSummary } from './shared';
 
@@ -12,12 +11,6 @@ export default function OverviewTab({ workspace }) {
   const router = useRouter();
   const grades = gradeSummaries(workspace);
   const classGrades = grades.filter((entry) => entry.classTeacher).map((entry) => entry.grade);
-  const tiles = [
-    { label: grades.length === 1 ? 'Class' : 'Classes', value: grades.length, icon: BookOpen, href: '/teacher/dashboard?tab=profile', accent: 'indigo' },
-    { label: 'Students', value: workspace.students.length, icon: Users, href: '/teacher/dashboard?tab=students', accent: 'emerald' },
-    { label: 'Open for marks', value: workspace.examAccess.length, icon: ClipboardCheck, href: '/teacher/dashboard?tab=assessment', accent: 'amber' },
-    { label: 'Published results', value: workspace.publishedResults.length, icon: GraduationCap, href: '/teacher/dashboard?tab=results', accent: 'purple' },
-  ];
 
   return (
     <div className="space-y-4">
@@ -35,14 +28,6 @@ export default function OverviewTab({ workspace }) {
           <Link href="/teacher/select-school" className="btn btn-secondary btn-sm inline-flex items-center justify-center gap-1.5"><Repeat aria-hidden size={16} /> Switch school</Link>
         )}
       </section>
-
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {tiles.map((tile) => (
-          <Link key={tile.label} href={tile.href} className="rounded-card transition-shadow hover:shadow-card">
-            <StatTile icon={tile.icon} label={tile.label} value={tile.value} accent={tile.accent} />
-          </Link>
-        ))}
-      </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
         <section className="card overflow-hidden">

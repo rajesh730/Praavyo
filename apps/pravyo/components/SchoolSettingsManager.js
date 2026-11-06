@@ -519,12 +519,13 @@ export default function SchoolSettingsManager() {
       <div className="rounded-card border border-line-strong bg-surface p-4 sm:p-5">
         <h2 className="font-semibold text-ink">Date display</h2>
         <p className="mt-1 max-w-3xl text-sm text-subtle">
-          Choose the calendar used to show dates across your account — Gregorian
-          (AD) or Bikram Sambat (BS). Applies only to what you see.
+          Choose how dates appear across your account. Nepali shows every date
+          in Bikram Sambat, fully in Nepali — month and weekday names and
+          Nepali digits — and calendars open on the Nepali month with Saturday
+          marked as the holiday. Applies only to what you see; report cards
+          keep their printed format.
         </p>
-        <div className="mt-4 inline-flex rounded-card bg-surface px-3 py-2">
-          <CalendarToggle />
-        </div>
+        <CalendarToggle variant="cards" className="mt-4 max-w-2xl" />
       </div>
       )}
 

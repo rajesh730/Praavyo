@@ -4,7 +4,6 @@ import { useState } from 'react';
 import { useRememberedState } from '@pravyo/ui/rememberedState';
 import Link from 'next/link';
 import { Calculator as FaCalculator, Download as FaDownload, Eye as FaEye, FileText as FaFileAlt, Send as FaPaperPlane, Printer as FaPrint, Search as FaSearch } from 'lucide-react';
-import { hasAttendance, hasExtraActivities } from '@pravyo/core/casSupplementary';
 import { DEFAULT_CAS_EXAM_TERM } from '@pravyo/core/casExamTerms';
 import { useCas } from './CasLayout.js';
 import { useCasQuery, useCasMutation } from '../lib/client/useCas.js';
@@ -160,7 +159,6 @@ export default function StudentResultPage() {
   // Actions apply to the ticked students, or to everyone in view.
   const scope = chosen.length ? chosen : visibleCards;
   const toPublish = scope.filter((student) => student.status === 'PREVIEW');
-  const missingRecords = visibleCards.filter(missesRecords);
   const missingCredits = (students.find((s) => s.report)?.report.snapshot.subjects || [])
     .filter((subject) => subject.creditHours == null);
 
@@ -205,13 +203,6 @@ export default function StudentResultPage() {
 
   /** Print opens the cards with the print dialog; download saves a PDF file. */
   async function openPrint(targets, download, key) {
-    const missing = targets.filter(missesRecords);
-    if (missing.length && !window.confirm(
-      `Attendance or extra activities have not been filled in for ${missing.length} student` +
-      `${missing.length === 1 ? '' : 's'}:\n${listNames(missing)}\n\n` +
-      'Those sections will be left off their report cards. Fill them in on the Assessment ' +
-      'screen first, or press OK to continue without them.',
-    )) return;
     const everyone = targets.length === students.filter((s) => s.report).length;
     const ids = everyone ? [] : targets.map((s) => s.id);
     if (!download) {
@@ -299,7 +290,6 @@ export default function StudentResultPage() {
           section={section}
           examName={selectedExam?.name}
           formatLabel={REPORT_FORMATS.find((option) => option.value === format)?.label || format}
-          missingRecords={toPublish.filter(missesRecords).length}
           onCancel={() => setConfirmingPublish(false)}
           onConfirm={publish}
         />
@@ -447,14 +437,6 @@ export default function StudentResultPage() {
               </li>
             ))}
           </ul>
-        </Alert>
-      )}
-      {missingRecords.length > 0 && (
-        <Alert tone="warning">
-          {t(
-            `Attendance or extra activities are missing for ${missingRecords.length} student${missingRecords.length === 1 ? '' : 's'}: ${listNames(missingRecords, ', ')}. Those sections are left off their report cards until they are filled in on the Assessment screen.`,
-            `${missingRecords.length} विद्यार्थीको हाजिरी वा अतिरिक्त क्रियाकलाप भरिएको छैन: ${listNames(missingRecords, ', ')}। मूल्याङ्कन पृष्ठमा नभरेसम्म ती खण्ड नतिजा पत्रमा देखिँदैनन्।`,
-          )}
         </Alert>
       )}
       {missingCredits.length > 0 && (
@@ -709,7 +691,6 @@ function ResultStatus({ student, t }) {
   return <span className={`cas-result-status is-${tone}`}>{label}</span>;
 }
 
-/** A card whose attendance or extra activities the school has not filled in. */
 /**
  * Published cards grouped by the title printed on them. Read from the stored
  * snapshot, so a group survives its exam being archived or renamed.
@@ -729,7 +710,7 @@ function historyGroups(reports) {
  * reflexive click away from publishing the wrong exam or grade; this spells out
  * exactly what goes out and needs a deliberate tick first.
  */
-function PublishConfirmDialog({ t, students, grade, section, examName, formatLabel, missingRecords, onCancel, onConfirm }) {
+function PublishConfirmDialog({ t, students, grade, section, examName, formatLabel, onCancel, onConfirm }) {
   const [checked, setChecked] = useState(false);
   const rows = [
     [t('Grade', 'कक्षा'), section ? `${grade} · ${t('Section', 'सेक्सन')} ${section}` : grade],
@@ -762,15 +743,6 @@ function PublishConfirmDialog({ t, students, grade, section, examName, formatLab
 
         <p className="mt-3 text-xs text-muted">{listNames(students, ', ')}</p>
 
-        {missingRecords > 0 && (
-          <p className="mt-3 rounded-control bg-warning-soft px-3 py-2 text-xs font-medium text-warning">
-            {t(
-              `${missingRecords} of these card${missingRecords === 1 ? ' has' : 's have'} no attendance or extra activities filled in.`,
-              `${missingRecords} नतिजा पत्रमा हाजिरी वा अतिरिक्त क्रियाकलाप भरिएको छैन।`,
-            )}
-          </p>
-        )}
-
         <label className="mt-4 flex cursor-pointer items-start gap-2.5 text-sm text-ink">
           <input type="checkbox" className="mt-0.5" checked={checked} onChange={(event) => setChecked(event.target.checked)} />
           {t('I have checked these results and they are correct.', 'मैले यी नतिजा जाँचेँ र सही छन्।')}
@@ -786,11 +758,6 @@ function PublishConfirmDialog({ t, students, grade, section, examName, formatLab
       </div>
     </div>
   );
-}
-
-function missesRecords(student) {
-  const snapshot = student.report?.snapshot || {};
-  return !hasAttendance(snapshot.attendance) || !hasExtraActivities(snapshot.extraActivities);
 }
 
 function initials(name) {

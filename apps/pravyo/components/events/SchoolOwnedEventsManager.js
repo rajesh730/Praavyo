@@ -310,49 +310,6 @@ export default function SchoolOwnedEventsManager({
     }
   };
 
-  const metricCards = [
-    {
-      key: "LIVE",
-      label: "Live",
-      value: eventMetrics.live,
-      note: "Rounds or results in progress",
-      icon: FaCalendarAlt,
-      tone: "purple",
-    },
-    {
-      key: "REGISTRATION",
-      label: "Registration Open",
-      value: eventMetrics.registrationOpen,
-      note: "Accepting entries",
-      icon: FaUsers,
-      tone: "emerald",
-    },
-    {
-      key: "COMPLETED",
-      label: "Completed",
-      value: eventMetrics.completed,
-      note: "Results/certificates ready",
-      icon: FaCheckCircle,
-      tone: "blue",
-    },
-    {
-      key: "ARCHIVED",
-      label: "Cancelled",
-      value: eventMetrics.archived,
-      note: "Cancelled events",
-      icon: FaBan,
-      tone: "slate",
-    },
-  ];
-
-  const metricTones = {
-    purple: "border-brand-line bg-brand-soft text-brand-strong",
-    emerald: "border-success-line bg-success-soft text-success",
-    amber: "border-warning-line bg-warning-soft text-warning",
-    blue: "border-brand-line bg-brand-soft text-brand-strong",
-    slate: "border-line bg-surface-2 text-ink",
-  };
-
   const filterTabs = [
     { key: "LIVE", label: "Live", icon: FaCircle, count: eventMetrics.live },
     { key: "REGISTRATION", label: "Registration Open", icon: FaUsers, count: eventMetrics.registrationOpen, surface: TAB_SEEN_SURFACE.REGISTRATION },
@@ -379,43 +336,6 @@ export default function SchoolOwnedEventsManager({
           <FaPlus />
           Create School Event
         </button>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-5">
-        {metricCards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <button
-              key={card.key}
-              type="button"
-              onClick={() => setActiveFilter(card.key)}
-              className={` card transition-colors hover:border-brand-line hover:bg-surface-2 p-4 text-left transition-colors hover:border-brand-line ${
-                activeFilter === card.key ? "" : ""
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <span
-                  className={`hidden h-10 w-10 shrink-0 items-center justify-center rounded-control border text-lg sm:flex ${
-                    metricTones[card.tone]
-                  }`}
-                >
-                  <Icon />
-                </span>
-                <span className="min-w-0">
-                  <strong className="block text-2xl font-semibold text-ink">
-                    {card.value}
-                  </strong>
-                  <span className="block truncate text-sm font-semibold text-ink">
-                    {card.label}
-                  </span>
-                  <span className="mt-1 block text-xs font-semibold text-muted">
-                    {card.note}
-                  </span>
-                </span>
-              </div>
-            </button>
-          );
-        })}
       </div>
 
       {feedback && (

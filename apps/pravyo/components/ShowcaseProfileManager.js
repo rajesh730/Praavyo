@@ -143,6 +143,41 @@ export default function ShowcaseProfileManager() {
     }
   };
 
+  // Saved straight away, like the logo — not held until "Save" is pressed.
+  const updateSchoolCover = async (asset) => {
+    const previousUrl = profile.bannerImageUrl || "";
+    const bannerImageUrl = asset?.url || "";
+    setProfile((current) => ({ ...current, bannerImageUrl }));
+    setError("");
+    setSavedMessage("");
+
+    try {
+      const response = await fetch("/api/school/showcase-profile/cover", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ bannerImageUrl }),
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data.message || "Failed to update the cover image");
+      }
+      setProfile((current) => ({
+        ...current,
+        bannerImageUrl: data.data?.bannerImageUrl || "",
+      }));
+      setSavedMessage(
+        bannerImageUrl
+          ? profile.visibility === "PUBLIC"
+            ? "Cover image updated. It is on your public page now."
+            : "Cover image saved. Set Visibility to Public and save to show your page."
+          : "Cover image removed."
+      );
+    } catch (coverError) {
+      setProfile((current) => ({ ...current, bannerImageUrl: previousUrl }));
+      setError(coverError.message || "Failed to update the cover image");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
@@ -348,13 +383,8 @@ export default function ShowcaseProfileManager() {
               <ImageUploadField
                 purpose="SCHOOL_COVER"
                 value={profile.bannerImageUrl ? { url: profile.bannerImageUrl } : null}
-                onChange={(asset) =>
-                  setProfile((prev) => ({
-                    ...prev,
-                    bannerImageUrl: asset?.url || "",
-                  }))
-                }
-                label="Upload cover image"
+                onChange={updateSchoolCover}
+                label={profile.bannerImageUrl ? "Replace cover image" : "Upload cover image"}
                 maxEdge={1600}
                 quality={0.75}
               />

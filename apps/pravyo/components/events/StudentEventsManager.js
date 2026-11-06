@@ -261,48 +261,6 @@ export default function StudentEventsManager() {
     );
   }, [activeFilter, events, gradeFilter, search, typeFilter]);
 
-  const metricCards = [
-    {
-      key: "LIVE",
-      label: "Live",
-      value: metrics.live,
-      note: "Rounds or results in progress",
-      icon: FaCalendarAlt,
-      tone: "blue",
-    },
-    {
-      key: "REGISTRATION",
-      label: "Registration Open",
-      value: metrics.registrationOpen,
-      note: "Events accepting entries",
-      icon: FaUsers,
-      tone: "emerald",
-    },
-    {
-      key: "MINE",
-      label: "My Events",
-      value: metrics.myEvents,
-      note: "You are registered",
-      icon: FaCheckCircle,
-      tone: "purple",
-    },
-    {
-      key: "COMPLETED",
-      label: "Results Ready",
-      value: metrics.completed,
-      note: "Results/certificates",
-      icon: FaTrophy,
-      tone: "amber",
-    },
-  ];
-
-  const metricTones = {
-    purple: "border-brand-line bg-brand-soft text-brand-strong",
-    emerald: "border-success-line bg-success-soft text-success",
-    amber: "border-warning-line bg-warning-soft text-warning",
-    blue: "border-brand-line bg-brand-soft text-brand-strong",
-  };
-
   const filterTabs = [
     { key: "LIVE", label: "Live", icon: FaCircle, count: metrics.live },
     { key: "REGISTRATION", label: "Registration Open", icon: FaUsers, count: metrics.registrationOpen },
@@ -313,43 +271,6 @@ export default function StudentEventsManager() {
 
   return (
     <div className="space-y-4">
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        {metricCards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <button
-              key={card.key}
-              type="button"
-              onClick={() => setActiveFilter(card.key)}
-              className={` card transition-colors hover:border-brand-line hover:bg-surface-2 p-4 text-left transition-colors hover:border-brand-line ${
-                activeFilter === card.key ? "" : ""
-              }`}
-            >
-              <div className="flex items-center gap-4">
-                <span
-                  className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-control border ${
-                    metricTones[card.tone]
-                  }`}
-                >
-                  <Icon />
-                </span>
-                <span className="min-w-0">
-                  <strong className="block text-2xl font-semibold text-ink">
-                    {card.value}
-                  </strong>
-                  <span className="block truncate text-sm font-semibold text-ink">
-                    {card.label}
-                  </span>
-                  <span className="mt-1 block text-xs font-semibold text-muted">
-                    {card.note}
-                  </span>
-                </span>
-              </div>
-            </button>
-          );
-        })}
-      </div>
-
       {feedback && (
         <AlertBanner
           type={feedback.type}

@@ -1,4 +1,5 @@
 import { gradeFor } from '@pravyo/core/casGrading';
+import { ECA_FIELDS, hasAttendance, hasExtraActivities } from '@pravyo/core/casSupplementary';
 import { GRADE_SCALE, picker, issueDateOf, examTitleOf, valueOrDash } from './reportText.js';
 
 /**
@@ -29,6 +30,13 @@ export default function InternalExamReport({ report, lang = 'en' }) {
     : notPassed.length
       ? `${lang === 'ne' ? 'सुधार आवश्यक' : 'Needs improvement in'}: ${notPassed.join(', ')}`
       : '-';
+  // Recorded on Internal Exam → Attendance & Activities. A section the school
+  // has not filled in is left off the card (cards published before this
+  // existed have neither).
+  const attendance = s.attendance || {};
+  const extraActivities = s.extraActivities || {};
+  const showAttendance = hasAttendance(attendance);
+  const showActivities = hasExtraActivities(extraActivities);
   const summary = [
     ['Total marks', `${valueOrDash(s.obtained)} / ${valueOrDash(s.fullMarks)}`],
     ['Percentage', s.percent == null ? '-' : `${s.percent}%`],
@@ -134,6 +142,40 @@ export default function InternalExamReport({ report, lang = 'en' }) {
           ))}
         </div>
 
+        {(showAttendance || showActivities) && (
+          <div className={`mt-4 grid gap-4 ${showAttendance && showActivities ? 'grid-cols-[1fr_2.2fr]' : 'grid-cols-1'}`}>
+            {showAttendance && (
+              <div>
+                <h3 className="mb-1 text-xs font-bold" style={{ color: BRAND }}>Attendance</h3>
+                <table className="w-full border-collapse text-[10px]">
+                  <tbody>
+                    <LabelRow label="Working Days" value={valueOrDash(attendance.workingDays)} />
+                    <LabelRow label="Present Days" value={valueOrDash(attendance.presentDays)} />
+                    <LabelRow label="Absent Days" value={valueOrDash(attendance.absentDays)} />
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {showActivities && (
+              <div>
+                <h3 className="mb-1 text-xs font-bold" style={{ color: BRAND }}>Extra Activities</h3>
+                {/* Two label/grade pairs per row keeps all eight within four lines. */}
+                <table className="w-full border-collapse text-[10px]">
+                  <tbody>
+                    {pairs(ECA_FIELDS).map((pair) => (
+                      <tr key={pair[0].key}>
+                        {pair.map((field) => (
+                          <LabelCells key={field.key} label={field.label} value={extraActivities[field.key] || '-'} />
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="mt-4 grid grid-cols-[1.3fr_1fr] gap-4">
           <div>
             <h3 className="mb-1 text-xs font-bold" style={{ color: BRAND }}>Grading Scale</h3>
@@ -194,6 +236,25 @@ function Th({ children, left = false }) {
 
 function Td({ children, left = false, className = '' }) {
   return <td className={`border border-[#c9d3ea] px-1 py-1 ${left ? 'pl-2 text-left' : 'text-center'} ${className}`}>{children}</td>;
+}
+
+function pairs(list) {
+  const rows = [];
+  for (let index = 0; index < list.length; index += 2) rows.push(list.slice(index, index + 2));
+  return rows;
+}
+
+function LabelCells({ label, value }) {
+  return (
+    <>
+      <td className="border border-[#c9d3ea] bg-[#f7f9fd] px-2 py-[3px] text-left">{label}</td>
+      <td className="w-[14%] border border-[#c9d3ea] px-1 py-[3px] text-center font-semibold uppercase">{value}</td>
+    </>
+  );
+}
+
+function LabelRow({ label, value }) {
+  return <tr><LabelCells label={label} value={value} /></tr>;
 }
 
 function ScaleCell({ children, head = false }) {

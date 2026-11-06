@@ -589,18 +589,7 @@ export default async function PublicSchoolPage({ params }) {
         <PublicExplorePanel active="schools" variant="school" />
 
         <div className="min-w-0 space-y-4">
-        <div className="flex flex-wrap items-center justify-between gap-3 text-xs font-semibold text-muted">
-          <div className="flex items-center gap-2">
-            <Link href="/" className="hover:text-brand-strong">
-              Home
-            </Link>
-            <span>/</span>
-            <Link href="/schools" className="hover:text-brand-strong">
-              Schools
-            </Link>
-            <span>/</span>
-            <span>{school.schoolName}</span>
-          </div>
+        <div className="flex flex-wrap items-center justify-end gap-3 text-xs font-semibold text-muted">
           <div className="flex gap-2">
             <PublicShareButton
               href={`/schools/${school._id}`}

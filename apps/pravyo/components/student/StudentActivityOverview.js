@@ -2,11 +2,10 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Award as FaAward, BookOpen as FaBookOpen, CalendarDays as FaCalendarAlt, BadgeCheck as FaCertificate, Check as FaCheck, Download as FaDownload, ExternalLink as FaExternalLinkAlt, Earth as FaGlobeAsia, House as FaHome, PenTool as FaPenNib, School as FaSchool, Share2 as FaShareAlt, X as FaTimes, Trophy as FaTrophy, CircleUser as FaUserCircle } from "lucide-react";
+import { BookOpen as FaBookOpen, CalendarDays as FaCalendarAlt, BadgeCheck as FaCertificate, Check as FaCheck, Download as FaDownload, ExternalLink as FaExternalLinkAlt, Earth as FaGlobeAsia, House as FaHome, PenTool as FaPenNib, School as FaSchool, Share2 as FaShareAlt, X as FaTimes, Trophy as FaTrophy, CircleUser as FaUserCircle } from "lucide-react";
 import AlertBanner from "@/components/ui/AlertBanner";
 import EmptyState from "@/components/EmptyState";
 import LoadingState from "@/components/ui/LoadingState";
-import StatTile from "@/components/ui/StatTile";
 import SchoolLogoMark from "@/components/public/SchoolLogoMark";
 import { formatPlacement, formatDate } from "@/lib/displayFormat";
 import Glyph from "@/components/ui/Glyph";
@@ -479,7 +478,6 @@ export default function StudentActivityOverview() {
     );
   }
 
-  const metrics = data?.metrics || {};
   const achievements = data?.achievements || [];
   const firstName = String(data?.student?.name || "").trim().split(/\s+/)[0] || "";
 
@@ -531,13 +529,6 @@ export default function StudentActivityOverview() {
       {data?.publicProfileAvailable && data?.student?.id && (
         <PublicProfileCard studentId={data.student.id} name={firstName} />
       )}
-
-      <section className="grid grid-cols-2 gap-4 sm:grid sm:grid-cols-2 xl:grid-cols-4">
-        <StatTile icon={FaTrophy} accent="amber" label="Achievements" value={metrics.achievementsCount || 0} />
-        <StatTile icon={FaAward} accent="amber" label="Wins" value={metrics.winsCount || 0} />
-        <StatTile icon={FaAward} accent="indigo" label="Finalist" value={metrics.finalistCount || 0} />
-        <StatTile icon={FaCertificate} accent="purple" label="Certificates" value={metrics.certificatesCount || 0} />
-      </section>
 
       <WritingActivityInsights summary={data?.writingSummary} />
 

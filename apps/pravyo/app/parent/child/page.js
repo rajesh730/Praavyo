@@ -96,12 +96,6 @@ function ParentChildPortfolio() {
           {child.grade && child.school?.name ? " · " : ""}
           {child.school?.name}
         </p>
-
-        <div className="mt-4 grid w-full grid-cols-1 gap-2">
-          <Stat value={achievements.length} label={t("child.achievements")} />
-          <Stat value={writings.length} label={t("child.writing")} />
-          <Stat value={certificates.length} label={t("child.certificates")} />
-        </div>
       </header>
 
       <div className="-mx-3 overflow-x-auto overscroll-x-contain px-3 sm:-mx-4 sm:px-4">
@@ -353,17 +347,6 @@ function WritingStatus({ writing, t }) {
             : ""}
         </span>
       ) : null}
-    </div>
-  );
-}
-
-function Stat({ value, label }) {
-  return (
-    <div className="rounded-card bg-surface-2 px-2 py-2">
-      <p className="text-lg font-semibold text-ink">{value}</p>
-      <p className="text-2xs leading-tight text-muted">
-        {label}
-      </p>
     </div>
   );
 }

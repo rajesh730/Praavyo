@@ -1,4 +1,4 @@
-import { ClipboardCheck as FaClipboardCheck, BookOpen as FaBookOpen, FileText as FaFileAlt, FolderOpen as FaFolderOpen, LineChart as FaChartLine, CalendarDays as FaCalendarAlt } from 'lucide-react';
+import { ClipboardCheck as FaClipboardCheck, BookOpen as FaBookOpen, FileText as FaFileAlt, FolderOpen as FaFolderOpen, LineChart as FaChartLine, CalendarDays as FaCalendarAlt, CalendarCheck as FaCalendarCheck } from 'lucide-react';
 
 /**
  * CAS navigation - the school-facing assessment workflow.
@@ -23,6 +23,9 @@ export const CAS_NAV_LINKS = [
  */
 export const INTERNAL_EXAM_NAV_LINKS = [
   { name: 'Mark Entry', href: '/school/internal-exam/marks', icon: FaClipboardCheck, initials: 'ME' },
+  // Attendance and extra activities live here, not in CAS: they print on the
+  // internal exam's report card only. School admin only (see CasLayout).
+  { name: 'Attendance & Activities', href: '/school/internal-exam/attendance', icon: FaCalendarCheck, initials: 'AA' },
   { name: 'Manage Exams', href: '/school/internal-exam/exams', icon: FaCalendarAlt, initials: 'EX' },
   { name: 'Results', href: '/school/internal-exam/results', icon: FaFileAlt, initials: 'RS' },
   { name: 'CAS (Grades 1–5)', href: '/school/cas/assessment', icon: FaFolderOpen, initials: 'CA' },

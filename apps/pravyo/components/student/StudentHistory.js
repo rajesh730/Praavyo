@@ -98,14 +98,6 @@ export default function StudentHistory() {
         <CalendarToggle />
       </div>
 
-      {/* Summary */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <SummaryTile icon={FaSchool} label="Schools" value={schoolsCount} />
-        <SummaryTile icon={FaGraduationCap} label="Sessions" value={data?.years?.length || 0} />
-        <SummaryTile icon={FaTrophy} label="Achievements" value={data?.achievements?.length || 0} />
-        <SummaryTile icon={FaFeatherAlt} label="Writing" value={data?.writings?.length || 0} />
-      </div>
-
       {/* Year filter */}
       <div className="flex flex-wrap gap-2">
         <FilterChip
@@ -270,18 +262,6 @@ export default function StudentHistory() {
             description="As you join events, win achievements, and publish writing, your full history across every school will appear here."
           />
         )}
-    </div>
-  );
-}
-
-function SummaryTile({ icon: Icon, label, value }) {
-  return (
-    <div className="card p-4">
-      <span className="flex h-9 w-9 items-center justify-center rounded-control bg-brand-soft text-brand">
-        <Icon />
-      </span>
-      <p className="mt-3 text-2xl font-semibold text-ink">{value}</p>
-      <p className="text-xs font-semibold text-muted">{label}</p>
     </div>
   );
 }

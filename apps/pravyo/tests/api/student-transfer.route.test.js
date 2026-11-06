@@ -33,9 +33,19 @@ describe("student transfer route — auth guards", () => {
     expect(res.status).toBe(403);
   });
 
-  it("PATCH requires authentication", async () => {
+  // Transfers are requested by the parent or guardian in the parent app, so
+  // this route never starts or changes one — for anyone, signed in or not.
+  it("PATCH never changes a transfer, whoever asks", async () => {
     getServerSession.mockResolvedValue(null);
-    const res = await PATCH(req({ action: "cancel" }));
-    expect(res.status).toBe(401);
+    expect((await PATCH(req({ action: "cancel" }))).status).toBe(403);
+
+    getServerSession.mockResolvedValue({ user: { id: "s1", role: "STUDENT" } });
+    expect((await PATCH(req({ action: "cancel" }))).status).toBe(403);
+  });
+
+  it("POST never starts a transfer, even for a student", async () => {
+    getServerSession.mockResolvedValue({ user: { id: "s1", role: "STUDENT" } });
+    const res = await POST(req({ reason: "Moving house" }));
+    expect(res.status).toBe(403);
   });
 });

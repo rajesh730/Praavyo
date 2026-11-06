@@ -131,7 +131,8 @@ on purpose (`usesResultSheet`, `RESULT_SHEET_MAX_GRADE = 5` in
 subject register, embeds themes), `CasLearningOutcome`, `CasExam` (per school
 + academic year), `CasThemeExam` (which themes an exam assesses — the only
 assessment gate), `CasExamTeacherAssignment`, `CasAssessment` (levels 1–4 with
-reassessments), `CasStudentRecord` (attendance, extra activities), `CasReport`
+reassessments), `CasStudentRecord` (legacy attendance/extra activities — no
+longer entered or shown in CAS; see Internal Exam below), `CasReport`
 (DRAFT → PUBLISHED frozen snapshots).
 
 **Flow.**
@@ -169,10 +170,12 @@ school). `npm run provision:curriculum` still exists to push to every school at 
 "Exams" (`/school/exams`) chooses between:
 - *CAS* — Grades 1–5 only (the CAS shell filters `school.grades` through
   `usesResultSheet`); results always render Classic, no format dropdown.
-- *Internal Exam* (`/school/internal-exam/{marks,exams,results}`, same shell
-  with `area="internal"`) — the school's own papers, Grades 1–10. Models
-  `InternalExam` (grade + term, full marks default + per-subject overrides,
-  pass %), `InternalExamMark`, `InternalExamReport` (frozen snapshots);
+- *Internal Exam* (`/school/internal-exam/{marks,attendance,exams,results}`,
+  same shell with `area="internal"`) — the school's own papers, Grades 1–10.
+  Models `InternalExam` (grade + term, full marks default + per-subject
+  overrides, pass %), `InternalExamMark`, `InternalExamRecord` (attendance +
+  extra activities per exam, school admin only, entered on "Attendance &
+  Activities", locked while published), `InternalExamReport` (frozen snapshots);
   service `packages/cas/lib/internalExamService.js`; maths
   `packages/core/internalExamResult.js` (percentage of full marks → the CAS
   grade bands; equal weights when no credit hours); card

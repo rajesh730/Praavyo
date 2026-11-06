@@ -1,8 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useRememberedState } from "@pravyo/ui/rememberedState";
-import { Search as FaSearch, ListFilter as FaFilter, Download as FaDownload, ChevronDown as FaChevronDown, ChevronRight as FaChevronRight, Users as FaUsers, UserCheck as FaUserCheck, UserRoundCog as FaUserClock, UserPlus as FaUserPlus, UserX as FaUserSlash, QrCode as FaQrcode, Send as FaPaperPlane, UserPlus as FaAddGuardian } from "lucide-react";
+import { Search as FaSearch, ListFilter as FaFilter, Download as FaDownload, ChevronDown as FaChevronDown, ChevronRight as FaChevronRight, QrCode as FaQrcode, Send as FaPaperPlane, UserPlus as FaAddGuardian } from "lucide-react";
 import Link from "next/link";
 import AlertBanner from "@/components/ui/AlertBanner";
 import PaginationControls from "@/components/PaginationControls";
@@ -154,47 +154,6 @@ export default function GuardianRoster() {
     return () => clearTimeout(handle);
   }, [backfillRunning, load]);
 
-  const metricCards = useMemo(
-    () => [
-      {
-        label: "Students",
-        value: summary?.total ?? "—",
-        note: "On the roster",
-        icon: FaUsers,
-        tone: "slate",
-      },
-      {
-        label: "Connected",
-        value: summary?.activated ?? "—",
-        note: "Using the Parent App",
-        icon: FaUserCheck,
-        tone: "emerald",
-      },
-      {
-        label: "Card not used",
-        value: summary?.notActivated ?? "—",
-        note: "Guardian added, not connected",
-        icon: FaUserClock,
-        tone: "amber",
-      },
-      {
-        label: "Needs attention",
-        value: summary?.unlinkedData ?? "—",
-        note: "Could not connect automatically",
-        icon: FaUserPlus,
-        tone: "orange",
-      },
-      {
-        label: "No guardian",
-        value: summary?.noGuardian ?? "—",
-        note: "Nothing on file at all",
-        icon: FaUserSlash,
-        tone: "red",
-      },
-    ],
-    [summary]
-  );
-
   const exportCsv = () => {
     const header = [
       "Student",
@@ -233,14 +192,6 @@ export default function GuardianRoster() {
     link.download = `guardians-${new Date().toISOString().slice(0, 10)}.csv`;
     link.click();
     URL.revokeObjectURL(link.href);
-  };
-
-  const toneClasses = {
-    slate: "border-line bg-surface-2 text-ink",
-    emerald: "border-success-line bg-success-soft text-success",
-    amber: "border-warning-line bg-warning-soft text-warning",
-    orange: "border-warning-line bg-warning-soft text-warning",
-    red: "border-danger-line bg-danger-soft text-danger",
   };
 
   return (
@@ -330,53 +281,6 @@ export default function GuardianRoster() {
           }
         />
       ) : null}
-
-      <div className="grid grid-cols-2 gap-3 xl:grid-cols-5">
-        {metricCards.map((card) => {
-          const Icon = card.icon;
-          return (
-            <button
-              key={card.label}
-              type="button"
-              // Cards double as filters — the natural next action after reading
-              // "12 with no guardian" is to see those twelve.
-              onClick={() =>
-                setCoverage(
-                  card.label === "Connected"
-                    ? "ACTIVATED"
-                    : card.label === "Card not used"
-                      ? "NOT_ACTIVATED"
-                      : card.label === "Details on file"
-                        ? "UNLINKED_DATA"
-                        : card.label === "No guardian"
-                          ? "NO_GUARDIAN"
-                          : "ALL"
-                )
-              }
-              className="card transition-colors hover:border-brand-line hover:bg-surface-2 p-4 text-left transition-colors hover:border-brand-line"
-            >
-              <div className="flex items-center gap-3">
-                <span
-                  className={`hidden h-10 w-10 shrink-0 items-center justify-center rounded-control border text-lg sm:flex ${toneClasses[card.tone]}`}
-                >
-                  <Icon />
-                </span>
-                <span className="min-w-0">
-                  <strong className="block text-2xl font-semibold text-ink">
-                    {card.value}
-                  </strong>
-                  <span className="block truncate text-sm font-semibold text-ink">
-                    {card.label}
-                  </span>
-                  <span className="mt-1 block text-xs font-semibold text-muted">
-                    {card.note}
-                  </span>
-                </span>
-              </div>
-            </button>
-          );
-        })}
-      </div>
 
       {error ? <AlertBanner type="error" title="Could not load" message={error} /> : null}
 

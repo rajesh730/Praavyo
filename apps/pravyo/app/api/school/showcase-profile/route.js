@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { requireApiSession } from "@/lib/authz";
 import connectDB from "@/lib/db";
 import { getActiveCertificateFilter } from "@/lib/certificates";
@@ -155,6 +156,11 @@ export async function PUT(req) {
       // even if a long-running process cached an older schema.
       { new: true, upsert: true, setDefaultsOnInsert: true, strict: false }
     );
+
+    // Show the saved profile on the public page now, not after the 60-second
+    // page cache runs out.
+    revalidatePath(`/schools/${session.user.id}`);
+    revalidatePath("/schools");
 
     return NextResponse.json({ success: true, data: profile }, { status: 200 });
   } catch (error) {

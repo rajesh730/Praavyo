@@ -43,7 +43,8 @@ it("notifies the student and guardians when an event result is published", async
       studentId: "student-1",
       category: "ACHIEVEMENT",
       priority: "POSITIVE",
-      href: "/parent/portfolio",
+      // My Child → Certificates; there is no /parent/portfolio page.
+      href: "/parent/child?tab=certificates",
       metadata: expect.objectContaining({ eventId: "event-1" }),
     })
   );

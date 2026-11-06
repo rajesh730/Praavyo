@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Bell as FaBell, CalendarDays as FaCalendarAlt, School as FaSchool } from "lucide-react";
+import { ArrowRight, Bell as FaBell, CalendarDays as FaCalendarAlt, School as FaSchool } from "lucide-react";
 import EmptyState from "@/components/EmptyState";
 import {
   NotificationNewBadge,
@@ -11,6 +11,7 @@ import AlertBanner from "@/components/ui/AlertBanner";
 import LoadingState from "@/components/ui/LoadingState";
 import PageHeader from "@/components/ui/PageHeader";
 import AppDate from "@/components/common/AppDate";
+import DateTile from "@/components/common/DateTile";
 import useNotificationInbox from "@/lib/client/useNotificationInbox";
 
 export default function StudentNoticeBoard() {
@@ -56,62 +57,43 @@ export default function StudentNoticeBoard() {
           description="When your school or event organizers publish notices, they will appear here automatically."
         />
       ) : (
-        <div className="space-y-4">
+        <ul className="card divide-y divide-line overflow-hidden">
           {notifications.map((notification) => (
-            <article
+            <li
               key={`${notification.noticeType}-${notification.id}`}
-              className="card p-4 sm:p-5"
+              className={`flex gap-3.5 p-4 sm:gap-4 sm:p-5 ${notification.isRead ? "" : "bg-brand-soft/40"}`}
             >
-              <div className="flex flex-wrap items-start justify-between gap-4">
-                <div className="min-w-0 flex-1">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <NotificationTypeBadge
-                      noticeType={notification.noticeType}
-                      detailed
-                    />
-                  </div>
-                  <h3 className="mt-4 font-semibold text-ink">
-                    {notification.title}
-                  </h3>
-                  <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-ink">
-                    {notification.message}
-                  </p>
+              {notification.publishedAt && <DateTile value={notification.publishedAt} />}
+              <article className="min-w-0 flex-1">
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <NotificationTypeBadge noticeType={notification.noticeType} detailed />
+                  {!notification.isRead && <NotificationNewBadge isRead={notification.isRead} />}
                 </div>
-
-                <div className="text-right text-sm text-muted">
-                  <div className="inline-flex items-center gap-2">
-                    <FaCalendarAlt className="text-muted" />
-                    <span><AppDate value={notification.publishedAt} mode="dateTime" /></span>
-                  </div>
-                  {!notification.isRead && (
-                    <div className="mt-3">
-                      <NotificationNewBadge isRead={notification.isRead} />
-                    </div>
-                  )}
+                <h3 className="mt-1.5 text-base font-semibold text-ink">{notification.title}</h3>
+                <p className="mt-1 whitespace-pre-wrap text-sm leading-6 text-body">{notification.message}</p>
+                <div className="mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted">
+                  <span className="inline-flex items-center gap-1.5">
+                    <FaCalendarAlt aria-hidden />
+                    <AppDate value={notification.publishedAt} mode="dateTime" />
+                  </span>
                   {notification.event && (
-                    <div className="mt-3 inline-flex items-center gap-2 text-ink">
-                      <FaSchool className="text-muted" />
-                      <span>{notification.event.title}</span>
-                    </div>
+                    <span className="inline-flex items-center gap-1.5 text-ink">
+                      <FaSchool aria-hidden /> {notification.event.title}
+                    </span>
                   )}
                 </div>
-              </div>
-
-              <div className="mt-5">
-                <div className="flex flex-wrap gap-2">
-                  <Link
-                    href={notification.href}
-                    className="btn btn-danger inline-flex items-center font-semibold transition-colors"
-                  >
-                    {notification.noticeType === "EVENT"
-                      ? "Open Event"
-                      : "Back to Dashboard"}
-                  </Link>
-                </div>
-              </div>
-            </article>
+              </article>
+              {notification.noticeType === "EVENT" && notification.href && (
+                <Link
+                  href={notification.href}
+                  className="inline-flex shrink-0 items-center gap-1 self-center whitespace-nowrap text-sm font-semibold text-brand hover:text-brand-strong hover:underline"
+                >
+                  Open event <ArrowRight aria-hidden />
+                </Link>
+              )}
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </div>
   );
