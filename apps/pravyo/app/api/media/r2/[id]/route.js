@@ -1,20 +1,12 @@
 import mongoose from "mongoose";
 import { requireApiSession } from "@/lib/authz";
 import connectDB from "@/lib/db";
-import { getR2Object } from "@/lib/r2Storage";
+import { getR2Object, isMissingR2ObjectError } from "@/lib/r2Storage";
 import MediaAsset from "@/models/MediaAsset";
 import ParentStudentLink from "@/models/ParentStudentLink";
 import SchoolMagazineArticle from "@/models/SchoolMagazineArticle";
 import Student from "@/models/Student";
 import { buildStudentLookupForSession } from "@/lib/studentIdentity";
-
-function isMissingObjectError(error) {
-  return (
-    ["NoSuchKey", "NotFound", "NoSuchObject"].includes(
-      String(error?.name || error?.Code || error?.code || "")
-    ) || Number(error?.$metadata?.httpStatusCode || 0) === 404
-  );
-}
 
 async function canReadPrivate(session, asset) {
   if (!session?.user) return false;
@@ -104,7 +96,7 @@ export async function GET(_request, { params }) {
     // different bucket (or briefly fail). Marking the asset DELETED and
     // blanking the logo here once wiped live schools' logos and report-card
     // images just because someone opened them from the wrong environment.
-    if (asset && isMissingObjectError(readError)) {
+    if (asset && isMissingR2ObjectError(readError)) {
       console.warn("R2 object missing for media asset:", String(asset._id), asset.purpose);
       return new Response("Not found", {
         status: 404,

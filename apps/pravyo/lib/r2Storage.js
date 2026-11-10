@@ -1,6 +1,7 @@
 import {
   DeleteObjectCommand,
   GetObjectCommand,
+  HeadObjectCommand,
   PutObjectCommand,
   S3Client,
 } from "@aws-sdk/client-s3";
@@ -85,6 +86,33 @@ export async function getR2Object({ key, storageKey, visibility }) {
       Key: key || storageKey,
     })
   );
+}
+
+export function isMissingR2ObjectError(error) {
+  return (
+    ["NoSuchKey", "NotFound", "NoSuchObject"].includes(
+      String(error?.name || error?.Code || error?.code || "")
+    ) || Number(error?.$metadata?.httpStatusCode || 0) === 404
+  );
+}
+
+// True when this environment's bucket holds the object, false when it does
+// not. Any other failure (network, auth) throws so callers never mistake an
+// outage for a missing file.
+export async function r2ObjectExists({ key, storageKey, visibility }) {
+  try {
+    await getClient().send(
+      new HeadObjectCommand({
+        Bucket: bucketForVisibility(visibility),
+        Key: key || storageKey,
+      }),
+      { abortSignal: AbortSignal.timeout(8000) }
+    );
+    return true;
+  } catch (error) {
+    if (isMissingR2ObjectError(error)) return false;
+    throw error;
+  }
 }
 
 export async function deleteR2Object({ key, storageKey, visibility }) {

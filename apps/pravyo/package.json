@@ -21,7 +21,8 @@
     "db:backfill-article-author-era": "node scripts/backfill-article-author-era.mjs",
     "db:backfill-transferred-writing-detach": "node scripts/backfill-transferred-writing-detach.mjs",
     "db:remove-pulse-data": "node scripts/remove-pulse-data.mjs",
-    "db:remove-support-ticket-data": "node scripts/remove-support-ticket-data.mjs"
+    "db:remove-support-ticket-data": "node scripts/remove-support-ticket-data.mjs",
+    "media:audit": "node scripts/media-audit.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1118.0",

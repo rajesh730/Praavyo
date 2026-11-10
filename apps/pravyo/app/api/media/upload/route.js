@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { requireApiSession } from "@/lib/authz";
 import connectDB from "@/lib/db";
-import { isR2Configured, putR2Object } from "@/lib/r2Storage";
+import { bucketForVisibility, isR2Configured, putR2Object } from "@/lib/r2Storage";
 import MediaAsset from "@/models/MediaAsset";
 import Student from "@/models/Student";
 import { buildStudentLookupForSession } from "@/lib/studentIdentity";
@@ -136,6 +136,7 @@ export async function POST(request) {
       purpose,
       visibility: policy.visibility,
       storageKey: key,
+      bucket: bucketForVisibility(policy.visibility),
       mimeType: file.type,
       sizeBytes: file.size,
       width: Number(form.get("width")) || 0,

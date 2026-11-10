@@ -28,6 +28,10 @@ const MediaAssetSchema = new mongoose.Schema(
       index: true,
     },
     storageKey: { type: String, required: true, unique: true },
+    // The bucket the upload was written to. Cleanup refuses to touch an asset
+    // from an environment configured with a different bucket. Empty on assets
+    // uploaded before this field existed.
+    bucket: { type: String, default: "" },
     mimeType: { type: String, required: true },
     sizeBytes: { type: Number, required: true, min: 1 },
     width: { type: Number, default: 0 },
