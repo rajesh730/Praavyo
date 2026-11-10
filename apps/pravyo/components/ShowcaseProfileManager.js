@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import { CalendarDays as FaCalendarAlt, SquareCheck as FaCheckSquare, Mail as FaEnvelope, ExternalLink as FaExternalLinkAlt, Globe as FaGlobe, Image as FaImage, Link as FaLink, Phone as FaPhone, Save as FaSave, LoaderCircle as FaSpinner, Star as FaStar, Trophy as FaTrophy, Users as FaUsers } from "lucide-react";
+import { CalendarDays as FaCalendarAlt, CircleAlert as FaAlert, CircleCheck as FaCheckCircle, SquareCheck as FaCheckSquare, Mail as FaEnvelope, ExternalLink as FaExternalLinkAlt, Globe as FaGlobe, Image as FaImage, Link as FaLink, Phone as FaPhone, Save as FaSave, LoaderCircle as FaSpinner, Star as FaStar, Trophy as FaTrophy, Users as FaUsers } from "lucide-react";
 import { FaFacebookF, FaInstagram, FaLinkedinIn, FaTiktok, FaTwitter, FaYoutube } from "react-icons/fa";
 import { normalizeImageUrl } from "@/lib/imageUrls";
 import SchoolLogoMark from "@/components/public/SchoolLogoMark";
@@ -65,6 +65,14 @@ export default function ShowcaseProfileManager() {
   const [error, setError] = useState("");
   const [savedMessage, setSavedMessage] = useState("");
   const [profile, setProfile] = useState(EMPTY_FORM);
+
+  // The confirmation sits beside the Save button and fades out on its own, so
+  // a later edit is not shown under an old "saved" message.
+  useEffect(() => {
+    if (!savedMessage) return undefined;
+    const timer = setTimeout(() => setSavedMessage(""), 5000);
+    return () => clearTimeout(timer);
+  }, [savedMessage]);
 
   const publicSchoolUrl = useMemo(() => {
     if (!profile?.school) return "";
@@ -496,8 +504,6 @@ export default function ShowcaseProfileManager() {
             </label>
           </section>
 
-          {error && <p className="text-sm font-semibold text-danger">{error}</p>}
-          {savedMessage && <p className="text-sm font-semibold text-success">{savedMessage}</p>}
         </main>
 
         <aside className="space-y-4">
@@ -580,6 +586,20 @@ export default function ShowcaseProfileManager() {
             <FaSave />
             {saving ? "Saving..." : "Save Showcase Profile"}
           </button>
+
+          <div aria-live="polite" role="status">
+            {error ? (
+              <p className="flex items-start gap-2 rounded-card border border-danger-line bg-danger-soft px-3 py-2.5 text-sm font-semibold text-danger">
+                <FaAlert className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                <span>{error}</span>
+              </p>
+            ) : savedMessage ? (
+              <p className="flex items-start gap-2 rounded-card border border-success-line bg-success-soft px-3 py-2.5 text-sm font-semibold text-success">
+                <FaCheckCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                <span>{savedMessage}</span>
+              </p>
+            ) : null}
+          </div>
 
           <p className="text-center text-2xs font-semibold text-muted">
             Last updated:{" "}
