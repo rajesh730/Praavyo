@@ -44,7 +44,7 @@ async function runSearch(q) {
   const publicProfiles = await SchoolShowcaseProfile.find({
     visibility: "PUBLIC",
   })
-    .select("school coverImageUrl")
+    .select("school logoUrl coverImageUrl")
     .lean();
   const publicSchoolIds = publicProfiles
     .map((profile) => profile.school)
@@ -52,7 +52,7 @@ async function runSearch(q) {
   const coverBySchool = new Map(
     publicProfiles.map((profile) => [
       String(profile.school),
-      profile.coverImageUrl || "",
+      profile.logoUrl || profile.coverImageUrl || "",
     ])
   );
 

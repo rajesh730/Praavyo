@@ -42,7 +42,7 @@ function serializeArticle(article, schoolProfile = null) {
           schoolLocation: article.school.schoolLocation,
           profile: schoolProfile
             ? {
-                coverImageUrl: schoolProfile.coverImageUrl || "",
+                coverImageUrl: schoolProfile.logoUrl || schoolProfile.coverImageUrl || "",
               }
             : null,
         }
@@ -86,7 +86,7 @@ async function getMagazineArticleData(issueId, articleId) {
       school: issue.school,
       visibility: "PUBLIC",
     })
-      .select("coverImageUrl")
+      .select("logoUrl coverImageUrl")
       .lean(),
     SchoolMagazineArticle.find({
       _id: { $ne: article._id },

@@ -41,7 +41,7 @@ async function getCertificate(id) {
   const schoolProfile = await SchoolShowcaseProfile.findOne({
     school: achievement.school._id,
   })
-    .select("coverImageUrl")
+    .select("logoUrl coverImageUrl")
     .lean();
 
   return {

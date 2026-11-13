@@ -14,7 +14,7 @@ function serializeProfile(profile) {
   return {
     tagline: profile?.tagline || "",
     summary: profile?.summary || "",
-    coverImageUrl: profile?.coverImageUrl || "",
+    coverImageUrl: profile?.logoUrl || profile?.coverImageUrl || "",
     highlightMetrics: {
       eventsHosted: profile?.highlightMetrics?.eventsHosted || 0,
       eventsParticipated: profile?.highlightMetrics?.eventsParticipated || 0,
@@ -96,7 +96,7 @@ const getPublicSchoolsData = unstable_cache(async () => {
       school: { $in: schoolIds },
       visibility: "PUBLIC",
     })
-      .select("school tagline summary coverImageUrl highlightMetrics")
+      .select("school tagline summary logoUrl coverImageUrl highlightMetrics")
       .lean(),
     Student.aggregate([
       {

@@ -26,14 +26,16 @@ export async function loadReportBranding(schoolIds) {
     SchoolConfig.find({ school: { $in: ids } }).select('school reportCardImageUrl iemisNumber').lean(),
     // The profile model belongs to the Pravyo app; read its collection directly.
     SchoolConfig.db.collection('schoolshowcaseprofiles')
-      .find({ school: { $in: objectIds } }, { projection: { school: 1, coverImageUrl: 1 } })
+      .find({ school: { $in: objectIds } }, { projection: { school: 1, logoUrl: 1, coverImageUrl: 1 } })
       .toArray(),
     User.find({ _id: { $in: ids } }).select('principalName').lean(),
     loadClassTeachers(ids),
   ]);
   const imageBySchool = new Map(configs.map((row) => [String(row.school), row.reportCardImageUrl || '']));
   const iemisBySchool = new Map(configs.map((row) => [String(row.school), row.iemisNumber || '']));
-  const logoBySchool = new Map(profiles.map((row) => [String(row.school), row.coverImageUrl || '']));
+  const logoBySchool = new Map(
+    profiles.map((row) => [String(row.school), row.logoUrl || row.coverImageUrl || ''])
+  );
   const principalBySchool = new Map(schools.map((row) => [String(row._id), row.principalName || '']));
   return new Map(ids.map((id) => [id, {
     logoUrl: logoBySchool.get(id) || '',

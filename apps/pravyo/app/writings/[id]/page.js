@@ -39,7 +39,7 @@ function serializeArticle(article, schoolProfile = null, authorCurrentSchoolProf
             ? String(article.authorStudent.school._id)
             : "",
           currentSchoolName: article.authorStudent.school?.schoolName || "",
-          currentSchoolLogoUrl: authorCurrentSchoolProfile?.coverImageUrl || "",
+          currentSchoolLogoUrl: authorCurrentSchoolProfile?.logoUrl || authorCurrentSchoolProfile?.coverImageUrl || "",
         }
       : null,
     school: article.school
@@ -49,7 +49,7 @@ function serializeArticle(article, schoolProfile = null, authorCurrentSchoolProf
           schoolLocation: article.school.schoolLocation,
           profile: schoolProfile
             ? {
-                coverImageUrl: schoolProfile.coverImageUrl || "",
+                coverImageUrl: schoolProfile.logoUrl || schoolProfile.coverImageUrl || "",
               }
             : null,
         }
@@ -81,7 +81,7 @@ async function getWritingData(id) {
   const schoolId = article.school?._id || article.school;
   const schoolProfile = schoolId
     ? await SchoolShowcaseProfile.findOne({ school: schoolId, visibility: "PUBLIC" })
-        .select("coverImageUrl")
+        .select("logoUrl coverImageUrl")
         .lean()
     : null;
 
@@ -94,7 +94,7 @@ async function getWritingData(id) {
           school: authorCurrentSchoolId,
           visibility: "PUBLIC",
         })
-          .select("coverImageUrl")
+          .select("logoUrl coverImageUrl")
           .lean()
       : null;
 

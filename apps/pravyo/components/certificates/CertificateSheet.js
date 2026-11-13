@@ -473,7 +473,7 @@ export default async function CertificateSheet({ achievement }) {
   const schoolMark = (
     <CertificateLogoMark
       key="school"
-      imageUrl={achievement.schoolProfile?.coverImageUrl}
+      imageUrl={achievement.schoolProfile?.logoUrl || achievement.schoolProfile?.coverImageUrl}
       label={schoolName}
       fallbackText={schoolName}
     />

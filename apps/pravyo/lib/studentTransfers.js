@@ -82,9 +82,11 @@ export async function getStudentTransferData(studentId) {
       .limit(1000)
       .lean();
     const profiles = await SchoolShowcaseProfile.find({ school: { $in: rows.map((row) => row._id) } })
-      .select("school coverImageUrl")
+      .select("school logoUrl coverImageUrl")
       .lean();
-    const logoBySchool = new Map(profiles.map((profile) => [String(profile.school), profile.coverImageUrl || ""]));
+    const logoBySchool = new Map(
+      profiles.map((profile) => [String(profile.school), profile.logoUrl || profile.coverImageUrl || ""])
+    );
     schools = rows.map((row) => ({ ...serializeSchool(row), logoUrl: logoBySchool.get(String(row._id)) || "" }));
   }
 

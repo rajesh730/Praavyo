@@ -3,8 +3,8 @@
 // what is actually in R2. It never writes to MongoDB or R2.
 //
 // Flags:
-//   WIPED?  asset is DELETED but its file is still in R2 (a wrongful wipe,
-//           like the 2026-11 stale-deployment incident)
+//   WIPED?  a live link points at an asset marked DELETED while its file is
+//           still in R2 (a wrongful wipe, like the 2026-11 incident)
 //   BROKEN  a school's live link points at an asset that is not READY, or
 //           whose file is missing from R2
 import dotenv from "dotenv";
@@ -64,22 +64,27 @@ async function main() {
   const school = (id) => `${schoolNames.get(String(id)) || "?"} (${id})`;
 
   const problems = [];
-  for (const asset of assets) {
-    if (asset.status === "DELETED" && exists.get(String(asset._id))) {
-      problems.push(
-        `WIPED?  ${asset.purpose} ${asset._id} of ${school(asset.school)} marked DELETED at ` +
-          `${asset.deletedAt?.toISOString?.() || "?"} but the file is still in R2`
-      );
-    }
-  }
 
   const links = [];
   for (const p of await db.collection("schoolshowcaseprofiles").find({}).toArray()) {
-    links.push([p.school, "logo (coverImageUrl)", p.coverImageUrl]);
+    links.push([p.school, "logo (logoUrl)", p.logoUrl || p.coverImageUrl]);
     links.push([p.school, "cover (bannerImageUrl)", p.bannerImageUrl]);
   }
   for (const c of await db.collection("schoolconfigs").find({}).toArray()) {
     links.push([c.school, "report card image", c.reportCardImageUrl]);
+  }
+  const linkedAssetIds = new Set(links.map(([, , url]) => idFromUrl(url)).filter(Boolean));
+  for (const asset of assets) {
+    if (
+      asset.status === "DELETED" &&
+      exists.get(String(asset._id)) &&
+      linkedAssetIds.has(String(asset._id))
+    ) {
+      problems.push(
+        `WIPED?  ${asset.purpose} ${asset._id} of ${school(asset.school)} marked DELETED at ` +
+          `${asset.deletedAt?.toISOString?.() || "?"} but the live link still points to it`
+      );
+    }
   }
   for (const [schoolId, label, url] of links) {
     const id = idFromUrl(url);

@@ -50,7 +50,7 @@ export async function GET(request, { params }) {
           .lean(),
         SchoolShowcaseProfile.findOne({ school: schoolId, visibility: "PUBLIC" })
           .select(
-            "tagline summary coverImageUrl websiteUrl motto contactEmail contactPhone socialLinks highlightMetrics publicHighlights"
+            "tagline summary logoUrl coverImageUrl websiteUrl motto contactEmail contactPhone socialLinks highlightMetrics publicHighlights"
           )
           .lean(),
       ]);
@@ -80,7 +80,9 @@ export async function GET(request, { params }) {
               tagline: profile.tagline || "",
               summary: profile.summary || "",
               motto: profile.motto || "",
-              coverImageUrl: profile.coverImageUrl || "",
+              logoUrl: profile.logoUrl || profile.coverImageUrl || "",
+              // Kept for clients on the original public API contract.
+              coverImageUrl: profile.logoUrl || profile.coverImageUrl || "",
               contactEmail: profile.contactEmail || "",
               socialLinks: profile.socialLinks || {},
               highlights: profile.publicHighlights || [],

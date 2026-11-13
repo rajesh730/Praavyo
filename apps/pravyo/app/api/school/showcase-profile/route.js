@@ -88,7 +88,7 @@ export async function GET() {
         school: session.user.id,
         tagline: "",
         summary: "",
-        coverImageUrl: "",
+        logoUrl: "",
         bannerImageUrl: "",
         websiteUrl: "",
         motto: "",
@@ -135,7 +135,8 @@ export async function PUT(req) {
         $set: {
           tagline: sanitizeString(body.tagline, 160),
           summary: sanitizeString(body.summary, SCHOOL_STORY_MAX_LENGTH),
-          coverImageUrl: sanitizeString(body.coverImageUrl, 1000),
+          // A logo is changed only through /logo. Including it in this broad
+          // profile save let an old tab overwrite (or blank) a new logo.
           bannerImageUrl: sanitizeString(body.bannerImageUrl, 1000),
           websiteUrl: sanitizeString(body.websiteUrl, 1000),
           motto: sanitizeString(body.motto, 160),

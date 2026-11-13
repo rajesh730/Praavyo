@@ -22,6 +22,15 @@ const SchoolShowcaseProfileSchema = new mongoose.Schema(
       trim: true,
       maxlength: SCHOOL_STORY_MAX_LENGTH,
     },
+    // This used to be called coverImageUrl. A logo is not showcase copy: it is
+    // school identity used on reports, certificates and public pages, so it
+    // has its own field and write path. Keep the old field during the rolling
+    // migration so schools do not lose logos uploaded before this change.
+    logoUrl: {
+      type: String,
+      default: "",
+      trim: true,
+    },
     coverImageUrl: {
       type: String,
       default: "",

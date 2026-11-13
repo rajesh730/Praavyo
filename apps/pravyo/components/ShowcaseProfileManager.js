@@ -31,7 +31,7 @@ const SOCIAL_FIELDS = [
 const EMPTY_FORM = {
   tagline: "",
   summary: "",
-  coverImageUrl: "",
+  logoUrl: "",
   bannerImageUrl: "",
   websiteUrl: "",
   motto: "",
@@ -96,7 +96,7 @@ export default function ShowcaseProfileManager() {
         setProfile({
           tagline: nextProfile.tagline || "",
           summary: nextProfile.summary || "",
-          coverImageUrl: nextProfile.coverImageUrl || "",
+          logoUrl: nextProfile.logoUrl || nextProfile.coverImageUrl || "",
           bannerImageUrl: nextProfile.bannerImageUrl || "",
           websiteUrl: nextProfile.websiteUrl || "",
           motto: nextProfile.motto || "",
@@ -124,9 +124,9 @@ export default function ShowcaseProfileManager() {
   }, []);
 
   const updateSchoolLogo = async (asset) => {
-    const previousUrl = profile.coverImageUrl || "";
-    const coverImageUrl = asset?.url || "";
-    setProfile((current) => ({ ...current, coverImageUrl }));
+    const previousUrl = profile.logoUrl || "";
+    const logoUrl = asset?.url || "";
+    setProfile((current) => ({ ...current, logoUrl }));
     setError("");
     setSavedMessage("");
 
@@ -134,7 +134,7 @@ export default function ShowcaseProfileManager() {
       const response = await fetch("/api/school/showcase-profile/logo", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ coverImageUrl }),
+        body: JSON.stringify({ logoUrl }),
       });
       const data = await response.json();
       if (!response.ok) {
@@ -142,11 +142,11 @@ export default function ShowcaseProfileManager() {
       }
       setProfile((current) => ({
         ...current,
-        coverImageUrl: data.data?.coverImageUrl || "",
+        logoUrl: data.data?.logoUrl || "",
       }));
       setSavedMessage("School logo updated.");
     } catch (logoError) {
-      setProfile((current) => ({ ...current, coverImageUrl: previousUrl }));
+      setProfile((current) => ({ ...current, logoUrl: previousUrl }));
       setError(logoError.message || "Failed to update school logo");
     }
   };
@@ -196,7 +196,6 @@ export default function ShowcaseProfileManager() {
       const payload = {
         tagline: profile.tagline,
         summary: profile.summary,
-        coverImageUrl: profile.coverImageUrl,
         bannerImageUrl: profile.bannerImageUrl,
         websiteUrl: profile.websiteUrl,
         motto: profile.motto,
@@ -244,7 +243,7 @@ export default function ShowcaseProfileManager() {
 
   const schoolName = profile.schoolName || "Your School";
   const tagline = profile.tagline || "Inspiring minds. Building futures.";
-  const logoImage = normalizeImageUrl(profile.coverImageUrl);
+  const logoImage = normalizeImageUrl(profile.logoUrl);
   const metrics = profile.highlightMetrics || {};
 
   return (
@@ -372,9 +371,9 @@ export default function ShowcaseProfileManager() {
                 <div className="min-w-0 flex-1">
                   <ImageUploadField
                     purpose="SCHOOL_LOGO"
-                    value={profile.coverImageUrl ? { url: profile.coverImageUrl } : null}
+                    value={profile.logoUrl ? { url: profile.logoUrl } : null}
                     onChange={updateSchoolLogo}
-                    label={profile.coverImageUrl ? "Replace school logo" : "Upload school logo"}
+                    label={profile.logoUrl ? "Replace school logo" : "Upload school logo"}
                     maxEdge={512}
                     quality={0.72}
                     allowRemove={false}

@@ -12,9 +12,9 @@ export async function GET() {
     if (error) return error;
     await connectDB();
     const profile = await SchoolShowcaseProfile.findOne({ school: session.user.id })
-      .select("coverImageUrl")
+      .select("logoUrl coverImageUrl")
       .lean();
-    return NextResponse.json({ logoUrl: profile?.coverImageUrl || "" });
+    return NextResponse.json({ logoUrl: profile?.logoUrl || profile?.coverImageUrl || "" });
   } catch (loadError) {
     console.error("GET /api/school/brand error:", loadError);
     return NextResponse.json({ logoUrl: "" });

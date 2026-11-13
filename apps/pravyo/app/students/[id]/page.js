@@ -135,7 +135,7 @@ async function getPortfolioData(id) {
       .lean(),
     schoolObjectId
       ? SchoolShowcaseProfile.findOne({ school: schoolObjectId })
-          .select("coverImageUrl")
+          .select("logoUrl coverImageUrl")
           .lean()
       : null,
   ]);
@@ -361,7 +361,7 @@ export default async function StudentPortfolioPage({ params }) {
   const name = student.name || "Student";
   const schoolId = student.school?._id ? String(student.school._id) : "";
   const schoolName = student.school?.schoolName || "School";
-  const schoolLogoUrl = schoolProfile?.coverImageUrl || "";
+  const schoolLogoUrl = schoolProfile?.logoUrl || schoolProfile?.coverImageUrl || "";
 
   return (
     <main className="min-h-screen bg-surface-2 pb-24 text-ink">

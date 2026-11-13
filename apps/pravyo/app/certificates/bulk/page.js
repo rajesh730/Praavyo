@@ -84,7 +84,7 @@ export default async function BulkCertificatePage({ searchParams }) {
   ];
   const schoolProfiles = schoolIds.length
     ? await SchoolShowcaseProfile.find({ school: { $in: schoolIds } })
-        .select("school coverImageUrl")
+        .select("school logoUrl coverImageUrl")
         .lean()
     : [];
   const profileBySchool = new Map(

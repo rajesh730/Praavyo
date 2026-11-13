@@ -43,7 +43,7 @@ function formatPromotion(promotion, profileMap = new Map()) {
       ? {
           tagline: profile.tagline || "",
           summary: profile.summary || "",
-          coverImageUrl: profile.coverImageUrl || "",
+          coverImageUrl: profile.logoUrl || profile.coverImageUrl || "",
           highlightMetrics: profile.highlightMetrics || {},
         }
       : null,
@@ -83,7 +83,7 @@ export async function getActiveSchoolPromotions(
     school: { $in: schoolIds },
     visibility: "PUBLIC",
   })
-    .select("school tagline summary coverImageUrl highlightMetrics")
+    .select("school tagline summary logoUrl coverImageUrl highlightMetrics")
     .lean();
   const profileMap = new Map(
     profiles.map((profile) => [String(profile.school), profile])

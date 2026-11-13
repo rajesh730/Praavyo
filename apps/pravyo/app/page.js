@@ -69,7 +69,7 @@ async function enrichItemsWithSchoolProfiles(items = []) {
     school: { $in: schoolIds },
     visibility: "PUBLIC",
   })
-    .select("school coverImageUrl")
+    .select("school logoUrl coverImageUrl")
     .lean();
 
   const profileMap = new Map(
@@ -82,7 +82,7 @@ async function enrichItemsWithSchoolProfiles(items = []) {
     return {
       ...item,
       schoolHref: item.schoolHref || (schoolId ? `/schools/${schoolId}` : ""),
-      schoolLogoUrl: profile?.coverImageUrl || "",
+      schoolLogoUrl: profile?.logoUrl || profile?.coverImageUrl || "",
     };
   });
 }
@@ -455,7 +455,7 @@ function RightColumn({ schools, event }) {
                 className="group flex items-center gap-3 py-3.5 transition-colors hover:opacity-80"
               >
                 <SchoolLogoMark
-                  imageUrl={school.profile?.coverImageUrl}
+                  imageUrl={school.profile?.logoUrl || school.profile?.coverImageUrl}
                   name={school.title || school.schoolName}
                   className="h-9 w-9 rounded-control"
                 />
@@ -523,7 +523,7 @@ function MobileSchoolScroller({ schools }) {
             className="card transition-colors hover:border-brand-line hover:bg-surface-2 group flex flex-col items-center p-3 pt-4 text-center transition-colors hover:border-brand-line"
           >
             <SchoolLogoMark
-              imageUrl={school.profile?.coverImageUrl}
+              imageUrl={school.profile?.logoUrl || school.profile?.coverImageUrl}
               name={school.title}
               className="h-11 w-11 rounded-control"
             />

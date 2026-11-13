@@ -46,7 +46,7 @@ export async function GET() {
       await Promise.all([
         User.findById(student.school).select("schoolName schoolLocation").lean(),
         SchoolShowcaseProfile.findOne({ school: student.school })
-          .select("coverImageUrl")
+          .select("logoUrl coverImageUrl")
           .lean(),
         Achievement.find({
           student: student._id,
@@ -151,7 +151,7 @@ export async function GET() {
             email: student.email || "",
             schoolName: school?.schoolName || "School",
             schoolLocation: school?.schoolLocation || "",
-            schoolLogoUrl: schoolProfile?.coverImageUrl || "",
+            schoolLogoUrl: schoolProfile?.logoUrl || schoolProfile?.coverImageUrl || "",
           },
           publicProfileAvailable,
           metrics: {

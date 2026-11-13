@@ -74,13 +74,13 @@ export async function GET() {
         status: { $in: ["ACTIVE", "INACTIVE"] },
       }),
       SchoolShowcaseProfile.findOne({ school: session.user.id })
-        .select("coverImageUrl")
+        .select("logoUrl coverImageUrl")
         .lean(),
     ]);
 
     const payload = {
       reportCard: {
-        logoUrl: showcaseProfile?.coverImageUrl || "",
+        logoUrl: showcaseProfile?.logoUrl || showcaseProfile?.coverImageUrl || "",
         imageUrl: config.reportCardImageUrl || "",
       },
       identity: {

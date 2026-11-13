@@ -20,8 +20,8 @@ export async function PATCH(request) {
     if (error) return error;
 
     const body = await request.json();
-    const coverImageUrl = String(body.coverImageUrl || "").trim();
-    const assetId = assetIdFromUrl(coverImageUrl);
+    const logoUrl = String(body.logoUrl || "").trim();
+    const assetId = assetIdFromUrl(logoUrl);
     if (assetId === "invalid" || (assetId && !mongoose.Types.ObjectId.isValid(assetId))) {
       return validationError("Choose a logo uploaded through this form.");
     }
@@ -30,7 +30,7 @@ export async function PATCH(request) {
     const existingProfile = await SchoolShowcaseProfile.findOne({
       school: session.user.id,
     })
-      .select("coverImageUrl")
+      .select("logoUrl coverImageUrl")
       .lean();
     if (assetId) {
       const ownsAsset = await MediaAsset.exists({
@@ -47,11 +47,13 @@ export async function PATCH(request) {
 
     const profile = await SchoolShowcaseProfile.findOneAndUpdate(
       { school: session.user.id },
-      { $set: { coverImageUrl } },
+      { $set: { logoUrl } },
       { new: true, upsert: true, setDefaultsOnInsert: true }
     ).lean();
 
-    const previousAssetId = assetIdFromUrl(existingProfile?.coverImageUrl);
+    const previousAssetId = assetIdFromUrl(
+      existingProfile?.logoUrl || existingProfile?.coverImageUrl
+    );
     if (
       previousAssetId &&
       previousAssetId !== "invalid" &&
@@ -69,7 +71,7 @@ export async function PATCH(request) {
     revalidatePath(`/schools/${session.user.id}`);
 
     return successResponse(200, "School logo updated", {
-      coverImageUrl: profile.coverImageUrl || "",
+      logoUrl: profile.logoUrl || "",
     });
   } catch (updateError) {
     console.error("School logo update failed:", updateError);

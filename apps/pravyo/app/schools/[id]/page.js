@@ -577,7 +577,7 @@ export default async function PublicSchoolPage({ params }) {
     grades,
   } = data;
   const metrics = profile?.highlightMetrics || {};
-  const coverImage = normalizeImageUrl(profile?.coverImageUrl);
+  const coverImage = normalizeImageUrl(profile?.logoUrl || profile?.coverImageUrl);
   const bannerImage = normalizeImageUrl(profile?.bannerImageUrl);
   const socialEntries = getSocialEntries(profile?.socialLinks);
   const websiteUrl = profile?.websiteUrl || school.website || "";
