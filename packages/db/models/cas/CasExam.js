@@ -14,6 +14,12 @@ const casExamSchema = new mongoose.Schema({
   // The exam running now or coming next, chosen in Manage Exams. At most one
   // per school and academic year; every exam picker opens on it.
   isCurrent: { type: Boolean, default: false },
+  // What "Publish anyway" does with work never assessed, chosen by the school
+  // in Manage Exams. ABSENT: a subject with nothing assessed is printed as
+  // "Not attended exam" and left out of the GPA. DEFAULT_LEVEL: every missing
+  // learning outcome is scored `missingWorkLevel` (0 = no marks, 1–4 = level).
+  missingWork: { type: String, enum: ['ABSENT', 'DEFAULT_LEVEL'], default: 'ABSENT' },
+  missingWorkLevel: { type: Number, min: 0, max: 4, default: 0 },
   isAlias: { type: Boolean, default: false },
   mergedInto: { type: mongoose.Schema.Types.ObjectId, ref: 'CasExam' },
   createdBy: refId('User'),

@@ -28,7 +28,15 @@ function serializeExam(exam) {
     status: exam.status,
     isCurrent: Boolean(exam.isCurrent) && exam.status === 'ACTIVE',
     academicYear: String(exam.academicYear),
+    ...missingWorkOf(exam),
   };
+}
+
+/** The exam's rule for marks still missing at "Publish anyway" (see CasExam). */
+export function missingWorkOf(exam) {
+  return exam?.missingWork === 'DEFAULT_LEVEL'
+    ? { missingWork: 'DEFAULT_LEVEL', missingWorkLevel: Number(exam.missingWorkLevel) || 0 }
+    : { missingWork: 'ABSENT', missingWorkLevel: 0 };
 }
 
 /**
@@ -143,6 +151,7 @@ export async function createExam(actor, input) {
     name,
     reportTitle: data.reportTitle || name,
     issueDate: data.issueDate,
+    ...(data.missingWork ? missingWorkOf(data) : {}),
     createdBy: actor.id,
   });
   return serializeExam(exam);
@@ -182,6 +191,8 @@ export async function updateExam(actor, input) {
   if (Object.hasOwn(data, 'reportTitle')) exam.reportTitle = data.reportTitle || name;
   const issueDateChanged = Object.hasOwn(data, 'issueDate') && data.issueDate !== exam.issueDate;
   if (Object.hasOwn(data, 'issueDate')) exam.issueDate = data.issueDate;
+  // Only affects results published from now on; published cards are frozen.
+  if (data.missingWork) Object.assign(exam, missingWorkOf(data));
   await exam.save();
   // The issue date is managed here, not per card: carry a change onto every
   // report card already made for this exam, published ones included, in the

@@ -64,12 +64,18 @@ const creditHours = z.union([z.number().min(0).max(40), z.null()]);
 const examName = z.string().trim().min(2).max(120);
 const reportTitleInput = z.string().trim().max(120);
 
+// What "Publish anyway" does with work that was never assessed (see CasExam).
+const missingWork = z.enum(['ABSENT', 'DEFAULT_LEVEL']);
+const missingWorkLevel = z.number().int().min(0).max(4);
+
 export const examCreateInput = z.object({
   academicYear: objectId,
   name: examName,
   reportTitle: reportTitleInput.optional(),
   // The date printed on this exam's report cards; nothing else supplies one.
   issueDate: bsDay,
+  missingWork: missingWork.optional(),
+  missingWorkLevel: missingWorkLevel.optional(),
 }).strict();
 
 export const examUpdateInput = z.object({
@@ -78,6 +84,8 @@ export const examUpdateInput = z.object({
   name: examName,
   reportTitle: reportTitleInput.optional(),
   issueDate: bsDay.optional(),
+  missingWork: missingWork.optional(),
+  missingWorkLevel: missingWorkLevel.optional(),
 }).strict();
 
 // How a subject is used — the register is shared by daily teaching and CAS.
@@ -417,11 +425,29 @@ export const examPublishingQuery = z
 
 /** Manage Exams: publish or unpublish one exam for a whole grade. */
 export const examPublishingAction = z
-  .object({ academicYear: objectId, grade, exam: objectId, action: z.enum(['publish', 'unpublish']) })
+  .object({
+    academicYear: objectId,
+    grade,
+    exam: objectId,
+    action: z.enum(['publish', 'unpublish']),
+    // Publish although some marks are missing (the exam's missing-work rule fills them).
+    publishAnyway: z.boolean().default(false),
+  })
   .strict();
 
-/** Snapshot and publish a grade's results in one step. */
+/**
+ * Snapshot and publish a grade's results in one step — always the WHOLE grade
+ * (every section, every student), never a chosen few. `checkOnly` reports what
+ * would be published and which marks are missing, without publishing.
+ * `publishAnyway` publishes despite missing marks, applying the exam's
+ * missing-work rule.
+ */
 export const gradePublishInput = reportBaseInput
+  .omit({ students: true, section: true })
+  .extend({
+    checkOnly: z.boolean().default(false),
+    publishAnyway: z.boolean().default(false),
+  })
   .strict()
   .superRefine(validateResultScope)
   .transform((data) => ({

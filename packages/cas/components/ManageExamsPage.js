@@ -8,6 +8,7 @@ import { useCas } from './CasLayout.js';
 import { casFetch, useCasMutation, useCasQuery } from '../lib/client/useCas.js';
 import { Alert, Badge, Button, Card, EmptyState, Field, Input, PageHeader, Select, Spinner } from './ui/Kit.js';
 import IssueDateInput from './ui/IssueDateInput.js';
+import PublishCheckDialog, { missingWorkLabel } from './result/PublishCheckDialog.js';
 import { todayBsNumeric } from '@pravyo/core/nepaliDate';
 
 export default function ManageExamsPage() {
@@ -18,6 +19,7 @@ export default function ManageExamsPage() {
   const [examName, setExamName] = useState('');
   const [reportTitle, setReportTitle] = useState('');
   const [issueDate, setIssueDate] = useState(() => todayBsNumeric());
+  const [missingRule, setMissingRule] = useState('ABSENT');
   const [editing, setEditing] = useState(null);
   const [openExamId, setOpenExamId] = useState('');
   const [showCreate, setShowCreate] = useState(false);
@@ -58,11 +60,15 @@ export default function ManageExamsPage() {
   // { exam, action: 'publish' | 'unpublish' } while a confirmation is open.
   const [publishing, setPublishing] = useState(null);
 
-  async function changePublishing() {
+  async function changePublishing(publishAnyway = false) {
     const { exam, action } = publishing;
     setPublishing(null);
     const result = await run('/api/cas/results/exam-publishing', {
-      method: 'POST', body: { academicYear: selectedYearId, grade: selectedGrade, exam: exam.id, action },
+      method: 'POST',
+      body: {
+        academicYear: selectedYearId, grade: selectedGrade, exam: exam.id, action,
+        ...(action === 'publish' ? { publishAnyway: Boolean(publishAnyway) } : {}),
+      },
     });
     if (result.ok) {
       const data = result.data || {};
@@ -73,8 +79,9 @@ export default function ManageExamsPage() {
         ));
       } else {
         const failed = data.failed?.length || 0;
+        const completed = data.completedMissing || 0;
         setSuccess(t(
-          `${exam.name} published for ${selectedGrade}: ${data.published || 0} report card${data.published === 1 ? '' : 's'} sent to students and parents. The marks are now locked.${failed ? ` ${failed} could not be published; open Student Result to see why.` : ''}`,
+          `${exam.name} published for ${selectedGrade}: ${data.published || 0} report card${data.published === 1 ? '' : 's'} sent to students and parents. The marks are now locked.${completed ? ` ${completed} missing subject mark${completed === 1 ? ' was' : 's were'} completed by this exam's missing-marks rule.` : ''}${failed ? ` ${failed} could not be published; open Student Result to see why.` : ''}`,
           `${selectedGrade} को ${exam.name} प्रकाशित भयो। अङ्क अब लक छन्।`,
         ));
       }
@@ -85,12 +92,13 @@ export default function ManageExamsPage() {
   async function createExam(event) {
     event.preventDefault();
     const result = await run('/api/cas/exams', {
-      method: 'POST', body: { academicYear: selectedYearId, name: examName, reportTitle, issueDate },
+      method: 'POST', body: { academicYear: selectedYearId, name: examName, reportTitle, issueDate, ...missingRuleBody(missingRule) },
     }, { successMessage: t('Exam created', 'परीक्षा सिर्जना भयो') });
     if (result.ok) {
       setExamName('');
       setReportTitle('');
       setIssueDate(todayBsNumeric());
+      setMissingRule('ABSENT');
       setShowCreate(false);
       examsQuery.reload();
     }
@@ -105,6 +113,7 @@ export default function ManageExamsPage() {
         academicYear: editing.academicYear,
         reportTitle: editing.reportTitle,
         issueDate: editing.issueDate,
+        ...missingRuleBody(editing.missingRule),
       },
     }, { successMessage: t('Exam updated', 'परीक्षा अद्यावधिक भयो') });
     if (result.ok) {
@@ -263,7 +272,7 @@ export default function ManageExamsPage() {
         actions={canEdit && <Button onClick={() => { setShowCreate((value) => !value); setEditing(null); }}><FaPlus aria-hidden />{showCreate ? t('Cancel', 'रद्द गर्नुहोस्') : t('Create exam', 'परीक्षा सिर्जना गर्नुहोस्')}</Button>}
       >
         {showCreate && (
-          <form onSubmit={createExam} className="mb-4 grid gap-3 border-b border-line pb-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_10rem_auto] xl:items-end">
+          <form onSubmit={createExam} className="mb-4 grid gap-3 border-b border-line pb-3 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_10rem_minmax(0,1fr)_auto] xl:items-end">
             <Field label={t('Exam name', 'परीक्षाको नाम')} required>
               <Input autoFocus required minLength={2} maxLength={120} value={examName} placeholder="First Terminal Examination 2083" onChange={(event) => setExamName(event.target.value)} />
             </Field>
@@ -272,6 +281,9 @@ export default function ManageExamsPage() {
             </Field>
             <Field label={t('Issue date (B.S.)', 'जारी मिति (वि.सं.)')} required>
               <IssueDateInput required value={issueDate} onChange={setIssueDate} calendar={actor?.calendar} t={t} />
+            </Field>
+            <Field label={t('If marks are missing at publishing', 'प्रकाशन गर्दा अङ्क छुटेमा')}>
+              <MissingRuleSelect t={t} value={missingRule} onChange={setMissingRule} />
             </Field>
             <Button type="submit" disabled={pending || !selectedYearId}>{t('Save exam', 'परीक्षा सुरक्षित गर्नुहोस्')}</Button>
           </form>
@@ -308,11 +320,12 @@ export default function ManageExamsPage() {
                 <div key={exam.id} className="py-3">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   {isEditing ? (
-                    <form onSubmit={saveExam} className="grid min-w-0 flex-1 gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_10rem_10rem_auto] xl:items-end">
+                    <form onSubmit={saveExam} className="grid min-w-0 flex-1 gap-2 sm:grid-cols-2 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_10rem_10rem_minmax(0,1fr)_auto] xl:items-end">
                       <Field label={t('Exam name', 'परीक्षाको नाम')}><Input autoFocus required minLength={2} maxLength={120} value={editing.name} onChange={(event) => setEditing({ ...editing, name: event.target.value })} /></Field>
                       <Field label={t('Report title', 'नतिजा शीर्षक')}><Input maxLength={120} value={editing.reportTitle} onChange={(event) => setEditing({ ...editing, reportTitle: event.target.value })} /></Field>
                       <Field label={t('Issue date (B.S.)', 'जारी मिति (वि.सं.)')} required><IssueDateInput required value={editing.issueDate} onChange={(issueDate) => setEditing({ ...editing, issueDate })} calendar={actor?.calendar} t={t} /></Field>
                       <Field label={t('Academic year', 'शैक्षिक वर्ष')}><Select value={editing.academicYear} onChange={(event) => setEditing({ ...editing, academicYear: event.target.value })}>{years.map((year) => <option key={year.id} value={year.id}>{year.label}</option>)}</Select></Field>
+                      <Field label={t('If marks are missing at publishing', 'प्रकाशन गर्दा अङ्क छुटेमा')}><MissingRuleSelect t={t} value={editing.missingRule} onChange={(missingRule) => setEditing({ ...editing, missingRule })} /></Field>
                       <div className="mb-3 flex gap-2">
                         <Button type="submit" disabled={pending}><FaCheck aria-hidden />{t('Save', 'सुरक्षित')}</Button>
                         <Button variant="secondary" onClick={() => setEditing(null)}><FaTimes aria-hidden />{t('Cancel', 'रद्द')}</Button>
@@ -362,8 +375,11 @@ export default function ManageExamsPage() {
                             ? <Badge tone="neutral">{t(`Not published for ${selectedGrade}`, `${selectedGrade} मा अप्रकाशित`)}</Badge>
                             : fullyPublished
                               ? <Badge tone="success"><FaLock aria-hidden size={11} className="mr-1 inline" />{t(`Published for ${selectedGrade} · marks locked`, `${selectedGrade} मा प्रकाशित · अङ्क लक`)}</Badge>
-                              : <Badge tone="warning"><FaLock aria-hidden size={11} className="mr-1 inline" />{t(`Published for ${published} of ${gradeStudents} students`, `${gradeStudents} मध्ये ${published} विद्यार्थीको प्रकाशित`)}</Badge>
+                              // Results publish for the whole grade at once; this only
+                              // appears when students joined the grade after publishing.
+                              : <Badge tone="warning"><FaLock aria-hidden size={11} className="mr-1 inline" />{t(`Published · ${gradeStudents - published} new student${gradeStudents - published === 1 ? '' : 's'} still to publish`, `प्रकाशित · ${gradeStudents - published} नयाँ विद्यार्थी बाँकी`)}</Badge>
                         )}
+                        <Badge tone="neutral">{missingWorkLabel(t, exam)}</Badge>
                         <Badge tone={assignedGrades.length ? 'success' : 'neutral'}>{assignedGrades.length ? t(`Assigned in ${assignedGrades.length} grades`, `${assignedGrades.length} कक्षामा तोकिएको`) : t('No themes assigned', 'थिम तोकिएको छैन')}</Badge>
                       </div>
                     </div>
@@ -376,7 +392,7 @@ export default function ManageExamsPage() {
                       </Button>
                       {canEdit && exam.status !== 'ARCHIVED' && !fullyPublished && (
                         <Button onClick={() => setPublishing({ exam, action: 'publish' })} disabled={pending || publishingQuery.loading}>
-                          <FaPaperPlane aria-hidden />{published ? t('Publish the rest', 'बाँकी प्रकाशित') : t('Publish results', 'नतिजा प्रकाशित')}
+                          <FaPaperPlane aria-hidden />{published ? t('Publish new students', 'नयाँ विद्यार्थी प्रकाशित') : t('Publish results', 'नतिजा प्रकाशित')}
                         </Button>
                       )}
                       {canEdit && published > 0 && (
@@ -385,7 +401,7 @@ export default function ManageExamsPage() {
                         </Button>
                       )}
                       {canEdit && <>
-                      <Button variant="secondary" onClick={() => { setEditing({ id: exam.id, name: exam.name, reportTitle: exam.reportTitle || exam.name, issueDate: exam.issueDate || '', academicYear: exam.academicYear }); setShowCreate(false); }} disabled={pending}><FaPen aria-hidden />{t('Edit', 'सम्पादन')}</Button>
+                      <Button variant="secondary" onClick={() => { setEditing({ id: exam.id, name: exam.name, reportTitle: exam.reportTitle || exam.name, issueDate: exam.issueDate || '', academicYear: exam.academicYear, missingRule: missingRuleValue(exam) }); setShowCreate(false); }} disabled={pending}><FaPen aria-hidden />{t('Edit', 'सम्पादन')}</Button>
                       {exam.status === 'ARCHIVED' ? (
                         <Button variant="secondary" onClick={() => restoreExam(exam)} disabled={pending}>
                           <FaUndo aria-hidden />{t('Restore', 'पुनः सक्रिय')}
@@ -510,27 +526,14 @@ export default function ManageExamsPage() {
   );
 }
 
-function SummaryRows({ rows }) {
-  return (
-    <dl className="mt-4 divide-y divide-line rounded-control border border-line">
-      {rows.map(([label, value]) => (
-        <div key={label} className="flex justify-between gap-3 px-3 py-2 text-sm">
-          <dt className="text-muted">{label}</dt>
-          <dd className="text-right font-semibold text-ink">{value}</dd>
-        </div>
-      ))}
-    </dl>
-  );
-}
-
 /**
- * Publish one exam for the whole grade. The counts are fetched fresh when the
- * dialog opens, so they reflect marks a teacher entered a moment ago.
+ * Publish one exam for the whole grade, through the shared check: the counts
+ * and missing marks are fetched fresh when the dialog opens, so they reflect
+ * marks a teacher entered a moment ago.
  */
 function ExamPublishDialog({ t, exam, grade, academicYear, onCancel, onConfirm }) {
   const [summary, setSummary] = useState(null);
   const [loadError, setLoadError] = useState('');
-  const [checked, setChecked] = useState(false);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -540,67 +543,41 @@ function ExamPublishDialog({ t, exam, grade, academicYear, onCancel, onConfirm }
     return () => controller.abort();
   }, [academicYear, grade, exam.id]);
 
-  const ready = summary?.ready?.length || 0;
-  const blocker = summary && (
-    !summary.hasThemes ? t(`Add themes to ${exam.name} for ${grade} first (Manage themes).`, 'पहिले थिम थप्नुहोस्।')
-      : !summary.issueDate ? t('Set an issue date for this exam first (Edit).', 'पहिले जारी मिति राख्नुहोस्।')
-        : !ready ? (summary.published
-          ? t('Every assessed student is already published.', 'सबै मूल्याङ्कित विद्यार्थी प्रकाशित छन्।')
-          : t('No student in this grade has been assessed in this exam yet.', 'अहिलेसम्म कुनै विद्यार्थीको मूल्याङ्कन भएको छैन।'))
-          : '');
-
   return (
-    <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="exam-publish-title">
-      <div className="modal-panel">
-        <h2 id="exam-publish-title" className="text-lg font-semibold text-ink">
-          {t(`Publish ${exam.name} for ${grade}?`, `${grade} को ${exam.name} प्रकाशित गर्ने?`)}
-        </h2>
-        <p className="mt-1 text-sm text-muted">
-          {t(
-            'Each report card goes to the student and every linked parent straight away, and its marks lock. Nobody can change them until you unpublish the exam here.',
-            'हरेक नतिजा पत्र तुरुन्तै विद्यार्थी र अभिभावकलाई पठाइन्छ र अङ्क लक हुन्छन्। यहाँबाट अप्रकाशित नगरेसम्म कसैले परिवर्तन गर्न सक्दैन।',
-          )}
-        </p>
+    <PublishCheckDialog
+      t={t}
+      title={t(`Publish ${exam.name} for ${grade}?`, `${grade} को ${exam.name} प्रकाशित गर्ने?`)}
+      grade={grade}
+      check={summary}
+      loadError={loadError}
+      extraBlocker={summary && !summary.hasThemes ? t(`Add themes to ${exam.name} for ${grade} first (Manage themes).`, 'पहिले थिम थप्नुहोस्।') : ''}
+      onCancel={onCancel}
+      onPublish={onConfirm}
+    />
+  );
+}
 
-        {loadError ? <div className="mt-4"><Alert tone="danger">{loadError}</Alert></div>
-          : !summary ? <div className="mt-4"><Spinner label={t('Checking results…', 'नतिजा जाँच हुँदैछ…')} /></div>
-            : (
-              <>
-                <SummaryRows rows={[
-                  [t('Students to publish', 'प्रकाशित हुने विद्यार्थी'), String(ready)],
-                  [t('Already published', 'प्रकाशित भइसकेका'), String(summary.published)],
-                  [t('Not assessed (no card)', 'मूल्याङ्कन नभएका'), String(summary.notAssessed)],
-                  [t('Issue date', 'जारी मिति'), summary.issueDate || '—'],
-                ]} />
-                {summary.incomplete > 0 && !blocker && (
-                  <div className="mt-3">
-                    <Alert tone="warning">
-                      {t(
-                        `${summary.incomplete} of these students have not been assessed in every outcome yet. Their cards show only what is recorded.`,
-                        `${summary.incomplete} विद्यार्थीको सबै उपलब्धि मूल्याङ्कन भएको छैन।`,
-                      )}
-                    </Alert>
-                  </div>
-                )}
-                {blocker && <div className="mt-3"><Alert tone="info">{blocker}</Alert></div>}
-                {!blocker && (
-                  <label className="mt-4 flex cursor-pointer items-start gap-2.5 text-sm text-ink">
-                    <input type="checkbox" className="mt-0.5" checked={checked} onChange={(event) => setChecked(event.target.checked)} />
-                    {t('I have checked these results in Student Result and they are correct.', 'मैले Student Result मा नतिजा जाँचेँ र सही छन्।')}
-                  </label>
-                )}
-              </>
-            )}
+/** Select value for an exam's missing-marks rule: 'ABSENT' or 'LEVEL:0'…'LEVEL:4'. */
+function missingRuleValue(exam) {
+  return exam?.missingWork === 'DEFAULT_LEVEL' ? `LEVEL:${Number(exam.missingWorkLevel) || 0}` : 'ABSENT';
+}
 
-        <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <Button variant="secondary" onClick={onCancel}>{t('Cancel', 'रद्द गर्नुहोस्')}</Button>
-          <Button disabled={!summary || Boolean(blocker) || !checked} onClick={onConfirm}>
-            <FaPaperPlane aria-hidden />
-            {t(`Publish ${ready} result${ready === 1 ? '' : 's'}`, `${ready} नतिजा प्रकाशित गर्नुहोस्`)}
-          </Button>
-        </div>
-      </div>
-    </div>
+function missingRuleBody(value) {
+  return value?.startsWith('LEVEL:')
+    ? { missingWork: 'DEFAULT_LEVEL', missingWorkLevel: Number(value.slice(6)) || 0 }
+    : { missingWork: 'ABSENT', missingWorkLevel: 0 };
+}
+
+/** What "Publish anyway" does with marks still missing, chosen per exam. */
+function MissingRuleSelect({ t, value, onChange }) {
+  return (
+    <Select value={value} onChange={(event) => onChange(event.target.value)}>
+      <option value="ABSENT">{t('Mark as "Not attended exam" (left out of GPA)', '"परीक्षामा अनुपस्थित" (GPA मा नगनिने)')}</option>
+      <option value="LEVEL:0">{t('Give 0 marks', '० अङ्क दिने')}</option>
+      {[1, 2, 3, 4].map((level) => (
+        <option key={level} value={`LEVEL:${level}`}>{t(`Give level ${level}`, `स्तर ${level} दिने`)}</option>
+      ))}
+    </Select>
   );
 }
 

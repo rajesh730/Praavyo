@@ -6,16 +6,14 @@ import Link from 'next/link';
 import { Calculator as FaCalculator, Download as FaDownload, Eye as FaEye, FileText as FaFileAlt, Send as FaPaperPlane, Printer as FaPrint, Search as FaSearch } from 'lucide-react';
 import { DEFAULT_CAS_EXAM_TERM } from '@pravyo/core/casExamTerms';
 import { useCas } from './CasLayout.js';
-import { useCasQuery, useCasMutation } from '../lib/client/useCas.js';
+import { casFetch, useCasQuery, useCasMutation } from '../lib/client/useCas.js';
+import PublishCheckDialog from './result/PublishCheckDialog.js';
 import { downloadPdfFromPage } from '../lib/client/pdfDownload.js';
 import {
   PageHeader, Card, Button, Field, Select, Alert, Spinner, EmptyState,
 } from './ui/Kit.js';
 import A4Viewport from './report/A4Viewport.js';
-import ReportCard, {
-  REPORT_FORMATS,
-  DEFAULT_REPORT_FORMAT,
-} from './report/ReportCard.js';
+import ReportCard, { DEFAULT_REPORT_FORMAT } from './report/ReportCard.js';
 import {
   FinalSummaryTable, ThemeCalculationTable, FormulaNote,
 } from './result/ResultTables.js';
@@ -32,8 +30,12 @@ const FILTERS = [
 /**
  * Student Result — every student's report card for a grade and academic year.
  *
- * Publish lives only at the top and acts on the ticked students, or on
- * everyone in view when none are ticked. Publishing sends each card to the
+ * Publish lives only at the top and always publishes the WHOLE grade — every
+ * section, every student — never a chosen few. It first checks every
+ * student's marks in every subject; missing marks are listed, and the school
+ * either enters them or chooses "Publish anyway", which completes the results
+ * with the exam's missing-work rule (Manage Exams). Ticking students only
+ * chooses what to print or download. Publishing sends each card to the
  * student and every guardian linked to them. There is no unpublish here:
  * results are taken down a whole exam at a time in Manage Exams, which
  * deletes the cards and unlocks the marks. Each card offers only what concerns that one sheet: its
@@ -66,7 +68,8 @@ export default function StudentResultPage() {
   const [previews, setPreviews] = useState(new Set());
   const [downloading, setDownloading] = useState('');
   const [outcome, setOutcome] = useState(null);
-  const [confirmingPublish, setConfirmingPublish] = useState(false);
+  // { check, loadError } while the publish dialog is open.
+  const [publishCheck, setPublishCheck] = useState(null);
   const grade = (grades.includes(chosenGrade) && chosenGrade) || grades[0] || '';
   const sections = sectionsForGrade(school?.gradeSections, grade);
   // Only live sections: one deleted on the dashboard stops filtering here.
@@ -157,9 +160,10 @@ export default function StudentResultPage() {
     (!query || student.name.toLowerCase().includes(query) || String(student.rollNumber) === query));
   const visibleCards = visible.filter((student) => student.report);
   const chosen = visibleCards.filter((student) => selected.has(student.id));
-  // Actions apply to the ticked students, or to everyone in view.
+  // Print and download apply to the ticked students, or to everyone in view.
+  // Publishing does not: it is always the whole grade.
   const scope = chosen.length ? chosen : visibleCards;
-  const toPublish = scope.filter((student) => student.status === 'PREVIEW');
+  const canStartPublish = Boolean(academicYear?.id && grade && selectedExam && themeAssignmentIds.length);
   const missingCredits = (students.find((s) => s.report)?.report.snapshot.subjects || [])
     .filter((subject) => subject.creditHours == null);
 
@@ -220,28 +224,49 @@ export default function StudentResultPage() {
     }
   }
 
-  async function publish() {
-    if (!toPublish.length || !academicYear?.id) return;
-    setConfirmingPublish(false);
+  /** The result being published: the whole grade, never a section or a few. */
+  function publishScope() {
+    return {
+      academicYear: academicYear.id,
+      grade,
+      format,
+      examTerm,
+      resultMode,
+      ...(resultMode === 'EXAM' && selectedExam ? { examId: selectedExam.id } : {}),
+      includePrevious,
+      themeAssignmentIds,
+    };
+  }
+
+  /** Opens the publish dialog with a fresh check of every student's marks. */
+  async function openPublish() {
+    if (!canStartPublish) return;
     setOutcome(null);
+    setSuccess('');
+    setPublishCheck({ check: null, loadError: '' });
+    try {
+      const check = await casFetch('/api/cas/results/publish', {
+        method: 'POST',
+        body: { ...publishScope(), checkOnly: true },
+      });
+      setPublishCheck({ check, loadError: '' });
+    } catch (checkError) {
+      setPublishCheck({ check: null, loadError: checkError.message });
+    }
+  }
+
+  async function publish(publishAnyway) {
+    setPublishCheck(null);
     const result = await run('/api/cas/results/publish', {
       method: 'POST',
-      body: {
-        academicYear: academicYear.id,
-        grade,
-        ...(section ? { section } : {}),
-        students: toPublish.map((student) => student.id),
-        format,
-        examTerm,
-        resultMode,
-        ...(resultMode === 'EXAM' && selectedExam ? { examId: selectedExam.id } : {}),
-        includePrevious,
-        themeAssignmentIds,
-      },
+      body: { ...publishScope(), publishAnyway },
     });
     if (result.ok) {
-      const { published = [], failed = [], skipped = [] } = result.data || {};
-      setSuccess(`${published.length} result${published.length === 1 ? '' : 's'} published and sent to students and parents.`);
+      const { published = [], failed = [], skipped = [], completedMissing = 0 } = result.data || {};
+      setSuccess(t(
+        `${grade} result published: ${published.length} report card${published.length === 1 ? '' : 's'} sent to students and parents.${completedMissing ? ` ${completedMissing} missing subject mark${completedMissing === 1 ? ' was' : 's were'} completed by the exam's missing-marks rule.` : ''}`,
+        `${grade} को नतिजा प्रकाशित: ${published.length} नतिजा पत्र पठाइयो।`,
+      ));
       setOutcome({ failed, skipped });
       setSelected(new Set());
       reload();
@@ -272,27 +297,26 @@ export default function StudentResultPage() {
         actions={
           canPublish && (
             <div className="flex flex-wrap gap-2">
-              <Button disabled={pending || toPublish.length === 0} onClick={() => setConfirmingPublish(true)}>
+              <Button disabled={pending || !canStartPublish} onClick={openPublish}>
                 <FaPaperPlane className="text-xs" />
                 {pending
                   ? t('Working...', 'हुँदैछ...')
-                  : t(`Publish result (${toPublish.length})`, `नतिजा प्रकाशित (${toPublish.length})`)}
+                  : t(`Publish ${grade} result`, `${grade} को नतिजा प्रकाशित`)}
               </Button>
             </div>
           )
         }
       />
 
-      {confirmingPublish && (
-        <PublishConfirmDialog
+      {publishCheck && (
+        <PublishCheckDialog
           t={t}
-          students={toPublish}
+          title={t(`Publish ${selectedExam?.name || 'this result'} for ${grade}?`, `${grade} को ${selectedExam?.name || 'नतिजा'} प्रकाशित गर्ने?`)}
           grade={grade}
-          section={section}
-          examName={selectedExam?.name}
-          formatLabel={REPORT_FORMATS.find((option) => option.value === format)?.label || format}
-          onCancel={() => setConfirmingPublish(false)}
-          onConfirm={publish}
+          check={publishCheck.check}
+          loadError={publishCheck.loadError}
+          onCancel={() => setPublishCheck(null)}
+          onPublish={publish}
         />
       )}
 
@@ -706,69 +730,8 @@ function historyGroups(reports) {
   return [...groups.values()];
 }
 
-/**
- * The last check before results reach families. A browser confirm() was one
- * reflexive click away from publishing the wrong exam or grade; this spells out
- * exactly what goes out and needs a deliberate tick first.
- */
-function PublishConfirmDialog({ t, students, grade, section, examName, formatLabel, onCancel, onConfirm }) {
-  const [checked, setChecked] = useState(false);
-  const rows = [
-    [t('Grade', 'कक्षा'), section ? `${grade} · ${t('Section', 'सेक्सन')} ${section}` : grade],
-    [t('Exam', 'परीक्षा'), examName || '—'],
-    [t('Format', 'ढाँचा'), formatLabel],
-    [t('Students', 'विद्यार्थी'), String(students.length)],
-  ];
-
-  return (
-    <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="publish-confirm-title">
-      <div className="modal-panel">
-        <h2 id="publish-confirm-title" className="text-lg font-semibold text-ink">
-          {t('Publish these results?', 'यी नतिजा प्रकाशित गर्ने?')}
-        </h2>
-        <p className="mt-1 text-sm text-muted">
-          {t(
-            'Each report card is sent to the student and every linked parent straight away, and its marks lock. To change them later, unpublish the whole exam in Manage Exams.',
-            'हरेक नतिजा पत्र तुरुन्तै विद्यार्थी र अभिभावकलाई पठाइन्छ र अङ्क लक हुन्छन्। पछि परिवर्तन गर्न परीक्षा व्यवस्थापनमा पूरै परीक्षा अप्रकाशित गर्नुहोस्।',
-          )}
-        </p>
-
-        <dl className="mt-4 divide-y divide-line rounded-control border border-line">
-          {rows.map(([label, value]) => (
-            <div key={label} className="flex justify-between gap-3 px-3 py-2 text-sm">
-              <dt className="text-muted">{label}</dt>
-              <dd className="text-right font-semibold text-ink">{value}</dd>
-            </div>
-          ))}
-        </dl>
-
-        <p className="mt-3 text-xs text-muted">{listNames(students, ', ')}</p>
-
-        <label className="mt-4 flex cursor-pointer items-start gap-2.5 text-sm text-ink">
-          <input type="checkbox" className="mt-0.5" checked={checked} onChange={(event) => setChecked(event.target.checked)} />
-          {t('I have checked these results and they are correct.', 'मैले यी नतिजा जाँचेँ र सही छन्।')}
-        </label>
-
-        <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
-          <Button variant="secondary" onClick={onCancel}>{t('Cancel', 'रद्द गर्नुहोस्')}</Button>
-          <Button disabled={!checked} onClick={onConfirm}>
-            <FaPaperPlane className="text-xs" />
-            {t(`Publish ${students.length} result${students.length === 1 ? '' : 's'}`, `${students.length} नतिजा प्रकाशित गर्नुहोस्`)}
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function initials(name) {
   return String(name || '?').split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
-}
-
-function listNames(students, separator = '\n') {
-  const names = students.slice(0, 10).map((student) => student.name);
-  if (students.length > 10) names.push(`and ${students.length - 10} more`);
-  return names.join(separator);
 }
 
 function nameOf(students, id) {

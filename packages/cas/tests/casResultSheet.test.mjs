@@ -156,3 +156,37 @@ test('the step-wise result applies to Grades 1-5 only', () => {
   assert.equal(gradeNumber('Grade 10'), 10);
   assert.equal(gradeNumber('कक्षा १०'), 10);
 });
+
+// "Publish anyway" with the exam's default level (Manage Exams): each
+// unassessed outcome counts as an assessment scored that level.
+test('without a default level, unassessed outcomes are left out', () => {
+  const sheet = subjectResultSheet({ creditHours: 4, themes: [{ key: 't', levels: [4, null, 3, null] }] });
+  assert.equal(sheet.assessments, 2);
+  assert.equal(sheet.obtained, 7);
+  assert.equal(sheet.percent, 87.5);
+  assert.equal(sheet.filled, 0);
+});
+
+test('a default level of 0 scores each missing outcome 0 out of 4', () => {
+  const sheet = subjectResultSheet({ creditHours: 4, themes: [{ key: 't', levels: [4, null, 3, null] }], missingLevel: 0 });
+  assert.equal(sheet.assessments, 4);
+  assert.equal(sheet.fullMarks, 16);
+  assert.equal(sheet.obtained, 7);
+  assert.equal(sheet.percent, 43.75);
+  assert.equal(sheet.filled, 2);
+  assert.deepEqual(sheet.themes[0].scores, [4, 0, 3, 0]);
+  assert.equal(sheet.weightedGradePoint, Math.round(4 * sheet.gradePoint * 100) / 100);
+});
+
+test('a default level of 1-4 scores each missing outcome that level', () => {
+  const sheet = subjectResultSheet({ creditHours: 4, themes: [{ key: 't', levels: [4, null, 3, null] }], missingLevel: 1 });
+  assert.equal(sheet.obtained, 9);
+  assert.equal(sheet.percent, 56.25);
+  assert.equal(sheet.filled, 2);
+});
+
+test('a default level changes nothing for a fully assessed subject', () => {
+  const plain = subjectResultSheet({ creditHours: 4, themes: [{ key: 't', levels: [4, 3] }] });
+  const filled = subjectResultSheet({ creditHours: 4, themes: [{ key: 't', levels: [4, 3] }], missingLevel: 0 });
+  assert.deepEqual({ ...filled, themes: filled.themes.map(({ filled: f, ...row }) => row) }, { ...plain, themes: plain.themes.map(({ filled: f, ...row }) => row) });
+});

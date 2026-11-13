@@ -234,7 +234,7 @@ export async function POST(request) {
       action: "GUARDIANS_IMPORTED_FROM_REGISTRATION",
       performedBy: session.user.id,
       role: session.user.role,
-      reason: grade ? `Grade ${grade}` : studentIds ? "Selected students" : "All students",
+      reason: grade ? (/^grade\b/i.test(grade) ? grade : `Grade ${grade}`) : studentIds ? "Selected students" : "All students",
       after: { created, skipped: students.length - pending.length, failed: failures.length },
     }).catch(() => {});
 

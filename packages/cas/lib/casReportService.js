@@ -35,6 +35,7 @@ import { parseBsNumeric } from '@pravyo/core/nepaliDate';
 import { DEFAULT_CAS_EXAM_TERM, normalizeExamTitle } from '@pravyo/core/casExamTerms';
 import { assessmentExamFilter, examsThroughSelected, resultScopeKey } from './casExamScope.js';
 import { loadReportBranding, withBranding } from './casBranding.js';
+import { missingWorkOf } from './casExamService.js';
 
 /** A BS issue date the school typed, checked to be a real calendar date. */
 function checkedIssueDate(value) {
@@ -219,11 +220,26 @@ async function loadGradeCurriculum(actor, grade, {
   });
 }
 
+/** Remark printed for a subject the student has no assessment in at all. */
+export const NOT_ATTENDED_REMARK = { en: 'Not attended exam', ne: 'परीक्षामा अनुपस्थित' };
+
 /**
  * One student's result from already-loaded curriculum and attempts.
  * Pure over its inputs; saves nothing.
+ *
+ * `missingPolicy` is the exam's missing-work rule ({ missingWork,
+ * missingWorkLevel }, see CasExam). It is passed only when the school chose
+ * "Publish anyway" with marks still missing:
+ *   DEFAULT_LEVEL — every unassessed outcome is scored missingWorkLevel (0-4);
+ *   ABSENT        — a subject with nothing assessed is "Not attended exam":
+ *                   no grade, so it is left out of the GPA.
+ * Without it, unassessed outcomes are simply left out (the normal rule).
  */
-function computeResult(curriculum, attemptsByOutcome, resultMode = 'EXAM') {
+function computeResult(curriculum, attemptsByOutcome, resultMode = 'EXAM', missingPolicy = null) {
+  const missingLevel = missingPolicy?.missingWork === 'DEFAULT_LEVEL'
+    ? Number(missingPolicy.missingWorkLevel) || 0
+    : null;
+  const markAbsent = missingPolicy?.missingWork === 'ABSENT';
   const perSubject = curriculum.map(({ subject, themes: allThemes }) => {
     const themes = allThemes.filter((theme) => resultMode === 'MERGED'
       ? theme.outcomes.some((o) => (attemptsByOutcome[String(o._id)] || []).length > 0)
@@ -240,17 +256,33 @@ function computeResult(curriculum, attemptsByOutcome, resultMode = 'EXAM') {
     const sheet = subjectResultSheet({
       creditHours: subject.creditHours ?? null,
       themes: themes.map((theme) => ({ ...theme, levels: theme.outcomes.map(levelOf) })),
+      missingLevel,
     });
+    // Filled by the default level: the figures come from the filled sheet so
+    // the card's achievement, outcomes and totals all agree with each other.
+    const filled = sheet.filled
+      ? {
+          assessedCount: sheet.assessments,
+          achievement: sheet.percent,
+          averageLevel: sheet.assessments ? Math.round((sheet.obtained / sheet.assessments) * 100) / 100 : null,
+          coverage: 100,
+          fullyAssessed: true,
+          filledByDefault: sheet.filled,
+        }
+      : {};
+    const absent = markAbsent && result.outcomeCount > 0 && result.assessedCount === 0;
 
     return {
       ...result,
+      ...filled,
+      ...(absent ? { absent: true } : {}),
       titleEn: subject.titleEn,
       titleNe: subject.titleNe || '',
       creditHours: sheet.creditHours,
       gradePoint: sheet.gradePoint,
       grade: sheet.grade,
-      remarkEn: sheet.remarkEn,
-      remarkNe: sheet.remarkNe,
+      remarkEn: absent ? NOT_ATTENDED_REMARK.en : sheet.remarkEn,
+      remarkNe: absent ? NOT_ATTENDED_REMARK.ne : sheet.remarkNe,
       obtained: sheet.obtained,
       fullMarks: sheet.fullMarks,
       weightedGradePoint: sheet.weightedGradePoint,
@@ -315,6 +347,7 @@ export async function buildResult(actor, {
   themeAssignments: suppliedThemeAssignments,
   themeAssignmentIds,
   studentProfile,
+  missingPolicy = null,
 }) {
   requireSchoolAdmin(actor);
   await connectDB();
@@ -339,7 +372,7 @@ export async function buildResult(actor, {
       ? selectedThemeAssessmentFilter(themeAssignments, curriculum)
       : resultAssessmentFilter(data, examIds)),
   }).lean();
-  return computeResult(curriculumFor(curriculum, profile), attemptsByOutcomeOf(assessments), resultMode);
+  return computeResult(curriculumFor(curriculum, profile), attemptsByOutcomeOf(assessments), resultMode, missingPolicy);
 }
 
 /**
@@ -674,8 +707,14 @@ export function serializeReport(row) {
   };
 }
 
-/** Create or refresh DRAFT reports for a set of students. */
-export async function generateReports(actor, input) {
+/**
+ * Create or refresh DRAFT reports for a set of students.
+ *
+ * `missingPolicy` (the exam's missing-work rule) is given only by "Publish
+ * anyway": it completes each result, and then a student with nothing assessed
+ * still gets a card (every subject "Not attended exam", or the default level).
+ */
+export async function generateReports(actor, input, { missingPolicy = null } = {}) {
   requireSchoolAdmin(actor);
   const data = reportInput.parse(input);
   // Every snapshot and publication goes through here, so this one check keeps
@@ -767,9 +806,10 @@ export async function generateReports(actor, input) {
       examIds,
       themeAssignments,
       themeAssignmentIds: data.themeAssignmentIds,
+      missingPolicy,
     });
 
-    if (result.total.assessedCount === 0) {
+    if (result.total.assessedCount === 0 && !missingPolicy) {
       skipped.push({
         student: studentId,
         name: student.name,
@@ -964,22 +1004,152 @@ export async function publishReports(actor, input) {
 }
 
 /**
- * Student Result's "Publish result": take a fresh snapshot of each chosen
- * student's result, then publish it straight away. The card's issue date is
- * the exam's, set in Manage Exams.
+ * Everything needed to publish one result scope for a WHOLE grade: who is
+ * still unpublished, and every subject a student has not been fully assessed
+ * in. A subject counts only if this result has outcomes for it.
+ */
+async function gradePublishPlan(actor, data) {
+  const year = await loadAcademicYear(actor, data.academicYear);
+  const exam = data.examId
+    ? await CasExam.findOne({ _id: data.examId, school: actor.school, academicYear: year.id, status: { $in: ['ACTIVE', 'ARCHIVED'] }, mergedInto: { $exists: false } }).lean()
+    : null;
+  assert(!data.examId || exam, 'Exam unavailable for this academic year', 404);
+  const presentation = await examReportPresentation(actor, year, exam, data.examTitle);
+  const themeAssignments = await resolveThemeAssignments(actor, {
+    academicYear: year.id, grade: data.grade, themeAssignmentIds: data.themeAssignmentIds,
+  });
+  const examIds = await resolveExamIds(actor, { ...data, academicYear: year.id });
+  const [roster, curriculum] = await Promise.all([
+    loadStudents(actor, { grade: data.grade, yearStart: year.yearStart }),
+    loadGradeCurriculum(actor, data.grade, {
+      academicYear: year.id, examId: data.examId, examIds, resultMode: data.resultMode, themeAssignments,
+    }),
+  ]);
+  const ids = roster.map((student) => student.id);
+  const [assessments, reports] = await Promise.all([
+    CasAssessment.find({
+      school: actor.school,
+      academicYear: year.id,
+      grade: data.grade,
+      student: { $in: ids },
+      ...(themeAssignments
+        ? selectedThemeAssessmentFilter(themeAssignments, curriculum)
+        : resultAssessmentFilter(data, examIds)),
+    }).select('student outcome attempts').lean(),
+    CasReport.find(withReportTerm({
+      school: actor.school,
+      academicYear: year.id,
+      student: { $in: ids },
+    }, data.examTerm, data.examId, data.resultMode, data.includePrevious, data.themeAssignmentIds))
+      .select('student status').lean(),
+  ]);
+  const assessmentsByStudent = new Map();
+  for (const row of assessments) {
+    const key = String(row.student);
+    if (!assessmentsByStudent.has(key)) assessmentsByStudent.set(key, []);
+    assessmentsByStudent.get(key).push(row);
+  }
+  const publishedIds = new Set(reports.filter((row) => row.status === 'PUBLISHED').map((row) => String(row.student)));
+  const pending = roster.filter((student) => !publishedIds.has(student.id));
+  const missing = [];
+  for (const student of pending) {
+    const result = computeResult(
+      curriculumFor(curriculum, student),
+      attemptsByOutcomeOf(assessmentsByStudent.get(student.id) || []),
+      data.resultMode,
+    );
+    for (const subject of result.subjects) {
+      if (subject.outcomeCount > 0 && !subject.fullyAssessed) {
+        missing.push({
+          student: student.id,
+          name: student.name,
+          rollNumber: student.rollNumber || '',
+          section: student.section || '',
+          subjectEn: subject.titleEn,
+          subjectNe: subject.titleNe || '',
+          assessed: subject.assessedCount,
+          outcomes: subject.outcomeCount,
+        });
+      }
+    }
+  }
+  return {
+    exam,
+    total: roster.length,
+    alreadyPublished: roster.length - pending.length,
+    pending,
+    missing,
+    issueDate: presentation.issueDate || '',
+    policy: missingWorkOf(exam),
+  };
+}
+
+/**
+ * Publish a result for the WHOLE grade — every section, every student not yet
+ * published — never a chosen few. (Used by Student Result and Manage Exams.)
  *
- * Built from the two steps above rather than beside them, so the stale-result
- * check, the lock and the guardian notification all still apply. Students
- * already published are reported back, not republished.
+ * Every student must be assessed in every subject of the result first. With
+ * `checkOnly` it only reports the plan and the missing marks. With marks
+ * missing it refuses, unless `publishAnyway`: then the exam's missing-work
+ * rule (Manage Exams) completes each result — "Not attended exam", or the
+ * school's default level.
+ *
+ * Built from generateReports + publishReports, so the stale-result check, the
+ * lock and the guardian notification all still apply. The card's issue date
+ * is the exam's.
  */
 export async function publishGradeResults(actor, input) {
   requireSchoolAdmin(actor);
-  const generated = await generateReports(actor, gradePublishInput.parse(input));
-  const ids = generated.created.map((row) => row.id);
-  const outcome = ids.length
-    ? await publishReports(actor, { reports: ids })
-    : { published: [], failed: [] };
-  return { ...outcome, skipped: generated.skipped };
+  const data = gradePublishInput.parse(input);
+  assert(usesResultSheet(data.grade), RESULT_SHEET_UNAVAILABLE, 409);
+  await connectDB();
+  const plan = await gradePublishPlan(actor, data);
+  const missingStudents = new Set(plan.missing.map((row) => row.student)).size;
+  const summary = {
+    examName: plan.exam?.name || '',
+    issueDate: plan.issueDate,
+    total: plan.total,
+    alreadyPublished: plan.alreadyPublished,
+    toPublish: plan.pending.length,
+    missing: plan.missing,
+    missingStudents,
+    missingWork: plan.policy,
+  };
+  if (data.checkOnly) return summary;
+
+  assert(plan.total, `No students are enrolled in ${data.grade} for this academic year.`, 409);
+  assert(plan.pending.length, 'Every student in this grade is already published.', 409);
+  assert(
+    !plan.missing.length || data.publishAnyway,
+    `${plan.missing.length} subject mark${plan.missing.length === 1 ? ' is' : 's are'} missing for ${missingStudents} student${missingStudents === 1 ? '' : 's'}. Enter them, or choose Publish anyway.`,
+    409,
+  );
+
+  const missingPolicy = plan.missing.length ? plan.policy : null;
+  const outcome = { published: [], failed: [], skipped: [] };
+  const ids = plan.pending.map((student) => student.id);
+  // generateReports and publishReports take at most 300 students per call.
+  for (let start = 0; start < ids.length; start += 300) {
+    const generated = await generateReports(actor, {
+      academicYear: data.academicYear,
+      grade: data.grade,
+      students: ids.slice(start, start + 300),
+      format: data.format,
+      examTerm: data.examTerm,
+      examId: data.examId,
+      resultMode: data.resultMode,
+      includePrevious: data.includePrevious,
+      themeAssignmentIds: data.themeAssignmentIds,
+      examTitle: data.examTitle,
+    }, { missingPolicy });
+    outcome.skipped.push(...generated.skipped);
+    if (generated.created.length) {
+      const published = await publishReports(actor, { reports: generated.created.map((row) => row.id) });
+      outcome.published.push(...published.published);
+      outcome.failed.push(...published.failed);
+    }
+  }
+  return { ...outcome, completedMissing: plan.missing.length, missingWork: missingPolicy };
 }
 
 /**
@@ -1048,23 +1218,26 @@ async function examPublishScope(actor, year, grade, examId, { activeOnly = true 
   };
 }
 
+/**
+ * One exam's publishing check for a whole grade — the same plan Student
+ * Result's "Publish result" shows: how many students go out, how many are
+ * already published, and every missing subject mark.
+ */
 async function examPublishSummary(actor, year, grade, examId) {
   const { exam, scope } = await examPublishScope(actor, year, grade, examId);
   if (!scope.themeAssignmentIds) {
-    return { exam: String(exam._id), name: exam.name, hasThemes: false, total: 0, published: 0, ready: [], incomplete: 0, notAssessed: 0, scope };
+    return {
+      exam: String(exam._id), name: exam.name, hasThemes: false, issueDate: exam.issueDate || '',
+      total: 0, alreadyPublished: 0, toPublish: 0, missing: [], missingStudents: 0, missingWork: missingWorkOf(exam), scope,
+    };
   }
-  const cards = await loadGradeReportCards(actor, scope);
-  const ready = cards.students.filter((student) => student.status === 'PREVIEW');
+  const check = await publishGradeResults(actor, { ...scope, checkOnly: true });
   return {
     exam: String(exam._id),
     name: exam.name,
     hasThemes: true,
+    ...check,
     issueDate: exam.issueDate || '',
-    total: cards.students.length,
-    published: cards.students.filter((student) => student.status === 'PUBLISHED').length,
-    ready: ready.map((student) => ({ id: student.id, name: student.name })),
-    incomplete: ready.filter((student) => !student.fullyAssessed).length,
-    notAssessed: cards.students.filter((student) => student.status === 'NOT_ASSESSED').length,
     scope,
   };
 }
@@ -1108,22 +1281,17 @@ export async function changeExamPublishing(actor, input) {
   assert(usesResultSheet(data.grade), RESULT_SHEET_UNAVAILABLE, 409);
   await connectDB();
   const year = await loadAcademicYear(actor, data.academicYear);
-  const summary = await examPublishSummary(actor, year, data.grade, data.exam);
-  assert(summary.hasThemes, `Add themes to ${summary.name} for ${data.grade} before publishing.`, 409);
-  assert(summary.ready.length, summary.published
-    ? 'Every assessed student in this grade is already published.'
-    : 'No student in this grade has been assessed in this exam yet.', 409);
-
-  const totals = { published: 0, failed: [], skipped: [] };
-  // publishGradeResults takes at most 300 students per call.
-  for (let start = 0; start < summary.ready.length; start += 300) {
-    const students = summary.ready.slice(start, start + 300).map((student) => student.id);
-    const outcome = await publishGradeResults(actor, { ...summary.scope, students });
-    totals.published += outcome.published.length;
-    totals.failed.push(...outcome.failed);
-    totals.skipped.push(...(outcome.skipped || []));
-  }
-  return totals;
+  const { exam, scope } = await examPublishScope(actor, year, data.grade, data.exam);
+  assert(scope.themeAssignmentIds, `Add themes to ${exam.name} for ${data.grade} before publishing.`, 409);
+  // Whole grade, with the same missing-marks rule as Student Result.
+  const outcome = await publishGradeResults(actor, { ...scope, publishAnyway: data.publishAnyway });
+  return {
+    published: outcome.published.length,
+    failed: outcome.failed,
+    skipped: outcome.skipped,
+    completedMissing: outcome.completedMissing,
+    missingWork: outcome.missingWork,
+  };
 }
 
 function revisionFilter(report) {

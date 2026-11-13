@@ -1,7 +1,6 @@
 'use client';
 
 import { useCallback, useEffect, useState } from 'react';
-import { Search } from 'lucide-react';
 import { rememberValue } from '@pravyo/ui/rememberedState';
 
 /**
@@ -77,47 +76,4 @@ export function openMarkEntry(router, row) {
   rememberValue('cas-assessment:student', '');
   rememberValue('cas-assessment:theme', '');
   router.push('/school/cas/assessment');
-}
-
-export function SearchBox({ value, onChange, placeholder }) {
-  return (
-    <label className="relative block min-w-0 flex-1">
-      <span className="sr-only">{placeholder}</span>
-      <Search aria-hidden="true" className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" />
-      <input
-        type="search"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        placeholder={placeholder}
-        autoCorrect="off"
-        spellCheck={false}
-        className="input pl-9"
-      />
-    </label>
-  );
-}
-
-/** A filter dropdown, shown only when there is more than one choice. */
-export function FilterSelect({ label, value, onChange, options, allLabel }) {
-  if (options.length < 2) return null;
-  return (
-    <select className="input sm:w-48" value={value} onChange={(event) => onChange(event.target.value)} aria-label={label}>
-      <option value="ALL">{allLabel}</option>
-      {options.map((option) => <option key={option} value={option}>{option}</option>)}
-    </select>
-  );
-}
-
-export function EmptyNote({ icon: Icon, title, children }) {
-  return (
-    <div className="card flex flex-col items-center px-5 py-10 text-center">
-      {Icon && (
-        <span className="flex h-11 w-11 items-center justify-center rounded-full bg-surface-2 text-muted">
-          <Icon aria-hidden="true" />
-        </span>
-      )}
-      <p className="mt-3 font-semibold text-ink">{title}</p>
-      {children && <p className="mt-1 max-w-sm text-sm text-muted">{children}</p>}
-    </div>
-  );
 }

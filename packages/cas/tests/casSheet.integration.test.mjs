@@ -112,12 +112,20 @@ describe('student book persistence on an isolated MongoDB replica set', {
     await Student.updateOne({ _id: f.students[0] }, {
       $push: { enrollments: { school: f.actor.school, grade: 'Grade 3', academicYearStart: 2026 } },
     });
-    const otherYear = await service.loadStudentSheet(f.actor, { ...f.scope, academicYear: String(nextYear._id) });
+    // An exam belongs to one academic year, so next year's page is reached through next year's exam.
+    const nextYearExam = await Exam.create({ school: f.actor.school, academicYear: nextYear._id, name: 'First Terminal Examination', issueDate: '2083/06/28' });
+    await ThemeExam.create({
+      school: f.actor.school, academicYear: nextYear._id, exam: nextYearExam._id, grade: 'Grade 3', subject: f.subject._id, themeKey: f.scope.themeKey,
+    });
+    const otherYear = await service.loadStudentSheet(f.actor, { ...f.scope, academicYear: String(nextYear._id), exam: String(nextYearExam._id) });
     assert.ok(otherYear.rows.every((row) => row.regularLevel === null));
     const subject = await Subject.create({ school: f.actor.school, grade: 'Grade 3', code: 'ENG', titleEn: 'English' });
     await Outcome.create({
       school: f.actor.school, grade: 'Grade 3', subject: subject._id, subjectCode: 'ENG', code: 'E1',
       themeNe: 'म र मेरो परिवार', themeEn: 'My family', titleEn: 'Identifies family members',
+    });
+    await ThemeExam.create({
+      school: f.actor.school, academicYear: f.year._id, exam: f.exam._id, grade: 'Grade 3', subject: subject._id, themeKey: f.scope.themeKey,
     });
     const otherSubject = await service.loadStudentSheet(f.actor, { ...f.scope, subject: String(subject._id) });
     assert.ok(otherSubject.rows.every((row) => row.regularLevel === null));
@@ -218,84 +226,131 @@ describe('student book persistence on an isolated MongoDB replica set', {
     assert.equal(await Assessment.countDocuments({ school: f.actor.school }), 0);
   });
 
-  it('shows a live report card preview, then the published card, and none for an unassessed student', async () => {
+  it('previews a result, publishes it only for the whole grade, and completes missing marks only on "Publish anyway"', async () => {
     const f = await fixture();
     await mongoose.connection.db.collection('users').insertOne({
       _id: new mongoose.Types.ObjectId(f.actor.school), role: 'SCHOOL_ADMIN', schoolName: 'Test school',
     });
+    // A second subject in the same exam, both weighted, so the GPA can show
+    // that a "Not attended exam" subject is left out of it.
+    await Subject.updateOne({ _id: f.subject._id }, { $set: { creditHours: 4 } });
+    const english = await Subject.create({ school: f.actor.school, grade: 'Grade 3', code: 'ENG', titleEn: 'English', creditHours: 4 });
+    await Outcome.create({
+      school: f.actor.school, grade: 'Grade 3', subject: english._id, subjectCode: 'ENG', code: 'E1',
+      themeKey: 'eng-1', themeEn: 'Greetings', titleEn: 'Greets people', sequence: 1,
+    });
+    await ThemeExam.create({
+      school: f.actor.school, academicYear: f.year._id, exam: f.exam._id, grade: 'Grade 3', subject: english._id, themeKey: 'eng-1',
+    });
+    const themeAssignmentIds = (await ThemeExam.find({ school: f.actor.school, exam: f.exam._id }).select('_id').lean()).map((row) => String(row._id));
+    // Student 1 is assessed in Nepali only; student 2 in nothing.
     await service.saveSheet(f.actor, f.payload());
     const reports = await import('../lib/casReportService.js');
-    const cards = () => reports.loadGradeReportCards(f.actor, {
-      academicYear: f.scope.academicYear, grade: 'Grade 3', format: 'MODERN',
-    });
+    const scope = {
+      academicYear: f.scope.academicYear, grade: 'Grade 3', format: 'CLASSIC', examId: f.scope.exam, themeAssignmentIds,
+    };
+    const cards = () => reports.loadGradeReportCards(f.actor, scope);
 
     let result = await cards();
     const byId = (id) => result.students.find((student) => student.id === String(id));
     assert.equal(byId(f.students[0]).status, 'PREVIEW');
-    assert.equal(byId(f.students[0]).report.format, 'MODERN');
     assert.equal(byId(f.students[0]).report.snapshot.school.name, 'Test school');
-    assert.equal(byId(f.students[0]).report.snapshot.subjects[0].obtained, 4);
+    const subjectNamed = (snapshot, title) => snapshot.subjects.find((subject) => subject.titleEn === title);
+    assert.equal(subjectNamed(byId(f.students[0]).report.snapshot, 'Nepali').obtained, 4);
     assert.equal(byId(f.students[1]).status, 'NOT_ASSESSED');
-    assert.equal(byId(f.students[1]).report, null);
     assert.equal(await Report.countDocuments({ school: f.actor.school }), 0, 'a preview saves nothing');
 
-    const publishFirst = () => reports.publishGradeResults(f.actor, {
-      academicYear: f.scope.academicYear, grade: 'Grade 3', students: [String(f.students[0])],
-      format: 'CLASSIC',
-    });
-    await assert.rejects(publishFirst(), /issue date/, 'nothing stands in for the exam issue date');
-    const { default: Exam } = await import('@pravyo/db/models/cas/CasExam');
-    await Exam.create({
-      school: f.actor.school, academicYear: f.scope.academicYear, name: 'First Terminal Exam', issueDate: '2083/06/28',
-    });
-    await publishFirst();
-    result = await cards();
-    assert.equal(byId(f.students[0]).status, 'PUBLISHED');
-    assert.equal(byId(f.students[0]).report.format, 'CLASSIC', 'a published card keeps its own format');
-    assert.equal(byId(f.students[0]).report.snapshot.issueDate, '2083/06/28', 'the card prints the exam issue date');
-    assert.equal(byId(f.students[0]).report.snapshot.examTitle, 'First Terminal Examination');
-    assert.ok(new Date(byId(f.students[0]).report.publishedAt) <= new Date(), 'published immediately');
-    const afterPublish = rowsFrom(await service.loadStudentSheet(f.actor, f.scope));
-    afterPublish[0].remarks = 'After publishing';
-    await service.saveSheet(f.actor, { ...f.scope, rows: afterPublish });
+    // Publishing is for the whole grade only: no student list is accepted.
+    await assert.rejects(reports.publishGradeResults(f.actor, { ...scope, students: [String(f.students[0])] }));
 
-    await reports.publishGradeResults(f.actor, {
-      academicYear: f.scope.academicYear, grade: 'Grade 3', students: [String(f.students[0])],
-      format: 'MODERN', examTerm: 'SECOND', examTitle: 'Second Terminal Examination',
-    });
-    const second = await reports.loadGradeReportCards(f.actor, {
-      academicYear: f.scope.academicYear, grade: 'Grade 3', format: 'MODERN', examTerm: 'SECOND',
-    });
-    const secondById = (id) => second.students.find((student) => student.id === String(id));
-    assert.equal(secondById(f.students[0]).status, 'PUBLISHED');
-    assert.equal(secondById(f.students[0]).report.format, 'MODERN');
-    assert.equal(secondById(f.students[0]).report.snapshot.examTitle, 'Second Terminal Examination');
+    // The check lists every missing subject mark, student by student.
+    const check = await reports.publishGradeResults(f.actor, { ...scope, checkOnly: true });
+    assert.equal(check.total, 2);
+    assert.equal(check.toPublish, 2);
+    assert.equal(check.alreadyPublished, 0);
+    assert.equal(check.missingStudents, 2);
+    assert.deepEqual(
+      check.missing.map((row) => `${row.name}:${row.subjectEn}:${row.assessed}/${row.outcomes}`).sort(),
+      ['Synthetic student 1:English:0/1', 'Synthetic student 2:English:0/1', 'Synthetic student 2:Nepali:0/2'],
+    );
+    assert.deepEqual(check.missingWork, { missingWork: 'ABSENT', missingWorkLevel: 0 });
+    assert.equal(check.issueDate, '2082/06/28');
+    assert.equal(await Report.countDocuments({ school: f.actor.school }), 0, 'a check saves nothing');
+
+    // With marks missing, publishing is refused until the school chooses "Publish anyway".
+    await assert.rejects(reports.publishGradeResults(f.actor, scope), { status: 409, message: /3 subject marks are missing for 2 students/ });
+    assert.equal(await Report.countDocuments({ school: f.actor.school }), 0);
+
+    const outcome = await reports.publishGradeResults(f.actor, { ...scope, publishAnyway: true });
+    assert.equal(outcome.published.length, 2, 'every student is published, the unassessed one included');
+    assert.equal(outcome.completedMissing, 3);
     result = await cards();
-    assert.equal(byId(f.students[0]).report.format, 'CLASSIC', 'first terminal stays separate from second terminal');
+    const first = byId(f.students[0]).report.snapshot;
+    assert.equal(byId(f.students[0]).status, 'PUBLISHED');
+    assert.equal(first.issueDate, '2082/06/28', 'the card prints the exam issue date');
+    assert.equal(first.examTitle, 'First Terminal Examination');
+    const nepali = subjectNamed(first, 'Nepali');
+    const absentEnglish = subjectNamed(first, 'English');
+    assert.equal(absentEnglish.absent, true);
+    assert.equal(absentEnglish.remarkEn, 'Not attended exam');
+    assert.equal(absentEnglish.grade, null);
+    assert.equal(absentEnglish.gradePoint, null);
+    assert.equal(first.gpa, nepali.gradePoint, 'a subject not attended is left out of the GPA');
+    const second = byId(f.students[1]).report.snapshot;
+    assert.ok(second.subjects.every((subject) => subject.absent && subject.remarkEn === 'Not attended exam'));
+    assert.equal(second.gpa, null);
+
+    await assert.rejects(reports.publishGradeResults(f.actor, scope), /already published/);
 
     // Unpublishing is per exam and grade, and deletes the cards outright.
-    // Both cards above were published without an exam, so they unpublish together.
-    await assert.rejects(reports.unpublishExamResults(f.actor, {
-      academicYear: f.scope.academicYear, grade: 'Grade 3', students: [String(f.students[0])],
-    }), 'single students cannot be unpublished');
     const undone = await reports.unpublishExamResults(f.actor, {
-      academicYear: f.scope.academicYear, grade: 'Grade 3', exam: 'WHOLE_YEAR',
+      academicYear: f.scope.academicYear, grade: 'Grade 3', exam: f.scope.exam,
     });
     assert.equal(undone.unpublished, 2);
     assert.equal(await Report.countDocuments({ school: f.actor.school }), 0, 'unpublished cards are deleted, not kept');
     result = await cards();
     assert.equal(byId(f.students[0]).status, 'PREVIEW', 'an unpublished result is a live preview again');
-    const open = rowsFrom(await service.loadStudentSheet(f.actor, f.scope));
-    open[0].remarks = 'Corrected after unpublishing';
-    await service.saveSheet(f.actor, { ...f.scope, rows: open });
-    // A student who later leaves or transfers still has this year's result.
-    await Student.collection.updateOne({ _id: f.students[0] }, { $set: { status: 'INACTIVE', school: new mongoose.Types.ObjectId() } });
-    result = await cards();
-    assert.equal(byId(f.students[0]).status, 'PREVIEW', 'a past student keeps their result in the year they were enrolled');
-    const only = await reports.loadGradeReportCards(f.actor, {
-      academicYear: f.scope.academicYear, grade: 'Grade 3', students: [String(f.students[1])],
+  });
+
+  it('completes missing marks with the exam default level when the school chose one', async () => {
+    const f = await fixture();
+    await mongoose.connection.db.collection('users').insertOne({
+      _id: new mongoose.Types.ObjectId(f.actor.school), role: 'SCHOOL_ADMIN', schoolName: 'Test school',
     });
-    assert.deepEqual(only.students.map((student) => student.id), [String(f.students[1])]);
+    const exams = await import('../lib/casExamService.js');
+    await exams.updateExam(f.actor, {
+      exam: f.scope.exam, academicYear: f.scope.academicYear, name: 'First Terminal Examination',
+      missingWork: 'DEFAULT_LEVEL', missingWorkLevel: 0,
+    });
+    const listed = (await exams.listExams(f.actor, { academicYear: f.scope.academicYear })).exams[0];
+    assert.equal(listed.missingWork, 'DEFAULT_LEVEL');
+    assert.equal(listed.missingWorkLevel, 0);
+
+    // Student 1 complete; student 2 has one of the two outcomes, scored 4.
+    await service.saveSheet(f.actor, f.payload());
+    const partial = f.payload({ student: String(f.students[1]) });
+    partial.rows = [{ ...partial.rows[0], regularLevel: 4 }];
+    await service.saveSheet(f.actor, partial);
+    const reports = await import('../lib/casReportService.js');
+    const scope = { academicYear: f.scope.academicYear, grade: 'Grade 3', format: 'CLASSIC', examId: f.scope.exam };
+
+    const check = await reports.publishGradeResults(f.actor, { ...scope, checkOnly: true });
+    assert.equal(check.missing.length, 1);
+    assert.equal(check.missing[0].assessed, 1);
+    assert.deepEqual(check.missingWork, { missingWork: 'DEFAULT_LEVEL', missingWorkLevel: 0 });
+
+    await reports.publishGradeResults(f.actor, { ...scope, publishAnyway: true });
+    const cards = await reports.loadGradeReportCards(f.actor, scope);
+    const subject = cards.students.find((student) => student.id === String(f.students[1])).report.snapshot.subjects[0];
+    // 4 + 0 out of 2 × 4: the missing outcome counts, scored 0.
+    assert.equal(subject.assessedCount, 2);
+    assert.equal(subject.obtained, 4);
+    assert.equal(subject.fullMarks, 8);
+    assert.equal(subject.achievement, 50);
+    assert.equal(subject.filledByDefault, 1);
+    assert.equal(subject.absent, undefined);
+    const complete = cards.students.find((student) => student.id === String(f.students[0])).report.snapshot.subjects[0];
+    assert.equal(complete.filledByDefault, undefined, 'a complete student is not touched by the rule');
   });
 
   it('saves one student attendance and activities, then a whole grade', async () => {
@@ -431,19 +486,26 @@ describe('student book persistence on an isolated MongoDB replica set', {
     const reports = await import('../lib/casReportService.js');
     const scope = { academicYear: f.scope.academicYear, grade: 'Grade 3', exam: f.scope.exam };
 
-    await assert.rejects(reports.changeExamPublishing(f.actor, { ...scope, action: 'publish' }), /No student in this grade has been assessed/);
+    // Only one student assessed: the summary lists the other's missing marks,
+    // and publishing is refused until they are entered (or "Publish anyway").
     await service.saveSheet(f.actor, f.payload());
+    const incomplete = await reports.loadExamPublishing(f.actor, scope);
+    assert.equal(incomplete.total, 2);
+    assert.equal(incomplete.toPublish, 2);
+    assert.deepEqual(incomplete.missing.map((row) => row.student), [String(f.students[1])]);
+    await assert.rejects(reports.changeExamPublishing(f.actor, { ...scope, action: 'publish' }), { status: 409, message: /missing for 1 student/ });
+    assert.equal(await Report.countDocuments({ school: f.actor.school }), 0);
 
+    await service.saveSheet(f.actor, f.payload({ student: String(f.students[1]) }));
     const summary = await reports.loadExamPublishing(f.actor, scope);
-    assert.equal(summary.total, 2);
-    assert.deepEqual(summary.ready.map((student) => student.id), [String(f.students[0])]);
-    assert.equal(summary.notAssessed, 1);
+    assert.equal(summary.toPublish, 2);
+    assert.deepEqual(summary.missing, []);
 
     const published = await reports.changeExamPublishing(f.actor, { ...scope, action: 'publish' });
-    assert.equal(published.published, 1);
+    assert.equal(published.published, 2, 'the whole grade goes out together');
     const status = await reports.loadExamPublishing(f.actor, { academicYear: scope.academicYear, grade: 'Grade 3' });
     assert.equal(status.students, 2);
-    assert.deepEqual(status.exams, [{ exam: scope.exam, published: 1 }]);
+    assert.deepEqual(status.exams, [{ exam: scope.exam, published: 2 }]);
     assert.equal((await service.loadStudentSheet(f.actor, f.scope)).locked, true);
     await assert.rejects(reports.changeExamPublishing(f.actor, { ...scope, action: 'publish' }), /already published/);
 
@@ -459,7 +521,7 @@ describe('student book persistence on an isolated MongoDB replica set', {
     }), { status: 409, message: /Unpublish/ });
 
     const unpublished = await reports.changeExamPublishing(f.actor, { ...scope, action: 'unpublish' });
-    assert.equal(unpublished.unpublished, 1);
+    assert.equal(unpublished.unpublished, 2);
     assert.equal(await Report.countDocuments({ school: f.actor.school }), 0, 'unpublishing deletes the cards');
     assert.equal((await service.loadStudentSheet(f.actor, f.scope)).locked, false);
   });

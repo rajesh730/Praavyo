@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { BookOpen, Repeat, UserRound } from 'lucide-react';
+import { BookOpen, Repeat } from 'lucide-react';
 import { gradeSummaries } from './shared';
 import ChangePasswordCard from './ChangePasswordCard';
+import { CardHeading, Initials, TableCard, TH, THEAD } from './ui';
 
 /** Who I am at this school, and what the school has made me responsible for. */
 export default function ProfileTab({ workspace }) {
@@ -21,25 +22,25 @@ export default function ProfileTab({ workspace }) {
   return (
     <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
       <div className="space-y-4">
-        <section className="card p-4">
+        <section className="rounded-card border border-line-strong bg-surface p-4 shadow-card">
           <div className="flex items-center gap-3">
-            <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-brand-soft text-brand-strong"><UserRound aria-hidden /></span>
+            <Initials name={teacher.name} large />
             <div className="min-w-0">
               <h2 className="truncate font-semibold text-ink">{teacher.name}</h2>
-              <p className="truncate text-sm text-muted">{teacher.designation || 'Teacher'}</p>
+              <p className="truncate text-sm font-semibold text-muted">{teacher.designation || 'Teacher'}</p>
             </div>
           </div>
 
           <dl className="mt-4 divide-y divide-line border-t border-line">
             {details.map(([label, value]) => (
               <div key={label} className="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-2 py-2.5 text-sm">
-                <dt className="text-muted">{label}</dt>
-                <dd className="break-words font-medium text-ink">{value}</dd>
+                <dt className="text-2xs font-semibold uppercase leading-5 text-muted">{label}</dt>
+                <dd className="break-words font-semibold text-ink">{value}</dd>
               </div>
             ))}
           </dl>
 
-          <p className="mt-3 rounded-control bg-surface-2 px-3 py-2 text-xs text-muted">
+          <p className="mt-3 rounded-control bg-surface-2 px-3 py-2 text-xs font-semibold text-muted">
             To change these details, ask your school office.
           </p>
           {workspace.canSwitchSchool && (
@@ -52,33 +53,60 @@ export default function ProfileTab({ workspace }) {
         <ChangePasswordCard />
       </div>
 
-      <section className="card overflow-hidden">
-        <div className="flex items-center gap-2 border-b border-line p-4">
-          <BookOpen className="text-brand" aria-hidden />
-          <h2 className="font-semibold text-ink">My roles</h2>
+      <TableCard>
+        <div className="border-b border-line-strong p-4">
+          <CardHeading icon={BookOpen} title="My roles" description="The grades and subjects your school assigned to you." />
         </div>
         {grades.length === 0 ? (
-          <p className="p-4 text-sm text-muted">Your school has not assigned you any grades or subjects yet.</p>
-        ) : (
-          <ul className="divide-y divide-line">
+          <p className="m-4 rounded-card border border-dashed border-line-strong p-4 text-sm font-semibold text-muted">
+            Your school has not assigned you any grades or subjects yet.
+          </p>
+        ) : (<>
+          <ul className="divide-y divide-line sm:hidden">
             {grades.map((entry) => (
               <li key={entry.grade} className="p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <p className="font-semibold text-ink">{entry.grade}</p>
-                  <span className="text-xs text-muted">{entry.students} student{entry.students === 1 ? '' : 's'}</span>
+                  <span className="text-xs font-semibold text-muted">{entry.students} student{entry.students === 1 ? '' : 's'}</span>
                 </div>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {entry.classTeacher && <span className="badge badge-brand text-xs">Class teacher</span>}
-                  {entry.subjects.map((subject) => (
-                    <span key={subject} className="badge badge-neutral text-xs">{subject}</span>
-                  ))}
-                  {!entry.classTeacher && entry.subjects.length === 0 && <span className="text-sm text-muted">No subjects assigned</span>}
-                </div>
+                <RoleBadges entry={entry} />
               </li>
             ))}
           </ul>
-        )}
-      </section>
+          <div className="hidden overflow-x-auto sm:block">
+            <table className="w-full text-left text-sm text-ink">
+              <thead className={THEAD}>
+                <tr>
+                  <th className={TH}>Grade</th>
+                  <th className={TH}>Role and subjects</th>
+                  <th className={`${TH} text-right`}>Students</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-line">
+                {grades.map((entry) => (
+                  <tr key={entry.grade} className="transition-colors hover:bg-surface-2">
+                    <td className={`${TH} font-semibold text-ink`}>{entry.grade}</td>
+                    <td className={TH}><RoleBadges entry={entry} /></td>
+                    <td className={`${TH} text-right font-semibold tabular-nums text-ink`}>{entry.students}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>)}
+      </TableCard>
+    </div>
+  );
+}
+
+function RoleBadges({ entry }) {
+  return (
+    <div className="mt-2 flex flex-wrap gap-1.5 sm:mt-0">
+      {entry.classTeacher && <span className="badge badge-brand text-xs">Class teacher</span>}
+      {entry.subjects.map((subject) => (
+        <span key={subject} className="badge badge-neutral text-xs">{subject}</span>
+      ))}
+      {!entry.classTeacher && entry.subjects.length === 0 && <span className="text-sm text-muted">No subjects assigned</span>}
     </div>
   );
 }

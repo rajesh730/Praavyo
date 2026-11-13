@@ -52,7 +52,7 @@ export const GET = defineRoute({ roles: ['TEACHER'] }, async ({ session }) => {
       grade: { $in: [...new Set(grades.flatMap((grade) => getEquivalentGradeValues(grade)))] },
     }).select('name grade section rollNumber').sort({ grade: 1, rollNumber: 1, name: 1 }).lean() : [],
     grades.length ? CasReport.find({ school, status: 'PUBLISHED', grade: { $in: grades } })
-      .select('grade exam snapshot publishedAt').sort({ publishedAt: -1 }).limit(500).lean() : [],
+      .select('student grade exam snapshot publishedAt').sort({ publishedAt: -1 }).limit(500).lean() : [],
     grants.length ? CasExam.find({ _id: { $in: [...new Set(grants.map((row) => String(row.exam)))] }, school }).select('name isCurrent status').lean() : [],
   ]);
   const subjectById = new Map(subjects.map((subject) => [String(subject._id), subject]));
@@ -80,14 +80,13 @@ export const GET = defineRoute({ roles: ['TEACHER'] }, async ({ session }) => {
     publishedStudents.get(key).add(String(row.student));
   }
   const totalByGrade = new Map(gradeTotals);
+  // A CAS exam is published for the whole grade at once — there is no partly
+  // published result. Until every student's card is out (e.g. a student who
+  // joined after publishing), the exam stays open for their marks.
   const publication = (row) => {
     const published = publishedStudents.get(`${row.exam}|${row.grade}`)?.size || 0;
     const total = totalByGrade.get(row.grade) || 0;
-    return {
-      publishedStudents: published,
-      totalStudents: total,
-      publishStatus: !published ? 'OPEN' : published >= total ? 'PUBLISHED' : 'PARTLY_PUBLISHED',
-    };
+    return { publishStatus: published > 0 && published >= total ? 'PUBLISHED' : 'OPEN' };
   };
   const subjectAssignments = assignments.filter((row) => row.assignmentType === 'SUBJECT_TEACHER' && subjectById.has(String(row.subject)));
   const classGrades = new Set(assignments.filter((row) => row.assignmentType === 'CLASS_TEACHER').map((row) => row.grade));
@@ -100,14 +99,37 @@ export const GET = defineRoute({ roles: ['TEACHER'] }, async ({ session }) => {
     const snapshot = report.snapshot || {};
     const student = snapshot.student || {};
     const base = {
+      // Lets the dashboard group results by student, then open one student.
+      studentId: String(report.student),
       studentName: student.name || 'Student',
       rollNumber: student.rollNumber || '',
+      section: student.section || '',
       grade: report.grade,
+      examId: report.exam ? String(report.exam) : '',
       exam: report.exam ? reportExamName.get(String(report.exam)) || '' : '',
       publishedAt: report.publishedAt,
     };
+    // A class teacher sees the whole published card: every subject, then the
+    // overall result. A subject teacher only ever gets their own subjects.
     const classSummary = classGrades.has(report.grade)
-      ? [{ ...base, kind: 'CLASS_RESULT', overallGrade: snapshot.overallGrade || '', gpa: snapshot.gpa ?? null }]
+      ? [{
+          ...base,
+          kind: 'CLASS_RESULT',
+          overallGrade: snapshot.overallGrade || '',
+          overallRemark: snapshot.overallRemarkEn || '',
+          gpa: snapshot.gpa ?? null,
+          subjects: (snapshot.subjects || []).map((row) => ({
+            title: row.titleEn || row.titleNe || row.subjectCode || 'Subject',
+            creditHours: row.creditHours ?? null,
+            achievement: row.achievement ?? null,
+            gradePoint: row.gradePoint ?? null,
+            grade: row.grade || '',
+            obtained: row.obtained ?? null,
+            fullMarks: row.fullMarks ?? null,
+            remark: row.remarkEn || '',
+            absent: Boolean(row.absent),
+          })),
+        }]
       : [];
     const subjectSummaries = (snapshot.subjects || []).flatMap((result) => {
       const assignment = subjectAssignments.find((row) => row.grade === report.grade && subjectById.get(String(row.subject)).code === result.subjectCode);
@@ -115,6 +137,7 @@ export const GET = defineRoute({ roles: ['TEACHER'] }, async ({ session }) => {
         ...base, kind: 'SUBJECT_RESULT',
         subject: subjectTitle(subjectById.get(String(assignment.subject))),
         gradeResult: result.grade || '', obtained: result.obtained ?? null, fullMarks: result.fullMarks ?? null,
+        achievement: result.achievement ?? null, remark: result.remarkEn || '', absent: Boolean(result.absent),
       }] : [];
     });
     return [...classSummary, ...subjectSummaries];

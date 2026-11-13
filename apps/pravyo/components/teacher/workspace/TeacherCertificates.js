@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { BadgeCheck, ExternalLink } from 'lucide-react';
+import { BadgeCheck, Eye } from 'lucide-react';
 import DateTile from '@/components/common/DateTile';
 
 /**
@@ -26,10 +26,15 @@ export default function TeacherCertificates() {
 
   return (
     <section className="card overflow-hidden">
-      <div className="flex items-center gap-2 p-4">
-        <BadgeCheck className="text-success" aria-hidden />
-        <h2 className="font-semibold text-ink">My certificates</h2>
-        <span className="text-sm text-muted tabular-nums">{certificates.length}</span>
+      <div className="flex items-start justify-between gap-3 p-3">
+        <div className="min-w-0">
+          <h2 className="flex items-center gap-2 font-semibold text-ink">
+            My certificates
+            <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-success-soft px-1.5 text-2xs font-semibold text-success">{certificates.length}</span>
+          </h2>
+          <p className="mt-1 text-sm font-semibold text-muted">Praavyo trainings you completed.</p>
+        </div>
+        <BadgeCheck className="shrink-0 text-2xl text-success" aria-hidden />
       </div>
       <ul className="divide-y divide-line border-t border-line">
         {certificates.map((certificate) => (
@@ -41,13 +46,12 @@ export default function TeacherCertificates() {
                 Praavyo training{certificate.duration ? ` · ${certificate.duration}` : ''}{certificate.schoolName ? ` · ${certificate.schoolName}` : ''}
               </p>
             </div>
+            {/* Opens in the dashboard's certificate viewer (DashboardLinkProvider). */}
             <a
               href={certificate.url}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex shrink-0 items-center gap-1 whitespace-nowrap text-sm font-semibold text-brand hover:text-brand-strong hover:underline"
+              className="btn btn-soft btn-sm inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap"
             >
-              View <ExternalLink aria-hidden className="h-3.5 w-3.5" />
+              <Eye aria-hidden className="h-3.5 w-3.5" /> View
             </a>
           </li>
         ))}

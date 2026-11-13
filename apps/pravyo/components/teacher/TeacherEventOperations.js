@@ -1,9 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useEffect, useState } from "react";
-import { CalendarDays as FaCalendarAlt, LoaderCircle as FaSpinner, Users as FaUsers } from "lucide-react";
-import { formatShortDate, getEventStage, getStageClasses } from "@/lib/eventUiStatus";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useRememberedState } from "@pravyo/ui/rememberedState";
+import { CalendarDays as FaCalendarAlt, CircleCheck as FaCheckCircle, Circle as FaCircle, Clock as FaClock, Trophy as FaTrophy, UserCheck as FaUserCheck, Users as FaUsers } from "lucide-react";
+import EmptyState from "@/components/EmptyState";
+import LoadingState from "@/components/ui/LoadingState";
+import AlertBanner from "@/components/ui/AlertBanner";
+import EventFilterBar from "@/components/events/EventFilterBar";
+import EventListCard from "@/components/events/EventListCard";
+import { formatShortDate, getEventPublicStatus, getEventStage, getStageClasses } from "@/lib/eventUiStatus";
 import useRealtimeChannel from "@/lib/client/useRealtimeChannel";
 
 function label(value) {
@@ -53,11 +59,36 @@ function nextRoundAction(round) {
   return "Check notices, participants, and upcoming schedule.";
 }
 
+/**
+ * Live / Upcoming / Completed for the tabs. Not getEventPublicStatus: that one
+ * only calls PLATFORM events with public results "completed", so a school
+ * event with published results would sit under Live.
+ */
+function statusKey(event) {
+  const workflow = String(event.eventWorkflowStatus || "").toUpperCase();
+  const lifecycle = String(event.lifecycleStatus || "ACTIVE").toUpperCase();
+  if (
+    event.resultsPublished ||
+    ["RESULTS_PUBLISHED", "COMPLETED"].includes(workflow) ||
+    ["COMPLETED", "ARCHIVED"].includes(lifecycle)
+  ) {
+    return "completed";
+  }
+  if (["ROUND_ACTIVE", "RESULTS_DRAFT"].includes(workflow)) return "live";
+  // Not started yet: its date (or registration) is still ahead.
+  return getEventPublicStatus(event).key === "registration-open" ? "registration-open" : "live";
+}
+
 export default function TeacherEventOperations() {
   const [events, setEvents] = useState([]);
   const [roundsByEvent, setRoundsByEvent] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [activeFilter, setActiveFilter] = useRememberedState("teacher-events:filter", "MINE");
+  const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useRememberedState("teacher-events:type", "");
+  const [gradeFilter, setGradeFilter] = useRememberedState("teacher-events:grade", "");
+  const [showFilters, setShowFilters] = useRememberedState("teacher-events:show-filters", true);
 
   const loadEvents = useCallback(async () => {
     try {
@@ -110,127 +141,152 @@ export default function TeacherEventOperations() {
   // Manage Event button follows without a reload.
   useRealtimeChannel("events", loadEvents);
 
-  if (loading) {
-    return (
-      <div className="rounded-card border border-line-strong bg-surface p-4 sm:p-5 text-ink">
-        <FaSpinner className="mr-2 inline animate-spin" />
-        Loading assigned events...
-      </div>
-    );
-  }
+  const counts = useMemo(() => ({
+    MINE: events.filter((event) => event.canManage).length,
+    live: events.filter((event) => statusKey(event) === "live").length,
+    "registration-open": events.filter((event) => statusKey(event) === "registration-open").length,
+    completed: events.filter((event) => statusKey(event) === "completed").length,
+    ALL: events.length,
+  }), [events]);
+  const typeOptions = useMemo(() => [...new Set(events.map((event) => event.eventType).filter(Boolean))].sort(), [events]);
+  const gradeOptions = useMemo(
+    () => [...new Set(events.flatMap((event) => event.eligibleGrades || []).filter(Boolean))]
+      .sort((a, b) => String(a).localeCompare(String(b), undefined, { numeric: true })),
+    [events]
+  );
+
+  // With nothing assigned, "Managed by me" would only ever be empty.
+  const filter = activeFilter === "MINE" && counts.MINE === 0 && !loading ? "ALL" : activeFilter;
+  const needle = search.trim().toLowerCase();
+  const filteredEvents = events.filter((event) =>
+    (filter === "ALL" || (filter === "MINE" ? event.canManage : statusKey(event) === filter))
+    && (!typeFilter || event.eventType === typeFilter)
+    && (!gradeFilter || !(event.eligibleGrades?.length) || event.eligibleGrades.includes(gradeFilter))
+    && (!needle || [event.title, event.description, event.eventType].some((value) => String(value || "").toLowerCase().includes(needle))));
+
+  const tabs = [
+    { key: "MINE", label: "Managed by Me", icon: FaUserCheck, count: counts.MINE },
+    { key: "live", label: "Live", icon: FaCircle, count: counts.live },
+    { key: "registration-open", label: "Upcoming", icon: FaClock, count: counts["registration-open"] },
+    { key: "completed", label: "Completed", icon: FaCheckCircle, count: counts.completed },
+    { key: "ALL", label: "All Events", icon: FaCalendarAlt, count: counts.ALL },
+  ];
 
   return (
     <div className="space-y-4">
-      <div>
-        {error && <p className="mb-4 text-sm text-danger">{error}</p>}
+      {error && <AlertBanner type="error" title="Events unavailable" message={error} />}
 
-        {events.length === 0 ? (
-          <div className="card px-5 py-10 text-center text-sm text-muted">
-            No events yet. When your school picks you to manage an event, it
-            appears here with a Manage Event button.
-          </div>
-        ) : (
-          <div className="grid gap-4 lg:grid-cols-2">
-            {events.map((event) => {
-              const stage = getEventStage(event);
-              const rounds = roundsByEvent[event._id] || [];
-              const activeRound = getActiveRound(rounds);
-              return (
-                <article
-                  key={event._id}
-                  className="card p-4"
-                >
-                  <div className="mb-3 flex flex-wrap items-center gap-2">
-                    <span
-                      className={`badge badge-neutral text-xs ${
-                        event.eventScope === "PLATFORM"
-                          ? "border-brand-line bg-brand-soft text-brand"
-                          : "border-brand-line bg-brand-soft text-brand"
-                      }`}
-                    >
-                      {event.eventScope === "PLATFORM"
-                        ? "Platform Competition"
-                        : "School Event"}
-                    </span>
-                    <span className="badge badge-neutral text-xs">
-                      {label(event.eventType)}
-                    </span>
-                    {event.canManage && (
-                      <span className="badge badge-success text-xs">You manage this</span>
-                    )}
-                  </div>
+      <section className="card overflow-hidden">
+        <EventFilterBar
+          tabs={tabs}
+          activeFilter={filter}
+          onFilterChange={setActiveFilter}
+          search={search}
+          onSearchChange={setSearch}
+          typeFilter={typeFilter}
+          onTypeChange={setTypeFilter}
+          typeOptions={typeOptions}
+          gradeFilter={gradeFilter}
+          onGradeChange={setGradeFilter}
+          gradeOptions={gradeOptions}
+          showFilters={showFilters}
+          onToggleFilters={() => setShowFilters((value) => !value)}
+          onClear={() => {
+            setSearch("");
+            setTypeFilter("");
+            setGradeFilter("");
+          }}
+        />
 
-                  <h3 className="font-semibold text-ink">{event.title}</h3>
-                  <p className="mt-2 line-clamp-2 text-sm text-subtle">
-                    {event.description}
-                  </p>
-
-                  <div
-                    className={`mt-4 rounded-card border px-3 py-2 text-sm ${getStageClasses(
-                      stage.tone
-                    )}`}
-                  >
-                    <div className="font-semibold">{stage.label}</div>
-                    <div className="text-xs opacity-90">{stage.nextAction}</div>
-                  </div>
-
-                  <div className="mt-4 grid grid-cols-2 gap-3 text-sm text-ink">
-                    <span className="inline-flex items-center gap-2">
-                      <FaCalendarAlt className="text-muted" />
-                      {formatShortDate(event.date)}
-                    </span>
-                    <span className="inline-flex items-center gap-2">
-                      <FaUsers className="text-muted" />
-                      {event.studentCount || event.studentCapacityCount || 0} students
-                    </span>
-                  </div>
-
-                  {!event.canManage ? null : activeRound ? (
-                    <div className="mt-4 rounded-card border border-line-strong bg-surface p-4">
-                      <div className="mb-2 flex items-center justify-between gap-3">
-                        <div>
-                          <p className="text-xs font-semibold uppercase tracking-wide text-muted">
-                            Current Round
-                          </p>
-                          <p className="font-semibold text-ink">
-                            Round {activeRound.roundNumber}: {activeRound.title}
-                          </p>
-                        </div>
-                        <span className="badge badge-success text-xs font-semibold">
-                          {label(activeRound.status)}
+        <div className="p-4">
+          {loading ? (
+            <LoadingState title="Loading assigned events" message="Checking the events your school gave you to run." />
+          ) : filteredEvents.length === 0 ? (
+            <EmptyState
+              icon={FaCalendarAlt}
+              title={events.length === 0 ? "No events yet" : "No events match these filters"}
+              description={
+                events.length === 0
+                  ? "When your school picks you to manage an event, it appears here with a Manage Event button."
+                  : "Try another tab or clear the filters to see more events."
+              }
+            />
+          ) : (
+            <div className="space-y-3">
+              {filteredEvents.map((event) => {
+                const stage = getEventStage(event);
+                const rounds = roundsByEvent[event._id] || [];
+                const activeRound = getActiveRound(rounds);
+                const gradeSummary = event.eligibleGrades?.length ? event.eligibleGrades.join(", ") : "All grades";
+                return (
+                  <EventListCard key={event._id}>
+                    <div className="grid gap-3 px-4 py-3 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_180px] lg:items-start">
+                      <div className="flex min-w-0 gap-3">
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-control bg-brand-soft text-lg text-brand-strong">
+                          {event.resultsPublished ? <FaTrophy aria-hidden /> : <FaCalendarAlt aria-hidden />}
                         </span>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex min-w-0 flex-wrap items-center gap-2">
+                            <h3 className="min-w-0 truncate font-semibold text-ink">{event.title}</h3>
+                            <span className="badge badge-brand text-xs uppercase">
+                              {event.eventScope === "PLATFORM" ? "Platform Competition" : "School Event"}
+                            </span>
+                            <span className="badge badge-neutral text-xs uppercase">{label(event.eventType)}</span>
+                            {event.canManage && <span className="badge badge-success text-xs">You manage this</span>}
+                          </div>
+                          {event.description && (
+                            <p className="mt-1 line-clamp-2 text-sm text-muted">{event.description}</p>
+                          )}
+                          <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs font-semibold text-muted">
+                            <span className="inline-flex items-center gap-1.5"><FaCalendarAlt aria-hidden size={13} /> {formatShortDate(event.date)}</span>
+                            <span className="inline-flex items-center gap-1.5"><FaUsers aria-hidden size={13} /> {event.studentCount || event.studentCapacityCount || 0} students</span>
+                            <span className="truncate" title={gradeSummary}>{gradeSummary}</span>
+                          </div>
+                        </div>
                       </div>
-                      <p className="text-sm text-subtle">
-                        {nextRoundAction(activeRound)}
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="mt-4 rounded-card border border-line-strong bg-surface p-4 text-sm text-subtle">
-                      No rounds created yet.
-                    </div>
-                  )}
 
-                  {event.canManage ? (
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      <Link
-                        href={`/school/events/${event._id}/manage`}
-                        className="btn btn-primary inline-flex items-center gap-2 font-semibold"
-                      >
-                        Manage Event
-                      </Link>
-                    </div>
-                  ) : (
-                    <p className="mt-4 text-xs text-muted">
-                      Managed by your school. Ask the school office if you should help run it.
-                    </p>
-                  )}
-                </article>
-              );
-            })}
-          </div>
-        )}
-      </div>
+                      <div className="space-y-2">
+                        <div className={`rounded-card border px-3 py-2 text-sm ${getStageClasses(stage.tone)}`}>
+                          <div className="font-semibold">{stage.label}</div>
+                          <div className="text-xs opacity-90">{stage.nextAction}</div>
+                        </div>
+                        {event.canManage && (activeRound ? (
+                          <div className="rounded-card border border-line-strong bg-surface px-3 py-2">
+                            <div className="flex items-center justify-between gap-3">
+                              <p className="min-w-0 truncate text-sm font-semibold text-ink">
+                                Round {activeRound.roundNumber}: {activeRound.title}
+                              </p>
+                              <span className="badge badge-success shrink-0 text-xs">{label(activeRound.status)}</span>
+                            </div>
+                            <p className="mt-0.5 text-xs text-muted">{nextRoundAction(activeRound)}</p>
+                          </div>
+                        ) : (
+                          <p className="rounded-card border border-line-strong bg-surface px-3 py-2 text-xs text-muted">No rounds created yet.</p>
+                        ))}
+                      </div>
 
+                      <div className="flex lg:justify-end">
+                        {event.canManage ? (
+                          <Link
+                            href={`/school/events/${event._id}/manage`}
+                            className="btn btn-primary inline-flex w-full items-center justify-center gap-2 font-semibold lg:w-auto"
+                          >
+                            Manage Event
+                          </Link>
+                        ) : (
+                          <p className="text-xs text-muted lg:text-right">
+                            Managed by your school. Ask the school office if you should help run it.
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </EventListCard>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      </section>
     </div>
   );
 }

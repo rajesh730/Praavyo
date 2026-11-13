@@ -92,7 +92,8 @@ function SchoolIdentityCard({ student }) {
   if (!student?.schoolName) return null;
 
   const details = [
-    student.grade ? `Grade ${student.grade}` : "",
+    // Grades are stored as "Grade 1" as well as "1"; never print "Grade Grade 1".
+    student.grade ? (/^grade\b/i.test(student.grade) ? student.grade : `Grade ${student.grade}`) : "",
     student.rollNumber ? `Roll ${student.rollNumber}` : "",
     student.iemisNumber ? `IEMIS ${student.iemisNumber}` : "",
     student.schoolLocation,

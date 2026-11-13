@@ -91,7 +91,7 @@ export default function ClassicReport({ report, lang = 'en' }) {
                 {subject.assessedCount} / {subject.outcomeCount}
               </Td>
               <Td className="text-center font-semibold">
-                {subject.achievement == null ? t.notAssessed : `${subject.achievement}%`}
+                {subject.absent ? t.absent : subject.achievement == null ? t.notAssessed : `${subject.achievement}%`}
               </Td>
               <Td className="text-center">{subject.gradePoint ?? '—'}</Td>
               <Td className="text-center font-bold">{subject.grade || '—'}</Td>

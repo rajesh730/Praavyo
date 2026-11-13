@@ -1,4 +1,4 @@
-import { calculateGpa, gradeForGpa } from '@pravyo/core/casGrading';
+import { calculateGpa, gradeFor, gradeForGpa } from '@pravyo/core/casGrading';
 import { summariseRows } from './client/sheetTotals.js';
 
 /**
@@ -48,10 +48,38 @@ export function usesResultSheet(grade) {
 export const RESULT_SHEET_UNAVAILABLE =
   'Result calculation for Grades 6-10 has not been set up yet. Assessment can still be recorded.';
 
-function totalsFor(levels) {
-  return summariseRows(
+const isUnassessed = (level) => level === null || level === undefined;
+
+/**
+ * Totals over accepted levels. Normally an unassessed outcome is left out.
+ * With `missingLevel` (0-4) — the exam's missing-work rule applied by "Publish
+ * anyway" — each unassessed outcome instead counts as an assessment scored
+ * that level: 0 adds 4 to full marks and nothing to marks obtained.
+ */
+function totalsFor(levels, missingLevel = null) {
+  const base = summariseRows(
     levels.map((acceptedLevel, index) => ({ outcome: String(index), acceptedLevel })),
   );
+  const filled = isUnassessed(missingLevel) ? 0 : levels.length - base.assessedCount;
+  if (!filled) return { ...base, filled: 0 };
+  const assessedCount = base.assessedCount + filled;
+  const obtained = base.obtained + filled * missingLevel;
+  const assessedFullMarks = assessedCount * 4;
+  // Rounded exactly as summariseRows rounds.
+  const percent = Math.round((obtained / assessedFullMarks) * 10000) / 100;
+  const band = gradeFor(percent);
+  return {
+    ...base,
+    assessedCount,
+    assessedFullMarks,
+    obtained,
+    percent,
+    grade: band?.grade || null,
+    gradePoint: band?.gradePoint ?? null,
+    remarkEn: band?.remarkEn || '',
+    remarkNe: band?.remarkNe || '',
+    filled,
+  };
 }
 
 function round2(value) {
@@ -59,8 +87,8 @@ function round2(value) {
 }
 
 /** One theme row: `levels` are accepted levels in outcome order, null if unassessed. */
-export function themeResult({ levels = [], ...theme }) {
-  const totals = totalsFor(levels);
+export function themeResult({ levels = [], missingLevel = null, ...theme }) {
+  const totals = totalsFor(levels, missingLevel);
   return {
     key: theme.key,
     titleEn: theme.titleEn || '',
@@ -69,18 +97,25 @@ export function themeResult({ levels = [], ...theme }) {
     outcomeCount: totals.outcomeCount,
     assessments: totals.assessedCount,
     fullMarks: totals.assessedFullMarks,
-    scores: levels.filter((level) => level !== null && level !== undefined),
+    scores: isUnassessed(missingLevel)
+      ? levels.filter((level) => !isUnassessed(level))
+      : levels.map((level) => (isUnassessed(level) ? missingLevel : level)),
     obtained: totals.obtained,
     percent: totals.percent,
     grade: totals.grade,
     gradePoint: totals.gradePoint,
+    filled: totals.filled,
   };
 }
 
-/** One subject section: its theme table and the footer line under it. */
-export function subjectResultSheet({ creditHours = null, themes = [] }) {
-  const rows = themes.map(themeResult);
-  const totals = totalsFor(themes.flatMap((theme) => theme.levels || []));
+/**
+ * One subject section: its theme table and the footer line under it.
+ * `missingLevel` scores unassessed outcomes (see totalsFor); omit it for the
+ * normal rule of leaving them out.
+ */
+export function subjectResultSheet({ creditHours = null, themes = [], missingLevel = null }) {
+  const rows = themes.map((theme) => themeResult({ ...theme, missingLevel }));
+  const totals = totalsFor(themes.flatMap((theme) => theme.levels || []), missingLevel);
   const weighted =
     totals.gradePoint !== null && Number.isFinite(creditHours) && creditHours > 0
       ? round2(creditHours * totals.gradePoint)
@@ -97,6 +132,7 @@ export function subjectResultSheet({ creditHours = null, themes = [] }) {
     remarkNe: totals.remarkNe,
     creditHours,
     weightedGradePoint: weighted,
+    filled: totals.filled,
   };
 }
 

@@ -90,7 +90,10 @@ function TeacherWorkspace() {
       <div className="space-y-6">
         <ProgramManager mode="teacher" />
         <div>
-          <h2 className="mb-3 text-lg font-semibold text-ink">Competitions</h2>
+          <div className="mb-3">
+            <h2 className="font-semibold text-ink">Competitions</h2>
+            <p className="mt-1 text-sm text-muted">Platform and school competitions. Manage the ones your school assigned to you.</p>
+          </div>
           <TeacherEventOperations />
         </div>
       </div>
@@ -117,7 +120,8 @@ function TeacherWorkspace() {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto max-w-6xl">
+      {/* Same width as the school dashboard: app-frame sets the limit. */}
+      <div>
         <PageHeader
           icon={tab.icon}
           eyebrow="Teacher"
