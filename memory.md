@@ -66,12 +66,24 @@ words if passed, else "Needs improvement in: <subjects>"), not fixed text.
   the latest exam's date at generation and only change when regenerated.
 
 ### Publishing and unpublishing CAS results (owner rule)
-- **Student Result only publishes.** The per-student Unpublish button and the
-  old `unpublishGradeResults` were removed.
-- **Unpublish happens only on Published Results, a whole exam at a time** for
-  the chosen grade: every section, every student. Button "Unpublish exam" is
-  enabled once a specific exam is chosen in the filter; the exam filter also
-  offers "Whole year (final result)" (`WHOLE_YEAR` = cards with `exam: null`).
+- **Published = locked (owner rule, 2026-11-10).** Once a student's card for
+  an exam is PUBLISHED, nobody (teacher or school) can change that student's
+  marks for that exam: `saveSheet` refuses with 409 and `loadStudentSheet`
+  returns `locked: true` (`isPublishedForExam` in `casSheetService.js`).
+  Adding/removing a theme on a published exam is refused too. Legacy
+  whole-year cards (`exam: null`) do NOT lock. To correct a published result:
+  the school unpublishes the exam in Manage Exams, edits, and publishes again.
+- **Publish / Unpublish live in Manage Exams** (since 2026-11-10), per exam
+  for the selected grade: `GET|POST /api/cas/results/exam-publishing`
+  (`loadExamPublishing` / `changeExamPublishing`). Publishing there uses
+  Student Result's default scope (exam, all its themes for the grade, CLASSIC)
+  through `publishGradeResults`, so both screens build identical cards.
+  Student Result still publishes ticked students; it has no unpublish.
+  Internal exams: Publish / Unpublish buttons on their Manage Exams too (the
+  Results screen keeps its own). The teacher dashboard shows each exam as
+  Published · locked / partly published, with "View marks" instead of
+  "Enter marks" when locked.
+- Published Results no longer has an Unpublish button (removed 2026-11-05).
 - **Unpublish = delete.** `unpublishExamResults` (`casReportService.js`, route
   `POST /api/cas/results/unpublish` with `{ academicYear, grade, exam }`)
   deletes every CasReport for school + year + grade + exam (any status) and

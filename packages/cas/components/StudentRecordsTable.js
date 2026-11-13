@@ -246,8 +246,8 @@ export default function StudentRecordsTable({ mode, table, onSaved, t }) {
         {hasLockedRows && (
           <Alert tone="warning">
             {t(
-              'These results are published, so attendance and extra activities are locked. Unpublish them on the Results screen to make changes.',
-              'नतिजा प्रकाशित भएकाले हाजिरी र अतिरिक्त क्रियाकलाप लक छन्। परिवर्तन गर्न Results मा अप्रकाशित गर्नुहोस्।',
+              'These results are published, so attendance and extra activities are locked. Unpublish the exam in Manage Exams to make changes.',
+              'नतिजा प्रकाशित भएकाले हाजिरी र अतिरिक्त क्रियाकलाप लक छन्। परिवर्तन गर्न परीक्षा व्यवस्थापनमा अप्रकाशित गर्नुहोस्।',
             )}
           </Alert>
         )}

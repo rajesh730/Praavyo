@@ -1,5 +1,5 @@
 import { handler, jsonBody } from '@pravyo/cas/lib/casRoute';
-import { assignThemeExams, createExam, deleteExam, listExams, restoreExam, updateExam } from '@pravyo/cas/lib/casExamService';
+import { assignThemeExams, createExam, deleteExam, listExams, restoreExam, setCurrentExam, updateExam } from '@pravyo/cas/lib/casExamService';
 
 export const dynamic = 'force-dynamic';
 
@@ -12,7 +12,10 @@ export const GET = handler(({ actor, query }) => listExams(actor, {
 export const POST = handler(async ({ actor, request }) => createExam(actor, await jsonBody(request)));
 export const PATCH = handler(async ({ actor, request }) => {
   const body = await jsonBody(request);
-  return body.action === 'restore' ? restoreExam(actor, body) : updateExam(actor, body);
+  if (body.action === 'restore') return restoreExam(actor, body);
+  // { action: 'set-current', exam, current: true | false }
+  if (body.action === 'set-current') return setCurrentExam(actor, body);
+  return updateExam(actor, body);
 });
 export const PUT = handler(async ({ actor, request }) => assignThemeExams(actor, await jsonBody(request)));
 export const DELETE = handler(async ({ actor, request }) => deleteExam(actor, await jsonBody(request)));

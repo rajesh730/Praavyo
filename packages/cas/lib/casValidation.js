@@ -407,6 +407,19 @@ export const examUnpublishInput = z
   })
   .strict();
 
+/**
+ * Manage Exams: each exam's publication status for a grade, or the detailed
+ * summary of one exam (`exam` given) shown before publishing it.
+ */
+export const examPublishingQuery = z
+  .object({ academicYear: objectId, grade, exam: objectId.optional() })
+  .strict();
+
+/** Manage Exams: publish or unpublish one exam for a whole grade. */
+export const examPublishingAction = z
+  .object({ academicYear: objectId, grade, exam: objectId, action: z.enum(['publish', 'unpublish']) })
+  .strict();
+
 /** Snapshot and publish a grade's results in one step. */
 export const gradePublishInput = reportBaseInput
   .strict()

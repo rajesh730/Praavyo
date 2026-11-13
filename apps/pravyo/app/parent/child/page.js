@@ -289,8 +289,6 @@ function ParentChildPortfolio() {
                   {certificate.certificateUrl ? (
                     <a
                       href={certificate.certificateUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
                       className="btn btn-primary flex items-center justify-center gap-2"
                     >
                       {t("child.viewCertificate")}

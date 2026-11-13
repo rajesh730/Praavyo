@@ -200,7 +200,9 @@ export default function ParentEventsPage() {
             body={event.result ? event.result.placement : ""}
             meta={formatParentDate(event.date, { calendar, relative: false })}
             // The Event → Result → Certificate chain, closed on one card (§12).
-            href={event.certificate?.verifyPath || undefined}
+            // "View certificate" opens the certificate itself (in the Parent
+            // App's viewer); the verify page only when there is no file.
+            href={event.certificate?.url || event.certificate?.verifyPath || undefined}
             cta={event.certificate ? t("events.viewCertificate") : null}
           />
         )}

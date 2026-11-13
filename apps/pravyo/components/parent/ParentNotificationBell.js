@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useDashboardLink } from "@/components/dashboard/DashboardLinkProvider";
 import {
   Bell,
   CalendarDays,
@@ -70,6 +71,9 @@ function NotificationRow({ notification, pending, onOpen }) {
 
 export default function ParentNotificationBell() {
   const router = useRouter();
+  // Saved notification links can point at the public site (a certificate);
+  // this keeps them inside the Parent App.
+  const openLink = useDashboardLink();
   const triggerRef = useRef(null);
   const panelRef = useRef(null);
   const [open, setOpen] = useState(false);
@@ -144,7 +148,7 @@ export default function ParentNotificationBell() {
         await markRead(notification.id);
       }
       setOpen(false);
-      router.push(notification.actionUrl || "/parent/notifications");
+      openLink(notification.actionUrl || "/parent/notifications");
     } catch {
       // Keep the panel open so the parent can retry. The shared provider has
       // already restored authoritative state and exposes the error below.

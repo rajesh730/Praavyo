@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Pen as FaPen, Plus as FaPlus, Trash2 as FaTrash, PenLine } from 'lucide-react';
+import { Lock as FaLock, Pen as FaPen, Plus as FaPlus, Send as FaPaperPlane, Trash2 as FaTrash, Unlock as FaUnlock, PenLine } from 'lucide-react';
 import { CAS_EXAM_TERMS } from '@pravyo/core/casExamTerms';
 import { DEFAULT_FULL_MARKS, DEFAULT_PASS_PERCENT } from '@pravyo/core/internalExamResult';
 import { useCas } from './CasLayout.js';
@@ -23,7 +23,7 @@ export default function InternalExamsPage() {
   const { actor, t } = useCas();
   const filters = useInternalExamFilters({ withSection: false });
   const { academicYear, grade, exams, subjects, examsQuery } = filters;
-  const { run, pending, error, success } = useCasMutation();
+  const { run, pending, error, success, setSuccess } = useCasMutation();
   // null = closed, 'new' = create form, an exam id = editing that exam.
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -73,6 +73,21 @@ export default function InternalExamsPage() {
     if (result.ok) examsQuery.reload();
   }
 
+  // { exam, publish: true | false } while a confirmation is open.
+  const [confirming, setConfirming] = useState(null);
+
+  async function changePublishing() {
+    const { exam, publish } = confirming;
+    setConfirming(null);
+    const result = await run('/api/cas/internal-exams/publish', { method: 'POST', body: { exam: exam.id, publish } });
+    if (result.ok) {
+      setSuccess(publish
+        ? t(`${exam.name} published: ${result.data?.published || 0} report cards sent to students and parents. The marks are now locked.`, `${exam.name} प्रकाशित भयो। अङ्क अब लक छन्।`)
+        : t(`${exam.name} unpublished. Its report cards were removed and the marks are unlocked for editing.`, `${exam.name} अप्रकाशित भयो। अङ्क सम्पादनका लागि खुला छन्।`));
+      examsQuery.reload();
+    }
+  }
+
   const termTitle = (value) => CAS_EXAM_TERMS.find((term) => term.value === value)?.title || value;
 
   return (
@@ -86,6 +101,16 @@ export default function InternalExamsPage() {
         )}
       />
       <InternalExamFilterBar filters={filters} t={t} showExam={false} withSection={false} />
+      {confirming && (
+        <PublishingDialog
+          t={t}
+          exam={confirming.exam}
+          grade={grade}
+          publish={confirming.publish}
+          onCancel={() => setConfirming(null)}
+          onConfirm={changePublishing}
+        />
+      )}
       <Alert tone="danger">{error}</Alert>
       <Alert tone="success">{success}</Alert>
 
@@ -158,13 +183,24 @@ export default function InternalExamsPage() {
                       <span>{exam.termTitle}</span>
                       <span>· {t('Full marks', 'पूर्णाङ्क')} {exam.fullMarks}{exam.subjectFullMarks.length ? ` (${t('some subjects differ', 'केही विषय फरक')})` : ''}</span>
                       <span>· {t('Pass', 'उत्तीर्ण')} {exam.passPercent}%</span>
-                      {exam.published ? <Badge tone="success">{t('Published', 'प्रकाशित')}</Badge> : <Badge>{t('Not published', 'अप्रकाशित')}</Badge>}
+                      {exam.published
+                        ? <Badge tone="success"><FaLock aria-hidden size={11} className="mr-1 inline" />{t('Published · marks locked', 'प्रकाशित · अङ्क लक')}</Badge>
+                        : <Badge>{t('Not published', 'अप्रकाशित')}</Badge>}
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Link href="/school/internal-exam/marks" onClick={() => filters.setExam(exam.id)} className="btn btn-secondary btn-sm inline-flex items-center gap-1.5">
-                      <PenLine size={14} aria-hidden /> {t('Mark entry', 'अङ्क प्रविष्टि')}
+                      <PenLine size={14} aria-hidden /> {exam.published ? t('View marks', 'अङ्क हेर्नुहोस्') : t('Mark entry', 'अङ्क प्रविष्टि')}
                     </Link>
+                    {canEdit && (exam.published ? (
+                      <Button variant="secondary" className="btn-sm" disabled={pending} onClick={() => setConfirming({ exam, publish: false })}>
+                        <FaUnlock size={14} aria-hidden /> {t('Unpublish', 'अप्रकाशित')}
+                      </Button>
+                    ) : (
+                      <Button className="btn-sm" disabled={pending} onClick={() => setConfirming({ exam, publish: true })}>
+                        <FaPaperPlane size={14} aria-hidden /> {t('Publish results', 'नतिजा प्रकाशित')}
+                      </Button>
+                    ))}
                     {canEdit && !exam.published && (
                       <>
                         <Button variant="secondary" className="btn-sm" onClick={() => open(exam)}><FaPen size={14} aria-hidden /> {t('Edit', 'सम्पादन')}</Button>
@@ -178,5 +214,48 @@ export default function InternalExamsPage() {
           )}
       </Card>
     </>
+  );
+}
+
+/** Publish or unpublish one internal exam, after an explicit tick. */
+function PublishingDialog({ t, exam, grade, publish, onCancel, onConfirm }) {
+  const [checked, setChecked] = useState(false);
+  const points = publish
+    ? [
+      t('Every student’s report card goes to them and their parents straight away.', 'हरेक विद्यार्थीको नतिजा पत्र तुरुन्तै विद्यार्थी र अभिभावकलाई पठाइन्छ।'),
+      t('Every mark must be entered (or the student marked absent) first.', 'पहिले सबै अङ्क प्रविष्ट भएको हुनुपर्छ।'),
+      t('The marks, attendance and activities lock. Nobody can change them until you unpublish here.', 'अङ्क, हाजिरी र क्रियाकलाप लक हुन्छन्।'),
+    ]
+    : [
+      t(`The published report cards for ${grade} are removed. Students and parents stop seeing them.`, `${grade} का प्रकाशित नतिजा पत्र हट्छन्।`),
+      t('The marks are kept and unlock, so teachers and the school can correct them.', 'अङ्क सुरक्षित रहन्छन् र सच्याउन खुला हुन्छन्।'),
+      t('When the corrections are done, publish the exam again here.', 'सच्याएपछि यहीँबाट फेरि प्रकाशित गर्नुहोस्।'),
+    ];
+  return (
+    <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="internal-publishing-title">
+      <div className="modal-panel">
+        <h2 id="internal-publishing-title" className="text-lg font-semibold text-ink">
+          {publish
+            ? t(`Publish ${exam.name} for ${grade}?`, `${grade} को ${exam.name} प्रकाशित गर्ने?`)
+            : t(`Unpublish ${exam.name} for ${grade}?`, `${grade} को ${exam.name} अप्रकाशित गर्ने?`)}
+        </h2>
+        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted">
+          {points.map((point) => <li key={point}>{point}</li>)}
+        </ul>
+        <label className="mt-4 flex cursor-pointer items-start gap-2.5 text-sm text-ink">
+          <input type="checkbox" className="mt-0.5" checked={checked} onChange={(event) => setChecked(event.target.checked)} />
+          {publish
+            ? t('I have checked these results on the Results screen and they are correct.', 'मैले नतिजा जाँचेँ र सही छन्।')
+            : t('I understand students and parents will lose access until it is published again.', 'फेरि प्रकाशित नभएसम्म विद्यार्थी र अभिभावकले हेर्न पाउँदैनन् भन्ने बुझेँ।')}
+        </label>
+        <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button variant="secondary" onClick={onCancel}>{t('Cancel', 'रद्द गर्नुहोस्')}</Button>
+          <Button variant={publish ? 'primary' : 'danger'} disabled={!checked} onClick={onConfirm}>
+            {publish ? <FaPaperPlane aria-hidden /> : <FaUnlock aria-hidden />}
+            {publish ? t('Publish results', 'नतिजा प्रकाशित गर्नुहोस्') : t('Unpublish exam', 'परीक्षा अप्रकाशित गर्नुहोस्')}
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }

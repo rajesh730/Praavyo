@@ -1,11 +1,11 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRememberedState } from '@pravyo/ui/rememberedState';
 import Link from 'next/link';
-import { ArrowLeft as FaArrowLeft, BookOpen as FaBookOpen, Check as FaCheck, ChevronDown as FaChevronDown, ChevronUp as FaChevronUp, Pen as FaPen, Plus as FaPlus, Trash2 as FaTrash, X as FaTimes, Undo2 as FaUndo } from 'lucide-react';
+import { ArrowLeft as FaArrowLeft, BookOpen as FaBookOpen, Check as FaCheck, ChevronDown as FaChevronDown, ChevronUp as FaChevronUp, Lock as FaLock, Pen as FaPen, Plus as FaPlus, Send as FaPaperPlane, Star as FaStar, Trash2 as FaTrash, X as FaTimes, Undo2 as FaUndo, Unlock as FaUnlock } from 'lucide-react';
 import { useCas } from './CasLayout.js';
-import { useCasMutation, useCasQuery } from '../lib/client/useCas.js';
+import { casFetch, useCasMutation, useCasQuery } from '../lib/client/useCas.js';
 import { Alert, Badge, Button, Card, EmptyState, Field, Input, PageHeader, Select, Spinner } from './ui/Kit.js';
 import IssueDateInput from './ui/IssueDateInput.js';
 import { todayBsNumeric } from '@pravyo/core/nepaliDate';
@@ -47,6 +47,40 @@ export default function ManageExamsPage() {
   );
   const teacherAssignments = teacherAssignmentQuery.data?.assignments || [];
   const teachers = teacherAssignmentQuery.data?.teachers || [];
+  // How far each exam is published for the selected grade (school only).
+  const publishingQuery = useCasQuery(
+    canEdit && selectedYearId && selectedGrade
+      ? `/api/cas/results/exam-publishing?${new URLSearchParams({ academicYear: selectedYearId, grade: selectedGrade })}`
+      : null,
+  );
+  const gradeStudents = publishingQuery.data?.students || 0;
+  const publishedCount = (exam) => publishingQuery.data?.exams?.find((row) => row.exam === exam.id)?.published || 0;
+  // { exam, action: 'publish' | 'unpublish' } while a confirmation is open.
+  const [publishing, setPublishing] = useState(null);
+
+  async function changePublishing() {
+    const { exam, action } = publishing;
+    setPublishing(null);
+    const result = await run('/api/cas/results/exam-publishing', {
+      method: 'POST', body: { academicYear: selectedYearId, grade: selectedGrade, exam: exam.id, action },
+    });
+    if (result.ok) {
+      const data = result.data || {};
+      if (action === 'unpublish') {
+        setSuccess(t(
+          `${exam.name} unpublished for ${selectedGrade}. ${data.unpublished || 0} report card${data.unpublished === 1 ? ' was' : 's were'} removed and the marks are unlocked for editing.`,
+          `${selectedGrade} को ${exam.name} अप्रकाशित भयो। अङ्क सम्पादनका लागि खुला छन्।`,
+        ));
+      } else {
+        const failed = data.failed?.length || 0;
+        setSuccess(t(
+          `${exam.name} published for ${selectedGrade}: ${data.published || 0} report card${data.published === 1 ? '' : 's'} sent to students and parents. The marks are now locked.${failed ? ` ${failed} could not be published; open Student Result to see why.` : ''}`,
+          `${selectedGrade} को ${exam.name} प्रकाशित भयो। अङ्क अब लक छन्।`,
+        ));
+      }
+      publishingQuery.reload();
+    }
+  }
 
   async function createExam(event) {
     event.preventDefault();
@@ -98,6 +132,18 @@ export default function ManageExamsPage() {
       if (editing?.id === exam.id) setEditing(null);
       examsQuery.reload();
     }
+  }
+
+  /** Mark (or clear) the live / upcoming exam every exam picker opens on. */
+  async function setCurrent(exam, current) {
+    const result = await run('/api/cas/exams', {
+      method: 'PATCH', body: { action: 'set-current', exam: exam.id, current },
+    }, {
+      successMessage: current
+        ? t(`${exam.name} is now the current exam. Teachers and every exam list open on it.`, `${exam.name} अब चालु परीक्षा हो।`)
+        : t('Current exam cleared.', 'चालु परीक्षा हटाइयो।'),
+    });
+    if (result.ok) examsQuery.reload();
   }
 
   async function restoreExam(exam) {
@@ -167,6 +213,27 @@ export default function ManageExamsPage() {
         actions={<Link href="/school/cas/curriculum" className="btn btn-secondary inline-flex items-center gap-2 font-semibold"><FaArrowLeft aria-hidden />{t('Curriculum', 'पाठ्यक्रम')}</Link>}
       />
 
+      {publishing?.action === 'publish' && (
+        <ExamPublishDialog
+          t={t}
+          exam={publishing.exam}
+          grade={selectedGrade}
+          academicYear={selectedYearId}
+          onCancel={() => setPublishing(null)}
+          onConfirm={changePublishing}
+        />
+      )}
+      {publishing?.action === 'unpublish' && (
+        <ExamUnpublishDialog
+          t={t}
+          exam={publishing.exam}
+          grade={selectedGrade}
+          published={publishedCount(publishing.exam)}
+          onCancel={() => setPublishing(null)}
+          onConfirm={changePublishing}
+        />
+      )}
+
       {(error || examsQuery.error) && <Alert tone="danger">{error || examsQuery.error}</Alert>}
       {success && <Alert tone="success">{success}</Alert>}
       {!selectedYearId && (
@@ -210,6 +277,12 @@ export default function ManageExamsPage() {
           </form>
         )}
 
+        {canEdit && !examsQuery.loading && exams.some((exam) => exam.status === 'ACTIVE') && !exams.some((exam) => exam.isCurrent) && (
+          <p className="mb-3 flex items-start gap-2 rounded-control bg-surface-2 px-3 py-2 text-sm text-muted">
+            <FaStar aria-hidden size={14} className="mt-0.5 shrink-0 text-brand" />
+            {t('Mark the exam that is running now or coming next as the current exam. Teachers, assessment and Student Result then open on it automatically.', 'अहिले चलिरहेको वा आउने परीक्षालाई चालु परीक्षा बनाउनुहोस्। शिक्षक, मूल्याङ्कन र नतिजा सोही परीक्षामा खुल्छन्।')}
+          </p>
+        )}
         {examsQuery.loading ? <Spinner label={t('Loading exams…', 'परीक्षा लोड हुँदैछ…')} /> : exams.length ? (
           <div className="divide-line">
             {exams.map((exam) => {
@@ -229,6 +302,8 @@ export default function ManageExamsPage() {
                 .filter((entry) => entry.themes.length);
               const isEditing = editing?.id === exam.id;
               const isThemePanelOpen = openExamId === exam.id;
+              const published = publishedCount(exam);
+              const fullyPublished = published > 0 && published >= gradeStudents;
               return (
                 <div key={exam.id} className="py-3">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -245,7 +320,25 @@ export default function ManageExamsPage() {
                     </form>
                   ) : (
                     <div className="min-w-0">
-                      <h3 className="break-words font-semibold text-ink">{exam.name}</h3>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="break-words font-semibold text-ink">{exam.name}</h3>
+                        {exam.isCurrent ? (
+                          <>
+                            <span className="inline-flex items-center gap-1 rounded-full bg-success-soft px-2 py-0.5 text-xs font-semibold text-success">
+                              <FaStar aria-hidden size={12} />{t('Current exam', 'चालु परीक्षा')}
+                            </span>
+                            {canEdit && (
+                              <button type="button" className="text-xs font-semibold text-muted underline-offset-2 hover:text-ink hover:underline" disabled={pending} onClick={() => setCurrent(exam, false)}>
+                                {t('Clear', 'हटाउनुहोस्')}
+                              </button>
+                            )}
+                          </>
+                        ) : canEdit && exam.status === 'ACTIVE' && (
+                          <button type="button" className="inline-flex items-center gap-1 text-xs font-semibold text-brand underline-offset-2 hover:underline" disabled={pending} onClick={() => setCurrent(exam, true)}>
+                            <FaStar aria-hidden size={12} />{t('Set as current exam', 'चालु परीक्षा बनाउनुहोस्')}
+                          </button>
+                        )}
+                      </div>
                       <div className="mt-3 grid gap-1">
                         <span className="text-xs font-semibold text-muted">{selectedGrade}</span>
                         {curriculumQuery.loading ? <span className="text-xs text-muted">{t('Loading themes...', 'Loading themes...')}</span> : assignedSubjects.length ? (
@@ -264,6 +357,13 @@ export default function ManageExamsPage() {
                           ? <Badge tone="neutral">{t(`Issue date: ${exam.issueDate}`, `जारी मिति: ${exam.issueDate}`)}</Badge>
                           : <Badge tone="warning">{t('No issue date: edit to set one before publishing', 'जारी मिति छैन: प्रकाशन अघि सम्पादन गरी राख्नुहोस्')}</Badge>}
                         {exam.status === 'ARCHIVED' && <Badge tone="warning">{t('Archived', 'संग्रहित')}</Badge>}
+                        {canEdit && !publishingQuery.loading && (
+                          published === 0
+                            ? <Badge tone="neutral">{t(`Not published for ${selectedGrade}`, `${selectedGrade} मा अप्रकाशित`)}</Badge>
+                            : fullyPublished
+                              ? <Badge tone="success"><FaLock aria-hidden size={11} className="mr-1 inline" />{t(`Published for ${selectedGrade} · marks locked`, `${selectedGrade} मा प्रकाशित · अङ्क लक`)}</Badge>
+                              : <Badge tone="warning"><FaLock aria-hidden size={11} className="mr-1 inline" />{t(`Published for ${published} of ${gradeStudents} students`, `${gradeStudents} मध्ये ${published} विद्यार्थीको प्रकाशित`)}</Badge>
+                        )}
                         <Badge tone={assignedGrades.length ? 'success' : 'neutral'}>{assignedGrades.length ? t(`Assigned in ${assignedGrades.length} grades`, `${assignedGrades.length} कक्षामा तोकिएको`) : t('No themes assigned', 'थिम तोकिएको छैन')}</Badge>
                       </div>
                     </div>
@@ -274,6 +374,16 @@ export default function ManageExamsPage() {
                         <FaBookOpen aria-hidden />{t('Manage themes', 'थिम व्यवस्थापन')}
                         {isThemePanelOpen ? <FaChevronUp aria-hidden /> : <FaChevronDown aria-hidden />}
                       </Button>
+                      {canEdit && exam.status !== 'ARCHIVED' && !fullyPublished && (
+                        <Button onClick={() => setPublishing({ exam, action: 'publish' })} disabled={pending || publishingQuery.loading}>
+                          <FaPaperPlane aria-hidden />{published ? t('Publish the rest', 'बाँकी प्रकाशित') : t('Publish results', 'नतिजा प्रकाशित')}
+                        </Button>
+                      )}
+                      {canEdit && published > 0 && (
+                        <Button variant="secondary" onClick={() => setPublishing({ exam, action: 'unpublish' })} disabled={pending}>
+                          <FaUnlock aria-hidden />{t('Unpublish', 'अप्रकाशित')}
+                        </Button>
+                      )}
                       {canEdit && <>
                       <Button variant="secondary" onClick={() => { setEditing({ id: exam.id, name: exam.name, reportTitle: exam.reportTitle || exam.name, issueDate: exam.issueDate || '', academicYear: exam.academicYear }); setShowCreate(false); }} disabled={pending}><FaPen aria-hidden />{t('Edit', 'सम्पादन')}</Button>
                       {exam.status === 'ARCHIVED' ? (
@@ -351,7 +461,7 @@ export default function ManageExamsPage() {
                                               {themes.map((theme) => {
                                                 const assigned = assignedKeys.has(theme.key);
                                                 const name = themeName(theme);
-                                                const locked = !canEdit || pending || exam.status === 'ARCHIVED' || !theme.outcomeCount;
+                                                const locked = !canEdit || pending || exam.status === 'ARCHIVED' || !theme.outcomeCount || published > 0;
                                                 return (
                                                   <label key={theme.key} className={`flex items-start gap-3 px-3 py-2.5 ${locked ? 'cursor-not-allowed opacity-70' : 'cursor-pointer hover:bg-surface-2'}`}>
                                                     <input
@@ -377,6 +487,7 @@ export default function ManageExamsPage() {
                                       );
                                     })}
                                   </div>
+                                  {published > 0 && exam.status !== 'ARCHIVED' && <p className="mt-2 text-xs text-muted">{t(`Results for ${selectedGrade} are published, so this exam's themes are locked. Unpublish to change them.`, `${selectedGrade} को नतिजा प्रकाशित भएकाले थिम लक छन्। परिवर्तन गर्न अप्रकाशित गर्नुहोस्।`)}</p>}
                                   {exam.status === 'ARCHIVED' && <p className="mt-2 text-xs text-muted">{t('This exam is archived, so its themes are locked and its published results stay unchanged. Restore it to make changes.', 'यो परीक्षा संग्रहित छ, त्यसैले थिम परिवर्तन हुँदैन र प्रकाशित नतिजा जस्ताको तस्तै रहन्छ। परिवर्तन गर्न पुनः सक्रिय गर्नुहोस्।')}</p>}
                                   {!canEdit && <p className="mt-2 text-xs text-muted">{t('Only a school administrator can change exam themes.', 'Only a school administrator can change exam themes.')}</p>}
                                 </>
@@ -396,5 +507,128 @@ export default function ManageExamsPage() {
         )}
       </Card>
     </>
+  );
+}
+
+function SummaryRows({ rows }) {
+  return (
+    <dl className="mt-4 divide-y divide-line rounded-control border border-line">
+      {rows.map(([label, value]) => (
+        <div key={label} className="flex justify-between gap-3 px-3 py-2 text-sm">
+          <dt className="text-muted">{label}</dt>
+          <dd className="text-right font-semibold text-ink">{value}</dd>
+        </div>
+      ))}
+    </dl>
+  );
+}
+
+/**
+ * Publish one exam for the whole grade. The counts are fetched fresh when the
+ * dialog opens, so they reflect marks a teacher entered a moment ago.
+ */
+function ExamPublishDialog({ t, exam, grade, academicYear, onCancel, onConfirm }) {
+  const [summary, setSummary] = useState(null);
+  const [loadError, setLoadError] = useState('');
+  const [checked, setChecked] = useState(false);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    casFetch(`/api/cas/results/exam-publishing?${new URLSearchParams({ academicYear, grade, exam: exam.id })}`, { signal: controller.signal })
+      .then(setSummary)
+      .catch((error) => { if (!controller.signal.aborted) setLoadError(error.message); });
+    return () => controller.abort();
+  }, [academicYear, grade, exam.id]);
+
+  const ready = summary?.ready?.length || 0;
+  const blocker = summary && (
+    !summary.hasThemes ? t(`Add themes to ${exam.name} for ${grade} first (Manage themes).`, 'पहिले थिम थप्नुहोस्।')
+      : !summary.issueDate ? t('Set an issue date for this exam first (Edit).', 'पहिले जारी मिति राख्नुहोस्।')
+        : !ready ? (summary.published
+          ? t('Every assessed student is already published.', 'सबै मूल्याङ्कित विद्यार्थी प्रकाशित छन्।')
+          : t('No student in this grade has been assessed in this exam yet.', 'अहिलेसम्म कुनै विद्यार्थीको मूल्याङ्कन भएको छैन।'))
+          : '');
+
+  return (
+    <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="exam-publish-title">
+      <div className="modal-panel">
+        <h2 id="exam-publish-title" className="text-lg font-semibold text-ink">
+          {t(`Publish ${exam.name} for ${grade}?`, `${grade} को ${exam.name} प्रकाशित गर्ने?`)}
+        </h2>
+        <p className="mt-1 text-sm text-muted">
+          {t(
+            'Each report card goes to the student and every linked parent straight away, and its marks lock. Nobody can change them until you unpublish the exam here.',
+            'हरेक नतिजा पत्र तुरुन्तै विद्यार्थी र अभिभावकलाई पठाइन्छ र अङ्क लक हुन्छन्। यहाँबाट अप्रकाशित नगरेसम्म कसैले परिवर्तन गर्न सक्दैन।',
+          )}
+        </p>
+
+        {loadError ? <div className="mt-4"><Alert tone="danger">{loadError}</Alert></div>
+          : !summary ? <div className="mt-4"><Spinner label={t('Checking results…', 'नतिजा जाँच हुँदैछ…')} /></div>
+            : (
+              <>
+                <SummaryRows rows={[
+                  [t('Students to publish', 'प्रकाशित हुने विद्यार्थी'), String(ready)],
+                  [t('Already published', 'प्रकाशित भइसकेका'), String(summary.published)],
+                  [t('Not assessed (no card)', 'मूल्याङ्कन नभएका'), String(summary.notAssessed)],
+                  [t('Issue date', 'जारी मिति'), summary.issueDate || '—'],
+                ]} />
+                {summary.incomplete > 0 && !blocker && (
+                  <div className="mt-3">
+                    <Alert tone="warning">
+                      {t(
+                        `${summary.incomplete} of these students have not been assessed in every outcome yet. Their cards show only what is recorded.`,
+                        `${summary.incomplete} विद्यार्थीको सबै उपलब्धि मूल्याङ्कन भएको छैन।`,
+                      )}
+                    </Alert>
+                  </div>
+                )}
+                {blocker && <div className="mt-3"><Alert tone="info">{blocker}</Alert></div>}
+                {!blocker && (
+                  <label className="mt-4 flex cursor-pointer items-start gap-2.5 text-sm text-ink">
+                    <input type="checkbox" className="mt-0.5" checked={checked} onChange={(event) => setChecked(event.target.checked)} />
+                    {t('I have checked these results in Student Result and they are correct.', 'मैले Student Result मा नतिजा जाँचेँ र सही छन्।')}
+                  </label>
+                )}
+              </>
+            )}
+
+        <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button variant="secondary" onClick={onCancel}>{t('Cancel', 'रद्द गर्नुहोस्')}</Button>
+          <Button disabled={!summary || Boolean(blocker) || !checked} onClick={onConfirm}>
+            <FaPaperPlane aria-hidden />
+            {t(`Publish ${ready} result${ready === 1 ? '' : 's'}`, `${ready} नतिजा प्रकाशित गर्नुहोस्`)}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Unpublish deletes the grade's cards for this exam and unlocks the marks. */
+function ExamUnpublishDialog({ t, exam, grade, published, onCancel, onConfirm }) {
+  const [checked, setChecked] = useState(false);
+  return (
+    <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="exam-unpublish-title">
+      <div className="modal-panel">
+        <h2 id="exam-unpublish-title" className="text-lg font-semibold text-ink">
+          {t(`Unpublish ${exam.name} for ${grade}?`, `${grade} को ${exam.name} अप्रकाशित गर्ने?`)}
+        </h2>
+        <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-muted">
+          <li>{t(`The ${published} published report card${published === 1 ? '' : 's'} for every student in ${grade} are removed. Students and parents stop seeing them.`, `${grade} का ${published} प्रकाशित नतिजा पत्र हट्छन्।`)}</li>
+          <li>{t('The marks are kept and unlock, so teachers and the school can correct them.', 'अङ्क सुरक्षित रहन्छन् र सच्याउन खुला हुन्छन्।')}</li>
+          <li>{t('When the corrections are done, publish the exam again here.', 'सच्याएपछि यहीँबाट फेरि प्रकाशित गर्नुहोस्।')}</li>
+        </ul>
+        <label className="mt-4 flex cursor-pointer items-start gap-2.5 text-sm text-ink">
+          <input type="checkbox" className="mt-0.5" checked={checked} onChange={(event) => setChecked(event.target.checked)} />
+          {t('I understand students and parents will lose access until it is published again.', 'फेरि प्रकाशित नभएसम्म विद्यार्थी र अभिभावकले हेर्न पाउँदैनन् भन्ने बुझेँ।')}
+        </label>
+        <div className="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
+          <Button variant="secondary" onClick={onCancel}>{t('Cancel', 'रद्द गर्नुहोस्')}</Button>
+          <Button variant="danger" disabled={!checked} onClick={onConfirm}>
+            <FaUnlock aria-hidden />{t('Unpublish exam', 'परीक्षा अप्रकाशित गर्नुहोस्')}
+          </Button>
+        </div>
+      </div>
+    </div>
   );
 }

@@ -13,7 +13,6 @@ import LoadingState from "@/components/ui/LoadingState";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import AlertBanner from "@/components/ui/AlertBanner";
 import useRealtimeChannel from "@/lib/client/useRealtimeChannel";
-import AuthenticatedPublicLinkGuard from "@/components/AuthenticatedPublicLinkGuard";
 
 export default function EventDetailDashboard() {
   const params = useParams();
@@ -178,7 +177,6 @@ export default function EventDetailDashboard() {
 
   return (
     <div className="min-h-screen bg-surface-2">
-      <AuthenticatedPublicLinkGuard />
       {/* Header */}
       <EventInfoHeader event={event} capacityInfo={capacityInfo} />
 

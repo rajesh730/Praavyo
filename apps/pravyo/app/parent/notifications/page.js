@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useDashboardLink } from "@/components/dashboard/DashboardLinkProvider";
 import { useParentApp } from "@/components/parent/ParentAppContext";
 import { useParentNotifications } from "@/components/parent/ParentNotificationContext";
 import ParentEmptyState from "@/components/parent/ParentEmptyState";
@@ -10,7 +10,9 @@ import { formatRelativeShort } from "@/lib/parentFormat";
 
 /** Combined inbox; every row names its child and school before it deep-links. */
 export default function ParentNotificationsPage() {
-  const router = useRouter();
+  // Saved notification links can point at the public site (a certificate);
+  // this keeps them inside the Parent App.
+  const openLink = useDashboardLink();
   const { t } = useParentApp();
   const {
     loading,
@@ -32,7 +34,7 @@ export default function ParentNotificationsPage() {
     setPendingId(notification.id);
     try {
       if (notification.status !== "READ") await markRead(notification.id);
-      router.push(notification.actionUrl || "/parent/notifications");
+      openLink(notification.actionUrl || "/parent/notifications");
     } catch {
       // Authoritative state is restored by the shared provider. Leave the row
       // in place so the parent can retry instead of navigating on a failed write.

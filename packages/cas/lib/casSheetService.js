@@ -40,6 +40,22 @@ const reportScope = (actor, year, student) => ({
   school: actor.school, academicYear: year.id, student,
 });
 
+export const PUBLISHED_LOCK_MESSAGE =
+  'This result is published, so its marks are locked. The school can unpublish the exam in Manage Exams to make changes.';
+
+/**
+ * True when this student's report card for this exam is published. A
+ * published card is what the parent reads, so its marks stay fixed until the
+ * school unpublishes the whole exam for the grade (Manage Exams), edits, and
+ * publishes again. Legacy whole-year cards (no exam) predate exams and do not
+ * lock exam marks.
+ */
+async function isPublishedForExam(actor, year, student, exam, session = null) {
+  return Boolean(await CasReport.exists({
+    ...reportScope(actor, year, student), exam, status: 'PUBLISHED',
+  }).session(session));
+}
+
 async function subjectAndOutcomes(actor, { grade, subject }, session = null) {
   const subjectRow = await CasSubject.findOne({
     _id: subject, school: actor.school, grade, status: 'ACTIVE', ...EXAMINED_FILTER,
@@ -199,13 +215,16 @@ export async function loadStudentSheet(actor, input) {
   assert(outcomes.length, 'That theme has no learning outcomes', 404);
   assert(await CasThemeExam.exists({ school: actor.school, academicYear: year.id, grade: data.grade, subject: subjectRow._id, themeKey: data.themeKey, exam: exam._id }), 'This theme is not assigned to the selected exam', 409);
   const { student, enrollment } = await studentAndEnrollment(actor, data, year, null, subjectRow);
-  const records = await CasAssessment.find({
-    ...reportScope(actor, year, student._id),
-    grade: data.grade, subject: subjectRow._id,
-    exam: exam._id,
-    outcome: { $in: outcomes.map((outcome) => outcome._id) },
-  }).lean();
-  return serializeSheet({ actor, data, year, subjectRow, allOutcomes, student, enrollment, records, locked: false });
+  const [records, locked] = await Promise.all([
+    CasAssessment.find({
+      ...reportScope(actor, year, student._id),
+      grade: data.grade, subject: subjectRow._id,
+      exam: exam._id,
+      outcome: { $in: outcomes.map((outcome) => outcome._id) },
+    }).lean(),
+    isPublishedForExam(actor, year, student._id, exam._id),
+  ]);
+  return serializeSheet({ actor, data, year, subjectRow, allOutcomes, student, enrollment, records, locked });
 }
 
 /** Summarize one student's progress across every assessable theme in a subject. */
@@ -328,6 +347,7 @@ export async function saveSheet(actor, input) {
       'Every learning outcome must belong to the selected grade, subject and theme', 409);
     const { student, enrollment } = await studentAndEnrollment(actor, data, year, session, subjectRow);
     const scope = reportScope(actor, year, student._id);
+    assert(!await isPublishedForExam(actor, year, student._id, exam._id, session), PUBLISHED_LOCK_MESSAGE, 409);
     const draftReports = await CasReport.find({ ...scope, status: 'DRAFT' }).session(session).lean();
 
     const recordScope = { ...scope, exam: exam._id, grade: data.grade, subject: subjectRow._id };

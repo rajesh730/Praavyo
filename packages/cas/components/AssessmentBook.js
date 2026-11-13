@@ -171,8 +171,8 @@ export default function AssessmentBook({
       {sheet.locked && (
         <Alert tone="warning">
           {t(
-            'This report is published. Its assessment record is locked.',
-            'यो प्रतिवेदन प्रकाशित भइसकेको छ। यसको मूल्याङ्कन अभिलेख बन्द छ।',
+            'This result is published, so these marks are locked. To change them, the school unpublishes the exam in Manage Exams, edits, and publishes again.',
+            'यो नतिजा प्रकाशित भइसकेकाले यी अङ्क लक छन्। परिवर्तन गर्न विद्यालयले परीक्षा व्यवस्थापनमा परीक्षा अप्रकाशित गरी सच्याएर फेरि प्रकाशित गर्छ।',
           )}
         </Alert>
       )}

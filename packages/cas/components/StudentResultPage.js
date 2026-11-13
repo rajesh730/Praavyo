@@ -35,8 +35,8 @@ const FILTERS = [
  * Publish lives only at the top and acts on the ticked students, or on
  * everyone in view when none are ticked. Publishing sends each card to the
  * student and every guardian linked to them. There is no unpublish here:
- * results are taken down a whole exam at a time on Published Results, which
- * deletes the cards. Each card offers only what concerns that one sheet: its
+ * results are taken down a whole exam at a time in Manage Exams, which
+ * deletes the cards and unlocks the marks. Each card offers only what concerns that one sheet: its
  * calculation, print and download.
  *
  * Every academic year stays here. Choosing an earlier year shows that year's
@@ -77,7 +77,8 @@ export default function StudentResultPage() {
   const assignments = examsQuery.data?.assignments || [];
   const curriculumQuery = useCasQuery(grade ? `/api/cas/curriculum?grade=${encodeURIComponent(grade)}` : null);
   const subjects = curriculumQuery.data || [];
-  const selectedExam = exams.find((item) => item.id === examId) || exams[0];
+  // Opens on the exam the school marked current in Manage Exams.
+  const selectedExam = exams.find((item) => item.id === examId) || exams.find((item) => item.isCurrent) || exams[0];
   const currentExamThemeAssignmentIds = assignments
     .filter((assignment) => assignment.exam === selectedExam?.id)
     .map((assignment) => assignment.id);
@@ -727,8 +728,8 @@ function PublishConfirmDialog({ t, students, grade, section, examName, formatLab
         </h2>
         <p className="mt-1 text-sm text-muted">
           {t(
-            'Each report card is sent to the student and every linked parent straight away. To take results down, unpublish the whole exam on Published Results.',
-            'हरेक नतिजा पत्र तुरुन्तै विद्यार्थी र अभिभावकलाई पठाइन्छ। नतिजा हटाउन Published Results मा पूरै परीक्षा अप्रकाशित गर्नुहोस्।',
+            'Each report card is sent to the student and every linked parent straight away, and its marks lock. To change them later, unpublish the whole exam in Manage Exams.',
+            'हरेक नतिजा पत्र तुरुन्तै विद्यार्थी र अभिभावकलाई पठाइन्छ र अङ्क लक हुन्छन्। पछि परिवर्तन गर्न परीक्षा व्यवस्थापनमा पूरै परीक्षा अप्रकाशित गर्नुहोस्।',
           )}
         </p>
 

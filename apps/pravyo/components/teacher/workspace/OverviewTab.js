@@ -12,6 +12,8 @@ export default function OverviewTab({ workspace }) {
   const router = useRouter();
   const grades = gradeSummaries(workspace);
   const classGrades = grades.filter((entry) => entry.classTeacher).map((entry) => entry.grade);
+  // A fully published exam is locked, so it is not waiting for marks.
+  const openForEntry = workspace.examAccess.filter((row) => row.publishStatus !== 'PUBLISHED');
 
   return (
     <div className="space-y-4">
@@ -33,11 +35,15 @@ export default function OverviewTab({ workspace }) {
       <div className="grid gap-4 lg:grid-cols-2">
         <section className="card overflow-hidden">
           <Heading title="Open for mark entry" href="/teacher/dashboard?tab=assessment" />
-          {workspace.examAccess.length === 0 ? (
-            <p className="px-4 pb-4 text-sm text-muted">Nothing to enter right now. Exams appear here when your school opens them for you.</p>
+          {openForEntry.length === 0 ? (
+            <p className="px-4 pb-4 text-sm text-muted">
+              {workspace.examAccess.length
+                ? 'Nothing to enter right now. Your exams are published, so their marks are locked.'
+                : 'Nothing to enter right now. Exams appear here when your school opens them for you.'}
+            </p>
           ) : (
             <ul className="divide-y divide-line border-t border-line">
-              {workspace.examAccess.slice(0, 4).map((row) => (
+              {openForEntry.slice(0, 4).map((row) => (
                 <li key={`${row.examId}-${row.grade}-${row.subjectId}`} className="flex items-center gap-3 px-4 py-2.5">
                   <span className="min-w-0 flex-1">
                     <span className="block truncate text-sm font-medium text-ink">{row.subject} · {row.grade}</span>

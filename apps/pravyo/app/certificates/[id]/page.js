@@ -116,6 +116,9 @@ export default async function CertificatePage({ params, searchParams }) {
   ]);
   const isPreviewMode = resolvedSearchParams?.preview === "1";
   const isBulkMode = resolvedSearchParams?.bulk === "1";
+  // Opened in the dashboard's certificate viewer: the viewer has its own close
+  // button, so the page drops its "Back to platform" link.
+  const isEmbedded = resolvedSearchParams?.embed === "1";
   const canPreviewCertificate = ["SUPER_ADMIN", "SCHOOL_ADMIN", "TEACHER"].includes(
     session?.user?.role
   );
@@ -167,13 +170,16 @@ export default async function CertificatePage({ params, searchParams }) {
       <div className="mx-auto w-full max-w-[794px] print:max-w-none">
         {/* screen-only action bar */}
         {!isBulkMode && (
-        <div className="mb-6 flex flex-col gap-4 print:hidden sm:flex-row sm:items-center sm:justify-between">
-          <Link
-            href="/"
-            className="text-sm font-semibold text-ink transition-colors hover:text-ink"
-          >
-            ← Back to platform
-          </Link>
+        <div className={`mb-6 flex flex-col gap-4 print:hidden sm:flex-row sm:items-center ${isEmbedded ? "sm:justify-end" : "sm:justify-between"}`}>
+          {!isEmbedded && (
+            // `/` sends a signed-in visitor to their own dashboard (proxy.js).
+            <Link
+              href="/"
+              className="text-sm font-semibold text-ink transition-colors hover:text-ink"
+            >
+              ← Back to platform
+            </Link>
+          )}
           <div className="flex flex-wrap items-center gap-2">
             {isPreviewMode && !certificateActive && (
               <span className="badge badge-warning text-xs">

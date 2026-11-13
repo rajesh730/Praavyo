@@ -33,7 +33,7 @@ const TABS = {
   assessment: {
     icon: ClipboardCheck,
     title: () => "Assessment",
-    description: "Exams your school has opened for you. Choose one to enter marks.",
+    description: "Enter marks for the exams and subjects your school assigned to you.",
     Component: AssessmentTab,
   },
   results: {

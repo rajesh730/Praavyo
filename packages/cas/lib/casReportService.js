@@ -16,6 +16,8 @@ import { assert, requireSchoolAdmin } from './casAccess.js';
 import {
   reportInput, publishInput, gradePublishInput, gradeResultsQuery, reportCardsQuery,
   examUnpublishInput,
+  examPublishingQuery,
+  examPublishingAction,
   WHOLE_YEAR_EXAM,
 } from './casValidation.js';
 import { subjectResult, consolidate, getAcceptedLevel } from '@pravyo/core/casResults';
@@ -1011,6 +1013,117 @@ export async function unpublishExamResults(actor, input) {
   await CasReport.deleteMany({ _id: { $in: ids }, school: actor.school });
   await UserNotification.deleteMany({ entityId: { $in: ids.map(String) } });
   return { unpublished: ids.length };
+}
+
+/**
+ * Manage Exams publishing.
+ *
+ * Publishing from Manage Exams uses exactly the scope Student Result opens
+ * with — one exam, all of that exam's themes for the grade, the standard card
+ * — and runs through publishGradeResults, so the stale-result check, the lock
+ * and the guardian notification all still apply and both screens produce the
+ * same card. Unpublishing is the existing whole-exam delete.
+ */
+async function examPublishScope(actor, year, grade, examId, { activeOnly = true } = {}) {
+  const exam = await CasExam.findOne({
+    _id: examId, school: actor.school, academicYear: year.id, mergedInto: { $exists: false },
+    ...(activeOnly ? { status: 'ACTIVE' } : {}),
+  }).lean();
+  assert(exam, 'Exam unavailable for this academic year', 404);
+  const themeAssignmentIds = (await CasThemeExam.find({
+    school: actor.school, academicYear: year.id, grade, exam: exam._id,
+  }).select('_id').lean()).map((row) => String(row._id));
+  return {
+    exam,
+    scope: {
+      academicYear: String(year.id),
+      grade,
+      format: 'CLASSIC',
+      examTerm: DEFAULT_CAS_EXAM_TERM,
+      examId: String(exam._id),
+      resultMode: 'EXAM',
+      includePrevious: false,
+      ...(themeAssignmentIds.length ? { themeAssignmentIds } : {}),
+    },
+  };
+}
+
+async function examPublishSummary(actor, year, grade, examId) {
+  const { exam, scope } = await examPublishScope(actor, year, grade, examId);
+  if (!scope.themeAssignmentIds) {
+    return { exam: String(exam._id), name: exam.name, hasThemes: false, total: 0, published: 0, ready: [], incomplete: 0, notAssessed: 0, scope };
+  }
+  const cards = await loadGradeReportCards(actor, scope);
+  const ready = cards.students.filter((student) => student.status === 'PREVIEW');
+  return {
+    exam: String(exam._id),
+    name: exam.name,
+    hasThemes: true,
+    issueDate: exam.issueDate || '',
+    total: cards.students.length,
+    published: cards.students.filter((student) => student.status === 'PUBLISHED').length,
+    ready: ready.map((student) => ({ id: student.id, name: student.name })),
+    incomplete: ready.filter((student) => !student.fullyAssessed).length,
+    notAssessed: cards.students.filter((student) => student.status === 'NOT_ASSESSED').length,
+    scope,
+  };
+}
+
+/** Each exam's publication status for one grade, or one exam's summary. */
+export async function loadExamPublishing(actor, input) {
+  requireSchoolAdmin(actor);
+  const data = examPublishingQuery.parse(input);
+  await connectDB();
+  const year = await loadAcademicYear(actor, data.academicYear);
+  if (data.exam) {
+    const { scope, ...summary } = await examPublishSummary(actor, year, data.grade, data.exam);
+    return summary;
+  }
+  const [roster, published] = await Promise.all([
+    loadStudents(actor, { grade: data.grade, yearStart: year.yearStart }),
+    CasReport.find({
+      school: actor.school, academicYear: year.id, grade: data.grade,
+      status: 'PUBLISHED', exam: { $ne: null },
+    }).select('exam student').lean(),
+  ]);
+  const studentsByExam = new Map();
+  for (const report of published) {
+    const key = String(report.exam);
+    if (!studentsByExam.has(key)) studentsByExam.set(key, new Set());
+    studentsByExam.get(key).add(String(report.student));
+  }
+  return {
+    students: roster.length,
+    exams: [...studentsByExam].map(([exam, students]) => ({ exam, published: students.size })),
+  };
+}
+
+/** Publish or unpublish one exam for the whole grade. */
+export async function changeExamPublishing(actor, input) {
+  requireSchoolAdmin(actor);
+  const data = examPublishingAction.parse(input);
+  if (data.action === 'unpublish') {
+    return unpublishExamResults(actor, { academicYear: data.academicYear, grade: data.grade, exam: data.exam });
+  }
+  assert(usesResultSheet(data.grade), RESULT_SHEET_UNAVAILABLE, 409);
+  await connectDB();
+  const year = await loadAcademicYear(actor, data.academicYear);
+  const summary = await examPublishSummary(actor, year, data.grade, data.exam);
+  assert(summary.hasThemes, `Add themes to ${summary.name} for ${data.grade} before publishing.`, 409);
+  assert(summary.ready.length, summary.published
+    ? 'Every assessed student in this grade is already published.'
+    : 'No student in this grade has been assessed in this exam yet.', 409);
+
+  const totals = { published: 0, failed: [], skipped: [] };
+  // publishGradeResults takes at most 300 students per call.
+  for (let start = 0; start < summary.ready.length; start += 300) {
+    const students = summary.ready.slice(start, start + 300).map((student) => student.id);
+    const outcome = await publishGradeResults(actor, { ...summary.scope, students });
+    totals.published += outcome.published.length;
+    totals.failed.push(...outcome.failed);
+    totals.skipped.push(...(outcome.skipped || []));
+  }
+  return totals;
 }
 
 function revisionFilter(report) {

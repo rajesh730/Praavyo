@@ -18,6 +18,7 @@ import {
 } from "@/lib/eventWorkflow";
 import EventFilterBar from "@/components/events/EventFilterBar";
 import EventListCard from "@/components/events/EventListCard";
+import { useDashboardLink } from "@/components/dashboard/DashboardLinkProvider";
 import {
   isCompletedEvent,
   isLiveEvent,
@@ -110,6 +111,7 @@ export default function StudentEventsManager() {
   const [showFilters, setShowFilters] = useRememberedState("student-events:show-filters", true);
   const [feedback, setFeedback] = useState(null);
   const [certificateLoadingId, setCertificateLoadingId] = useState("");
+  const openLink = useDashboardLink();
 
   const loadEvents = useCallback(async ({ silent = false } = {}) => {
     try {
@@ -211,7 +213,8 @@ export default function StudentEventsManager() {
         );
       }
 
-      window.open(certificate.certificateUrl, "_blank", "noopener,noreferrer");
+      // Opens in the dashboard's certificate viewer, not a public tab.
+      openLink(certificate.certificateUrl);
     } catch (error) {
       setFeedback({
         type: "warning",

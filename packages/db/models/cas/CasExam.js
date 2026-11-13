@@ -11,6 +11,9 @@ const casExamSchema = new mongoose.Schema({
   reportTitle: { type: String, trim: true, maxlength: 120, default: '' },
   issueDate: { type: String, trim: true, maxlength: 10, default: '' },
   status: { type: String, enum: ['ACTIVE', 'ARCHIVED'], default: 'ACTIVE' },
+  // The exam running now or coming next, chosen in Manage Exams. At most one
+  // per school and academic year; every exam picker opens on it.
+  isCurrent: { type: Boolean, default: false },
   isAlias: { type: Boolean, default: false },
   mergedInto: { type: mongoose.Schema.Types.ObjectId, ref: 'CasExam' },
   createdBy: refId('User'),

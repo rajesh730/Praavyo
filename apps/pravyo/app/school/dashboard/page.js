@@ -12,7 +12,6 @@ import SchoolNoticeBoard from "@/components/school/SchoolNoticeBoard";
 import AlertBanner from "@/components/ui/AlertBanner";
 import LoadingState from "@/components/ui/LoadingState";
 import PageHeader from "@/components/ui/PageHeader";
-import AuthenticatedPublicLinkGuard from "@/components/AuthenticatedPublicLinkGuard";
 import PlatformEventsKindSwitch from "@/components/trainings/PlatformEventsKindSwitch";
 
 const StudentManager = dynamic(
@@ -233,7 +232,6 @@ function SchoolDashboardContent() {
 
   return (
     <div className="min-h-dvh">
-      <AuthenticatedPublicLinkGuard />
       {isNavOpen && (
         <button
           type="button"

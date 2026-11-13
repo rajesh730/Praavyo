@@ -380,6 +380,116 @@ describe('student book persistence on an isolated MongoDB replica set', {
     assert.equal((await service.loadStudentSheet(f.actor, f.scope)).rows[0].remarks, 'Continue after first terminal');
   });
 
+  it('locks a student’s marks for an exam once that exam’s card is published, for teachers and the school alike', async () => {
+    const f = await fixture();
+    const teacher = { ...f.actor, id: String(id()), role: 'TEACHER' };
+    await TeacherAssignment.create({
+      school: f.actor.school, academicYear: f.year._id, exam: f.exam._id,
+      grade: 'Grade 3', subject: f.subject._id, teacher: teacher.id, assignedBy: f.actor.id,
+    });
+    const first = await service.saveSheet(f.actor, f.payload());
+    await Report.create({
+      school: f.actor.school, academicYear: f.year._id, student: f.students[0], grade: 'Grade 3',
+      exam: f.exam._id, status: 'PUBLISHED', snapshot: {}, publishedAt: new Date(),
+    });
+
+    const sheet = await service.loadStudentSheet(teacher, f.scope);
+    assert.equal(sheet.locked, true);
+    const rows = rowsFrom(first.sheet);
+    rows[0].remarks = 'Changed after publishing';
+    for (const actor of [teacher, f.actor]) {
+      await assert.rejects(service.saveSheet(actor, { ...f.scope, rows }), { status: 409, message: /published/ });
+    }
+    const stored = await Assessment.findOne({ student: f.students[0], outcome: f.outcomes[0]._id }).lean();
+    assert.equal(stored.sheetRemarks, '', 'a refused save writes nothing');
+
+    // Another student, and the same student in another exam, stay open.
+    const other = { ...f.scope, student: String(f.students[1]) };
+    assert.equal((await service.loadStudentSheet(f.actor, other)).locked, false);
+    await service.saveSheet(f.actor, f.payload({ student: String(f.students[1]) }));
+    const secondExam = await Exam.create({ school: f.actor.school, academicYear: f.year._id, name: 'Second Terminal Examination' });
+    await ThemeExam.create({
+      school: f.actor.school, academicYear: f.year._id, exam: secondExam._id, grade: 'Grade 3',
+      subject: f.subject._id, themeKey: f.scope.themeKey,
+    });
+    const nextExam = { ...f.scope, exam: String(secondExam._id) };
+    assert.equal((await service.loadStudentSheet(f.actor, nextExam)).locked, false);
+    await service.saveSheet(f.actor, f.payload({ exam: String(secondExam._id) }));
+
+    // Unpublishing the exam for the grade unlocks it again.
+    const reports = await import('../lib/casReportService.js');
+    await reports.unpublishExamResults(f.actor, { academicYear: f.scope.academicYear, grade: 'Grade 3', exam: f.scope.exam });
+    assert.equal((await service.loadStudentSheet(teacher, f.scope)).locked, false);
+    await service.saveSheet(teacher, { ...f.scope, rows });
+  });
+
+  it('publishes and unpublishes a whole exam for a grade from Manage Exams', async () => {
+    const f = await fixture();
+    await mongoose.connection.db.collection('users').insertOne({
+      _id: new mongoose.Types.ObjectId(f.actor.school), role: 'SCHOOL_ADMIN', schoolName: 'Test school',
+    });
+    const reports = await import('../lib/casReportService.js');
+    const scope = { academicYear: f.scope.academicYear, grade: 'Grade 3', exam: f.scope.exam };
+
+    await assert.rejects(reports.changeExamPublishing(f.actor, { ...scope, action: 'publish' }), /No student in this grade has been assessed/);
+    await service.saveSheet(f.actor, f.payload());
+
+    const summary = await reports.loadExamPublishing(f.actor, scope);
+    assert.equal(summary.total, 2);
+    assert.deepEqual(summary.ready.map((student) => student.id), [String(f.students[0])]);
+    assert.equal(summary.notAssessed, 1);
+
+    const published = await reports.changeExamPublishing(f.actor, { ...scope, action: 'publish' });
+    assert.equal(published.published, 1);
+    const status = await reports.loadExamPublishing(f.actor, { academicYear: scope.academicYear, grade: 'Grade 3' });
+    assert.equal(status.students, 2);
+    assert.deepEqual(status.exams, [{ exam: scope.exam, published: 1 }]);
+    assert.equal((await service.loadStudentSheet(f.actor, f.scope)).locked, true);
+    await assert.rejects(reports.changeExamPublishing(f.actor, { ...scope, action: 'publish' }), /already published/);
+
+    // Its themes are fixed while it is published.
+    const exams = await import('../lib/casExamService.js');
+    const subject2 = await Subject.create({ school: f.actor.school, grade: 'Grade 3', code: 'ENG', titleEn: 'English' });
+    await Outcome.create({
+      school: f.actor.school, grade: 'Grade 3', subject: subject2._id, subjectCode: 'ENG', code: 'E1',
+      themeKey: 'eng-1', themeEn: 'Greetings', titleEn: 'Greets people',
+    });
+    await assert.rejects(exams.assignThemeExams(f.actor, {
+      academicYear: scope.academicYear, grade: 'Grade 3', subject: String(subject2._id), themeKey: 'eng-1', examIds: [scope.exam],
+    }), { status: 409, message: /Unpublish/ });
+
+    const unpublished = await reports.changeExamPublishing(f.actor, { ...scope, action: 'unpublish' });
+    assert.equal(unpublished.unpublished, 1);
+    assert.equal(await Report.countDocuments({ school: f.actor.school }), 0, 'unpublishing deletes the cards');
+    assert.equal((await service.loadStudentSheet(f.actor, f.scope)).locked, false);
+  });
+
+  it('keeps one current exam per academic year, never an archived one', async () => {
+    const f = await fixture();
+    const exams = await import('../lib/casExamService.js');
+    const second = await Exam.create({ school: f.actor.school, academicYear: f.year._id, name: 'Second Terminal Examination' });
+    const list = async () => (await exams.listExams(f.actor, { academicYear: f.scope.academicYear, includeArchived: true })).exams;
+    const current = async () => (await list()).filter((exam) => exam.isCurrent).map((exam) => exam.name);
+
+    assert.deepEqual(await current(), []);
+    await exams.setCurrentExam(f.actor, { exam: f.scope.exam });
+    assert.deepEqual(await current(), ['First Terminal Examination']);
+    await exams.setCurrentExam(f.actor, { exam: String(second._id), current: true });
+    assert.deepEqual(await current(), ['Second Terminal Examination'], 'marking another exam moves the mark');
+    await exams.setCurrentExam(f.actor, { exam: String(second._id), current: false });
+    assert.deepEqual(await current(), []);
+
+    const teacher = { ...f.actor, id: String(id()), role: 'TEACHER' };
+    await assert.rejects(exams.setCurrentExam(teacher, { exam: f.scope.exam }), { status: 403 });
+
+    await exams.setCurrentExam(f.actor, { exam: String(second._id) });
+    await exams.deleteExam(f.actor, { exam: String(second._id) });
+    assert.deepEqual(await current(), [], 'an archived or deleted exam is no longer current');
+    await service.saveSheet(f.actor, f.payload());
+    await exams.deleteExam(f.actor, { exam: f.scope.exam });
+    await assert.rejects(exams.setCurrentExam(f.actor, { exam: f.scope.exam }), { status: 409 });
+  });
+
   it('permits an assigned teacher to write the shared sheet and denies an unassigned teacher', async () => {
     const f = await fixture();
     const teacher = { ...f.actor, id: String(id()), role: 'TEACHER' };

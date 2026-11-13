@@ -7,6 +7,7 @@ import PravyoLogo from "@/components/brand/PravyoLogo";
 import PublicRegisterLink from "@/components/public/PublicRegisterLink";
 import MobileTabBar from "@/components/public/MobileTabBar";
 import InstallAppButton from "@pravyo/ui/installApp";
+import useIsFramed from "@/lib/client/useIsFramed";
 
 export default function PublicSiteNav({
   active = "home",
@@ -15,6 +16,9 @@ export default function PublicSiteNav({
 }) {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  // Shown inside a signed-in dashboard's viewer (DashboardLinkProvider): the
+  // site navigation would lead out of it, so the page shows content only.
+  const framed = useIsFramed();
 
   // Add shadow on scroll
   useEffect(() => {
@@ -41,6 +45,8 @@ export default function PublicSiteNav({
       document.body.style.overflow = previousOverflow;
     };
   }, [isOpen]);
+
+  if (framed) return null;
 
   return (
     <>

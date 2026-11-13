@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useDashboardLink } from "@/components/dashboard/DashboardLinkProvider";
 import { Bell as FaBell, CheckCheck as FaCheckDouble, Bell as FaRegBell, BellOff as FaRegBellSlash } from "lucide-react";
 import useNotificationInbox from "@/lib/client/useNotificationInbox";
 import {
@@ -122,6 +123,9 @@ export default function NotificationBell({
   viewAllLabel = "See all notifications",
 }) {
   const router = useRouter();
+  // Saved notification links can point at the public site (a certificate,
+  // an event page); this keeps them inside the dashboard.
+  const openLink = useDashboardLink();
   const panelRef = useRef(null);
   const [isOpen, setIsOpen] = useState(false);
   // Items that were unread the moment the panel opened — kept visually
@@ -187,7 +191,7 @@ export default function NotificationBell({
     event.preventDefault();
     setIsOpen(false);
     if (!notification.isRead) void markNotificationsRead([notification]);
-    if (notification.href) router.push(notification.href);
+    if (notification.href) openLink(notification.href);
   };
 
   const handleViewAll = (event) => {

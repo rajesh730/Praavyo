@@ -70,9 +70,14 @@ function toNotification(item, options = {}, session) {
           scope: item.event.eventScope || null,
         }
       : null,
+    // Inside the dashboard, never the public event page: the school's own
+    // event opens its notices; a platform event opens the Platform Events list
+    // (it may not be joined yet).
     href:
       options.noticeType === "EVENT" && item.event?._id
-        ? `/events/${item.event._id}`
+        ? item.event.eventScope === "SCHOOL"
+          ? `/school/events/${item.event._id}/manage?tab=notices`
+          : "/school/dashboard?tab=platform-events"
         : "/school/dashboard?tab=notices",
     isRead: isReadForUser(
       item,

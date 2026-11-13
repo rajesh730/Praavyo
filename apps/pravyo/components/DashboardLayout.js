@@ -6,7 +6,6 @@ import { useEffect, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { Menu as FaBars, X as FaTimes } from 'lucide-react';
 import PravyoLogo from '@/components/brand/PravyoLogo';
-import AuthenticatedPublicLinkGuard from '@/components/AuthenticatedPublicLinkGuard';
 import IemisReminder from '@/components/school/IemisReminder';
 import AppTabBar from '@/components/navigation/AppTabBar';
 import InstallAppButton from '@pravyo/ui/installApp';
@@ -70,7 +69,6 @@ export default function DashboardLayout({ children }) {
 
   return (
     <div className="min-h-dvh">
-      <AuthenticatedPublicLinkGuard />
       {/* Schools registered before IEMIS became compulsory are asked for it. */}
       {session?.user?.role === 'SCHOOL_ADMIN' && <IemisReminder />}
 

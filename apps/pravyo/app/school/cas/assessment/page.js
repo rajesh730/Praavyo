@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRememberedState } from '@pravyo/ui/rememberedState';
-import { BookOpen as FaBookOpen } from 'lucide-react';
+import { BookOpen as FaBookOpen, ChevronLeft as FaChevronLeft, ChevronRight as FaChevronRight } from 'lucide-react';
 import { useCas } from '@pravyo/cas/components/CasLayout';
 import { useCasQuery } from '@pravyo/cas/lib/client/useCas';
 import { PageHeader, Card, Field, Select, Alert, Spinner, EmptyState } from '@pravyo/cas/components/ui/Kit';
@@ -36,7 +36,8 @@ export default function AssessmentPage() {
       : null,
   );
   const exams = examQuery.data?.exams || [];
-  const selectedExam = exams.find((item) => item.id === examId) || exams[0];
+  // Opens on the exam the school marked current in Manage Exams.
+  const selectedExam = exams.find((item) => item.id === examId) || exams.find((item) => item.isCurrent) || exams[0];
 
   const curriculum = useCasQuery(
     grade && academicYear?.id
@@ -51,7 +52,11 @@ export default function AssessmentPage() {
       : null,
   );
   const roster = academicStudents.data || [];
-  const selectedStudent = roster.find((student) => student.id === studentId);
+  // Opens on the first student, so arriving from the dashboard (grade, exam
+  // and subject already chosen) shows marks straight away; Previous / Next
+  // then walk the class.
+  const selectedStudent = roster.find((student) => student.id === studentId) || roster[0];
+  const studentIndex = selectedStudent ? roster.indexOf(selectedStudent) : -1;
   const themeQuery = useCasQuery(
     selectedSubject && selectedExam
       ? `/api/cas/themes?${new URLSearchParams({ grade, subject: subjectId, exam: selectedExam.id, academicYear: academicYear.id })}`
@@ -67,7 +72,7 @@ export default function AssessmentPage() {
           academicYear: academicYear.id,
           grade,
           subject: subjectId,
-          student: studentId,
+          student: selectedStudent.id,
           theme: themeKey,
           exam: selectedExam.id,
         })}`
@@ -174,7 +179,7 @@ export default function AssessmentPage() {
               </Field>
               <Field label={t('Student', 'Student')}>
                 <Select
-                  value={selectedStudent ? studentId : ''}
+                  value={selectedStudent?.id || ''}
                   disabled={!roster.length || academicStudents.loading}
                   onChange={(event) => setStudent(event.target.value)}
                 >
@@ -188,6 +193,31 @@ export default function AssessmentPage() {
                 </Select>
               </Field>
             </fieldset>
+            {roster.length > 1 && selectedStudent && (
+              <div className="mt-3 flex items-center justify-between gap-2 border-t border-line pt-3">
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm inline-flex items-center gap-1"
+                  disabled={saving || studentIndex <= 0}
+                  onClick={() => setStudent(roster[studentIndex - 1].id)}
+                >
+                  <FaChevronLeft aria-hidden size={14} />{t('Previous', 'अघिल्लो')}
+                </button>
+                <p className="min-w-0 truncate text-center text-sm text-muted" aria-live="polite">
+                  <span className="font-semibold text-ink">{selectedStudent.name}</span>
+                  {' · '}
+                  {t(`${studentIndex + 1} of ${roster.length}`, `${roster.length} मध्ये ${studentIndex + 1}`)}
+                </p>
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm inline-flex items-center gap-1"
+                  disabled={saving || studentIndex >= roster.length - 1}
+                  onClick={() => setStudent(roster[studentIndex + 1].id)}
+                >
+                  {t('Next', 'अर्को')}<FaChevronRight aria-hidden size={14} />
+                </button>
+              </div>
+            )}
           </Card>
 
           {error && <Alert tone="danger">{error}</Alert>}

@@ -138,7 +138,7 @@ export default function InternalMarkEntryPage() {
       <Alert tone="success">{success}</Alert>
       {published && (
         <Alert tone="info">
-          {t('These results are published, so marks are locked. Unpublish them on the Results screen to make changes.', 'नतिजा प्रकाशित भएकाले अङ्क लक छन्।')}
+          {t('These results are published, so marks are locked. To change them, the school unpublishes the exam in Manage Exams, edits, and publishes again.', 'नतिजा प्रकाशित भएकाले अङ्क लक छन्। परिवर्तन गर्न विद्यालयले परीक्षा व्यवस्थापनमा परीक्षा अप्रकाशित गर्छ।')}
         </Alert>
       )}
 

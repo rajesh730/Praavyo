@@ -53,10 +53,42 @@ export const GET = defineRoute({ roles: ['TEACHER'] }, async ({ session }) => {
     }).select('name grade section rollNumber').sort({ grade: 1, rollNumber: 1, name: 1 }).lean() : [],
     grades.length ? CasReport.find({ school, status: 'PUBLISHED', grade: { $in: grades } })
       .select('grade exam snapshot publishedAt').sort({ publishedAt: -1 }).limit(500).lean() : [],
-    grants.length ? CasExam.find({ _id: { $in: [...new Set(grants.map((row) => String(row.exam)))] }, school }).select('name').lean() : [],
+    grants.length ? CasExam.find({ _id: { $in: [...new Set(grants.map((row) => String(row.exam)))] }, school }).select('name isCurrent status').lean() : [],
   ]);
   const subjectById = new Map(subjects.map((subject) => [String(subject._id), subject]));
   const examById = new Map(exams.map((exam) => [String(exam._id), exam.name]));
+  // The exam the school marked as current (live or upcoming) in Manage Exams.
+  const currentExamIds = new Set(exams.filter((exam) => exam.isCurrent && exam.status === 'ACTIVE').map((exam) => String(exam._id)));
+
+  // How far each (exam, grade) the teacher holds is published. A published
+  // card locks that student's marks for the exam until the school unpublishes
+  // it in Manage Exams.
+  const grantGrades = [...new Set(grants.map((row) => row.grade))];
+  const [publishedRows, gradeTotals] = grants.length ? await Promise.all([
+    CasReport.find({
+      school, academicYear: year._id, status: 'PUBLISHED',
+      exam: { $in: exams.map((exam) => exam._id) }, grade: { $in: grantGrades },
+    }).select('exam grade student').lean(),
+    Promise.all(grantGrades.map(async (grade) => [grade, await Student.countDocuments({
+      school, status: 'ACTIVE', isDeleted: { $ne: true }, grade: { $in: getEquivalentGradeValues(grade) },
+    })])),
+  ]) : [[], []];
+  const publishedStudents = new Map();
+  for (const row of publishedRows) {
+    const key = `${row.exam}|${row.grade}`;
+    if (!publishedStudents.has(key)) publishedStudents.set(key, new Set());
+    publishedStudents.get(key).add(String(row.student));
+  }
+  const totalByGrade = new Map(gradeTotals);
+  const publication = (row) => {
+    const published = publishedStudents.get(`${row.exam}|${row.grade}`)?.size || 0;
+    const total = totalByGrade.get(row.grade) || 0;
+    return {
+      publishedStudents: published,
+      totalStudents: total,
+      publishStatus: !published ? 'OPEN' : published >= total ? 'PUBLISHED' : 'PARTLY_PUBLISHED',
+    };
+  };
   const subjectAssignments = assignments.filter((row) => row.assignmentType === 'SUBJECT_TEACHER' && subjectById.has(String(row.subject)));
   const classGrades = new Set(assignments.filter((row) => row.assignmentType === 'CLASS_TEACHER').map((row) => row.grade));
 
@@ -106,8 +138,10 @@ export const GET = defineRoute({ roles: ['TEACHER'] }, async ({ session }) => {
         examId: String(row.exam),
         subjectId: String(row.subject),
         exam: examById.get(String(row.exam)) || 'Exam',
+        currentExam: currentExamIds.has(String(row.exam)),
         grade: row.grade,
         subject: subjectTitle(subjectById.get(String(row.subject))),
+        ...publication(row),
       })),
     // `grade` is reported as the assigned grade label ("Grade 3"), whichever
     // equivalent spelling the student record uses ("3", "grade 3").

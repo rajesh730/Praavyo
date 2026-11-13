@@ -26,8 +26,33 @@ function serializeExam(exam) {
     reportTitle: exam.reportTitle || exam.name,
     issueDate: exam.issueDate || '',
     status: exam.status,
+    isCurrent: Boolean(exam.isCurrent) && exam.status === 'ACTIVE',
     academicYear: String(exam.academicYear),
   };
+}
+
+/**
+ * Mark one exam as the current (live or upcoming) exam for its academic year,
+ * or clear the mark. Only one exam per year is current, so screens can open
+ * on it instead of making everyone switch exams by hand.
+ */
+export async function setCurrentExam(actor, input) {
+  requireSchoolAdmin(actor);
+  await connectDB();
+  const id = String(input?.exam || '');
+  assert(/^[a-f\d]{24}$/i.test(id), 'Choose a valid exam');
+  const exam = await CasExam.findOne({ _id: id, school: actor.school, mergedInto: { $exists: false } }).lean();
+  assert(exam, 'Exam unavailable', 404);
+  const current = input?.current !== false;
+  assert(!current || exam.status === 'ACTIVE', 'Restore this exam before making it the current exam', 409);
+  if (current) {
+    await CasExam.updateMany(
+      { school: actor.school, academicYear: exam.academicYear, _id: { $ne: exam._id }, isCurrent: true },
+      { $set: { isCurrent: false } },
+    );
+  }
+  await CasExam.updateOne({ _id: exam._id, school: actor.school }, { $set: { isCurrent: current } });
+  return { id: String(exam._id), isCurrent: current };
 }
 
 async function examUsage(actor, exam) {
@@ -186,6 +211,12 @@ export async function assignThemeExams(actor, input) {
   const existingIds = new Set(current.map((row) => String(row.exam)));
   const exams = ids.length ? await CasExam.find({ _id: { $in: ids }, school: actor.school, academicYear: year.id, mergedInto: { $exists: false } }).select('_id status').lean() : [];
   assert(exams.length === ids.length && exams.every((exam) => exam.status === 'ACTIVE' || existingIds.has(String(exam._id))), 'Only active exams can be newly assigned', 409);
+  // A published result is fixed: adding a theme would change what a
+  // republished card contains, so the school unpublishes first.
+  const addedExamIds = ids.filter((examId) => !existingIds.has(examId));
+  assert(!addedExamIds.length || !await CasReport.exists({
+    school: actor.school, academicYear: year.id, grade, exam: { $in: addedExamIds }, status: 'PUBLISHED',
+  }), 'This exam’s results are published for this grade. Unpublish them in Manage Exams before changing its themes.', 409);
   const removedExamIds = current.map((row) => String(row.exam)).filter((id) => !ids.includes(id));
   if (removedExamIds.length) {
     const outcomeIds = outcomes.map((row) => row._id);
@@ -231,6 +262,7 @@ export async function deleteExam(actor, input) {
   // report card stays readable. Only an unused exam is removed for good.
   if (assessment || report) {
     exam.status = 'ARCHIVED';
+    exam.isCurrent = false;
     await exam.save();
     return { id: String(exam._id), archived: true };
   }

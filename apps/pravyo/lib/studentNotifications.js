@@ -131,7 +131,8 @@ export async function getStudentNotificationPayload(session, limit = 20) {
               title: eventTitleMap.get(eventId) || notice.title || "Event",
             }
           : null,
-        href: eventId ? `/events/${eventId}` : "/student/notices",
+        // The event inside the student dashboard, not the public event page.
+        href: eventId ? `/student/events/${eventId}` : "/student/notices",
         isRead: isReadForUser(notice, session, "STUDENT", unreadAfter),
       };
     });
@@ -173,7 +174,7 @@ export async function getStudentNotificationPayload(session, limit = 20) {
         id: String(notice.event),
         title: eventTitleMap.get(String(notice.event)) || "Event",
       },
-      href: `/events/${String(notice.event)}`,
+      href: `/student/events/${String(notice.event)}?tab=notices`,
       isRead: isReadForUser(notice, session, "STUDENT", unreadAfter),
     }));
   }
