@@ -5,7 +5,7 @@ import { authOptions } from "@/lib/authOptions";
 import connectDB from "@/lib/db";
 import Achievement from "@/models/Achievement";
 import SchoolShowcaseProfile from "@/models/SchoolShowcaseProfile";
-import { isActiveCertificateRecord } from "@/lib/certificates";
+import { isActiveCertificateRecord, isPublicTrainingCertificate } from "@/lib/certificates";
 import CertificatePrintActions from "@/components/certificates/CertificatePrintActions";
 import CertificateSheet, {
   resolveEventOwnership,
@@ -31,7 +31,7 @@ async function getCertificate(id) {
         "title eventType eventOwnershipType date visibility participationFormat eventScope resultsPublished",
     })
     .populate("program", "title date venue certificatesPublishedAt")
-    .populate("training", "title duration audience")
+    .populate("training", "title duration audience status")
     .lean();
 
   if (!achievement?.school?._id) {
@@ -52,9 +52,11 @@ async function getCertificate(id) {
 
 /* ---------- access control ---------- */
 
-// Program (performance) and training certificates are private: the student
-// (or, for a training, the teacher) it was issued to, the student's own
-// linked guardians, and the school's staff. Never public.
+// Program (performance) certificates are private: the student it was issued
+// to, the student's own linked guardians, and the school's staff. A training
+// certificate is public while its training is on the public site (the public
+// training page links it: isPublicTrainingCertificate); otherwise it falls back
+// to this rule, where the teacher it was issued to also counts.
 async function canViewProgramCertificate({ achievement, session }) {
   const role = session?.user?.role;
   const userId = String(session?.user?.id || "");
@@ -142,10 +144,12 @@ export default async function CertificatePage({ params, searchParams }) {
     notFound();
   }
 
+  // Public training certificates open for everyone, signed in or not.
   if (
-    isProgramCertificate
+    !isPublicTrainingCertificate(achievement) &&
+    (isProgramCertificate
       ? !(await canViewProgramCertificate({ achievement, session }))
-      : !canViewCertificate({ achievement, session })
+      : !canViewCertificate({ achievement, session }))
   ) {
     notFound();
   }

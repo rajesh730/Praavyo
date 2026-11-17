@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 import connectDB from "@/lib/db";
-import { getActiveCertificateFilter } from "@/lib/certificates";
+import { getActiveCertificateFilter, PUBLIC_TRAINING_STATUSES } from "@/lib/certificates";
 import Training from "@/models/Training";
 import TrainingRegistration from "@/models/TrainingRegistration";
 import Achievement from "@/models/Achievement";
@@ -17,7 +17,9 @@ import "@/models/Student";
  * public results. What stays private is each person's attendance: an absent
  * student is never named; only the certified are.
  */
-const VISIBLE = ["PUBLISHED", "CLOSED"];
+// Shared with app/certificates/[id] (isPublicTrainingCertificate): every
+// certificate listed here must open there for anyone.
+const VISIBLE = PUBLIC_TRAINING_STATUSES;
 
 function serializeTraining(training) {
   return {
