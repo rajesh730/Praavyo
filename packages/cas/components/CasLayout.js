@@ -10,6 +10,7 @@ import PravyoLogo from './brand/PravyoLogo.js';
 import CasSidebar from './CasSidebar.js';
 import { CAS_NAV_LINKS, CAS_TO_INTERNAL_LINK, INTERNAL_EXAM_NAV_LINKS } from './navigation/casNavigation.js';
 import { usesResultSheet } from '../lib/casResultSheet.js';
+import { pickBilingual } from '../lib/casBilingual.js';
 import { casFetch, invalidateCasQueryCache, useCasQuery } from '../lib/client/useCas.js';
 import { configureCasRealtime } from '../lib/client/casSync.js';
 import InstallAppButton from '@pravyo/ui/installApp';
@@ -154,8 +155,9 @@ export default function CasLayout({ children, embedded = false, area = 'cas' }) 
       setYearId,
       lang,
       setLang,
-      // Pick the Nepali string when the user is reading Nepali and one exists.
-      t: (en, ne) => (lang === 'ne' && ne ? ne : en),
+      // Prefer the selected language, but never hide curriculum text that has
+      // only been supplied in the other language.
+      t: (en, ne) => pickBilingual(en, ne, lang),
     }),
     [context, school, years, academicYear, setYearId, lang, setLang],
   );

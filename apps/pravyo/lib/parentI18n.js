@@ -28,7 +28,7 @@ const en = {
   "nav.parentNavigation": "Parent navigation",
   "nav.skipContent": "Skip to content",
   "nav.newCount": "{count} new",
-  "home.parentSpace": "Your family, connected",
+  "home.parentSpace": "Connected to your child’s learning",
   "home.overview": "Your child's school life",
   "home.overviewHelp": "Stay close to the moments that matter.",
   "home.schoolLife": "My child",
@@ -79,7 +79,6 @@ const en = {
   "home.registerNow": "Register Now",
   "home.open": "Open",
   "home.read": "Read",
-  "home.listen": "Listen",
   "home.viewEvent": "View Event",
   "home.openConversation": "Open Conversation",
   "home.see": "See",
@@ -252,8 +251,6 @@ const en = {
   "settings.dataSaverHelp": "Load smaller images. Best on slow connections.",
   "settings.notifications": "Notifications",
   "settings.signOut": "Sign out",
-  "settings.listen": "Listen",
-  "settings.stopListening": "Stop",
 
   // --- Linking (§26) ----------------------------------------------------
   "link.title": "Connect to Your Child",
@@ -282,7 +279,7 @@ const ne = {
   "nav.parentNavigation": "अभिभावक नेभिगेसन",
   "nav.skipContent": "मुख्य सामग्रीमा जानुहोस्",
   "nav.newCount": "{count} नयाँ",
-  "home.parentSpace": "परिवार र विद्यालयको साथ",
+  "home.parentSpace": "तपाईंको बच्चाको सिकाइसँग जोडिनुहोस्",
   "home.overview": "तपाईंको बच्चाको विद्यालय जीवन",
   "home.overviewHelp": "बच्चाका महत्त्वपूर्ण पलहरूसँग जोडिनुहोस्।",
   "home.schoolLife": "मेरो बच्चा",
@@ -329,7 +326,6 @@ const ne = {
   "home.registerNow": "अहिले दर्ता गर्नुहोस्",
   "home.open": "खोल्नुहोस्",
   "home.read": "पढ्नुहोस्",
-  "home.listen": "सुन्नुहोस्",
   "home.viewEvent": "कार्यक्रम हेर्नुहोस्",
   "home.openConversation": "कुराकानी खोल्नुहोस्",
   "home.see": "हेर्नुहोस्",
@@ -492,8 +488,6 @@ const ne = {
   "settings.dataSaverHelp": "सानो फोटो लोड गर्छ। ढिलो इन्टरनेटमा राम्रो।",
   "settings.notifications": "सूचनाहरू",
   "settings.signOut": "बाहिर निस्कनुहोस्",
-  "settings.listen": "सुन्नुहोस्",
-  "settings.stopListening": "रोक्नुहोस्",
 
   "link.title": "आफ्नो बच्चासँग जोडिनुहोस्",
   "link.description":

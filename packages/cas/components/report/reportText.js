@@ -1,5 +1,6 @@
 import { GRADE_BANDS } from '@pravyo/core/casGrading';
 import { bsAcademicYearLabel } from '@pravyo/core/nepaliDate';
+import { pickBilingual } from '../../lib/casBilingual.js';
 
 /**
  * Shared strings and the grading scale for both report formats.
@@ -97,7 +98,7 @@ export function stringsFor(lang) {
 
 /** Prefer the Nepali string only when one actually exists for that record. */
 export function picker(lang) {
-  return (en, ne) => (lang === 'ne' && ne ? ne : en);
+  return (en, ne) => pickBilingual(en, ne, lang);
 }
 
 /**

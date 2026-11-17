@@ -4,7 +4,6 @@ import Link from "next/link";
 import { ArrowRight, CircleAlert, Clock3, CircleCheck, Info } from "lucide-react";
 import { getStatus } from "@/lib/parentStatus";
 import { useParentApp } from "./ParentAppContext";
-import ListenButton from "./ListenButton";
 import styles from "./ParentDesign.module.css";
 import Glyph from "@/components/ui/Glyph";
 
@@ -12,7 +11,7 @@ const STATUS_ICONS = { ACTION_REQUIRED: CircleAlert, NEEDS_ATTENTION: Clock3, CO
 
 export default function StatusCard({
   status = "INFO", emoji, icon: ContentIcon, eyebrow, title, body, meta, href, cta,
-  onAction, listenText = "", live = false, children,
+  onAction, live = false, children,
 }) {
   const { t, simpleMode } = useParentApp();
   const descriptor = getStatus(status);
@@ -33,10 +32,9 @@ export default function StatusCard({
         {children}
       </div>
     </div>
-    {(cta || listenText) && <div className={styles.actions}>
+    {cta && <div className={styles.actions}>
       {cta && (href ? <Link href={href} className={actionClass}>{actionContent}</Link> :
         <button type="button" onClick={onAction} className={actionClass}>{actionContent}</button>)}
-      {listenText && <ListenButton text={listenText} fullWidth={simpleMode} />}
     </div>}
   </article>;
 }

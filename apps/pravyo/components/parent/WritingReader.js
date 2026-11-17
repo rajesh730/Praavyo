@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { X as FaTimes } from "lucide-react";
 import { useParentApp, useParentFetch } from "./ParentAppContext";
-import ListenButton from "./ListenButton";
 import { formatParentDate } from "@/lib/parentFormat";
 import { WritingCover, WritingGallery, WritingTags } from "@/components/WritingMedia";
 
@@ -13,10 +12,6 @@ import { WritingCover, WritingGallery, WritingTags } from "@/components/WritingM
  * The full text is fetched only when the parent opens it — the portfolio list
  * carries previews only, so a child with forty articles does not download forty
  * bodies to scroll a list (§22).
- *
- * The Listen button is given the server-prepared `speechText`, which has markup
- * stripped and block tags turned into sentence breaks. Feeding raw HTML to
- * speech synthesis makes it read tag names aloud.
  */
 export default function WritingReader({ writingId, onClose }) {
   const { t, preferences } = useParentApp();
@@ -124,10 +119,6 @@ export default function WritingReader({ writingId, onClose }) {
                 <p className="mt-1 whitespace-pre-wrap">{writing.reviewNote}</p>
               </div>
             ) : null}
-
-            <div className="mt-4">
-              <ListenButton text={writing.speechText} fullWidth />
-            </div>
 
             <WritingCover coverImage={writing.coverImage} images={writing.images} title={writing.title} className="mt-5 aspect-[16/9] max-h-[32rem]" />
             <WritingTags tags={writing.tags} className="mt-4" />

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { ChevronDown, LineChart, TriangleAlert } from "lucide-react";
 import { useParentApp, useParentResource } from "@/components/parent/ParentAppContext";
 import ParentEmptyState from "@/components/parent/ParentEmptyState";
+import { pickBilingual } from "@pravyo/cas/lib/casBilingual";
 
 /**
  * Results | Progress, at the top of the parent's Learning tab. Results are the
@@ -45,7 +46,7 @@ export default function ChildProgress() {
   const { t, selectedChild, selectedChildId } = useParentApp();
   const { loading, error, data, reload } = useParentResource("/api/parent/progress");
   const lang = t.locale === "ne" ? "ne" : "en";
-  const pick = (en, ne) => (lang === "ne" && ne ? ne : en);
+  const pick = (en, ne) => pickBilingual(en, ne, lang);
 
   if (!selectedChildId) return null;
 

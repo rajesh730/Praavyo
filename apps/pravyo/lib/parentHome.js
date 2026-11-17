@@ -335,8 +335,6 @@ export async function buildParentHome({ parent, student, link, simpleMode = fals
       title: writing.title,
       href: `/parent/child?tab=writing&item=${writing._id}`,
       cta: "home.read",
-      // Drives the "Listen" button — the text-to-speech target (§7).
-      listenable: true,
       occurredAt: writing.publishedAt,
     });
   });

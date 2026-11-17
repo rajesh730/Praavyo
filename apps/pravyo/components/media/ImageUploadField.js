@@ -21,6 +21,7 @@ export default function ImageUploadField({
   maxBytes = MAX_BYTES_BY_PURPOSE[purpose],
   allowRemove = true,
   className = "",
+  hint = "The original is not uploaded. A smaller WebP copy is created first.",
 }) {
   const inputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
@@ -107,9 +108,7 @@ export default function ImageUploadField({
         {uploading ? <FaSpinner className="animate-spin" /> : <FaImage />}
         {uploading ? "Compressing and uploading..." : label}
       </button>
-      <p className="mt-1 text-xs text-muted">
-        The original is not uploaded. A smaller WebP copy is created first.
-      </p>
+      {hint ? <p className="mt-1 text-xs text-muted">{hint}</p> : null}
       {error ? <p className="mt-2 text-sm font-semibold text-danger">{error}</p> : null}
     </div>
   );

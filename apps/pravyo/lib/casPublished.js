@@ -5,6 +5,7 @@ import connectDB from '@/lib/db';
 import { requireParentChild } from '@/lib/parentAccess';
 import Student from '@/models/Student';
 import { withBranding } from '@pravyo/cas/lib/casBranding';
+
 // Read the same CAS collection; never copy results into the main application.
 export async function publishedCas(request) {
   const session = await getServerSession(authOptions);

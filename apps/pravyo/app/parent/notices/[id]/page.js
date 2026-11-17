@@ -7,7 +7,6 @@ import {
   useParentApp,
   useParentFetch,
 } from "@/components/parent/ParentAppContext";
-import ListenButton from "@/components/parent/ListenButton";
 import ParentEmptyState from "@/components/parent/ParentEmptyState";
 import { getStatus } from "@/lib/parentStatus";
 import { formatParentDate } from "@/lib/parentFormat";
@@ -98,10 +97,6 @@ export default function ParentNoticeDetailPage() {
   const receipt = notice.receipt || {};
   const calendar = preferences.calendarPreference;
 
-  // Plain text for speech: the body plus the title, so a parent hears what the
-  // notice is called before its contents (§7).
-  const speechText = `${notice.title}. ${stripHtml(notice.content)}`;
-
   return (
     <article className="space-y-4">
       <button
@@ -140,8 +135,6 @@ export default function ParentNoticeDetailPage() {
           </div>
         </div>
       </header>
-
-      <ListenButton text={speechText} fullWidth />
 
       <div className="whitespace-pre-wrap break-words text-base leading-relaxed text-ink">
         {notice.content}
@@ -267,17 +260,9 @@ export default function ParentNoticeDetailPage() {
     </article>
   );
 }
-
 function relationshipLabel(value) {
   return String(value || "Guardian")
     .replaceAll("_", " ")
     .toLowerCase()
     .replace(/\b\w/g, (char) => char.toUpperCase());
-}
-
-function stripHtml(value) {
-  return String(value || "")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/\s+/g, " ")
-    .trim();
 }

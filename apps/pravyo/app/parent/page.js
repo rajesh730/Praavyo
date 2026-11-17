@@ -67,5 +67,5 @@ function HomeCard({ card, t, calendar }) {
     eyebrow={eyebrow[card.kind] ? t(eyebrow[card.kind]) : undefined}
     title={card.titleKey ? `${t(card.titleKey, card.titleParams)} ${card.title}` : card.title}
     body={card.bodyKey ? t(card.bodyKey, card.bodyParams) : card.body} meta={meta} href={card.href} cta={cta}
-    live={Boolean(card.live)} listenText={card.listenable ? card.title : ""} />;
+    live={Boolean(card.live)} />;
 }

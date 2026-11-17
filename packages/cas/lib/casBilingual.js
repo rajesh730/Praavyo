@@ -1,6 +1,17 @@
 const DEVANAGARI = /[ऀ-ॿ]/;
 
 /**
+ * Choose the requested display language, falling back to the other language
+ * when the curriculum contains only one translation. A blank label is never a
+ * useful translation: Nepal's curriculum legitimately has Nepali-only rows.
+ */
+export function pickBilingual(en = '', ne = '', language = 'en') {
+  const english = String(en || '').trim();
+  const nepali = String(ne || '').trim();
+  return language === 'ne' ? nepali || english : english || nepali;
+}
+
+/**
  * An outcome's assessment area and tool, as an English/Nepali pair.
  *
  * These were once a single field holding whichever language the book printed

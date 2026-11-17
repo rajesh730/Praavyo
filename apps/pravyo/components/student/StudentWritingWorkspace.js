@@ -727,6 +727,8 @@ function WritingEditor({
   const [showTags, setShowTags] = useState(Boolean(form.tags?.length));
   const tagsInputId = useId();
   const forMagazine = form.submissionSource === "MAGAZINE";
+  // Writing types (blog, poem…) are for the school wall; a magazine piece needs none.
+  const showCategory = portfolioOnly || !forMagazine;
   const [openIssues, setOpenIssues] = useState(null);
   useEffect(() => {
     if (!forMagazine || portfolioOnly) return undefined;
@@ -776,35 +778,8 @@ function WritingEditor({
         </div>
       </div>
 
-      <div className="grid gap-3 p-4 sm:grid-cols-[1fr_190px]">
-        <input
-          ref={titleRef}
-          type="text"
-          placeholder="Enter your article title..."
-          value={form.title}
-          onChange={(event) =>
-            setForm((current) => ({ ...current, title: event.target.value }))
-          }
-          className="input transition-colors"
-        />
-
-        <select
-          value={form.category}
-          onChange={(event) =>
-            setForm((current) => ({ ...current, category: event.target.value }))
-          }
-          className="input transition-colors"
-        >
-          {CATEGORY_OPTIONS.map((option) => (
-            <option key={option} value={option}>
-              {CATEGORY_META[option].label}
-            </option>
-          ))}
-        </select>
-      </div>
-
       {!portfolioOnly && (
-        <div className="flex flex-col gap-2 px-4 pb-3 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-2 px-4 pt-4 sm:flex-row sm:items-center">
           <span className="text-xs font-semibold uppercase tracking-wide text-muted">Send to</span>
           <div role="group" aria-label="Send to" className="grid grid-cols-2 rounded-control border border-line bg-surface-2 p-0.5 sm:inline-grid">
             {[
@@ -830,7 +805,7 @@ function WritingEditor({
       )}
 
       {!portfolioOnly && forMagazine && (
-        <div className="px-4 pb-3">
+        <div className="px-4 pt-3">
           {openIssues === null ? (
             <p className="text-xs text-muted">Loading magazines…</p>
           ) : openIssues.length === 0 ? (
@@ -855,8 +830,37 @@ function WritingEditor({
         </div>
       )}
 
+      <div className={`grid gap-3 p-4 ${showCategory ? "sm:grid-cols-[1fr_190px]" : ""}`}>
+        <input
+          ref={titleRef}
+          type="text"
+          placeholder="Enter your article title..."
+          value={form.title}
+          onChange={(event) =>
+            setForm((current) => ({ ...current, title: event.target.value }))
+          }
+          className="input transition-colors"
+        />
+
+        {showCategory ? (
+          <select
+            value={form.category}
+            onChange={(event) =>
+              setForm((current) => ({ ...current, category: event.target.value }))
+            }
+            className="input transition-colors"
+          >
+            {CATEGORY_OPTIONS.map((option) => (
+              <option key={option} value={option}>
+                {CATEGORY_META[option].label}
+              </option>
+            ))}
+          </select>
+        ) : null}
+      </div>
+
       {editorMode === "WRITE" ? (
-        <div className="relative">
+        <div className="relative border-t border-line">
           <textarea
             placeholder="Start writing your amazing article here..."
             value={form.content}
@@ -864,9 +868,9 @@ function WritingEditor({
               setForm((current) => ({ ...current, content: event.target.value }))
             }
             maxLength={MAX_WRITING_CHARACTERS}
-            className="input w-full resize-y border-0 leading-7"
+            className="input block min-h-[340px] w-full resize-y rounded-none border-0 px-5 pb-10 pt-4 text-base leading-8 focus:shadow-none"
           />
-          <span className="absolute bottom-4 right-5 text-xs font-semibold text-muted">
+          <span className="pointer-events-none absolute bottom-3 right-5 rounded-full bg-surface px-2 text-xs font-semibold text-muted">
             {form.content.length} / {MAX_WRITING_CHARACTERS}
           </span>
         </div>
@@ -901,32 +905,37 @@ function WritingEditor({
       )}
 
       <div className="border-t border-line-strong bg-surface px-4 py-4">
-        <p className="text-sm font-semibold text-ink">Writing photos</p>
-        <p className="mt-1 text-xs text-muted">
-          Add up to five photos. The first one leads your writing unless you set a
-          cover image; the rest follow the text. They are resized and compressed
-          before upload.
-        </p>
-        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-          {(form.images || []).map((image, index) => (
-            <div key={image.asset || index} className="card p-2">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={image.url} alt={image.altText || "Writing attachment"} className="h-36 w-full rounded-control object-cover" />
-              <button
-                type="button"
-                onClick={() =>
-                  setForm((current) => ({
-                    ...current,
-                    images: current.images.filter((_, currentIndex) => currentIndex !== index),
-                  }))
-                }
-                className="mt-2 text-xs font-semibold text-danger"
-              >
-                Remove photo
-              </button>
-            </div>
-          ))}
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm font-semibold text-ink">Photos</p>
+          <span className="text-xs font-semibold text-muted">{(form.images || []).length} / 5</span>
         </div>
+        <p className="mt-1 text-xs text-muted">
+          The first photo appears at the top unless you add a cover image. The rest
+          appear after your writing.
+        </p>
+        {(form.images || []).length ? (
+          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+            {(form.images || []).map((image, index) => (
+              <div key={image.asset || index} className="relative overflow-hidden rounded-control border border-line">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={image.url} alt={image.altText || `Photo ${index + 1}`} className="aspect-[4/3] w-full object-cover" />
+                <button
+                  type="button"
+                  aria-label={`Remove photo ${index + 1}`}
+                  onClick={() =>
+                    setForm((current) => ({
+                      ...current,
+                      images: current.images.filter((_, currentIndex) => currentIndex !== index),
+                    }))
+                  }
+                  className="btn-icon btn-ghost absolute right-1.5 top-1.5 flex items-center justify-center bg-surface/90"
+                >
+                  <FaTimes />
+                </button>
+              </div>
+            ))}
+          </div>
+        ) : null}
         {(form.images || []).length < 5 ? (
           <ImageUploadField
             purpose="WRITING_IMAGE"
@@ -939,6 +948,8 @@ function WritingEditor({
               }));
             }}
             label="Add a photo"
+            hint={null}
+            className="mt-1"
             maxEdge={1280}
             quality={0.68}
           />
@@ -1036,6 +1047,8 @@ function WritingEditor({
               }))
             }
             label={form.coverImage ? "Replace cover image" : "Upload cover image"}
+            hint={null}
+            className="mt-1"
             maxEdge={1600}
             quality={0.7}
           />
@@ -1132,11 +1145,21 @@ function WritingListItem({
         <div className="flex items-start justify-between gap-2">
           <div className="flex flex-wrap items-center gap-2">
             <StatusPill status={writing.status} />
-            <span
-              className={`badge badge-neutral inline-flex ${categoryMeta.chip}`}
-            >
-              {categoryMeta.label}
-            </span>
+            {writing.submissionSource === "MAGAZINE" ? (
+              // Once printed, the "School Magazine" chip below already says it.
+              getLibraryBucket(writing) === "MAGAZINE" ? null : (
+                <span className="badge badge-success inline-flex items-center gap-1.5">
+                  <FaBookOpen />
+                  For the magazine
+                </span>
+              )
+            ) : (
+              <span
+                className={`badge badge-neutral inline-flex ${categoryMeta.chip}`}
+              >
+                {categoryMeta.label}
+              </span>
+            )}
             <span
               className={`badge badge-neutral inline-flex items-center gap-1.5 ${libraryMeta.chip}`}
             >
@@ -1750,8 +1773,8 @@ export default function StudentWritingWorkspace() {
             />
           </div>
 
-          <section className="card p-4">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <section className="card p-4 sm:p-5">
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_16rem] lg:items-end">
               <div>
                 <h2 className="font-semibold text-ink">
                   Writing Library
@@ -1764,7 +1787,7 @@ export default function StudentWritingWorkspace() {
               <select
                 value={activeStatus}
                 onChange={(event) => setActiveStatus(event.target.value)}
-                className="input transition-colors"
+                className="input min-w-0 transition-colors"
               >
                 <option value="ALL">All statuses</option>
                 <option value="DRAFT">Drafts</option>
@@ -1774,7 +1797,7 @@ export default function StudentWritingWorkspace() {
               </select>
             </div>
 
-            <div className="mt-4 grid gap-3 md:grid-cols-5">
+            <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
               {LIBRARY_FILTERS.map(([bucket, label]) => {
                 const active = activeLibrary === bucket;
                 const Icon =
@@ -1790,22 +1813,22 @@ export default function StudentWritingWorkspace() {
                     key={bucket}
                     type="button"
                     onClick={() => setActiveLibrary(bucket)}
-                    className={`btn btn-secondary flex items-center justify-between text-left transition-colors ${
+                    className={`card flex min-h-28 w-full min-w-0 items-start justify-between gap-3 p-4 text-left transition-colors ${
                       active
                         ? "border-brand-line bg-brand-soft text-brand-strong shadow-card"
                         : "border-line-strong bg-surface text-muted hover:border-brand-line"
                     }`}
                   >
-                    <span>
-                      <span className="block text-xs font-semibold uppercase">
+                    <span className="min-w-0">
+                      <span className="block text-xs font-semibold uppercase leading-4">
                         {label}
                       </span>
-                      <strong className="mt-1 block text-2xl font-semibold text-ink">
+                      <strong className="mt-2 block text-2xl font-semibold leading-none text-ink">
                         {libraryCounts[bucket] || 0}
                       </strong>
                     </span>
                     <span
-                      className={`flex h-10 w-10 items-center justify-center rounded-control ${
+                      className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-control ${
                         active
                           ? "bg-surface text-brand-strong"
                           : "bg-surface text-muted"
