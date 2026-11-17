@@ -197,5 +197,11 @@ ParentStudentLinkSchema.index({ school: 1, status: 1, createdAt: -1 });
 export const PARENT_RELATIONSHIP_TYPES = RELATIONSHIP_TYPES;
 export const PARENT_ACCESS_LEVELS = ACCESS_LEVELS;
 
+// A dev server keeps models across hot reloads; drop one built from an older
+// schema (before the IEMIS copy and its hook) so the current one is registered.
+if (mongoose.models.ParentStudentLink && !mongoose.models.ParentStudentLink.schema.path("studentIemisNumber")) {
+  delete mongoose.models.ParentStudentLink;
+}
+
 export default mongoose.models.ParentStudentLink ||
   mongoose.model("ParentStudentLink", ParentStudentLinkSchema);

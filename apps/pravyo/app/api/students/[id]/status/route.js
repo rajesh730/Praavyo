@@ -7,6 +7,7 @@ import {
   internalServerError,
 } from "@/lib/apiResponse";
 import { logActivity } from "@/lib/activityLog";
+import { SCHOOL_READ_ONLY_STATUSES } from "@pravyo/db/studentStatus";
 
 /**
  * PATCH /api/students/[id]/status
@@ -44,6 +45,11 @@ export async function PATCH(req, { params }) {
     // Verify student belongs to school
     if (student.school.toString() !== session.user.schoolId) {
       return errorResponse(403, "Unauthorized");
+    }
+
+    // Transferred out: use "Undo transfer" (Students), not a status change.
+    if (SCHOOL_READ_ONLY_STATUSES.includes(student.status)) {
+      return errorResponse(409, "This student was transferred out to another school. Undo the transfer first.");
     }
 
     const previousStatus = student.status;

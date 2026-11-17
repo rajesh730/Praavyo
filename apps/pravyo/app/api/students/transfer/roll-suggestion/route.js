@@ -7,6 +7,7 @@ import {
 } from "@/lib/apiResponse";
 import { requireApiSession, getSessionSchoolId } from "@/lib/authz";
 import { normalizeGradeValue } from "@/lib/schoolGrades";
+import { OFF_ROSTER_STATUSES } from "@pravyo/db/studentStatus";
 
 // Helps a school assign a clash-free roll number when admitting a transfer
 // student. Returns the next available number for the grade plus the set of
@@ -29,7 +30,7 @@ export async function GET(req) {
       school: schoolId,
       grade,
       isDeleted: { $ne: true },
-      status: { $nin: ["ALUMNI", "GRADUATED", "INACTIVE"] },
+      status: { $nin: OFF_ROSTER_STATUSES },
     })
       .select("rollNumber")
       .lean();

@@ -282,6 +282,10 @@ export async function GET(req) {
     if (status && status !== "ALL") {
         // Case-insensitive status check
         andConditions.push({ status: { $regex: new RegExp(`^${escapeRegex(status)}$`, 'i') } });
+    } else if (status === "ALL") {
+        // "All" means everyone still at the school. Students transferred out
+        // to another school are listed only under their own filter.
+        andConditions.push({ status: { $ne: "TRANSFERRED_OUT" } });
     } else if (!status) {
         // Default behavior: Show only ACTIVE students (case-insensitive)
         andConditions.push({ status: { $regex: /^ACTIVE$/i } });

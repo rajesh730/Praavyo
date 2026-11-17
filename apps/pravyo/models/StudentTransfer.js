@@ -114,6 +114,14 @@ const StudentTransferSchema = new mongoose.Schema(
     // still choosing it), so the record stays a faithful history even if a
     // number is corrected later.
     studentIemisNumber: { type: String, default: "", trim: true, uppercase: true },
+    // A move to a school that is NOT on Praavyo (toSchool stays null). The
+    // school records where the student went; nobody on the other side admits
+    // them. Created COMPLETED by lib/studentTransferOut.js.
+    externalSchool: {
+      name: { type: String, default: "", trim: true },
+      address: { type: String, default: "", trim: true },
+    },
+    certificateNumber: { type: String, default: "", trim: true },
     fromSchoolIemisNumber: { type: String, default: "", trim: true, uppercase: true },
     toSchoolIemisNumber: { type: String, default: "", trim: true, uppercase: true },
     reason: {
@@ -148,9 +156,12 @@ StudentTransferSchema.pre("save", async function fillIemisSnapshots() {
     this.fromSchoolIemisNumber = await schoolIemisNumber(this.fromSchool, { session });
   }
   // The destination changes while the family chooses (and after a decline);
-  // once the transfer completes it no longer changes.
-  if (this.isNew || this.isModified("toSchool")) {
-    this.toSchoolIemisNumber = this.toSchool ? await schoolIemisNumber(this.toSchool, { session }) : "";
+  // once the transfer completes it no longer changes. A move to a school
+  // outside Praavyo has no toSchool and keeps the IEMIS number it was given.
+  if (this.toSchool && (this.isNew || this.isModified("toSchool"))) {
+    this.toSchoolIemisNumber = await schoolIemisNumber(this.toSchool, { session });
+  } else if (!this.isNew && this.isModified("toSchool")) {
+    this.toSchoolIemisNumber = "";
   }
 });
 
@@ -175,6 +186,7 @@ if (
   existingStudentTransferModel &&
   (!existingStudentTransferModel.schema.path("transferCode") ||
     !existingStudentTransferModel.schema.path("studentIemisNumber") ||
+    !existingStudentTransferModel.schema.path("externalSchool.name") ||
     !existingStudentTransferModel.schema
       .path("status")
       ?.enumValues?.includes("PENDING_RELEASE"))

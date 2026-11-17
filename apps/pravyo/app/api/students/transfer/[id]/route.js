@@ -25,6 +25,7 @@ import {
   makeEnrollmentEntry,
   closeCurrentEnrollments,
 } from "@/lib/studentEnrollment";
+import { OFF_ROSTER_STATUSES } from "@pravyo/db/studentStatus";
 
 function generateTransferCode() {
   return `TR-${crypto.randomInt(100000, 999999)}`;
@@ -67,7 +68,7 @@ async function moveStudent({ transfer, session, toGrade, toRollNumber }) {
     grade: targetGrade,
     rollNumber,
     isDeleted: { $ne: true },
-    status: { $nin: ["ALUMNI", "GRADUATED", "INACTIVE"] },
+    status: { $nin: OFF_ROSTER_STATUSES },
     _id: { $ne: student._id },
   }).select("_id");
 

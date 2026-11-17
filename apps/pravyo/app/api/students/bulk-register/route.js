@@ -22,6 +22,7 @@ import bcrypt from "bcryptjs";
 import { DEFAULT_STUDENT_PASSWORD } from "../../../../lib/passwordGenerator.js";
 import { linkGuardianFromStudentRecord } from "../../../../lib/guardianLinking.js";
 import { checkStudentIemis } from "@/lib/iemisRegistry";
+import { OFF_ROSTER_STATUSES } from "@pravyo/db/studentStatus";
 
 export async function POST(req) {
   try {
@@ -106,7 +107,7 @@ export async function POST(req) {
           grade: normalizedGrade,
           rollNumber: normalizedRollNumber,
           isDeleted: { $ne: true },
-          status: { $nin: ["ALUMNI", "GRADUATED", "INACTIVE"] },
+          status: { $nin: OFF_ROSTER_STATUSES },
         });
 
         if (existingRollNumber) {

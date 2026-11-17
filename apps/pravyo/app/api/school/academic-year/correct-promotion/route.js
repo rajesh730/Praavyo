@@ -13,6 +13,7 @@ import {
   makeEnrollmentEntry,
 } from "@/lib/studentEnrollment";
 import { planPromotionReversal } from "@/lib/promotionCorrection";
+import { OFF_ROSTER_STATUSES } from "@pravyo/db/studentStatus";
 
 // Reverse a mistaken promotion for a single student. The school year stays
 // advanced; the student is put back into their previous grade as a repeater and
@@ -60,7 +61,7 @@ export async function POST(req) {
       grade: plan.revertGrade,
       rollNumber: student.rollNumber,
       isDeleted: { $ne: true },
-      status: { $nin: ["ALUMNI", "GRADUATED", "INACTIVE"] },
+      status: { $nin: OFF_ROSTER_STATUSES },
       _id: { $ne: student._id },
     }).select("_id");
     if (rollClash) {

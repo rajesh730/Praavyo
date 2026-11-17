@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRememberedState } from "@pravyo/ui/rememberedState";
 import Link from "next/link";
-import { LineChart as FaChartLine, CircleCheck as FaCheckCircle, Copy as FaCopy, Download as FaDownload, SquarePen as FaEdit, ListFilter as FaFilter, GraduationCap as FaGraduationCap, KeyRound as FaKey, Plus as FaPlus, Search as FaSearch, Trash2 as FaTrash, Upload as FaUpload, GraduationCap as FaUserGraduate, UserX as FaUserSlash } from "lucide-react";
+import { LineChart as FaChartLine, CircleCheck as FaCheckCircle, Copy as FaCopy, Download as FaDownload, SquarePen as FaEdit, ListFilter as FaFilter, GraduationCap as FaGraduationCap, KeyRound as FaKey, Plus as FaPlus, Search as FaSearch, Trash2 as FaTrash, Upload as FaUpload, GraduationCap as FaUserGraduate, UserX as FaUserSlash, ArrowRightLeft as FaTransferOut, Undo2 as FaUndo } from "lucide-react";
 import { normalizeGradeValue } from "@/lib/schoolGrades";
 import { TableSkeleton } from "@/components/Skeletons";
 import PaginationControls from "@/components/PaginationControls";
@@ -12,6 +12,7 @@ import Modal from "@/components/Modal";
 import CredentialsModal from "@/components/CredentialsModal";
 import AlertBanner from "@/components/ui/AlertBanner";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import TransferOutDialog from "@/components/dashboard/TransferOutDialog";
 
 export default function StudentManager({ initialGrade, hideGradeFilter = false }) {
   // Data State
@@ -52,6 +53,8 @@ export default function StudentManager({ initialGrade, hideGradeFilter = false }
   });
   const [feedback, setFeedback] = useState(null);
   const [confirmState, setConfirmState] = useState(null);
+  // The student being transferred out to a school not on Praavyo.
+  const [transferOutStudent, setTransferOutStudent] = useState(null);
 
   const sectionsForGrade = (grade) => {
     const normalized = normalizeGradeValue(grade);
@@ -321,6 +324,34 @@ export default function StudentManager({ initialGrade, hideGradeFilter = false }
         title: "Student was not archived",
         message: error.message || "Please retry after checking the connection.",
       });
+    }
+  };
+
+  const requestUndoTransferOut = (student) => {
+    setConfirmState({
+      type: "undo-transfer-out",
+      student,
+      title: "Undo this transfer?",
+      message: `${student.name} will be back on your roster in ${student.grade || "their grade"}, and their guardians get their usual access again. Use this only if the transfer was recorded by mistake.`,
+      confirmLabel: "Undo transfer",
+      tone: "warning",
+      busy: false,
+    });
+  };
+
+  const executeUndoTransferOut = async (student) => {
+    try {
+      setConfirmState((current) => ({ ...current, busy: true }));
+      const res = await fetch(`/api/students/${student._id}/transfer-out`, { method: "DELETE" });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || "Could not undo the transfer.");
+      setConfirmState(null);
+      setFeedback({ type: "success", title: "Transfer undone", message: data.message || `${student.name} is back on your roster.` });
+      await fetchStudents(pagination.page);
+      await fetchStudentStats();
+    } catch (error) {
+      setConfirmState(null);
+      setFeedback({ type: "error", title: "Transfer was not undone", message: error.message });
     }
   };
 
@@ -642,6 +673,7 @@ export default function StudentManager({ initialGrade, hideGradeFilter = false }
             <option value="ALUMNI">Alumni (Graduated)</option>
             <option value="SUSPENDED">Suspended</option>
             <option value="INACTIVE">Inactive</option>
+            <option value="TRANSFERRED_OUT">Transferred out</option>
           </select>
           <button
             type="button"
@@ -764,6 +796,15 @@ export default function StudentManager({ initialGrade, hideGradeFilter = false }
                           <span className="block truncate text-xs font-semibold text-muted">
                             {student.platformStudentId || "Student ID pending"}
                           </span>
+                          {student.status === "TRANSFERRED_OUT" && (
+                            <span className="badge badge-warning mt-1 inline-flex max-w-full items-center gap-1 text-xs" title={student.transferOut?.reason || undefined}>
+                              <FaTransferOut aria-hidden />
+                              <span className="truncate">
+                                Transferred to {student.transferOut?.toSchoolName || "another school"}
+                                {student.transferOut?.transferredAt ? ` · ${new Date(student.transferOut.transferredAt).toLocaleDateString()}` : ""}
+                              </span>
+                            </span>
+                          )}
                         </span>
                       </div>
                     </td>
@@ -831,7 +872,25 @@ export default function StudentManager({ initialGrade, hideGradeFilter = false }
                       </div>
                     </td>
                     <td className="px-4 py-2.5 text-right">
+                      {student.status === "TRANSFERRED_OUT" ? (
+                        // Out of the school's control: history only, plus undo for a mistake.
+                        <button
+                          type="button"
+                          onClick={() => requestUndoTransferOut(student)}
+                          className="btn btn-secondary btn-sm inline-flex items-center gap-1.5"
+                        >
+                          <FaUndo aria-hidden /> Undo transfer
+                        </button>
+                      ) : (
                       <div className="flex items-center justify-end gap-2">
+                        <button
+                          onClick={() => setTransferOutStudent(student)}
+                          className="btn-icon btn-ghost inline-flex items-center justify-center transition-colors"
+                          title="Transfer out (to a school not on Praavyo)"
+                          aria-label={`Transfer ${student.name} out to another school`}
+                        >
+                          <FaTransferOut />
+                        </button>
                         <button
                           onClick={() => handleEdit(student)}
                           className="btn-icon btn-ghost inline-flex items-center justify-center transition-colors"
@@ -854,6 +913,7 @@ export default function StudentManager({ initialGrade, hideGradeFilter = false }
                           <FaTrash />
                         </button>
                       </div>
+                      )}
                     </td>
                   </tr>
                 ))
@@ -1045,6 +1105,19 @@ export default function StudentManager({ initialGrade, hideGradeFilter = false }
         }
       />
 
+      {transferOutStudent && (
+        <TransferOutDialog
+          student={transferOutStudent}
+          onClose={() => setTransferOutStudent(null)}
+          onDone={async (message) => {
+            setTransferOutStudent(null);
+            setFeedback({ type: "success", title: "Student transferred out", message });
+            await fetchStudents(pagination.page);
+            await fetchStudentStats();
+          }}
+        />
+      )}
+
       <ConfirmDialog
         open={Boolean(confirmState)}
         title={confirmState?.title}
@@ -1059,6 +1132,8 @@ export default function StudentManager({ initialGrade, hideGradeFilter = false }
             executeDelete(confirmState.student);
           } else if (confirmState.type === "reset-password") {
             executeResetPassword(confirmState.student);
+          } else if (confirmState.type === "undo-transfer-out") {
+            executeUndoTransferOut(confirmState.student);
           }
         }}
       />

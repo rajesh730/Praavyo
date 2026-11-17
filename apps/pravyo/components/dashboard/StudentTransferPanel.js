@@ -42,7 +42,12 @@ const studentIemis = (transfer) => transfer.student?.iemisNumber || transfer.stu
 /** One row shape for every kind of transfer. */
 function toRow(transfer, kind, mySchoolId) {
   const leaving = kind === "release" || kind === "released" || String(transfer.fromSchool?._id || transfer.fromSchool || "") === String(mySchoolId || "");
-  const otherSchool = leaving ? schoolName(transfer.toSchool) : schoolName(transfer.fromSchool) || transfer.fromSchoolNameSnapshot || "";
+  // A move to a school outside Praavyo has no toSchool, only the name the
+  // school recorded (Students -> Transfer out).
+  const outsidePraavyo = !transfer.toSchool && Boolean(transfer.externalSchool?.name);
+  const otherSchool = leaving
+    ? schoolName(transfer.toSchool) || (outsidePraavyo ? `${transfer.externalSchool.name} (not on Praavyo)` : "")
+    : schoolName(transfer.fromSchool) || transfer.fromSchoolNameSnapshot || "";
   let stage;
   let tone = "badge-warning";
   if (kind === "release") stage = "Waiting for your approval";
@@ -69,10 +74,12 @@ function toRow(transfer, kind, mySchoolId) {
     ].filter(Boolean).join(" · "),
     direction: leaving ? "LEAVING" : "JOINING",
     otherSchool,
-    askedBy: transfer.requestedByParent?.name ? `Parent: ${transfer.requestedByParent.name}` : transfer.requestedByStudent ? "Student" : "",
+    askedBy: transfer.requestedByParent?.name
+      ? `Parent: ${transfer.requestedByParent.name}`
+      : transfer.requestedByStudent ? "Student" : outsidePraavyo ? "Recorded by the school" : "",
     reason: transfer.reason || "",
     decisionReason: transfer.decisionReason || "",
-    code: transfer.transferCode || "",
+    code: transfer.transferCode || transfer.certificateNumber || "",
     date: transfer.updatedAt || transfer.createdAt,
     stage,
     tone,
@@ -238,6 +245,7 @@ export default function StudentTransferPanel({ grades = [], onChanged, schoolId 
             {view === "action" ? "Nothing waiting for you" : view === "progress" ? "No transfers in progress" : "No past transfers"}
           </p>
           <p className="mt-1 text-sm text-muted">Parents request a transfer for their child from the parent app.</p>
+          <p className="mt-1 text-xs text-muted">Moving to a school that is not on Praavyo? Use Transfer out on the student in Students.</p>
         </div>
       ) : (
         <div className="overflow-hidden rounded-card border border-line bg-surface">

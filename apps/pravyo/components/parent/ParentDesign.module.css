@@ -1,7 +1,9 @@
 /* Parent space: intentionally calm and short-path, without dashboard clutter. */
 .shell { min-height: 100dvh; background: var(--color-canvas); color: var(--color-ink); font: 15px/1.55 var(--font-sans); --parent-primary: var(--color-brand); --parent-muted: var(--color-muted); --parent-border: var(--color-line); }
 .shell[data-simple="true"] { font-size: 17px; }
-.frame { display: flex; min-height: 100dvh; max-width: 1320px; margin: auto; }
+/* Full width like the school and teacher dashboards: the menu sits at the left
+   edge and the content uses the same width limit (--content-max). */
+.frame { display: flex; min-height: 100dvh; }
 .workspace { flex: 1; min-width: 0; }
 .header { position: sticky; top: 0; z-index: 50; border-bottom: 1px solid var(--parent-border); background: rgba(255,255,255,.96); padding-top: env(safe-area-inset-top); backdrop-filter: blur(12px); }
 .toolbar { display: flex; min-height: 60px; align-items: center; justify-content: space-between; gap: 12px; padding: 8px 24px; }
@@ -14,7 +16,7 @@
 .tool svg { width: 19px; height: 19px; }
 .badge { position: absolute; top: -5px; right: -5px; display: grid; min-width: 19px; height: 19px; place-items: center; border: 2px solid #fff; border-radius: 50%; background: var(--color-danger); color: #fff; font-size: 10px; font-weight: 700; }
 .main { padding: 22px 24px 44px; }
-.content { max-width: 880px; min-width: 0; margin: auto; }
+.content { width: 100%; max-width: var(--content-max); min-width: 0; margin-inline: auto; }
 .skip { position: fixed; top: -100px; left: 16px; z-index: 100; border-radius: 8px; background: var(--color-ink); padding: 10px 14px; color: #fff; }
 .skip:focus { top: 12px; }
 .shell :where(a,button,select,input,textarea):focus-visible { outline: 3px solid rgb(43 89 195 / .3); outline-offset: 3px; }

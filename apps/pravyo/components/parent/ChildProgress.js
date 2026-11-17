@@ -51,7 +51,7 @@ export default function ChildProgress() {
   if (!selectedChildId) return null;
 
   return (
-    <section className="mx-auto max-w-5xl px-4 py-6">
+    <section className="w-full py-2">
       <LearningSwitch />
       <header className="mb-4">
         <h1 className="text-xl font-semibold text-ink">{t("progress.title")}</h1>

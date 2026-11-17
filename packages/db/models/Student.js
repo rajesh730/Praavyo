@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { STUDENT_STATUSES } from "../studentStatus.js";
 
 /**
  * Student Schema
@@ -244,11 +245,23 @@ const StudentSchema = new mongoose.Schema(
       required: true,
     },
     
-    // Student status management
+    // Student status management. Meanings and the shared "off the roster"
+    // list live in packages/db/studentStatus.js.
     status: {
       type: String,
-      enum: ["ACTIVE", "SUSPENDED", "INACTIVE", "ALUMNI", "GRADUATED"],
+      enum: STUDENT_STATUSES,
       default: "ACTIVE",
+    },
+    // Set while the student is TRANSFERRED_OUT: the school outside Praavyo they
+    // moved to, as the school recorded it. Cleared if the move is undone.
+    transferOut: {
+      toSchoolName: { type: String, trim: true, default: "" },
+      toSchoolIemisNumber: { type: String, trim: true, uppercase: true, default: "" },
+      toSchoolAddress: { type: String, trim: true, default: "" },
+      transferredAt: { type: Date, default: null },
+      certificateNumber: { type: String, trim: true, default: "" },
+      reason: { type: String, trim: true, default: "" },
+      transfer: { type: mongoose.Schema.Types.ObjectId, ref: "StudentTransfer", default: null },
     },
 
     // Full school + grade + academic-year history. The CURRENT enrollment mirrors
@@ -332,6 +345,12 @@ StudentSchema.index(
 // Find every student who has ever been enrolled at a school (e.g. an origin
 // school's "transferred out / past students" view).
 StudentSchema.index({ "enrollments.school": 1, "enrollments.academicYearStart": -1 });
+
+// A dev server keeps models across hot reloads; drop one built from an older
+// schema (before TRANSFERRED_OUT) so the current definition is registered.
+if (mongoose.models.Student && !mongoose.models.Student.schema.path("transferOut.toSchoolName")) {
+  delete mongoose.models.Student;
+}
 
 export default mongoose.models.Student ||
   mongoose.model("Student", StudentSchema);

@@ -88,7 +88,7 @@ export async function runGuardianBackfill(schoolId) {
     const candidates = await Student.find({
       school: schoolId,
       isDeleted: { $ne: true },
-      status: { $ne: "INACTIVE" },
+      status: { $nin: ["INACTIVE", "TRANSFERRED_OUT"] },
       _id: { $nin: linkedStudentIds },
     })
       .limit(BATCH_SIZE)

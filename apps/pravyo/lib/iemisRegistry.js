@@ -19,10 +19,14 @@ export async function checkStudentIemis(value, { exceptStudent = null } = {}) {
     iemisNumber,
     isDeleted: { $ne: true },
     ...(exceptStudent ? { _id: { $ne: exceptStudent } } : {}),
-  }).select("name").lean();
-  return taken
-    ? { iemisNumber, error: `Student IEMIS number ${iemisNumber} is already registered to ${taken.name}` }
-    : { iemisNumber, error: "" };
+  }).select("name status transferOut.toSchoolName").lean();
+  if (!taken) return { iemisNumber, error: "" };
+  // A student transferred out keeps their record (and IEMIS number), so the
+  // same child cannot be registered twice; say why, so the school knows.
+  const takenError = taken.status === "TRANSFERRED_OUT"
+    ? `Student IEMIS number ${iemisNumber} belongs to ${taken.name}, who was transferred out of another Praavyo school. Ask Praavyo support to move their record to your school.`
+    : `Student IEMIS number ${iemisNumber} is already registered to ${taken.name}`;
+  return { iemisNumber, error: takenError };
 }
 
 export async function checkSchoolIemis(value, { exceptSchool = null } = {}) {

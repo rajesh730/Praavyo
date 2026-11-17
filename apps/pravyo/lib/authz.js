@@ -37,7 +37,8 @@ export function isActiveStudentQuery(extra = {}) {
   return {
     ...extra,
     isDeleted: { $ne: true },
-    status: { $ne: "INACTIVE" },
+    // Students who left (INACTIVE) or moved to a school outside Praavyo.
+    status: { $nin: ["INACTIVE", "TRANSFERRED_OUT"] },
   };
 }
 

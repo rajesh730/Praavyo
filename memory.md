@@ -2,6 +2,156 @@
 
 Newest sections first. Where sections disagree, the newer one wins.
 
+## Students, parents, teachers and IEMIS - 2026-11-04 to 2026-11-17 (read first)
+
+Everything decided and built since the 2026-11-03 section. Owner = the person
+running live Praavyo; they want clean, single-source designs and say so often.
+
+### Rules carried over from 2026-11-04 .. 11-13 (not written here before)
+- **Whole-grade CAS publishing (11-13):** a CAS result publishes for the whole
+  grade at once, never per student. Missing marks are listed; "Publish anyway"
+  applies the exam's missing-marks rule (`CasExam.missingWork`: ABSENT or a
+  default level). One path: `publishGradeResults` in `casReportService.js`.
+- **Published = locked** (11-10) and **unpublish deletes cards** (Manage Exams).
+  The CAS save lock (`isPublishedForExam`) entered the code on 11-13; saves made
+  before that could still touch published exams (see "Data findings").
+- **Current exam (11-10):** `CasExam.isCurrent`, set in Manage Exams; every CAS
+  exam picker falls back to it.
+- **Stay inside the dashboard (11-13):** signed-in clicks to public pages open
+  in a viewer (`lib/dashboardLinks.js`, `DashboardLinkProvider`), never leave.
+- **Trainings (11-06):** Platform Events = Competitions + Trainings; per-school
+  attendance, certificates for students or teachers (`lib/trainings.js`).
+- **Media reads never delete (11-04, 11-06):** the stale old-domain deployment
+  wiped logos via a reconcile step; read routes must have no side effects.
+- **BS dates are fully Nepali (11-06):** `packages/core/nepaliDate.js`.
+- **Theme library sync (11-04):** new library subjects reach schools
+  automatically when they open CAS (`syncDefaultCurriculum`).
+
+### Student writing editor (student dashboard)
+- Order: Send to (School wall / School magazine) first, then title. The type
+  dropdown (Blog, Poem...) shows only for the School wall; a magazine piece is
+  labelled "For the magazine" on its card.
+- One row: Add a photo, Add Cover Image, Add Tags; thumbnails above it with
+  remove buttons; the write box is 340px tall. The "Creative Writing Studio"
+  hero and the "Writing Workflow" cards were removed (slim "Writing" header +
+  New Writing button).
+- `ImageUploadField` gained `hint` (null hides the WebP note) and
+  `buttonClassName`. Cover + photo upload/save/edit/delete verified end to end.
+
+### Student sign-in and passwords
+- Students sign in with **IEMIS number + password** (`/student/login` sends
+  `loginScope: "student"`; `findStudentForLogin` in
+  `packages/auth/authOptions.js`). The old username still works as a temporary
+  fallback the owner will switch off later (delete one branch).
+- Every student starts with **`password@123`** (`DEFAULT_STUDENT_PASSWORD`,
+  `lib/passwordGenerator.js`): registration (single, bulk, CSV), school reset
+  and fix-credentials. On 2026-11-17 **all 336 existing students were reset** to
+  it at the owner's request. Students change it at **/student/account**
+  (`POST /api/student/password`, matched by student id only). Editing a
+  student's name no longer resets their password.
+
+### IEMIS is the identity (see apps/pravyo/docs/IEMIS_IDENTITY.md)
+- Student IEMIS (unique platform-wide, follows the student) and school IEMIS
+  (`SchoolConfig.iemisNumber`) are the identity used everywhere.
+- One module: `packages/db/iemisFormat.js` (pure rules, browser-safe, re-exported
+  as `@/lib/iemis`) and `packages/db/iemis.js` (lookups, `syncStudentIemisOnLinks`).
+- `ParentStudentLink.studentIemisNumber` and `StudentTransfer`
+  `studentIemisNumber` / `fromSchoolIemisNumber` / `toSchoolIemisNumber` are
+  filled by model pre-save hooks. Backfill
+  `apps/pravyo/scripts/backfill-iemis-identity.mjs` was **applied 2026-11-17**
+  (367 links filled; Green Villege's 139 links stay empty because its students
+  have no IEMIS). Guardian roster, transfer lists and the parent's school
+  picker show and search by IEMIS.
+- Scripts that load models must connect with `{ autoIndex: false }`: one test
+  script without it created the index `parentstudentlinks.studentIemisNumber_1`
+  on production (harmless, non-unique, declared by the schema; kept).
+
+### Parents
+- One `Parent` account can hold any number of children at any schools
+  (`ParentStudentLink` per child; school read from the child). Today a second
+  school links an existing parent only when phone/email AND exact name match at
+  registration, or when staff use "Existing guardian" with the Parent ID.
+  Proposed, not built: Parent ID field at student registration, phone
+  normalisation, "same parent?" prompt, merge tool, "My children" overview.
+- **Parent IDs are unique across all schools:** unique index `parentId_1` (now
+  also created by `npm run db:ensure-indexes`, which previously skipped
+  Parent, ParentStudentLink and StudentTransfer); Parent ID sign-in refuses if
+  two rows ever match; every parent creation/rotation goes through
+  `createParentWithUniqueId` / `saveParentWithUniqueId`
+  (`packages/db/parentIdentity.js`), which retry on a same-instant ID clash.
+
+### Teachers: their own area and API (owner: "teacher gives marks from their own API")
+- Flow: teacher dashboard **Exams** (chooser) -> CAS `/teacher/exams/cas`
+  (+ `/progress`) or Internal Exam `/teacher/exams/internal`, in the full-screen
+  workspace like the school's; menus link CAS <-> Internal Exam
+  (`TEACHER_CAS_NAV_LINKS`, `TEACHER_INTERNAL_NAV_LINKS`). The old in-dashboard
+  CAS list (`?tab=assessment`, AssessmentTab) is gone; that URL maps to Exams.
+- Two doors, one set of rules: school API `/api/cas/*` (casRoute `handler`,
+  SCHOOL_ADMIN only) and teacher API `/api/teacher/exams/*` (`teacherHandler`,
+  TEACHER only) serve the same endpoint definitions in
+  `apps/pravyo/lib/exams/casEndpoints.js` / `internalExamEndpoints.js`, so a
+  teacher's marks are the records the school, results and cards read. Screens
+  use `useCas().api` (CasLayout `audience="teacher"`), never a literal path.
+- Teacher filters: only their grades (context `teacherGrades`), only exams
+  opened to them **and not yet published** (CAS and internal), only subjects
+  opened to them in the chosen exam. Teacher assignments have no section field.
+- Teachers are kept out of `/school/*` (`lib/teacherAreaRoutes.js` + proxy +
+  school CAS/internal layouts) except `/school/events/*` and `/school/messages`.
+  The student-summary API now limits teachers to grades they teach.
+- Overview "Open for mark entry": an exam counts as published for a grade as
+  soon as any card for it is published (whole-grade publishing).
+
+### Transfer out to a school not on Praavyo (2026-11-17)
+- Students -> row action **Transfer out** (`TransferOutDialog`,
+  `POST/DELETE /api/students/[id]/transfer-out`, rules in
+  `lib/studentTransferOut.js`). Needs the new school's name; IEMIS, address,
+  date, TC number and reason are optional.
+- Effect: status **TRANSFERRED_OUT** (`packages/db/studentStatus.js`; details in
+  `Student.transferOut`), current enrollment closed as TRANSFERRED (roll
+  freed), off every roster, class list, exam, notice and sign-in, writing off
+  the school walls, record read-only for the school (edit, reset, status and
+  delete refused). Guardians keep view-only access (notices, messages, events
+  and consent switched off on their links). A COMPLETED `StudentTransfer` with
+  `externalSchool` shows in Student Transfer history. "Undo transfer" reverses
+  a mistake (reopens the same enrollment, restores guardian defaults, marks the
+  transfer CANCELLED). Shared `OFF_ROSTER_STATUSES` replaced seven copies of
+  the "not on roster" list. Verified end to end on test student Aarav.
+- Not covered yet: the transferred student cannot sign in to their portfolio;
+  a Praavyo school registering them later hits the IEMIS-taken message
+  (re-admission by IEMIS would be the next step).
+
+### Student Progress / extra support
+- Extra support = REASSESSMENT attempt; Accepted = best attempt. Live audit
+  2026-11-17: 0 integrity issues in 8,684 Green Villege records (433 with
+  extra support); published cards match live marks on 4,568 of 4,570 outcomes.
+- Bug fixed: an outcome with several records (1,664 Grade 3 records predate
+  exams; 1,638 outcomes also have First Terminal records, 864 differ) showed
+  whichever record came last. `pickProgressRecords` (casSheetService) now
+  prefers the theme's assigned exam, then the newest exam record, then the
+  pre-exam record.
+- Teachers, parents and students see Student Progress from published results
+  only; the school sees live marks.
+
+### Data findings needing an owner decision
+- Green Villege Grade 3 First Terminal: a published card (2026-10-12) shows
+  level 3 on two English outcomes that got an extra-support 4 on 2026-11-10
+  (before the lock existed). Unpublish + republish that exam to refresh it.
+- Green Villege and Mothers Tongue have no school IEMIS; Green Villege's 148
+  students have no student IEMIS.
+
+### Dev-server notes
+- Models now drop a stale cached copy on hot reload when the schema changed
+  (Student, ParentStudentLink, StudentTransfer). If a model change still seems
+  ignored, restart `npm run dev`.
+- On Windows the Next child process can outlive the parent; stop the process
+  listening on port 3000 to really stop a server.
+
+### Open questions for the owner
+- Section-level teacher assignment (Grade 3 Section A only)?
+- Should teachers see their own unpublished marks in Student Progress?
+- When to switch off the student username fallback?
+- Which multi-child parent features to build first?
+
 ## Exams = CAS + Internal Exam, result rules - 2026-11-03 (read first)
 
 Owner decisions made over one long session. Supersedes anything older about

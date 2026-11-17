@@ -12,6 +12,7 @@ import { syncGuardianFromStudentRecord } from '@/lib/guardianLinking';
 import { resolveStudentSection } from '@/lib/gradeSections';
 import { checkStudentIemis } from '@/lib/iemisRegistry';
 import { syncStudentIemisOnLinks } from '@pravyo/db/iemis';
+import { OFF_ROSTER_STATUSES, SCHOOL_READ_ONLY_STATUSES } from '@pravyo/db/studentStatus';
 
 export async function PUT(req, { params }) {
     try {
@@ -41,6 +42,9 @@ export async function PUT(req, { params }) {
         if (!existingStudent) {
             return NextResponse.json({ message: 'Student not found' }, { status: 404 });
         }
+        if (SCHOOL_READ_ONLY_STATUSES.includes(existingStudent.status)) {
+            return NextResponse.json({ message: "This student was transferred out to another school. Undo the transfer first to change their record." }, { status: 409 });
+        }
 
         const normalizedGrade =
             grade !== undefined ? normalizeGradeValue(grade) : existingStudent.grade;
@@ -65,7 +69,7 @@ export async function PUT(req, { params }) {
                 grade: normalizedGrade,
                 rollNumber: normalizedRollNumber,
                 isDeleted: { $ne: true },
-                status: { $nin: ["ALUMNI", "GRADUATED", "INACTIVE"] },
+                status: { $nin: OFF_ROSTER_STATUSES },
                 _id: { $ne: id } // Exclude current student
             });
 
@@ -244,8 +248,9 @@ export async function DELETE(req, { params }) {
         const { id } = await params;
 
         await connectDB();
+        // A transferred-out student is history the school keeps, not a record it deletes.
         const deletedStudent = await Student.findOneAndUpdate(
-            { _id: id, school: schoolId, isDeleted: { $ne: true } },
+            { _id: id, school: schoolId, isDeleted: { $ne: true }, status: { $nin: SCHOOL_READ_ONLY_STATUSES } },
             {
                 isDeleted: true,
                 deletedAt: new Date(),
@@ -287,6 +292,9 @@ export async function PATCH(req, { params }) {
 
         if (!studentDoc) {
             return NextResponse.json({ message: 'Student not found' }, { status: 404 });
+        }
+        if (SCHOOL_READ_ONLY_STATUSES.includes(studentDoc.status)) {
+            return NextResponse.json({ message: "This student was transferred out to another school. Undo the transfer first to change their record." }, { status: 409 });
         }
 
         // A reset puts the student back on the default password.

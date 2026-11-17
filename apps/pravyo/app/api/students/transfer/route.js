@@ -10,6 +10,7 @@ import {
 import { requireApiSession, getSessionSchoolId } from "@/lib/authz";
 import { normalizeGradeValue } from "@/lib/schoolGrades";
 import { ensureActiveAcademicYear } from "@/lib/studentEnrollment";
+import { OFF_ROSTER_STATUSES } from "@pravyo/db/studentStatus";
 
 function sameDay(a, b) {
   if (!a || !b) return false;
@@ -158,7 +159,7 @@ export async function POST(req) {
         grade: toGrade,
         rollNumber: toRollNumber,
         isDeleted: { $ne: true },
-        status: { $nin: ["ALUMNI", "GRADUATED", "INACTIVE"] },
+        status: { $nin: OFF_ROSTER_STATUSES },
       }).select("_id");
       if (clash) {
         return errorResponse(
