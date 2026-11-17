@@ -1,16 +1,7 @@
-import { handler, HttpError } from '@pravyo/cas/lib/casRoute';
-import { loadThemes } from '@pravyo/cas/lib/casSheetService';
+import { handler } from '@pravyo/cas/lib/casRoute';
+import * as cas from '@/lib/exams/casEndpoints';
 
 export const dynamic = 'force-dynamic';
 
-/** The themes inside one subject, with how many outcomes each holds. */
-export const GET = handler(({ actor, query }) => {
-  const grade = query.get('grade');
-  const subject = query.get('subject');
-  if (!grade || !subject) throw new HttpError('Choose a grade and subject');
-  return loadThemes(actor, {
-    grade, subject,
-    exam: query.get('exam') || undefined,
-    academicYear: query.get('academicYear') || undefined,
-  });
-});
+// Shared with the teacher API (/api/teacher/exams/...): see lib/exams/.
+export const GET = handler(cas.themes);

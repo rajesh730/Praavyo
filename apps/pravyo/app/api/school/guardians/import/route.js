@@ -1,6 +1,7 @@
 import connectDB from "@/lib/db";
 import Student from "@/models/Student";
 import Parent from "@/models/Parent";
+import { createParentWithUniqueId } from "@pravyo/db/parentIdentity";
 import ParentStudentLink, {
   applyAccessLevelDefaults,
   PARENT_RELATIONSHIP_TYPES,
@@ -190,7 +191,7 @@ export async function POST(request) {
         }
 
         if (!parent) {
-          parent = await Parent.create({
+          parent = await createParentWithUniqueId(Parent, {
             name: String(student.parentName).trim(),
             // Both optional — a guardian with neither is valid.
             email: email || undefined,

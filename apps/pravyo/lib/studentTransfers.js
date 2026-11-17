@@ -3,6 +3,7 @@ import StudentTransfer from "@/models/StudentTransfer";
 import User from "@/models/User";
 import SchoolShowcaseProfile from "@/models/SchoolShowcaseProfile";
 import { notifyReleaseRequested, notifyAdmissionRequested } from "@/lib/transferNotifications";
+import { schoolIemisMap } from "@pravyo/db/iemis";
 
 /**
  * The family side of a student transfer. A PARENT (guardian) drives it:
@@ -18,11 +19,13 @@ import { notifyReleaseRequested, notifyAdmissionRequested } from "@/lib/transfer
 
 export const OPEN_TRANSFER_STATUSES = ["PENDING", "PENDING_RELEASE", "RELEASED", "PENDING_ADMISSION"];
 
-function serializeSchool(school) {
+function serializeSchool(school, iemisNumber = "") {
   if (!school) return null;
   return {
     id: String(school._id || school.id),
     name: school.schoolName || school.name || "School",
+    // The government IEMIS number: the school's identity everywhere.
+    iemisNumber: iemisNumber || "",
     location: school.schoolLocation || "",
     province: school.province || "",
     district: school.district || "",
@@ -43,8 +46,10 @@ function serializeTransfer(transfer) {
     targetSelectedAt: transfer.targetSelectedAt,
     decidedAt: transfer.decidedAt,
     decisionReason: transfer.decisionReason || "",
-    fromSchool: serializeSchool(transfer.fromSchool) || (transfer.fromSchoolNameSnapshot ? { id: "", name: transfer.fromSchoolNameSnapshot } : null),
-    toSchool: serializeSchool(transfer.toSchool),
+    studentIemisNumber: transfer.studentIemisNumber || "",
+    fromSchool: serializeSchool(transfer.fromSchool, transfer.fromSchoolIemisNumber)
+      || (transfer.fromSchoolNameSnapshot ? { id: "", name: transfer.fromSchoolNameSnapshot, iemisNumber: transfer.fromSchoolIemisNumber || "" } : null),
+    toSchool: serializeSchool(transfer.toSchool, transfer.toSchoolIemisNumber),
   };
 }
 
@@ -52,7 +57,7 @@ function serializeTransfer(transfer) {
 export async function getStudentTransferData(studentId) {
   const [student, transfer, history] = await Promise.all([
     Student.findById(studentId)
-      .select("name grade rollNumber platformStudentId school")
+      .select("name grade rollNumber platformStudentId iemisNumber school")
       .populate("school", "schoolName name schoolLocation")
       .lean(),
     StudentTransfer.findOne({ student: studentId, status: { $in: OPEN_TRANSFER_STATUSES } })
@@ -87,8 +92,15 @@ export async function getStudentTransferData(studentId) {
     const logoBySchool = new Map(
       profiles.map((profile) => [String(profile.school), profile.logoUrl || profile.coverImageUrl || ""])
     );
-    schools = rows.map((row) => ({ ...serializeSchool(row), logoUrl: logoBySchool.get(String(row._id)) || "" }));
+    // Families can find the new school by its IEMIS number as well as its name.
+    const iemisBySchool = await schoolIemisMap(rows.map((row) => row._id));
+    schools = rows.map((row) => ({
+      ...serializeSchool(row, iemisBySchool.get(String(row._id))),
+      logoUrl: logoBySchool.get(String(row._id)) || "",
+    }));
   }
+  const currentSchoolId = student.school?._id || student.school;
+  const currentSchoolIemis = currentSchoolId ? (await schoolIemisMap([currentSchoolId])).get(String(currentSchoolId)) : "";
 
   return {
     student: {
@@ -97,7 +109,8 @@ export async function getStudentTransferData(studentId) {
       grade: student.grade,
       rollNumber: student.rollNumber,
       platformStudentId: student.platformStudentId,
-      currentSchool: serializeSchool(student.school),
+      iemisNumber: student.iemisNumber || "",
+      currentSchool: serializeSchool(student.school, currentSchoolIemis),
     },
     transfer: serializeTransfer(transfer),
     history: history.map(serializeTransfer),

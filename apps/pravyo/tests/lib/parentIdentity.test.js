@@ -3,6 +3,9 @@ import {
   normalizeParentId,
   isValidParentIdFormat,
   allocateParentId,
+  createParentWithUniqueId,
+  saveParentWithUniqueId,
+  isParentIdClash,
   PARENT_ID_ALPHABET,
   PARENT_ID_PREFIX,
 } from "@/lib/parentIdentity";
@@ -101,5 +104,67 @@ describe("allocation", () => {
       /unique Parent ID/
     );
     expect(exists).toHaveBeenCalledTimes(3);
+  });
+});
+
+/**
+ * Two schools saving new guardians at the same instant could draw the same
+ * random ID; the unique index rejects the second. That must turn into a quiet
+ * retry with a fresh ID, never an error for the school or a duplicate.
+ */
+const parentIdClash = () =>
+  Object.assign(new Error("E11000 duplicate key error index: parentId_1 dup key"), {
+    code: 11000,
+    keyPattern: { parentId: 1 },
+  });
+const emailClash = () =>
+  Object.assign(new Error("E11000 duplicate key error index: email_1 dup key"), {
+    code: 11000,
+    keyPattern: { email: 1 },
+  });
+
+describe("Parent ID clash between schools", () => {
+  it("recognises only a parentId clash", () => {
+    expect(isParentIdClash(parentIdClash())).toBe(true);
+    expect(isParentIdClash(emailClash())).toBe(false);
+    expect(isParentIdClash(new Error("network"))).toBe(false);
+  });
+
+  it("creates again (drawing a new ID) when the first ID was taken meanwhile", async () => {
+    const doc = { _id: "p1" };
+    const create = jest.fn().mockRejectedValueOnce(parentIdClash()).mockResolvedValueOnce(doc);
+    await expect(createParentWithUniqueId({ create }, { name: "Sita" })).resolves.toBe(doc);
+    expect(create).toHaveBeenCalledTimes(2);
+  });
+
+  it("never retries a different clash, such as an email already in use", async () => {
+    const create = jest.fn().mockRejectedValue(emailClash());
+    await expect(createParentWithUniqueId({ create }, { name: "Sita" })).rejects.toThrow(/email_1/);
+    expect(create).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not retry when the caller chose the Parent ID itself", async () => {
+    const create = jest.fn().mockRejectedValue(parentIdClash());
+    await expect(createParentWithUniqueId({ create }, { name: "Sita", parentId: "PRV-P-ABCDEF" })).rejects.toThrow();
+    expect(create).toHaveBeenCalledTimes(1);
+  });
+
+  it("gives up after five tries instead of looping forever", async () => {
+    const create = jest.fn().mockRejectedValue(parentIdClash());
+    await expect(createParentWithUniqueId({ create }, { name: "Sita" })).rejects.toThrow();
+    expect(create).toHaveBeenCalledTimes(5);
+  });
+
+  it("on a reissue or backfill, swaps in a fresh ID and saves again", async () => {
+    const exists = jest.fn().mockResolvedValue(false);
+    const doc = {
+      parentId: "PRV-P-AAAAAA",
+      constructor: { exists },
+      save: jest.fn().mockRejectedValueOnce(parentIdClash()).mockResolvedValueOnce(true),
+    };
+    await saveParentWithUniqueId(doc);
+    expect(doc.save).toHaveBeenCalledTimes(2);
+    expect(doc.parentId).not.toBe("PRV-P-AAAAAA");
+    expect(doc.parentId).toMatch(/^PRV-P-[A-Z0-9]{6}$/);
   });
 });

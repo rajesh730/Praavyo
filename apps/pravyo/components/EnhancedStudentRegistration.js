@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Download } from "lucide-react";
 import CSVUploader from "./CSVUploader";
+import { DEFAULT_STUDENT_PASSWORD } from "@/lib/passwordGenerator";
 import {
   buildNormalizedRow,
   getRowValue,
@@ -110,14 +111,8 @@ const EnhancedStudentRegistration = ({ schoolId, onSuccess }) => {
       const firstName = nameParts[0];
       const lastName = nameParts.slice(1).join(" ") || "."; // Default if no last name
 
-      // Password is shown once after registration; username is generated server-side
-      // so duplicate names/roll numbers across grades can be handled safely.
-      const cleanFirstName = firstName.toLowerCase().replace(/[^a-z0-9]/g, '');
-      const password = `${cleanFirstName}${formData.rollNumber}@123`;
-
+      // The server sets the starting password (password@123) and the username.
       const payload = {
-        password,
-        
         // Student
         firstName,
         lastName,
@@ -196,11 +191,8 @@ const EnhancedStudentRegistration = ({ schoolId, onSuccess }) => {
             });
         }, 1500);
       } else {
-        const credentials = data.data || {};
         setSuccess(
-          `Student registered successfully! Credentials: Username: ${
-            credentials.username || "Generated"
-          }, Password: ${credentials.password || password}`
+          `Student registered. They sign in with IEMIS number ${formData.iemisNumber.trim().toUpperCase()} and password ${DEFAULT_STUDENT_PASSWORD}, then change the password.`
         );
         
         // Reset form after delay
@@ -280,7 +272,6 @@ const EnhancedStudentRegistration = ({ schoolId, onSuccess }) => {
             const lastName = nameParts.slice(1).join(" ") || ".";
             const parsedDob = parseDateValue(getRowValue(normalizedRow, ["dateofbirth", "dob"]));
             const username = fullName.toLowerCase().replace(/\s+/g, "");
-            const password = `${firstName.toLowerCase()}${rollNumber}@123`;
             const guardianRelationship =
                 String(getRowValue(normalizedRow, ["guardianrelationship", "relationship"]))
                     .trim()
@@ -292,7 +283,6 @@ const EnhancedStudentRegistration = ({ schoolId, onSuccess }) => {
                 firstName,
                 lastName,
                 username,
-                password,
                 email: getRowValue(normalizedRow, ["email"]) || "",
                 grade,
                 section: String(getRowValue(normalizedRow, ["section"])).trim(),

@@ -20,10 +20,10 @@ const EMPTY = {};
  * only in their own subject's column; the school can type in every column.
  */
 export default function InternalMarkEntryPage() {
-  const { t } = useCas();
+  const { t, api } = useCas();
   const filters = useInternalExamFilters();
   const { exam, section } = filters;
-  const sheetPath = exam ? `/api/cas/internal-exams/sheet?${new URLSearchParams({ exam: exam.id, ...(section ? { section } : {}) })}` : null;
+  const sheetPath = exam ? `${api.internal('/sheet')}?${new URLSearchParams({ exam: exam.id, ...(section ? { section } : {}) })}` : null;
   const sheetQuery = useCasQuery(sheetPath);
   const sheet = sheetQuery.data;
   const { run, pending, error, success, setError } = useCasMutation();
@@ -93,7 +93,7 @@ export default function InternalMarkEntryPage() {
       return { student, subject, marks: parsed && !parsed.absent ? parsed.marks : null, absent: Boolean(parsed?.absent) };
     }));
     if (!entries.length) return;
-    const result = await run('/api/cas/internal-exams/marks', { method: 'PUT', body: { exam: exam.id, entries } }, {
+    const result = await run(api.internal('/marks'), { method: 'PUT', body: { exam: exam.id, entries } }, {
       successMessage: t(`${entries.length} mark${entries.length === 1 ? '' : 's'} saved`, `${entries.length} अङ्क सुरक्षित भयो`),
     });
     if (result.ok) {
@@ -148,7 +148,9 @@ export default function InternalMarkEntryPage() {
         <Card>
           <EmptyState
             title={t('No internal exam for this grade yet', 'यस कक्षाको आन्तरिक परीक्षा छैन')}
-            action={<Link href="/school/internal-exam/exams" className="btn btn-primary">{t('Manage exams', 'परीक्षा व्यवस्थापन')}</Link>}
+            // The school creates exams; a teacher only enters marks.
+            description={api.audience === 'teacher' ? t('Your school creates internal exams. Marks can be entered once it does.', 'विद्यालयले आन्तरिक परीक्षा बनाएपछि अङ्क प्रविष्ट गर्न सकिन्छ।') : undefined}
+            action={api.audience === 'teacher' ? undefined : <Link href="/school/internal-exam/exams" className="btn btn-primary">{t('Manage exams', 'परीक्षा व्यवस्थापन')}</Link>}
           />
         </Card>
       ) : !sheet ? (

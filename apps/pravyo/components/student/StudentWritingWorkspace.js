@@ -410,194 +410,6 @@ function WritingArt({ writing, className = "" }) {
   );
 }
 
-function WritingStudioHero({
-  student,
-  libraryCounts,
-  onNewDraft,
-}) {
-  return (
-    <section className="card relative overflow-hidden shadow-pop">
-      <div className="grid gap-4 p-5 md:p-6 xl:grid-cols-[1fr_0.86fr]">
-        <div className="relative z-10 min-w-0">
-          <p className="text-xs font-semibold uppercase text-brand-strong sm:block">
-            Creative Writing Studio
-          </p>
-          <h1 className="mt-4 max-w-2xl font-semibold leading-tight text-ink sm:block md:text-2xl">
-            Share your voice.{" "}
-            <span className="text-danger">Inspire your school.</span>
-          </h1>
-          <p className="mt-4 max-w-xl text-sm leading-6 text-muted sm:block md:text-base">
-            Express your ideas, stories, and creativity. Your words can become a
-            draft, a school magazine article, or a platform prompt response.
-          </p>
-
-          <div className="mt-4 grid gap-3 sm:grid sm:grid-cols-2 lg:grid-cols-4">
-            {[
-              [FaPenNib, libraryCounts.FREE, "Free Writing", "rose"],
-              [FaSchool, libraryCounts.SCHOOL, "School Writing", "indigo"],
-              [FaBookOpen, libraryCounts.MAGAZINE, "School Magazine", "emerald"],
-            ].map(([Icon, value, label, tone]) => {
-              const tones = {
-                purple: "border-brand-line bg-brand-soft text-brand-strong",
-                rose: "border-danger-line bg-danger-soft text-danger",
-                indigo: "border-brand-line bg-brand-soft text-brand-strong",
-                emerald: "border-success-line bg-success-soft text-success",
-              };
-              return (
-                <div
-                  key={label}
-                  className="card px-4 py-3"
-                >
-                  <div className="flex items-center gap-3">
-                    <span
-                      className={`flex h-9 w-9 items-center justify-center rounded-control border ${tones[tone]}`}
-                    >
-                      <Icon />
-                    </span>
-                    <div>
-                      <p className="text-lg font-semibold leading-none text-ink">
-                        {value}
-                      </p>
-                      <p className="mt-1 text-xs font-semibold text-muted">
-                        {label}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-
-        <div className="surface-brand relative min-h-72 overflow-hidden rounded-card p-4 sm:p-5 sm:block">
-          <div className="card absolute right-12 top-16 h-32 w-52 rotate-[-6deg] shadow-pop" />
-          <div className="card absolute right-24 top-24 h-32 w-52 rotate-[7deg] shadow-pop" />
-          <FaPenNib className="absolute right-12 top-10 text-2xl text-white" />
-          <FaBookOpen className="absolute bottom-11 left-10 text-2xl text-white" />
-          <div className="card relative mt-44 p-4">
-            <p className="text-sm font-semibold text-ink">
-              {student?.name || "Student"} writing desk
-            </p>
-            <p className="mt-1 text-xs text-muted">
-              {student
-                ? `${student.grade || "Grade"} - Roll ${student.rollNumber || "-"}`
-                : "Ready for your next article"}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      <button
-        type="button"
-        onClick={onNewDraft}
-        className="btn btn-primary mx-5 mb-5 inline-flex items-center gap-2 transition-colors sm:absolute sm:right-5 sm:top-5 sm:m-0"
-      >
-        <FaPlus />
-        New Writing
-      </button>
-    </section>
-  );
-}
-
-function WritingWorkflowPanel({ libraryCounts, onSelectLibrary, onSelectStatus }) {
-  const steps = [
-    {
-      id: "ALL",
-      title: "All Writing",
-      count: libraryCounts.ALL,
-      icon: FaFileAlt,
-      tone: "border-brand-line bg-brand-soft text-brand-strong",
-      next: "See private drafts, school wall posts, magazine pieces, and homepage selections together.",
-      action: () => {
-        onSelectLibrary("ALL");
-        onSelectStatus("ALL");
-      },
-    },
-    {
-      id: "FREE",
-      title: "Free Writing",
-      count: libraryCounts.FREE,
-      icon: FaPenNib,
-      tone: "border-danger-line bg-danger-soft text-danger",
-      next: "Private writing stays here until the student posts it to school.",
-      action: () => {
-        onSelectLibrary("FREE");
-        onSelectStatus("DRAFT");
-      },
-    },
-    {
-      id: "SCHOOL",
-      title: "School Wall",
-      count: libraryCounts.SCHOOL,
-      icon: FaSchool,
-      tone: "border-brand-line bg-brand-soft text-brand-strong",
-      next: "Posted writing appears for school sharing unless the school hides it.",
-      action: () => {
-        onSelectLibrary("SCHOOL");
-        onSelectStatus("ALL");
-      },
-    },
-    {
-      id: "MAGAZINE",
-      title: "School Magazine",
-      count: libraryCounts.MAGAZINE,
-      icon: FaBookOpen,
-      tone: "border-success-line bg-success-soft text-success",
-      next: "School-selected writing becomes part of the weekly magazine.",
-      action: () => {
-        onSelectLibrary("MAGAZINE");
-        onSelectStatus("APPROVED");
-      },
-    },
-  ];
-
-  return (
-    <section className="card p-4">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h2 className="font-semibold text-ink">Writing Workflow</h2>
-          <p className="mt-1 text-sm leading-6 text-muted">
-            Draft freely, post writing to your school, and see selected pieces
-            in the school magazine or homepage.
-          </p>
-        </div>
-        <span className="text-xs font-semibold uppercase text-brand-strong">
-          4 clear views
-        </span>
-      </div>
-
-      <div className="mt-4 grid gap-3 lg:grid-cols-4">
-        {steps.map((step) => {
-          const Icon = step.icon;
-          return (
-            <button
-              key={step.id}
-              type="button"
-              onClick={step.action}
-              className={` card transition-colors hover:border-brand-line hover:bg-surface-2 min-h-36 p-4 text-left transition-colors ${step.tone}`}
-            >
-              <div className="flex items-center justify-between gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-control bg-surface">
-                  <Icon />
-                </span>
-                <strong className="text-2xl font-semibold text-ink">
-                  {step.count || 0}
-                </strong>
-              </div>
-              <h3 className="mt-3 font-semibold text-ink">
-                {step.title}
-              </h3>
-              <p className="mt-2 text-xs font-semibold leading-5 text-muted">
-                {step.next}
-              </p>
-            </button>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
-
 function InlineFormattedText({ text }) {
   const pattern =
     /(\{\{highlight\}\}.*?\{\{\/highlight\}\}|\*\*[^*]+\*\*|_[^_]+_)/g;
@@ -904,17 +716,9 @@ function WritingEditor({
         </article>
       )}
 
-      <div className="border-t border-line-strong bg-surface px-4 py-4">
-        <div className="flex items-center justify-between gap-3">
-          <p className="text-sm font-semibold text-ink">Photos</p>
-          <span className="text-xs font-semibold text-muted">{(form.images || []).length} / 5</span>
-        </div>
-        <p className="mt-1 text-xs text-muted">
-          The first photo appears at the top unless you add a cover image. The rest
-          appear after your writing.
-        </p>
-        {(form.images || []).length ? (
-          <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+      {(form.images || []).length ? (
+        <div className="border-t border-line-strong bg-surface px-4 pt-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             {(form.images || []).map((image, index) => (
               <div key={image.asset || index} className="relative overflow-hidden rounded-control border border-line">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -935,29 +739,29 @@ function WritingEditor({
               </div>
             ))}
           </div>
-        ) : null}
-        {(form.images || []).length < 5 ? (
-          <ImageUploadField
-            purpose="WRITING_IMAGE"
-            value={null}
-            onChange={(asset) => {
-              if (!asset) return;
-              setForm((current) => ({
-                ...current,
-                images: [...(current.images || []), { asset: asset.id, url: asset.url }],
-              }));
-            }}
-            label="Add a photo"
-            hint={null}
-            className="mt-1"
-            maxEdge={1280}
-            quality={0.68}
-          />
-        ) : null}
-      </div>
+        </div>
+      ) : null}
 
-      <div className="flex flex-col gap-3 border-t border-line-strong bg-surface px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-wrap gap-2">
+      <div className={`flex flex-col gap-3 bg-surface px-4 py-3 sm:flex-row sm:items-center sm:justify-between ${(form.images || []).length ? "" : "border-t border-line-strong"}`}>
+        <div className="flex flex-wrap items-start gap-2">
+          {(form.images || []).length < 5 ? (
+            <ImageUploadField
+              purpose="WRITING_IMAGE"
+              value={null}
+              onChange={(asset) => {
+                if (!asset) return;
+                setForm((current) => ({
+                  ...current,
+                  images: [...(current.images || []), { asset: asset.id, url: asset.url }],
+                }));
+              }}
+              label={(form.images || []).length ? `Add a photo (${form.images.length}/5)` : "Add a photo"}
+              hint={null}
+              buttonClassName="btn btn-soft btn-sm inline-flex items-center gap-2 transition-colors"
+              maxEdge={1280}
+              quality={0.68}
+            />
+          ) : null}
           <button
             type="button"
             onClick={() => setShowCoverImage((current) => !current)}
@@ -1739,23 +1543,20 @@ export default function StudentWritingWorkspace() {
   return (
     <div className="space-y-4 text-ink">
       <StudentQuickNav className="sm:hidden" />
-      <div className="">
-        <WritingStudioHero
-          student={student}
-          writings={writings}
-          libraryCounts={libraryCounts}
-          onNewDraft={handleNewWriting}
-        />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 className="text-xl font-semibold text-ink">Writing</h1>
+        <button
+          type="button"
+          onClick={handleNewWriting}
+          className="btn btn-primary inline-flex items-center gap-2"
+        >
+          <FaPlus />
+          New Writing
+        </button>
       </div>
 
       {error && <AlertBanner type="error" title="Action needed" message={error} />}
       {success && <AlertBanner type="success" message={success} />}
-
-      <WritingWorkflowPanel
-        libraryCounts={libraryCounts}
-        onSelectLibrary={setActiveLibrary}
-        onSelectStatus={setActiveStatus}
-      />
 
       <div className="grid gap-5 xl:grid-cols-[1fr_310px]">
         <main className="min-w-0 space-y-4">

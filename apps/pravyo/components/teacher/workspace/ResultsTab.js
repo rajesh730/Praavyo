@@ -401,7 +401,7 @@ function StudentResult({ entry, isClass, history, onPrevious, onNext, position }
       )}
 
       <Link
-        href="/school/cas/student-progress"
+        href="/teacher/exams/cas/progress"
         className="inline-flex items-center gap-2 text-sm font-semibold text-brand hover:underline"
       >
         <LineChart aria-hidden size={16} /> Open student progress (learning-outcome levels)

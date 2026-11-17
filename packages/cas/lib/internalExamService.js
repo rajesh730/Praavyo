@@ -168,7 +168,12 @@ export async function listExams(actor, { academicYear, grade: gradeName }) {
   const access = await gradeAccess(actor, gradeName);
   if (!access.canRead) return { exams: [], subjects: [] };
   const [rows, subjects] = await Promise.all([
-    InternalExam.find({ school: actor.school, academicYear: year.id, grade: gradeName }).sort({ createdAt: 1 }).lean(),
+    InternalExam.find({
+      school: actor.school, academicYear: year.id, grade: gradeName,
+      // A teacher works only on exams still open: published results are
+      // locked and leave their list (the school unpublishes to reopen one).
+      ...(actor.role === 'TEACHER' ? { publishedAt: null } : {}),
+    }).sort({ createdAt: 1 }).lean(),
     gradeSubjects(actor, gradeName),
   ]);
   return {

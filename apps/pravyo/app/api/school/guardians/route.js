@@ -9,6 +9,7 @@ import ParentStudentLink, {
   applyAccessLevelDefaults,
 } from "@/models/ParentStudentLink";
 import Parent from "@/models/Parent";
+import { createParentWithUniqueId } from "@pravyo/db/parentIdentity";
 import Student from "@/models/Student";
 import { issueParentAccess } from "@/lib/parentCredentials";
 import { normalizeParentId } from "@/lib/parentIdentity";
@@ -81,7 +82,7 @@ export async function GET(request) {
       _id: studentId,
       isDeleted: { $ne: true },
     })
-      .select("name grade school")
+      .select("name grade school iemisNumber")
       .lean();
 
     if (!student) return errorResponse(404, "Student not found", "NOT_FOUND");
@@ -110,6 +111,7 @@ export async function GET(request) {
         id: String(student._id),
         name: student.name,
         grade: student.grade || "",
+        iemisNumber: student.iemisNumber || "",
       },
       guardians: links.map((link) => ({
         id: String(link._id),
@@ -280,7 +282,7 @@ export async function POST(request) {
       } else {
         // A brand-new guardian. No password: this account authenticates with
         // the Parent ID + PIN from the printed card.
-        parent = await Parent.create({
+        parent = await createParentWithUniqueId(Parent, {
           name: guardianName,
           email: email || undefined,
           phone: phone || undefined,

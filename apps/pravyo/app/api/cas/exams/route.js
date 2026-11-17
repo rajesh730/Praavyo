@@ -1,14 +1,11 @@
 import { handler, jsonBody } from '@pravyo/cas/lib/casRoute';
-import { assignThemeExams, createExam, deleteExam, listExams, restoreExam, setCurrentExam, updateExam } from '@pravyo/cas/lib/casExamService';
+import { assignThemeExams, createExam, deleteExam, restoreExam, setCurrentExam, updateExam } from '@pravyo/cas/lib/casExamService';
+import * as cas from '@/lib/exams/casEndpoints';
 
 export const dynamic = 'force-dynamic';
 
-export const GET = handler(({ actor, query }) => listExams(actor, {
-  academicYear: query.get('academicYear') || undefined,
-  grade: query.get('grade') || undefined,
-  includeArchived: query.get('includeArchived') === 'true',
-}));
-
+// GET is shared with the teacher API (/api/teacher/exams/...): see lib/exams/.
+export const GET = handler(cas.exams);
 export const POST = handler(async ({ actor, request }) => createExam(actor, await jsonBody(request)));
 export const PATCH = handler(async ({ actor, request }) => {
   const body = await jsonBody(request);

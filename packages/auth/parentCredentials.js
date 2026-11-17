@@ -3,7 +3,7 @@ import connectDB from "@pravyo/db";
 import Parent from "@pravyo/db/models/Parent";
 import ParentActivation from "@pravyo/db/models/ParentActivation";
 import AuditLog from "@pravyo/db/models/AuditLog";
-import { allocateParentId, normalizeParentId } from "@pravyo/db/parentIdentity";
+import { allocateParentId, normalizeParentId, saveParentWithUniqueId } from "@pravyo/db/parentIdentity";
 
 /**
  * Parent Access: issuing cards and signing guardians in.
@@ -136,7 +136,9 @@ export async function issueParentAccess({
   if (rotating || parent.accessState !== "ACTIVATED") {
     parent.accessState = "PENDING_ACTIVATION";
   }
-  await parent.save();
+  // Draws another Parent ID if a guardian at another school took this one in
+  // the same instant.
+  await saveParentWithUniqueId(parent);
 
   await auditParentAccess({
     action: rotating ? "PARENT_ACCESS_REISSUED" : "PARENT_ACCESS_CREATED",
@@ -238,12 +240,20 @@ export async function verifyParentId(rawParentId, options = {}) {
   const parentIdentifier = normalizeParentId(rawParentId);
   if (!parentIdentifier) return INVALID;
 
-  const parent = await Parent.findOne({
+  // A Parent ID belongs to exactly one guardian across every school; the
+  // unique database index guarantees it. If two rows ever matched (an index
+  // dropped by a migration, say), refuse rather than sign in as whichever
+  // came first: the same opaque failure as an unknown ID.
+  const matches = await Parent.find({
     parentId: parentIdentifier,
     isDeleted: { $ne: true },
-  });
+  }).limit(2);
+  if (matches.length > 1) {
+    console.error("[parentCredentials] Parent ID matches more than one guardian; sign-in refused");
+    return INVALID;
+  }
 
-  return completeSignIn(parent, options);
+  return completeSignIn(matches[0] || null, options);
 }
 
 /**

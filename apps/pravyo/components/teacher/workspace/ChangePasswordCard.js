@@ -4,8 +4,14 @@ import { useState } from 'react';
 import { KeyRound } from 'lucide-react';
 import { PasswordInput } from '@/components/ui/Input';
 
-/** The teacher replaces the password their school gave or reset. */
-export default function ChangePasswordCard() {
+/**
+ * Replace the password the school gave or reset. Used by teachers (default)
+ * and by students, who pass their own endpoint and note.
+ */
+export default function ChangePasswordCard({
+  endpoint = '/api/teacher/password',
+  note = 'If your school reset your password, the current one is password@123.',
+}) {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -22,7 +28,7 @@ export default function ChangePasswordCard() {
     setSaving(true);
     setMessage({ type: '', text: '' });
     try {
-      const response = await fetch('/api/teacher/password', {
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ currentPassword, newPassword }),
@@ -46,7 +52,7 @@ export default function ChangePasswordCard() {
         <KeyRound className="text-brand" aria-hidden />
         <h2 className="font-semibold text-ink">Change password</h2>
       </div>
-      <p className="mt-1 text-xs text-muted">If your school reset your password, the current one is password@123.</p>
+      {note && <p className="mt-1 text-xs text-muted">{note}</p>}
 
       <form onSubmit={submit} className="mt-3 space-y-3">
         <PasswordInput

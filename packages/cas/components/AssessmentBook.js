@@ -48,7 +48,8 @@ export default function AssessmentBook({
   const draftRef = useRef(draft);
   const baseRef = useRef(makeDraft(sheet));
   const [remoteUpdate, setRemoteUpdate] = useState(false);
-  const { lang, label, number, pick } = bookLanguage(useCas().lang);
+  const { lang: casLang, api } = useCas();
+  const { lang, label, number, pick } = bookLanguage(casLang);
   const pageTotals = summariseRows(sheet.rows, draft);
   // Grades 6-10 have no agreed result rule yet: obtained marks only.
   const totals = sheet.resultAvailable === false
@@ -137,7 +138,7 @@ export default function AssessmentBook({
     if (disabled || !dirty) return;
     onSavingChange(true);
     try {
-      const result = await run('/api/cas/sheet', {
+      const result = await run(api.cas('/sheet'), {
         method: 'POST',
         body: {
           academicYear: sheet.year.id,

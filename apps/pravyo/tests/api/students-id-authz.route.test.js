@@ -15,7 +15,7 @@ jest.mock("@/models/User", () => ({
 }));
 jest.mock("bcryptjs", () => ({ hash: jest.fn() }));
 jest.mock("@/lib/passwordGenerator", () => ({
-  generateStudentPassword: jest.fn(),
+  DEFAULT_STUDENT_PASSWORD: "password@123",
 }));
 jest.mock("@/lib/studentIdentity", () => ({
   generateUniqueStudentUsername: jest.fn(),

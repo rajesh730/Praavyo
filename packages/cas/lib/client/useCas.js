@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { publishCasChange, subscribeCasChanges } from './casSync.js';
+import { CAS_API_PREFIXES } from '../casApi.js';
 
 // Per-tab cache only: it makes ordinary in-app revisits instant without
 // persisting school data to disk or carrying it into a later login session.
@@ -69,7 +70,8 @@ export function useCasQuery(path) {
     invalidateCasQueryCache(path);
     setNonce((n) => n + 1);
   }, [path]);
-  useEffect(() => path?.startsWith('/api/cas/') ? subscribeCasChanges(reload) : undefined, [path, reload]);
+  // School and teacher screens both refresh live when anyone saves marks.
+  useEffect(() => CAS_API_PREFIXES.some((prefix) => path?.startsWith(prefix)) ? subscribeCasChanges(reload) : undefined, [path, reload]);
   const setData = useCallback((data) => {
     setResult((previous) => ({
       path, nonce, error: '',

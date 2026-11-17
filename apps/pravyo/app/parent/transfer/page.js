@@ -228,7 +228,10 @@ function SchoolPicker({ schools, busy, onChoose, t }) {
       (s) =>
         (!province || s.province === province) &&
         (!district || s.district === district) &&
-        (!q || s.name.toLowerCase().split(/\s+/).some((word) => word.startsWith(q)))
+        (!q
+          || s.name.toLowerCase().split(/\s+/).some((word) => word.startsWith(q))
+          // Or by the school's government IEMIS number.
+          || (s.iemisNumber && s.iemisNumber.toLowerCase().replace(/\s+/g, "").startsWith(q.replace(/\s+/g, ""))))
     );
   }, [schools, query, province, district]);
 
@@ -260,6 +263,7 @@ function SchoolPicker({ schools, busy, onChoose, t }) {
               <span className="min-w-0 flex-1">
                 <span className="block truncate font-semibold text-ink">{school.name}</span>
                 <span className="block truncate text-xs text-muted">{[school.district, school.province].filter(Boolean).join(", ") || school.location}</span>
+                {school.iemisNumber && <span className="block truncate text-xs text-muted">IEMIS {school.iemisNumber}</span>}
               </span>
               <button type="button" disabled={busy} onClick={() => onChoose(school)} className="btn btn-primary btn-sm shrink-0">
                 {t("transfer.choose")}

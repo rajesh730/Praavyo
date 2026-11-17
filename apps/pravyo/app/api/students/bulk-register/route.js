@@ -19,7 +19,7 @@ import {
   makeEnrollmentEntry,
 } from "../../../../lib/studentEnrollment.js";
 import bcrypt from "bcryptjs";
-import { generateStrongPassword } from "../../../../lib/passwordGenerator.js";
+import { DEFAULT_STUDENT_PASSWORD } from "../../../../lib/passwordGenerator.js";
 import { linkGuardianFromStudentRecord } from "../../../../lib/guardianLinking.js";
 import { checkStudentIemis } from "@/lib/iemisRegistry";
 
@@ -95,9 +95,8 @@ export async function POST(req) {
           reserved: reservedUsernames,
         });
         
-        // Random per-student password, surfaced once in the response so the
-        // school can distribute it. Not stored in plaintext.
-        const plainPassword = generateStrongPassword();
+        // Every student starts with the default password and changes it later.
+        const plainPassword = DEFAULT_STUDENT_PASSWORD;
         const hashedPassword = await bcrypt.hash(plainPassword, 10);
 
         // Roll number is free if no on-roster student holds it (graduated/

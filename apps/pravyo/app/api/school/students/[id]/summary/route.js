@@ -10,6 +10,7 @@ import {
 import { requireApiSession, getSessionSchoolId, sameId } from "@/lib/authz";
 import { buildStudentJourney } from "@/lib/parentJourney";
 import { getEquivalentGradeValues } from "@/lib/schoolGrades";
+import TeacherTeachingAssignment from "@pravyo/db/models/TeacherTeachingAssignment";
 
 export const dynamic = "force-dynamic";
 
@@ -54,6 +55,20 @@ export async function GET(request, { params }) {
       !sameId(schoolId, student.school)
     ) {
       return errorResponse(404, "Student not found", "NOT_FOUND");
+    }
+
+    // A teacher sees only the students they teach: the grades the school
+    // assigned them. Same answer as a missing student, so the endpoint cannot
+    // be used to probe the rest of the school's roster.
+    if (session.user.role === "TEACHER") {
+      const assignments = await TeacherTeachingAssignment.find({
+        school: schoolId,
+        teacher: session.user.id,
+      }).select("grade").lean();
+      const teaches = assignments.some((row) =>
+        getEquivalentGradeValues(row.grade).includes(student.grade)
+      );
+      if (!teaches) return errorResponse(404, "Student not found", "NOT_FOUND");
     }
 
     const [journey, school] = await Promise.all([

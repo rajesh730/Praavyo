@@ -1,4 +1,4 @@
-import { Bell as FaBell, BookOpen as FaBookOpen, Megaphone as FaBullhorn, Target as FaBullseye, CalendarDays as FaCalendarAlt, Presentation as FaChalkboardTeacher, PieChart as FaChartPie, CircleCheck as FaCheckCircle, ClipboardCheck as FaClipboardCheck, BadgeCheck as FaCertificate, Settings as FaCog, MessageSquareText as FaCommentDots, Feather as FaFeatherAlt, ArrowLeftRight as FaExchangeAlt, Globe as FaGlobe, GraduationCap as FaGraduationCap, HeartPulse as FaHeartbeat, History as FaHistory, House as FaHome, School as FaSchool, Trophy as FaTrophy, Users as FaUsers, ShieldUser as FaUserShield, LayoutGrid as FaThLarge, Inbox as FaInbox, UserRound } from "lucide-react";
+import { Bell as FaBell, BookOpen as FaBookOpen, Megaphone as FaBullhorn, Target as FaBullseye, CalendarDays as FaCalendarAlt, Presentation as FaChalkboardTeacher, PieChart as FaChartPie, CircleCheck as FaCheckCircle, ClipboardCheck as FaClipboardCheck, BadgeCheck as FaCertificate, Settings as FaCog, MessageSquareText as FaCommentDots, Feather as FaFeatherAlt, ArrowLeftRight as FaExchangeAlt, Globe as FaGlobe, GraduationCap as FaGraduationCap, HeartPulse as FaHeartbeat, History as FaHistory, House as FaHome, School as FaSchool, Trophy as FaTrophy, Users as FaUsers, ShieldUser as FaUserShield, LayoutGrid as FaThLarge, Inbox as FaInbox, KeyRound, UserRound } from "lucide-react";
 
 export const PUBLIC_NAV_LINKS = [
   { label: "Home", href: "/", key: "home", icon: FaHome },
@@ -56,7 +56,9 @@ export const SCHOOL_NAV_LINKS = [
 // so they are the daily ones; Events and Profile live under "Menu".
 export const TEACHER_NAV_LINKS = [
   { name: "Overview", href: "/teacher/dashboard", icon: FaChalkboardTeacher },
-  { name: "Assessment", href: "/teacher/dashboard?tab=assessment", icon: FaClipboardCheck },
+  // Exams: a chooser between CAS and the Internal Exam, as on the school
+  // dashboard. Each opens the teacher's exam workspace (/teacher/exams/...).
+  { name: "Exams", href: "/teacher/dashboard?tab=exams", icon: FaClipboardCheck },
   { name: "Results", href: "/teacher/dashboard?tab=results", icon: FaGraduationCap },
   { name: "Students", href: "/teacher/dashboard?tab=students", icon: FaUsers },
   { name: "Events", href: "/teacher/dashboard?tab=events", icon: FaCalendarAlt },
@@ -73,6 +75,7 @@ export const STUDENT_NAV_LINKS = [
   { name: "School Wall", href: "/student/school-wall", icon: FaSchool },
   { name: "School Magazine", href: "/student/magazine", icon: FaBookOpen },
   { name: "Feedback", href: "/student/feedback", icon: FaCommentDots },
+  { name: "Change Password", href: "/student/account", icon: KeyRound },
 ];
 
 export const STUDENT_QUICK_NAV_LINKS = STUDENT_NAV_LINKS.filter((link) =>

@@ -1,6 +1,7 @@
 import bcrypt from "bcryptjs";
 import connectDB from "@/lib/db";
 import Parent from "@/models/Parent";
+import { createParentWithUniqueId } from "@pravyo/db/parentIdentity";
 import {
   successResponse,
   errorResponse,
@@ -80,7 +81,7 @@ export async function POST(request) {
       );
     }
 
-    const parent = await Parent.create({
+    const parent = await createParentWithUniqueId(Parent, {
       name,
       email: email || undefined,
       phone: phone || undefined,

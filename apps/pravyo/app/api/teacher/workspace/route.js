@@ -60,34 +60,22 @@ export const GET = defineRoute({ roles: ['TEACHER'] }, async ({ session }) => {
   // The exam the school marked as current (live or upcoming) in Manage Exams.
   const currentExamIds = new Set(exams.filter((exam) => exam.isCurrent && exam.status === 'ACTIVE').map((exam) => String(exam._id)));
 
-  // How far each (exam, grade) the teacher holds is published. A published
-  // card locks that student's marks for the exam until the school unpublishes
-  // it in Manage Exams.
+  // Which (exam, grade) pairs the teacher holds are already published. A CAS
+  // exam is published for the whole grade at once, so one published card means
+  // the grade's result is out: its marks are locked until the school
+  // unpublishes it in Manage Exams, and it no longer waits for mark entry.
   const grantGrades = [...new Set(grants.map((row) => row.grade))];
-  const [publishedRows, gradeTotals] = grants.length ? await Promise.all([
-    CasReport.find({
-      school, academicYear: year._id, status: 'PUBLISHED',
-      exam: { $in: exams.map((exam) => exam._id) }, grade: { $in: grantGrades },
-    }).select('exam grade student').lean(),
-    Promise.all(grantGrades.map(async (grade) => [grade, await Student.countDocuments({
-      school, status: 'ACTIVE', isDeleted: { $ne: true }, grade: { $in: getEquivalentGradeValues(grade) },
-    })])),
-  ]) : [[], []];
-  const publishedStudents = new Map();
-  for (const row of publishedRows) {
-    const key = `${row.exam}|${row.grade}`;
-    if (!publishedStudents.has(key)) publishedStudents.set(key, new Set());
-    publishedStudents.get(key).add(String(row.student));
-  }
-  const totalByGrade = new Map(gradeTotals);
-  // A CAS exam is published for the whole grade at once — there is no partly
-  // published result. Until every student's card is out (e.g. a student who
-  // joined after publishing), the exam stays open for their marks.
-  const publication = (row) => {
-    const published = publishedStudents.get(`${row.exam}|${row.grade}`)?.size || 0;
-    const total = totalByGrade.get(row.grade) || 0;
-    return { publishStatus: published > 0 && published >= total ? 'PUBLISHED' : 'OPEN' };
-  };
+  // Report cards may spell a grade differently ("3", "Grade 3"); map each
+  // spelling back to the grade label the teacher was assigned.
+  const gradeLabel = new Map(grantGrades.flatMap((grade) => getEquivalentGradeValues(grade).map((value) => [value, grade])));
+  const publishedRows = grants.length ? await CasReport.find({
+    school, academicYear: year._id, status: 'PUBLISHED',
+    exam: { $in: exams.map((exam) => exam._id) }, grade: { $in: [...gradeLabel.keys()] },
+  }).select('exam grade').lean() : [];
+  const publishedKeys = new Set(publishedRows.map((row) => `${row.exam}|${gradeLabel.get(row.grade) || row.grade}`));
+  const publication = (row) => ({
+    publishStatus: publishedKeys.has(`${row.exam}|${row.grade}`) ? 'PUBLISHED' : 'OPEN',
+  });
   const subjectAssignments = assignments.filter((row) => row.assignmentType === 'SUBJECT_TEACHER' && subjectById.has(String(row.subject)));
   const classGrades = new Set(assignments.filter((row) => row.assignmentType === 'CLASS_TEACHER').map((row) => row.grade));
 

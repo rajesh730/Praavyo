@@ -22,6 +22,7 @@ export default function ImageUploadField({
   allowRemove = true,
   className = "",
   hint = "The original is not uploaded. A smaller WebP copy is created first.",
+  buttonClassName = "btn btn-soft mt-2 inline-flex items-center justify-center gap-2",
 }) {
   const inputRef = useRef(null);
   const [uploading, setUploading] = useState(false);
@@ -103,7 +104,7 @@ export default function ImageUploadField({
         type="button"
         disabled={uploading}
         onClick={() => inputRef.current?.click()}
-        className="btn btn-soft mt-2 inline-flex items-center justify-center gap-2"
+        className={buttonClassName}
       >
         {uploading ? <FaSpinner className="animate-spin" /> : <FaImage />}
         {uploading ? "Compressing and uploading..." : label}

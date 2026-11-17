@@ -42,6 +42,9 @@ export default function StudentLogin() {
       const result = await signIn("credentials", {
         email: username.trim(),
         password,
+        // Students only: the IEMIS number (or old username) is never tried
+        // against staff accounts.
+        loginScope: "student",
         redirect: false,
       });
 
@@ -92,7 +95,7 @@ export default function StudentLogin() {
     <AuthShell
       links={AUTH_LINKS}
       title="Student portal"
-      description="Sign in with the username and password provided by your school."
+      description="Sign in with your IEMIS number and password. It stays the same if you change school."
       footer={
         <p className="text-center text-sm text-muted">
           Need help? Contact your school administrator for account support.
@@ -107,20 +110,24 @@ export default function StudentLogin() {
 
       <form onSubmit={handleLogin} className="space-y-4">
         <Input
-          label="Username or email"
+          label="IEMIS number"
           id="username"
           name="username"
           type="text"
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          placeholder="Enter your username or email"
+          placeholder="Enter your IEMIS number"
           required
           disabled={loading}
           autoComplete="username"
           autoCapitalize="none"
           autoCorrect="off"
           spellCheck={false}
+          aria-describedby="iemis-hint"
         />
+        <p id="iemis-hint" className="-mt-2 text-xs text-muted">
+          It is printed on your report card. Your old username still works for now.
+        </p>
         <PasswordInput
           label="Password"
           id="password"

@@ -149,6 +149,7 @@ export function buildRosterRows({ students, links, parents }) {
       studentName: student.name,
       grade: student.grade || "",
       rollNumber: student.rollNumber || "",
+      iemisNumber: student.iemisNumber || "",
       studentStatus: student.status,
       coverage,
 

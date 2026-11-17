@@ -86,6 +86,8 @@ export async function GET(request) {
       const safe = escapeRegex(search);
       studentQuery.$or = [
         { name: { $regex: safe, $options: "i" } },
+        // The child's government IEMIS number, typed with or without spaces.
+        { iemisNumber: { $regex: escapeRegex(search.replace(/\s+/g, "")), $options: "i" } },
         { rollNumber: { $regex: safe, $options: "i" } },
         { platformStudentId: { $regex: safe, $options: "i" } },
         // Searching the registration parent name matters: it is how a school
@@ -107,7 +109,7 @@ export async function GET(request) {
         .skip(needsPostFilter ? 0 : skip)
         .limit(needsPostFilter ? CANDIDATE_CAP : limit)
         .select(
-          "name grade rollNumber status parentName parentEmail parentContactNumber guardianRelationship"
+          "name grade rollNumber iemisNumber status parentName parentEmail parentContactNumber guardianRelationship"
         )
         .lean(),
     ]);

@@ -239,6 +239,36 @@ export async function loadStudentSubjectProgress(actor, input) {
   return buildStudentSubjectProgress(actor, data);
 }
 
+/**
+ * One record per outcome for Student Progress.
+ *
+ * An outcome can hold more than one record for a student: one per exam it was
+ * assessed in, plus, for schools that used CAS before exams existed, an older
+ * record with no exam. Picking whichever the database returned last showed
+ * the wrong exam's levels, so the choice is explicit:
+ *   1. the record for the exam the outcome's theme is assigned to;
+ *   2. otherwise the most recently updated record that belongs to an exam;
+ *   3. otherwise the pre-exam record.
+ */
+export function pickProgressRecords(records, assignedExamsFor) {
+  const rank = (record) => {
+    if (!record.exam) return 0;
+    return assignedExamsFor(record)?.has(String(record.exam)) ? 2 : 1;
+  };
+  const updated = (record) => new Date(record.updatedAt || 0).getTime();
+  const chosen = new Map();
+  for (const record of records) {
+    const key = String(record.outcome);
+    const current = chosen.get(key);
+    if (!current
+      || rank(record) > rank(current)
+      || (rank(record) === rank(current) && updated(record) > updated(current))) {
+      chosen.set(key, record);
+    }
+  }
+  return chosen;
+}
+
 /** The progress itself, with no access check — callers authorise first. */
 export async function buildStudentSubjectProgress(actor, input) {
   const data = studentProgressQuery.parse(input);
@@ -268,14 +298,20 @@ export async function buildStudentSubjectProgress(actor, input) {
     outcome: { $in: allOutcomes.map((outcome) => outcome._id) },
     ...examFilter,
   }).lean();
-  const recordsByOutcome = new Map(records.map((record) => [String(record.outcome), record]));
   const assignments = await CasThemeExam.find({
     school: actor.school, academicYear: year.id, grade: data.grade, subject: subjectRow._id,
     ...examFilter,
-  }).select('themeKey').lean();
+  }).select('themeKey exam').lean();
   const assignedThemes = new Set(assignments.map((row) => row.themeKey));
+  const examsOfTheme = new Map();
+  for (const row of assignments) {
+    if (!examsOfTheme.has(row.themeKey)) examsOfTheme.set(row.themeKey, new Set());
+    examsOfTheme.get(row.themeKey).add(String(row.exam));
+  }
   // Keep existing marks visible even if an assignment is later adjusted.
   const themeOfOutcome = new Map(allOutcomes.map((o) => [String(o._id), themeIdentity(o)]));
+  const recordsByOutcome = pickProgressRecords(records, (record) =>
+    examsOfTheme.get(themeOfOutcome.get(String(record.outcome))));
   const assessedThemes = new Set(records
     .filter((record) => record.attempts?.length && themeOfOutcome.has(String(record.outcome)))
     .map((record) => themeOfOutcome.get(String(record.outcome))));

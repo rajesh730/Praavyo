@@ -6,6 +6,7 @@ import connectDB from '@pravyo/db';
 import User from '@pravyo/db/models/User';
 import Student from '@pravyo/db/models/Student';
 import Parent from '@pravyo/db/models/Parent';
+import { createParentWithUniqueId } from '@pravyo/db/parentIdentity';
 import ParentStudentLink, { applyAccessLevelDefaults } from '@pravyo/db/models/ParentStudentLink';
 import SchoolConfig from '@pravyo/db/models/SchoolConfig';
 import AcademicYear from '@pravyo/db/models/AcademicYear';
@@ -69,7 +70,7 @@ function splitName(full) {
 }
 
 async function addGuardian({ name, relationship, primary, student }) {
-  const parent = await Parent.create({ name, status: 'ACTIVE', accessState: 'NOT_CREATED' });
+  const parent = await createParentWithUniqueId(Parent, { name, status: 'ACTIVE', accessState: 'NOT_CREATED' });
   const preset = applyAccessLevelDefaults({ accessLevel: 'VIEW_AND_NOTICES' });
   await ParentStudentLink.create({
     parent: parent._id,

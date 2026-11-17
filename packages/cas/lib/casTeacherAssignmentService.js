@@ -5,6 +5,7 @@ import { teacherIdsAtSchool } from '@pravyo/db/teacherMemberships';
 import CasExam from '@pravyo/db/models/cas/CasExam';
 import CasSubject from '@pravyo/db/models/cas/CasSubject';
 import CasExamTeacherAssignment from '@pravyo/db/models/cas/CasExamTeacherAssignment';
+import TeacherTeachingAssignment from '@pravyo/db/models/TeacherTeachingAssignment';
 import ensureCasIndexes from './casIndexes.js';
 import { assert, requireSchoolAdmin } from './casAccess.js';
 import { loadAcademicYear } from './casContext.js';
@@ -45,6 +46,23 @@ export async function assertTeacherExamAssignment(actor, {
   });
   if (session) query.session(session);
   assert(await query, 'Your school has not assigned you to this exam subject', 403);
+}
+
+/**
+ * The grades a teacher works in, per workspace, so their Grade filter lists
+ * only those:
+ *   - cas:      grades where the school opened a CAS exam subject to them
+ *   - internal: grades the school assigned them on the Teachers page
+ * Returns null for anyone but a teacher (the school sees every grade).
+ */
+export async function teacherGradeScope(actor) {
+  if (actor.role !== 'TEACHER') return null;
+  await connectDB();
+  const [cas, internal] = await Promise.all([
+    CasExamTeacherAssignment.distinct('grade', { school: actor.school, teacher: actor.id }),
+    TeacherTeachingAssignment.distinct('grade', { school: actor.school, teacher: actor.id }),
+  ]);
+  return { cas, internal };
 }
 
 /** A teacher may see a roster only where they have at least one exam assignment. */

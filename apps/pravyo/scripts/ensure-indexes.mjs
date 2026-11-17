@@ -11,6 +11,8 @@ import EventSchoolInvitation from "../models/EventSchoolInvitation.js";
 import FAQ from "../models/FAQ.js";
 import MagazineIssue from "../models/MagazineIssue.js";
 import Notice from "../models/Notice.js";
+import Parent from "../models/Parent.js";
+import ParentStudentLink from "../models/ParentStudentLink.js";
 import ParticipationRequest from "../models/ParticipationRequest.js";
 import RoundParticipant from "../models/RoundParticipant.js";
 import RoundSubmission from "../models/RoundSubmission.js";
@@ -22,6 +24,7 @@ import SchoolInquiry from "../models/SchoolInquiry.js";
 import Training from "../models/Training.js";
 import TrainingRegistration from "../models/TrainingRegistration.js";
 import Student from "../models/Student.js";
+import StudentTransfer from "../models/StudentTransfer.js";
 import Teacher from "../models/Teacher.js";
 import User from "../models/User.js";
 import Feedback from "../models/Feedback.js";
@@ -42,6 +45,11 @@ const models = [
   FAQ,
   MagazineIssue,
   Notice,
+  // Parent IDs must be unique across every school: the unique `parentId`
+  // index is what makes a duplicate impossible, so it must exist on every
+  // database, not only on the one where it was first created by hand.
+  Parent,
+  ParentStudentLink,
   ParticipationRequest,
   RoundParticipant,
   RoundSubmission,
@@ -53,6 +61,7 @@ const models = [
   Training,
   TrainingRegistration,
   Student,
+  StudentTransfer,
   Teacher,
   User,
   Feedback,

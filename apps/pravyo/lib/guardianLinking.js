@@ -1,4 +1,5 @@
 import Parent from "@/models/Parent";
+import { createParentWithUniqueId } from "@pravyo/db/parentIdentity";
 import ParentStudentLink, {
   applyAccessLevelDefaults,
   PARENT_RELATIONSHIP_TYPES,
@@ -150,7 +151,7 @@ export async function linkGuardianFromStudentRecord({
     let parent = matched;
 
     if (!parent) {
-      parent = await Parent.create({
+      parent = await createParentWithUniqueId(Parent, {
         name: guardianName,
         // Drop a contact that belongs to a DIFFERENT guardian. Keeping it would
         // violate the unique index, and it was never this person's detail

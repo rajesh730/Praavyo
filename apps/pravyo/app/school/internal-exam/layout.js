@@ -20,14 +20,20 @@ export default async function CasAreaLayout({ children }) {
     redirect('/login');
   }
 
+  // Teachers enter marks in their own area (/teacher/exams/...), on the
+  // teacher API. This area and its API belong to the school.
+  if (session.user.role === 'TEACHER') {
+    redirect('/teacher/dashboard?tab=exams');
+  }
+
   // Guardians and students read published results in their own dashboards.
   // CAS deliberately does not rebuild that portal.
-  if (!['SCHOOL_ADMIN', 'TEACHER'].includes(session.user.role)) {
+  if (session.user.role !== 'SCHOOL_ADMIN') {
     return (
       <main className="flex min-h-screen items-center justify-center px-4">
         <div className="card max-w-md text-center">
           <h1 className="font-semibold text-ink">
-            Internal exams are for schools and teachers
+            Internal exams are for schools
           </h1>
           <p className="mt-2 text-sm text-muted">
             Published results appear in your dashboard under Student Result.

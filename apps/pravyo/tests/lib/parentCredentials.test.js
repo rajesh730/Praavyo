@@ -1,7 +1,7 @@
 jest.mock("@pravyo/db", () => jest.fn());
 jest.mock("@pravyo/db/models/Parent", () => ({
   __esModule: true,
-  default: { findOne: jest.fn(), exists: jest.fn() },
+  default: { findOne: jest.fn(), find: jest.fn(), exists: jest.fn() },
 }));
 jest.mock("@pravyo/db/models/ParentActivation", () => ({
   __esModule: true,
@@ -55,9 +55,10 @@ function parentDoc(overrides = {}) {
   };
 }
 
-/** Parent.findOne(...) resolving to `doc`. */
+/** The Parent lookups resolving to `doc` (sign-in uses find().limit(2)). */
 function foundParent(doc) {
   Parent.findOne.mockResolvedValue(doc);
+  Parent.find.mockReturnValue({ limit: jest.fn().mockResolvedValue(doc ? [doc] : []) });
 }
 
 beforeEach(() => {
@@ -189,7 +190,7 @@ describe("signing in with a Parent ID", () => {
     const result = await verifyParentId("prvpx7k4q9");
 
     expect(result.ok).toBe(true);
-    expect(Parent.findOne).toHaveBeenCalledWith(
+    expect(Parent.find).toHaveBeenCalledWith(
       expect.objectContaining({ parentId: PARENT_ID })
     );
   });
@@ -237,7 +238,18 @@ describe("signing in with a Parent ID", () => {
   it("rejects a malformed Parent ID without touching the database", async () => {
     const result = await verifyParentId("not-an-id");
     expect(result.ok).toBe(false);
-    expect(Parent.findOne).not.toHaveBeenCalled();
+    expect(Parent.find).not.toHaveBeenCalled();
+  });
+
+  it("refuses when a Parent ID matches two guardians, rather than picking one", async () => {
+    const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
+    Parent.find.mockReturnValue({
+      limit: jest.fn().mockResolvedValue([parentDoc(), parentDoc({ name: "Another guardian" })]),
+    });
+    const result = await verifyParentId(PARENT_ID);
+    expect(result.ok).toBe(false);
+    expect(result.code).toBe("INVALID_CREDENTIALS");
+    errorSpy.mockRestore();
   });
 
   it("rejects a revoked guardian", async () => {

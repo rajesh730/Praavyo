@@ -13,12 +13,12 @@ import { Card, Field, Select } from './ui/Kit.js';
  * carries over to Mark Entry and Results; choices last until a refresh.
  */
 export function useInternalExamFilters({ withSection = true } = {}) {
-  const { school, years, academicYear, setYearId, actor } = useCas();
+  const { school, years, academicYear, setYearId, actor, api } = useCas();
   const [chosenGrade, setGrade] = useRememberedState('internal-exam:grade', '');
   const [chosenSection, setSection] = useRememberedState('internal-exam:section', '');
   const [chosenExam, setExam] = useRememberedState('internal-exam:exam', '');
 
-  const gradesQuery = useCasQuery(actor?.role === 'TEACHER' ? '/api/cas/internal-exams' : null);
+  const gradesQuery = useCasQuery(actor?.role === 'TEACHER' ? api.internal() : null);
   const taught = gradesQuery.data?.grades;
   const grades = (school?.grades || []).filter((item) => !taught || taught.includes(item));
   const grade = grades.includes(chosenGrade) ? chosenGrade : grades[0] || '';
@@ -26,7 +26,7 @@ export function useInternalExamFilters({ withSection = true } = {}) {
   const section = withSection && sections.includes(chosenSection) ? chosenSection : '';
 
   const examsPath = grade && academicYear?.id
-    ? `/api/cas/internal-exams?${new URLSearchParams({ academicYear: academicYear.id, grade })}`
+    ? `${api.internal()}?${new URLSearchParams({ academicYear: academicYear.id, grade })}`
     : null;
   const examsQuery = useCasQuery(examsPath);
   const exams = examsQuery.data?.exams || [];

@@ -140,7 +140,9 @@ export default function GuardianManager({
           <h2 className="font-semibold text-ink">
             {student.name}
           </h2>
-          <p className="text-sm text-muted">{student.grade}</p>
+          <p className="text-sm text-muted">
+            {[student.grade, (state.data.student?.iemisNumber || student.iemisNumber) && `IEMIS ${state.data.student?.iemisNumber || student.iemisNumber}`].filter(Boolean).join(" · ")}
+          </p>
         </div>
         <button
           type="button"

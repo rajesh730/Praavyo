@@ -7,7 +7,7 @@ import { useEffect } from 'react';
 import { LogOut as FaSignOutAlt, X as FaTimes, ArrowLeft as FaArrowLeft } from 'lucide-react';
 import PravyoLogo from './brand/PravyoLogo.js';
 import NavItemLink from './navigation/NavItemLink.js';
-import { CAS_NAV_LINKS } from './navigation/casNavigation.js';
+import { CAS_NAV_LINKS, isCasLinkActive } from './navigation/casNavigation.js';
 
 export default function CasSidebar({ school, academicYear, isMobileOpen, onNavigate, links = CAS_NAV_LINKS, returnHref = '/school/dashboard', area = 'cas' }) {
   const { data: session } = useSession();
@@ -64,11 +64,7 @@ export default function CasSidebar({ school, academicYear, isMobileOpen, onNavig
             label={link.name}
             initials={link.initials}
             icon={link.icon}
-            active={
-              link.href === '/'
-                ? pathname === '/'
-                : pathname === link.href || pathname?.startsWith(`${link.href}/`)
-            }
+            active={isCasLinkActive(link, pathname, links)}
             onClick={onNavigate}
           />
         ))}

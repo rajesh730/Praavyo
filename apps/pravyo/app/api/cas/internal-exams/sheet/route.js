@@ -1,9 +1,7 @@
 import { handler } from '@pravyo/cas/lib/casRoute';
-import { loadSheet } from '@pravyo/cas/lib/internalExamService';
+import * as internal from '@/lib/exams/internalExamEndpoints';
 
 export const dynamic = 'force-dynamic';
 
-export const GET = handler(({ actor, query }) => loadSheet(actor, {
-  exam: query.get('exam') || '',
-  section: query.get('section') || '',
-}));
+// Shared with the teacher API (/api/teacher/exams/...): see lib/exams/.
+export const GET = handler(internal.sheet);

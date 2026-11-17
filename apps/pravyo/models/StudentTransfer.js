@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { schoolIemisNumber, studentIemisNumber } from "@pravyo/db/iemis";
 
 // A transfer record for moving an existing student between schools.
 // Flow: a parent (guardian) requests release -> current school approves and
@@ -107,6 +108,14 @@ const StudentTransferSchema = new mongoose.Schema(
       default: "",
       trim: true,
     },
+    // Government IEMIS identity at the time of the move: which student, from
+    // which school, to which school. Filled by the pre-save hook below and
+    // never rewritten afterwards (except the destination, while the family is
+    // still choosing it), so the record stays a faithful history even if a
+    // number is corrected later.
+    studentIemisNumber: { type: String, default: "", trim: true, uppercase: true },
+    fromSchoolIemisNumber: { type: String, default: "", trim: true, uppercase: true },
+    toSchoolIemisNumber: { type: String, default: "", trim: true, uppercase: true },
     reason: {
       type: String,
       default: "",
@@ -130,6 +139,21 @@ const StudentTransferSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+StudentTransferSchema.pre("save", async function fillIemisSnapshots() {
+  const session = this.$session();
+  if (this.student && !this.studentIemisNumber) {
+    this.studentIemisNumber = await studentIemisNumber(this.student, { session });
+  }
+  if (this.fromSchool && !this.fromSchoolIemisNumber) {
+    this.fromSchoolIemisNumber = await schoolIemisNumber(this.fromSchool, { session });
+  }
+  // The destination changes while the family chooses (and after a decline);
+  // once the transfer completes it no longer changes.
+  if (this.isNew || this.isModified("toSchool")) {
+    this.toSchoolIemisNumber = this.toSchool ? await schoolIemisNumber(this.toSchool, { session }) : "";
+  }
+});
+
 // Only one open (PENDING) transfer per student at a time.
 StudentTransferSchema.index(
   { student: 1 },
@@ -150,6 +174,7 @@ const existingStudentTransferModel = mongoose.models.StudentTransfer;
 if (
   existingStudentTransferModel &&
   (!existingStudentTransferModel.schema.path("transferCode") ||
+    !existingStudentTransferModel.schema.path("studentIemisNumber") ||
     !existingStudentTransferModel.schema
       .path("status")
       ?.enumValues?.includes("PENDING_RELEASE"))

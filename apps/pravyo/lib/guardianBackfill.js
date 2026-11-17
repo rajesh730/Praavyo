@@ -1,6 +1,7 @@
 import connectDB from "@/lib/db";
 import Student from "@/models/Student";
 import Parent from "@/models/Parent";
+import { createParentWithUniqueId, saveParentWithUniqueId } from "@pravyo/db/parentIdentity";
 import ParentStudentLink from "@/models/ParentStudentLink";
 import SchoolConfig from "@/models/SchoolConfig";
 import {
@@ -232,7 +233,7 @@ async function splitMergedGuardians(schoolId) {
         // Create the separate guardian WITHOUT the contact details that belong
         // to the account being split away from — those were the placeholder
         // that caused the merge, and the unique index would reject them.
-        const replacement = await Parent.create({
+        const replacement = await createParentWithUniqueId(Parent, {
           name: group.name,
           status: "ACTIVE",
           accessState: "NOT_CREATED",
@@ -290,12 +291,13 @@ async function backfillParentIds(schoolId) {
 
   for (const parent of parents) {
     try {
-      // The pre-save hook fills parentId when it is missing.
-      await parent.save();
+      // The pre-save hook fills parentId when it is missing; another ID is
+      // drawn if that one was taken in the same instant.
+      await saveParentWithUniqueId(parent);
       assigned += 1;
     } catch (err) {
-      // A collision on the generated ID is retried by the allocator; anything
-      // else here should not stop the rest of the batch.
+      // A Parent ID clash is retried above; anything else here should not
+      // stop the rest of the batch.
       console.error(
         "[guardianBackfill] could not assign a Parent ID:",
         err.message

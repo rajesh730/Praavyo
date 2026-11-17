@@ -40,11 +40,10 @@ export function generateStrongPassword() {
 }
 
 /**
- * Generate student password from their details.
- * Format: FirstName + RollNumber + @ + Grade (no spaces)
- * Example: John12@Class10A
+ * Every student starts with this password: on registration (single or bulk),
+ * when the school resets it, and when credentials are repaired. The student
+ * then changes it from their own account (/student/account). Students sign in
+ * with their IEMIS number, so the shared starting password is paired with an
+ * identifier only they and their school hold.
  */
-export function generateStudentPassword(firstName, rollNumber, grade) {
-  const cleanGrade = (grade || "").replace(/\s+/g, "");
-  return `${firstName}${rollNumber}@${cleanGrade}`;
-}
+export const DEFAULT_STUDENT_PASSWORD = "password@123";

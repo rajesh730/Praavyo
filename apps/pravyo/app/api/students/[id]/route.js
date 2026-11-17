@@ -4,13 +4,14 @@ import Student from '@/models/Student';
 import SchoolConfig from '@/models/SchoolConfig';
 import User from '@/models/User';
 import bcrypt from 'bcryptjs';
-import { generateStudentPassword } from '@/lib/passwordGenerator';
+import { DEFAULT_STUDENT_PASSWORD } from '@/lib/passwordGenerator';
 import { generateUniqueStudentUsername } from '@/lib/studentIdentity';
 import { normalizeGradeValue } from '@/lib/schoolGrades';
 import { getSessionSchoolId, requireApiSession } from '@/lib/authz';
 import { syncGuardianFromStudentRecord } from '@/lib/guardianLinking';
 import { resolveStudentSection } from '@/lib/gradeSections';
 import { checkStudentIemis } from '@/lib/iemisRegistry';
+import { syncStudentIemisOnLinks } from '@pravyo/db/iemis';
 
 export async function PUT(req, { params }) {
     try {
@@ -174,9 +175,9 @@ export async function PUT(req, { params }) {
             updateData.middleName = middleName;
             updateData.lastName = lastName;
 
-            // Update Credentials if Name or Roll Number changes
-            // Note: This changes the student's login. Admin should be aware.
-            const cleanFirstName = firstName.replace(/[^a-zA-Z0-9]/g, "") || "Student";
+            // Keep the username in step with the name. The password is left
+            // alone: it may be one the student chose, and students sign in
+            // with their IEMIS number, not the username.
             updateData.username = await generateUniqueStudentUsername(Student, {
                 firstName,
                 grade: normalizedGrade,
@@ -184,7 +185,6 @@ export async function PUT(req, { params }) {
                 school: schoolId,
                 excludeId: id,
             });
-            updateData.password = await bcrypt.hash(`${cleanFirstName}@123`, 10);
         }
 
         Object.keys(updateData).forEach((key) => {
@@ -204,6 +204,12 @@ export async function PUT(req, { params }) {
             updateData,
             { new: true, runValidators: true }
         );
+
+        // Parent links carry the child's IEMIS number; keep them in step when
+        // the school corrects it.
+        if (updatedStudent && (existingStudent.iemisNumber || '') !== (updatedStudent.iemisNumber || '')) {
+            await syncStudentIemisOnLinks(updatedStudent._id);
+        }
 
         // Keep the guardian record in step with the student's parent details.
         // Without this a school that corrects a parent's name or adds a missing
@@ -283,12 +289,8 @@ export async function PATCH(req, { params }) {
             return NextResponse.json({ message: 'Student not found' }, { status: 404 });
         }
 
-        const firstName = (studentDoc.firstName || studentDoc.name?.split(' ')?.[0] || 'Student').trim();
-        const newPassword = generateStudentPassword(
-            firstName,
-            studentDoc.rollNumber,
-            studentDoc.grade
-        );
+        // A reset puts the student back on the default password.
+        const newPassword = DEFAULT_STUDENT_PASSWORD;
 
         const hashedPassword = await bcrypt.hash(newPassword, 10);
 

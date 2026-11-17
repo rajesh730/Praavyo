@@ -8,7 +8,7 @@ import TeacherEventOperations from "@/components/teacher/TeacherEventOperations"
 import ProgramManager from "@/components/programs/ProgramManager";
 import UpcomingPrograms from "@/components/programs/UpcomingPrograms";
 import OverviewTab from "@/components/teacher/workspace/OverviewTab";
-import AssessmentTab from "@/components/teacher/workspace/AssessmentTab";
+import ExamsTab from "@/components/teacher/workspace/ExamsTab";
 import ResultsTab from "@/components/teacher/workspace/ResultsTab";
 import StudentsTab from "@/components/teacher/workspace/StudentsTab";
 import ProfileTab from "@/components/teacher/workspace/ProfileTab";
@@ -30,11 +30,11 @@ const TABS = {
     description: "Your school, what is open for marks, and the latest results.",
     Component: OverviewTab,
   },
-  assessment: {
+  exams: {
     icon: ClipboardCheck,
-    title: () => "Assessment",
-    description: "Enter marks for the exams and subjects your school assigned to you.",
-    Component: AssessmentTab,
+    title: () => "Exams",
+    description: "Choose CAS for Grades 1–5 assessment, or the internal exam for marks.",
+    Component: ExamsTab,
   },
   results: {
     icon: GraduationCap,
@@ -73,7 +73,9 @@ function TeacherWorkspace() {
   const { data: session, status } = useSession();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const tabKey = TABS[searchParams.get("tab")] ? searchParams.get("tab") : "overview";
+  // "assessment" was the old CAS list; CAS now opens its own workspace from Exams.
+  const requestedTab = searchParams.get("tab") === "assessment" ? "exams" : searchParams.get("tab");
+  const tabKey = TABS[requestedTab] ? requestedTab : "overview";
   const tab = TABS[tabKey];
   const { workspace, error, reload } = useTeacherWorkspace();
 

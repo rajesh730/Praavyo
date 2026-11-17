@@ -8,7 +8,11 @@ import { useRememberedState } from '@pravyo/ui/rememberedState';
 import { Menu as FaBars, X as FaTimes } from 'lucide-react';
 import PravyoLogo from './brand/PravyoLogo.js';
 import CasSidebar from './CasSidebar.js';
-import { CAS_NAV_LINKS, CAS_TO_INTERNAL_LINK, INTERNAL_EXAM_NAV_LINKS } from './navigation/casNavigation.js';
+import {
+  CAS_NAV_LINKS, CAS_TO_INTERNAL_LINK, INTERNAL_EXAM_NAV_LINKS,
+  TEACHER_CAS_NAV_LINKS, TEACHER_INTERNAL_NAV_LINKS, isCasLinkActive,
+} from './navigation/casNavigation.js';
+import { casApiFor } from '../lib/casApi.js';
 import { usesResultSheet } from '../lib/casResultSheet.js';
 import { pickBilingual } from '../lib/casBilingual.js';
 import { casFetch, invalidateCasQueryCache, useCasQuery } from '../lib/client/useCas.js';
@@ -22,7 +26,6 @@ import InstallAppButton from '@pravyo/ui/installApp';
  * school, grade list and academic year instead of each refetching them.
  */
 const CasContext = createContext(null);
-const CONTEXT_PATH = '/api/cas/context';
 const EMPTY_YEARS = [];
 
 function readStoredLanguage() {
@@ -49,8 +52,14 @@ export function useCas() {
 /**
  * `area` picks the workspace: 'cas' (theme assessment, Grades 1–5 only) or
  * 'internal' (the school's own marks exams, every grade).
+ *
+ * `audience` picks whose workspace it is: 'school' (the /school/... area, the
+ * school's API) or 'teacher' (the /teacher/exams/... area, the teacher's API).
+ * Screens call `useCas().api` so they never hard-code either.
  */
-export default function CasLayout({ children, embedded = false, area = 'cas' }) {
+export default function CasLayout({ children, embedded = false, area = 'cas', audience = 'school' }) {
+  const api = useMemo(() => casApiFor(audience), [audience]);
+  const contextPath = api.cas('/context');
   const { data: session, status } = useSession();
   const [isNavOpen, setIsNavOpen] = useState(false);
   const pathname = usePathname();
@@ -72,8 +81,8 @@ export default function CasLayout({ children, embedded = false, area = 'cas' }) 
 
   // Sections, grades and years are edited on the Pravyo dashboard, often in
   // another tab. Start from a fresh copy rather than the per-tab cache...
-  useState(() => invalidateCasQueryCache(CONTEXT_PATH));
-  const { data: context, loading, error, setData: setContext } = useCasQuery(CONTEXT_PATH);
+  useState(() => invalidateCasQueryCache(contextPath));
+  const { data: context, loading, error, setData: setContext } = useCasQuery(contextPath);
 
   useEffect(() => {
     configureCasRealtime(context?.actor?.school);
@@ -88,10 +97,10 @@ export default function CasLayout({ children, embedded = false, area = 'cas' }) 
     let cancelled = false;
     const refresh = () => {
       if (document.visibilityState !== 'visible') return;
-      casFetch(CONTEXT_PATH)
+      casFetch(contextPath)
         .then((fresh) => {
           if (cancelled) return;
-          invalidateCasQueryCache(CONTEXT_PATH);
+          invalidateCasQueryCache(contextPath);
           setContext(fresh);
         })
         .catch(() => {});
@@ -104,7 +113,7 @@ export default function CasLayout({ children, embedded = false, area = 'cas' }) 
       window.removeEventListener('focus', refresh);
       document.removeEventListener('visibilitychange', refresh);
     };
-  }, [setContext]);
+  }, [setContext, contextPath]);
   useEffect(() => {
     if (pathname !== firstPath.current) refreshContext.current?.();
   }, [pathname]);
@@ -139,12 +148,17 @@ export default function CasLayout({ children, embedded = false, area = 'cas' }) 
     years.find((y) => y.id === yearId) || context?.selectedYear || null;
 
   // CAS assesses Grades 1–5 only; Grades 6–10 have internal exams instead.
-  // The super admin's theme library keeps its own grade list.
+  // The super admin's theme library keeps its own grade list. A teacher sees
+  // only the grades the school assigned them in this workspace.
   const school = useMemo(() => {
     const row = context?.school || null;
-    if (!row || area !== 'cas' || row.library) return row;
-    return { ...row, grades: (row.grades || []).filter(usesResultSheet) };
-  }, [context?.school, area]);
+    if (!row || row.library) return row;
+    const taught = context?.teacherGrades?.[area === 'internal' ? 'internal' : 'cas'];
+    const grades = (row.grades || [])
+      .filter((grade) => area !== 'cas' || usesResultSheet(grade))
+      .filter((grade) => !taught || taught.includes(grade));
+    return { ...row, grades };
+  }, [context?.school, context?.teacherGrades, area]);
 
   const value = useMemo(
     () => ({
@@ -155,11 +169,12 @@ export default function CasLayout({ children, embedded = false, area = 'cas' }) 
       setYearId,
       lang,
       setLang,
+      api,
       // Prefer the selected language, but never hide curriculum text that has
       // only been supplied in the other language.
       t: (en, ne) => pickBilingual(en, ne, lang),
     }),
-    [context, school, years, academicYear, setYearId, lang, setLang],
+    [context, school, years, academicYear, setYearId, lang, setLang, api],
   );
 
   if (status === 'loading' || loading) {
@@ -191,16 +206,16 @@ export default function CasLayout({ children, embedded = false, area = 'cas' }) 
     return <CasContext.Provider value={value}>{children}</CasContext.Provider>;
   }
 
-  const isTeacher = context?.actor?.role === 'TEACHER';
-  const areaLinks = area === 'internal' ? INTERNAL_EXAM_NAV_LINKS : [...CAS_NAV_LINKS, CAS_TO_INTERNAL_LINK];
-  // Teachers: CAS Assessment, Student Progress (their own students only, see
-  // casProgressAccess) and Internal Exam mark entry.
+  const isTeacher = api.audience === 'teacher';
+  // Same layout for both: each workspace has its own menu ending in a link to
+  // the other one. Teachers get only their screens, on /teacher/exams/...:
+  // CAS mark entry and Student Progress (their own students, see
+  // casProgressAccess), and Internal Exam mark entry.
   const visibleLinks = isTeacher
-    ? (area === 'internal' ? [INTERNAL_EXAM_NAV_LINKS[0], INTERNAL_EXAM_NAV_LINKS.at(-1)] : [CAS_NAV_LINKS[0], CAS_NAV_LINKS[1], CAS_TO_INTERNAL_LINK])
-    : areaLinks;
+    ? (area === 'internal' ? TEACHER_INTERNAL_NAV_LINKS : TEACHER_CAS_NAV_LINKS)
+    : (area === 'internal' ? INTERNAL_EXAM_NAV_LINKS : [...CAS_NAV_LINKS, CAS_TO_INTERNAL_LINK]);
   const tabLinks = visibleLinks.slice(0, 4);
-  const isLinkActive = (link) =>
-    link.href === '/' ? pathname === '/' : pathname === link.href || pathname?.startsWith(`${link.href}/`);
+  const isLinkActive = (link) => isCasLinkActive(link, pathname, visibleLinks);
 
   return (
     <CasContext.Provider value={value}>
@@ -221,7 +236,8 @@ export default function CasLayout({ children, embedded = false, area = 'cas' }) 
           onNavigate={() => setIsNavOpen(false)}
           links={visibleLinks}
           area={area}
-          returnHref={isTeacher ? '/teacher/dashboard?tab=assessment' : '/school/dashboard'}
+          // Teachers return to their Exams page (CAS / Internal Exam chooser).
+          returnHref={isTeacher ? '/teacher/dashboard?tab=exams' : '/school/dashboard'}
         />
 
         <div className="app-main cas-print-flush">

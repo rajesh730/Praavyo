@@ -32,3 +32,36 @@ export const INTERNAL_EXAM_NAV_LINKS = [
 ];
 
 export const CAS_TO_INTERNAL_LINK = { name: 'Internal Exam', href: '/school/internal-exam/marks', icon: FaCalendarAlt, initials: 'IE' };
+
+/**
+ * The teacher's exam workspaces, on the teacher's own URLs and API
+ * (/teacher/exams/..., /api/teacher/exams/...). A teacher never opens the
+ * school's /school/... screens; the school assigns them grades and subjects.
+ *
+ * Laid out like the school's: each workspace has its own menu, and its last
+ * link switches to the other workspace (CAS <-> Internal Exam).
+ */
+export const TEACHER_CAS_NAV_LINKS = [
+  { name: 'Assessment', href: '/teacher/exams/cas', icon: FaClipboardCheck, initials: 'CA' },
+  { name: 'Student Progress', href: '/teacher/exams/cas/progress', icon: FaChartLine, initials: 'SP' },
+  { name: 'Internal Exam', href: '/teacher/exams/internal', icon: FaCalendarAlt, initials: 'IE' },
+];
+
+export const TEACHER_INTERNAL_NAV_LINKS = [
+  { name: 'Mark Entry', href: '/teacher/exams/internal', icon: FaClipboardCheck, initials: 'ME' },
+  { name: 'CAS (Grades 1–5)', href: '/teacher/exams/cas', icon: FaFolderOpen, initials: 'CA' },
+];
+
+/**
+ * Is `link` the current screen? A link also covers the pages below it, unless
+ * another link in the same menu is a closer match (so on
+ * /teacher/exams/cas/progress, "Student Progress" is active, not "CAS Marks").
+ */
+export function isCasLinkActive(link, pathname, links = []) {
+  if (link.href === '/') return pathname === '/';
+  if (pathname === link.href) return true;
+  if (!pathname?.startsWith(`${link.href}/`)) return false;
+  return !links.some((other) => other.href !== link.href
+    && other.href.startsWith(`${link.href}/`)
+    && (pathname === other.href || pathname.startsWith(`${other.href}/`)));
+}

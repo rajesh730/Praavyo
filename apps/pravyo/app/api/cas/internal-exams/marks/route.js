@@ -1,6 +1,7 @@
-import { handler, jsonBody } from '@pravyo/cas/lib/casRoute';
-import { saveMarks } from '@pravyo/cas/lib/internalExamService';
+import { handler } from '@pravyo/cas/lib/casRoute';
+import * as internal from '@/lib/exams/internalExamEndpoints';
 
 export const dynamic = 'force-dynamic';
 
-export const PUT = handler(async ({ actor, request }) => saveMarks(actor, await jsonBody(request)));
+// Shared with the teacher API (/api/teacher/exams/...): see lib/exams/.
+export const PUT = handler(internal.marks);

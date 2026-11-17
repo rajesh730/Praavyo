@@ -75,5 +75,5 @@ export function openMarkEntry(router, row) {
   rememberValue('cas-assessment:exam', row.examId || '');
   rememberValue('cas-assessment:student', '');
   rememberValue('cas-assessment:theme', '');
-  router.push('/school/cas/assessment');
+  router.push('/teacher/exams/cas');
 }

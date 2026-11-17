@@ -56,7 +56,7 @@ export default function OverviewTab({ workspace }) {
             <CardHeading
               title="Open for mark entry"
               description="CAS exams your school opened for you."
-              action={<SeeAll href="/teacher/dashboard?tab=assessment" />}
+              action={<SeeAll href="/teacher/dashboard?tab=exams" />}
             />
           </div>
           {openForEntry.length === 0 ? (

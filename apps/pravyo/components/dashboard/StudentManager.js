@@ -329,7 +329,7 @@ export default function StudentManager({ initialGrade, hideGradeFilter = false }
       type: "reset-password",
       student,
       title: "Reset student password?",
-      message: `A new temporary password will be generated for ${student.name}. Share it only with the student or school staff responsible for the account.`,
+      message: `${student.name}'s password will go back to password@123. They sign in with their IEMIS number and can then choose a new password.`,
       confirmLabel: "Reset password",
       tone: "warning",
       busy: false,
@@ -354,7 +354,7 @@ export default function StudentManager({ initialGrade, hideGradeFilter = false }
       setFeedback({
         type: "success",
         title: "Password reset",
-        message: `A new temporary password is ready for ${student.name}.`,
+        message: `${student.name}'s password is now password@123.`,
       });
 
       if (data.credentials) {

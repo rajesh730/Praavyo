@@ -8,7 +8,7 @@ import {
 } from "@/lib/studentIdentity";
 import { normalizeGradeValue } from "@/lib/schoolGrades";
 import { buildPagination, escapeRegex, parsePagination } from "@/lib/pagination";
-import { generateStrongPassword } from "@/lib/passwordGenerator";
+import { DEFAULT_STUDENT_PASSWORD } from "@/lib/passwordGenerator";
 import { checkStudentIemis } from "@/lib/iemisRegistry";
 import {
   linkGuardianFromStudentRecord,
@@ -62,8 +62,8 @@ export async function POST(req) {
             middleName = nameParts.slice(1, -1).join(" ");
         }
 
-        // Random password, returned once to the school for distribution.
-        const password = generateStrongPassword();
+        // Every student starts with the default password and changes it later.
+        const password = DEFAULT_STUDENT_PASSWORD;
         const hashedPassword = await bcrypt.hash(password, 10);
         
         const normalizedGrade = normalizeGradeValue(s.grade);
@@ -162,8 +162,8 @@ export async function POST(req) {
           middleName = nameParts.slice(1, -1).join(" ");
       }
 
-      // Random password, returned once to the school for distribution.
-      const generatedPassword = generateStrongPassword();
+      // Every student starts with the default password and changes it later.
+      const generatedPassword = DEFAULT_STUDENT_PASSWORD;
       const hashedPassword = await bcrypt.hash(generatedPassword, 10);
       
       const normalizedGrade = normalizeGradeValue(grade);

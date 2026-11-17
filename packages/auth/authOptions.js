@@ -19,6 +19,7 @@ import User from "@pravyo/db/models/User";
 import Teacher from "@pravyo/db/models/Teacher";
 import Student from "@pravyo/db/models/Student";
 import Parent from "@pravyo/db/models/Parent";
+import { findActiveStudentsByIemis } from "@pravyo/db/iemis";
 import {
   activeSchoolsForTeacher,
   backfillTeacherMemberships,
@@ -108,6 +109,54 @@ async function teacherSessionUser(teacher) {
     status: "APPROVED",
     schoolId: schools.length === 1 ? schools[0].id : null,
     schoolName: schools.length === 1 ? schools[0].name : null,
+  };
+}
+
+/**
+ * Find the student a sign-in is aimed at. Students sign in with their IEMIS
+ * number: the government issues one per student, it is unique across the
+ * platform (see apps/pravyo/lib/iemisRegistry.js) and it stays the same when
+ * they change school, unlike the username, which is rebuilt from the new
+ * school's grade and roll number on transfer.
+ *
+ * The old username (or email) is still accepted as a fallback during the
+ * changeover, so no student is locked out. Remove that branch to make IEMIS
+ * the only way in.
+ */
+async function findStudentForLogin(identifier) {
+  // The shared IEMIS rules (packages/db/iemis.js): same cleanup as registration.
+  const matches = await findActiveStudentsByIemis(identifier, { limit: 2 });
+  if (matches.length > 1) {
+    throw new Error(
+      "This IEMIS number is registered to more than one student. Ask your school to correct it."
+    );
+  }
+  if (matches.length === 1) return matches[0];
+
+  // Fallback: the old username or email. Usernames are stored lowercase;
+  // phone keyboards capitalise the first letter.
+  const normalized = String(identifier || "").trim().toLowerCase();
+  return Student.findOne({
+    $or: [{ username: normalized }, { email: normalized }],
+    isDeleted: { $ne: true },
+    status: "ACTIVE",
+  });
+}
+
+/** The session user for a verified student. */
+async function studentSessionUser(student, password) {
+  const isValid = await bcrypt.compare(password, student.password);
+  if (!isValid) {
+    throw new Error("Invalid password");
+  }
+  return {
+    id: student._id.toString(),
+    email: student.email || student.username, // Use username if email missing
+    role: "STUDENT",
+    name: student.name,
+    status: "ACTIVE", // Default to active as status management is removed
+    schoolId: student.school?.toString(),
+    calendarPreference: student.calendarPreference || "BS",
   };
 }
 
@@ -231,6 +280,16 @@ async function verifyCredentials(credentials) {
     };
   }
 
+  // The student login page (/student/login) looks at students only, so an
+  // IEMIS number is never tried against staff accounts.
+  if (loginScope === "student") {
+    const student = await findStudentForLogin(identifier);
+    if (!student) {
+      throw new Error("No student found with this IEMIS number. Check the number on your report card.");
+    }
+    return studentSessionUser(student, credentials.password);
+  }
+
   // A scanned Teacher Login Card: the signed card token is the whole
   // credential, like the Parent Access Card. See teacherCardToken.js.
   if (credentials?.teacherCard) {
@@ -328,35 +387,10 @@ async function verifyCredentials(credentials) {
     };
   }
 
-  // 3. Try Student collection (Students)
-  // Check by username OR email (in case they use email)
-  const student = await Student.findOne({
-    // Usernames are stored lowercase; phone keyboards capitalise the first letter.
-    $or: [{ username: normalizedEmail }, { email: normalizedEmail }],
-    isDeleted: { $ne: true },
-    status: "ACTIVE",
-  });
-
+  // 3. Try Student collection: IEMIS number first, then the old username.
+  const student = await findStudentForLogin(identifier);
   if (student) {
-    const isValid = await bcrypt.compare(
-      credentials.password,
-      student.password,
-    );
-
-    if (!isValid) {
-      throw new Error("Invalid password");
-    }
-
-    // Return student user object
-    return {
-      id: student._id.toString(),
-      email: student.email || student.username, // Use username if email missing
-      role: "STUDENT",
-      name: student.name,
-      status: "ACTIVE", // Default to active as status management is removed
-      schoolId: student.school?.toString(),
-      calendarPreference: student.calendarPreference || "BS",
-    };
+    return studentSessionUser(student, credentials.password);
   }
 
   throw new Error("No user found with this email/username");

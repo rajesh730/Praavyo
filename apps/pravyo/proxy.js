@@ -1,5 +1,6 @@
 import { withAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
+import { teacherRedirectForSchoolPath } from './lib/teacherAreaRoutes.js';
 
 const DASHBOARD_BY_ROLE = {
     SUPER_ADMIN: '/admin/dashboard',
@@ -81,12 +82,24 @@ export default withAuth(
             if (token?.role === 'SCHOOL_ADMIN' && token?.status === 'UNSUBSCRIBED' && !pathname.startsWith('/school/suspended')) {
                 return NextResponse.redirect(new URL('/school/suspended', req.url));
             }
+            // The /school area is the school admin's. Teachers work in their
+            // own area (/teacher/dashboard, /teacher/exams/...), apart from the
+            // few shared pages listed in lib/teacherAreaRoutes.js.
+            if (token?.role === 'TEACHER') {
+                const destination = teacherRedirectForSchoolPath(pathname);
+                if (destination) return NextResponse.redirect(new URL(destination, req.url));
+            }
         }
 
         // Protect Teacher Routes (LMS Content Creation)
         if (pathname.startsWith('/teacher')) {
             if (token?.role !== 'TEACHER' && token?.role !== 'SCHOOL_ADMIN') {
                 return NextResponse.redirect(new URL('/login', req.url));
+            }
+            // The teacher's exam workspace is for teachers only; the school
+            // enters and manages marks in its own area.
+            if (pathname.startsWith('/teacher/exams') && token?.role !== 'TEACHER') {
+                return NextResponse.redirect(new URL('/school/exams', req.url));
             }
         }
 

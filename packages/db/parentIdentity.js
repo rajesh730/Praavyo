@@ -103,5 +103,58 @@ export async function ensureParentId(doc, ParentModel) {
   return true;
 }
 
+/**
+ * Did this save fail because the Parent ID it carried is already taken?
+ *
+ * `allocateParentId` checks before it hands out an ID, but two schools saving
+ * new guardians at the same instant could both pass that check with the same
+ * random ID. The unique `parentId` index then rejects the second save (E11000);
+ * that error is what this recognises, and only for `parentId`. A clash on any
+ * other field (an email already in use, say) is a real problem and is never
+ * retried.
+ */
+export function isParentIdClash(error) {
+  if (error?.code !== 11000) return false;
+  if (error.keyPattern && "parentId" in error.keyPattern) return true;
+  if (error.keyValue && "parentId" in error.keyValue) return true;
+  return /parentId_1/.test(String(error.message || ""));
+}
+
+const CLASH_ATTEMPTS = 5;
+
+/**
+ * Create a guardian, drawing a fresh Parent ID if the first one was taken in
+ * the meantime. Every new guardian should be created through this, so a school
+ * never sees an error caused by another school's guardian.
+ *
+ * The ID is drawn by the model's pre-save hook, so simply creating again draws
+ * a new one. A caller that supplies its own `parentId` gets no retry: that ID
+ * was chosen on purpose, and a clash on it is a real error.
+ */
+export async function createParentWithUniqueId(ParentModel, fields) {
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      return await ParentModel.create(fields);
+    } catch (error) {
+      if (!isParentIdClash(error) || fields?.parentId || attempt >= CLASH_ATTEMPTS) throw error;
+    }
+  }
+}
+
+/**
+ * Save a guardian whose Parent ID was just assigned (a first card, a lost-card
+ * reissue, or a backfill), drawing another ID if that one was taken meanwhile.
+ */
+export async function saveParentWithUniqueId(doc, options) {
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      return await doc.save(options);
+    } catch (error) {
+      if (!isParentIdClash(error) || attempt >= CLASH_ATTEMPTS) throw error;
+      doc.parentId = await allocateParentId(doc.constructor);
+    }
+  }
+}
+
 export const PARENT_ID_PREFIX = ID_PREFIX;
 export const PARENT_ID_ALPHABET = ID_ALPHABET;

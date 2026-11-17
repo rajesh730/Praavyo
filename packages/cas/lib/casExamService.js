@@ -118,8 +118,13 @@ export async function listExams(actor, { academicYear, grade, includeArchived = 
       if (!publishedAt.has(id) || at > publishedAt.get(id)) publishedAt.set(id, at);
     }
   }
+  // A teacher works only on results still open: once the school publishes a
+  // grade's result for an exam, its marks are locked and it leaves their list.
+  const listedExams = teacherScope && grade
+    ? visibleExams.filter((exam) => !publishedAt.has(String(exam._id)))
+    : visibleExams;
   return {
-    exams: visibleExams.map((exam) => ({
+    exams: listedExams.map((exam) => ({
       ...serializeExam(exam),
       ...(publishedAt.has(String(exam._id)) ? { publishedAt: publishedAt.get(String(exam._id)) } : {}),
     })),

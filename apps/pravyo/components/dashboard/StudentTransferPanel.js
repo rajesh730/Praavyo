@@ -35,6 +35,9 @@ const FINAL = {
 
 const schoolName = (school) => school?.schoolName || school?.name || "";
 const studentName = (transfer) => transfer.student?.name || transfer.studentNameSnapshot || "Student";
+// The student's government IEMIS number: live from the record, or the copy the
+// transfer kept when it was made.
+const studentIemis = (transfer) => transfer.student?.iemisNumber || transfer.studentIemisNumber || "";
 
 /** One row shape for every kind of transfer. */
 function toRow(transfer, kind, mySchoolId) {
@@ -58,7 +61,12 @@ function toRow(transfer, kind, mySchoolId) {
     kind,
     transfer,
     name: studentName(transfer),
-    detail: [transfer.student?.grade, transfer.student?.rollNumber && `Roll ${transfer.student.rollNumber}`].filter(Boolean).join(" · "),
+    iemis: studentIemis(transfer),
+    detail: [
+      studentIemis(transfer) && `IEMIS ${studentIemis(transfer)}`,
+      transfer.student?.grade,
+      transfer.student?.rollNumber && `Roll ${transfer.student.rollNumber}`,
+    ].filter(Boolean).join(" · "),
     direction: leaving ? "LEAVING" : "JOINING",
     otherSchool,
     askedBy: transfer.requestedByParent?.name ? `Parent: ${transfer.requestedByParent.name}` : transfer.requestedByStudent ? "Student" : "",
@@ -117,7 +125,9 @@ export default function StudentTransferPanel({ grades = [], onChanged, schoolId 
     return (groups[view] || []).filter(
       (row) =>
         (!direction || row.direction === direction) &&
-        (!term || row.name.toLowerCase().split(/\s+/).some((word) => word.startsWith(term)))
+        (!term
+          || row.name.toLowerCase().split(/\s+/).some((word) => word.startsWith(term))
+          || row.iemis.toLowerCase().startsWith(term.replace(/\s+/g, "")))
     );
   }, [groups, view, direction, query]);
 
@@ -214,7 +224,7 @@ export default function StudentTransferPanel({ grades = [], onChanged, schoolId 
           <label className="relative block sm:w-60">
             <span className="sr-only">Search student</span>
             <Search aria-hidden size={15} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-muted" />
-            <input className="input w-full pl-9" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search student name" />
+            <input className="input w-full pl-9" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search name or IEMIS" />
           </label>
         </div>
       </div>

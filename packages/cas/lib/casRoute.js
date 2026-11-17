@@ -6,17 +6,27 @@ import { CasDateError } from '@pravyo/core/casDates';
 const LIBRARY_PATHS = ['/api/cas/context', '/api/cas/curriculum'];
 
 /**
- * Wrap a route handler: resolve the actor, normalize errors, standardize the
- * response envelope.
+ * Wrap a route handler: resolve the actor, check they may use this API,
+ * normalize errors, standardize the response envelope.
  *
- * Every private CAS route goes through this, which is what makes the
- * "authorize on the server, every time" rule structural rather than a habit —
- * there is no way to add a route that skips the actor lookup without noticing.
+ * Every private CAS route goes through one of the two wrappers below, which is
+ * what makes the "authorize on the server, every time" rule structural rather
+ * than a habit: there is no way to add a route that skips the actor lookup
+ * without noticing.
+ *
+ * Two doors, one set of rules:
+ *   - `handler`        the SCHOOL's API (/api/cas/...). School admins only.
+ *   - `teacherHandler` the TEACHER's API (/api/teacher/exams/...). Teachers only.
+ * Both call the same endpoint definitions (apps/pravyo/lib/exams/*Endpoints.js)
+ * and the same services, so marks a teacher saves are the very records the
+ * school, results and report cards read. The services still decide what each
+ * teacher may see and change (their grades, their subjects).
  */
-export function handler(fn) {
+function wrap(fn, { allows, refusal }) {
   return async function route(request, context) {
     try {
       const actor = await getActor();
+      if (!allows(actor)) throw new HttpError(refusal, 403);
       // The default theme library may only be read and edited as curriculum.
       if (actor.library && !LIBRARY_PATHS.some((path) => new URL(request.url).pathname.startsWith(path))) {
         throw new HttpError('The default theme library only has a curriculum', 403);
@@ -29,6 +39,22 @@ export function handler(fn) {
       return errorResponse(normalize(error));
     }
   };
+}
+
+/** The school's assessment API. Teachers have their own (teacherHandler). */
+export function handler(fn) {
+  return wrap(fn, {
+    allows: (actor) => actor.role === 'SCHOOL_ADMIN',
+    refusal: 'Teachers enter marks from their own dashboard (Exams).',
+  });
+}
+
+/** The teacher's assessment API: mark entry and progress for their own classes. */
+export function teacherHandler(fn) {
+  return wrap(fn, {
+    allows: (actor) => actor.role === 'TEACHER',
+    refusal: 'This is the teacher assessment API. School accounts use the school area.',
+  });
 }
 
 function searchParams(request) {

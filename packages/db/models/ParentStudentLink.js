@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { studentIemisNumber } from "../iemis.js";
 
 /**
  * The authorisation edge between a guardian and a child.
@@ -64,6 +65,19 @@ const ParentStudentLinkSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
+      index: true,
+    },
+    // The child's government IEMIS number, copied from the Student. It is the
+    // identity that stays the same across schools, so every link names the
+    // child the way the government does. Filled by the pre-save hook below;
+    // kept current by syncStudentIemisOnLinks (packages/db/iemis.js) when a
+    // school corrects the number. Access is still decided by `student` (the
+    // id), never by this copy.
+    studentIemisNumber: {
+      type: String,
+      default: "",
+      trim: true,
+      uppercase: true,
       index: true,
     },
     relationshipType: {
@@ -162,6 +176,13 @@ export function applyAccessLevelDefaults(doc) {
 
   return doc;
 }
+
+// Every new link (and any link moved to another student) records the child's
+// IEMIS number, whichever code path created it.
+ParentStudentLinkSchema.pre("save", async function fillStudentIemis() {
+  if (!this.isNew && !this.isModified("student")) return;
+  this.studentIemisNumber = await studentIemisNumber(this.student, { session: this.$session() });
+});
 
 // One link per parent+student pair. A re-invitation reuses the existing row
 // (flipping REVOKED back to PENDING) rather than creating a duplicate.

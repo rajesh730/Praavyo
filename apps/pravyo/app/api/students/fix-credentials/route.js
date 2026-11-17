@@ -3,7 +3,7 @@ import { requireApiSession } from "@/lib/authz";
 import connectDB from "@/lib/db";
 import Student from "@/models/Student";
 import { generateUniqueStudentUsername } from "@/lib/studentIdentity";
-import { generateStrongPassword } from "@/lib/passwordGenerator";
+import { DEFAULT_STUDENT_PASSWORD } from "@/lib/passwordGenerator";
 import bcrypt from "bcryptjs";
 
 export const dynamic = "force-dynamic";
@@ -54,7 +54,7 @@ export async function GET(req) {
           excludeId: student._id,
         });
 
-        const password = generateStrongPassword();
+        const password = DEFAULT_STUDENT_PASSWORD;
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // 3. Update Student
@@ -66,7 +66,7 @@ export async function GET(req) {
 
         await student.save();
         updatedCount++;
-        // Surface the new password once so the school can redistribute it.
+        // The repaired login uses the default password again.
         credentials.push({ name: student.name, username, password });
       } catch (err) {
         console.error(`Failed to update student ${student._id}:`, err);

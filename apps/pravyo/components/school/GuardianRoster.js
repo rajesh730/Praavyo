@@ -159,6 +159,7 @@ export default function GuardianRoster() {
       "Student",
       "Grade",
       "Roll",
+      "IEMIS",
       "Coverage",
       "Guardians",
       "Guardian names",
@@ -169,6 +170,7 @@ export default function GuardianRoster() {
       row.studentName,
       row.grade,
       row.rollNumber,
+      row.iemisNumber,
       COVERAGE_LABELS[row.coverage]?.label || row.coverage,
       row.guardianCount,
       row.guardians.map((g) => g.name).join(" / "),
@@ -301,7 +303,7 @@ export default function GuardianRoster() {
               type="text"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search student, roll, or guardian name..."
+              placeholder="Search student, IEMIS, roll, or guardian name..."
               className="input w-full pl-11 pr-4 transition-colors"
             />
           </div>
@@ -563,9 +565,9 @@ function RosterRow({
         <td className="px-4 py-2.5">
           <button type="button" onClick={onToggle} className="text-left">
             <span className="block font-semibold text-ink">{row.studentName}</span>
-            {row.rollNumber ? (
+            {row.iemisNumber || row.rollNumber ? (
               <span className="block text-xs text-muted">
-                Roll {row.rollNumber}
+                {[row.iemisNumber && `IEMIS ${row.iemisNumber}`, row.rollNumber && `Roll ${row.rollNumber}`].filter(Boolean).join(" · ")}
               </span>
             ) : null}
           </button>

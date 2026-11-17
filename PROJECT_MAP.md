@@ -59,7 +59,12 @@ wrappers around `packages/cas`.
 - `ParentStudentLink` connects guardians to students; Parent IDs
   (`PRV-P-XXXXXX`) are credentials — never log them.
 - `AcademicYear` has `yearStart` (number) but no real calendar dates.
-- `SchoolConfig` holds grades, sections, schoolCode.
+- `SchoolConfig` holds grades, sections, schoolCode, and the school's IEMIS number.
+- **IEMIS is the government identity** for students and schools: compulsory,
+  unique, the same across schools. Students sign in with it; parent links and
+  transfer records carry copies. All IEMIS rules and lookups live in
+  `packages/db/iemis.js` + `iemisFormat.js`. Read
+  `apps/pravyo/docs/IEMIS_IDENTITY.md` before changing anything IEMIS-related.
 
 ## 4. Roles and their areas
 
@@ -67,10 +72,18 @@ wrappers around `packages/cas`.
 |---|---|---|---|
 | SUPER_ADMIN | `/login` | `/admin/*` (dashboard, events, settings, feedback, support, diagnostics, **theme-library**) | approves schools (`PUT /api/schools/[id]/status`) |
 | SCHOOL_ADMIN | `/login` | `/school/*` (dashboard, students, teachers, guardians, events, certificates, messages, notices, settings, **cas/***) | the school account itself |
-| TEACHER | `/login?as=teacher` | `/teacher/dashboard`, `/teacher/select-school`, CAS assessment | may belong to several schools; session carries `schoolId` |
+| TEACHER | `/login?as=teacher` | `/teacher/dashboard`, `/teacher/select-school`, `/teacher/exams/*` (CAS marks, student progress, internal-exam marks) | may belong to several schools; session carries `schoolId`; kept out of `/school/*` except event manage + messages (`lib/teacherAreaRoutes.js`) |
 | STUDENT | `/student/login` | `/student/*` (events, writing, magazine, walls, journey, learning/cas) | sees published CAS reports only |
 | PARENT | `/parent/login` (Parent ID / QR card) | `/parent/*` (child, journey, notices, messages, learning/cas, events) | PWA with web push |
 | Public | — | `/`, `/events`, `/schools/[id]`, `/students/[id]`, `/writings/[id]`, `/winners`, `/verify`, `/search` | certificates verified by code |
+
+**Two assessment doors, one set of rules.** The school's API is `/api/cas/*`
+(casRoute `handler`, school admins only); the teacher's is
+`/api/teacher/exams/*` (`teacherHandler`, teachers only). Both serve the same
+endpoint definitions in `apps/pravyo/lib/exams/*Endpoints.js` and the same
+services, so a teacher's marks are the records the school, results and report
+cards read. Screens get their API from `useCas().api` (CasLayout `audience`).
+Never point a teacher screen at `/api/cas` or a school screen at the teacher API.
 
 Auth: `packages/auth/authOptions.js` — one credentials setup, JWT session,
 `authVersion` revokes sessions; CAS re-reads the account on every request
