@@ -1,4 +1,4 @@
-import { Cinzel, Great_Vibes, EB_Garamond } from "next/font/google";
+import localFont from "next/font/local";
 import Image from "next/image";
 import QRCode from "qrcode";
 import { formatPlacementLabel } from "@/lib/results";
@@ -8,20 +8,27 @@ import pravyoLogo from "@/logo/pravyo logo by name.png";
 import AppDate from "@/components/common/AppDate";
 import FittedCertificateName from "@/components/certificates/FittedCertificateName";
 
-const displaySerif = Cinzel({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
+// Certificate fonts ship with the app (./fonts, Latin subset, SIL OFL) rather
+// than next/font/google: Google's version downloads the font CSS while the
+// page compiles, and a bad download breaks the certificate page in dev
+// ("next/font/google queries have exactly one entry"). Local files cannot.
+const displaySerif = localFont({
+  src: "./fonts/Cinzel-latin.woff2", // variable font
+  weight: "400 700",
+  style: "normal",
   display: "swap",
 });
-const scriptFont = Great_Vibes({
-  subsets: ["latin"],
-  weight: ["400"],
+const scriptFont = localFont({
+  src: "./fonts/GreatVibes-latin.woff2",
+  weight: "400",
+  style: "normal",
   display: "swap",
 });
-const bodySerif = EB_Garamond({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
+const bodySerif = localFont({
+  src: [
+    { path: "./fonts/EBGaramond-latin.woff2", weight: "400 600", style: "normal" },
+    { path: "./fonts/EBGaramond-Italic-latin.woff2", weight: "400 600", style: "italic" },
+  ],
   display: "swap",
 });
 
