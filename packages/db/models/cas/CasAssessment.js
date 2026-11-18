@@ -78,12 +78,38 @@ const casAssessmentSchema = new mongoose.Schema(
 
     attempts: { type: [attemptSchema], default: [] },
 
+    // Attempts cleared before publishing (a mistaken score), kept for audit.
+    // Never counted in results.
+    removedAttempts: {
+      type: [
+        new mongoose.Schema(
+          {
+            ...attemptSchema.obj,
+            removedAt: { type: Date, default: Date.now },
+            removedByModel: { type: String, enum: ['User', 'Teacher'], default: 'User' },
+            removedBy: { type: mongoose.Schema.Types.ObjectId, refPath: 'removedByModel' },
+            removedByName: { type: String, default: '', trim: true },
+          },
+          { _id: false },
+        ),
+      ],
+      default: [],
+    },
+
     // Current book-page note; original attempt remarks remain historical.
     sheetRemarks: { type: String, trim: true, maxlength: 1000 },
 
     // Derived from attempts by the domain function; cached so the dashboard and
     // reports can query without replaying every attempt.
-    acceptedLevel: { ...levelField, default: null },
+    // null = not assessed (every score cleared before publishing).
+    acceptedLevel: {
+      ...levelField,
+      default: null,
+      validate: {
+        validator: (value) => value === null || Number.isInteger(value),
+        message: 'Achievement level must be a whole number from 1 to 4',
+      },
+    },
 
     // Optimistic concurrency: increases once for each saved record change.
     revision: { type: Number, default: 0 },

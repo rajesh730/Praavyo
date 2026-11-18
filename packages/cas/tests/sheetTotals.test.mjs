@@ -51,13 +51,20 @@ test('an earlier earned result survives a lower latest reassessment and draft', 
   const row = { outcome: 'A', regularLevel: 2, remedialLevel: 1, acceptedLevel: 3 };
   assert.equal(acceptedRowLevel(row), 3);
   assert.equal(acceptedRowLevel(row, { remedialLevel: 2 }), 3);
-  assert.equal(acceptedRowLevel(row, { regularLevel: null, remedialLevel: null }), 3);
   assert.equal(acceptedRowLevel(row, { remedialLevel: 4 }), 4);
 });
 
-test('a draft clear can remove an unsaved mark without erasing a saved result', () => {
+test('before publishing, a corrected or cleared score replaces the saved result', () => {
+  const row = { outcome: 'A', regularLevel: 2, remedialLevel: 1, acceptedLevel: 3 };
+  // Clearing the whole row (a mistaken entry) leaves it unassessed.
+  assert.equal(acceptedRowLevel(row, { regularLevel: null, remedialLevel: null }), null);
+  // Correcting the regular score: only what the page now shows counts.
+  assert.equal(acceptedRowLevel(row, { regularLevel: 1, remedialLevel: 1 }), 1);
+  // Clearing extra support falls back to the regular score.
+  assert.equal(acceptedRowLevel(row, { regularLevel: 2, remedialLevel: null }), 2);
   assert.equal(acceptedRowLevel({ regularLevel: 4 }, { regularLevel: null }), null);
-  assert.equal(acceptedRowLevel({ regularLevel: 4, acceptedLevel: 4 }, { regularLevel: null }), 4);
+  assert.equal(acceptedRowLevel({ regularLevel: 4, acceptedLevel: 4 }, { regularLevel: null }), null);
+  assert.equal(acceptedRowLevel({ regularLevel: 4, acceptedLevel: 4 }, { regularLevel: 3 }), 3);
 });
 
 test('sheet and existing report arithmetic agree across reassessments and blanks', () => {

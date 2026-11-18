@@ -10,6 +10,24 @@ import AssessmentBook from './AssessmentBook.js';
 import { sectionsForGrade } from '../lib/casSections.js';
 
 /**
+ * How much of the chosen exam a student's marks cover in this subject (every
+ * theme the exam holds): all outcomes scored, some, or none. The dot keeps it
+ * readable where a browser ignores <option> colours (phones, macOS).
+ */
+const MARK_STATUS = {
+  complete: { dot: '🟢', className: 'bg-success-line text-ink', en: 'All marks entered', ne: 'सबै अङ्क भरियो' },
+  partial: { dot: '🟡', className: 'bg-warning-line text-ink', en: 'Some marks entered', ne: 'केही अङ्क भरियो' },
+  none: { dot: '🔴', className: 'bg-danger-line text-ink', en: 'No marks yet', ne: 'अङ्क भरिएको छैन' },
+};
+
+function markStatus(student) {
+  const progress = student?.markProgress;
+  if (!progress?.total) return null;
+  if (progress.assessed >= progress.total) return 'complete';
+  return progress.assessed > 0 ? 'partial' : 'none';
+}
+
+/**
  * CAS assessment: learning outcomes only. Attendance and extra activities are
  * not part of CAS; they are recorded per internal exam under
  * Internal Exam → Attendance & Activities.
@@ -57,10 +75,17 @@ export default function AssessmentPage() {
   const selectedSubject = subjects.find((subject) => subject.id === subjectId);
   const academicStudents = useCasQuery(
     grade && selectedSubject && academicYear?.id
-      ? `${api.cas('/students')}?grade=${encodeURIComponent(grade)}&academicYear=${academicYear.id}&subject=${encodeURIComponent(subjectId)}${section ? `&section=${encodeURIComponent(section)}` : ''}`
+      ? `${api.cas('/students')}?grade=${encodeURIComponent(grade)}&academicYear=${academicYear.id}&subject=${encodeURIComponent(subjectId)}${section ? `&section=${encodeURIComponent(section)}` : ''}${selectedExam ? `&exam=${encodeURIComponent(selectedExam.id)}` : ''}`
       : null,
   );
   const roster = academicStudents.data || [];
+  // Green / yellow / red per student for the chosen exam (see MARK_STATUS).
+  const statusCounts = roster.reduce((counts, student) => {
+    const status = markStatus(student);
+    if (status) counts[status] += 1;
+    return counts;
+  }, { complete: 0, partial: 0, none: 0 });
+  const showStatus = roster.some((student) => markStatus(student));
   // Opens on the first student, so arriving from the dashboard (grade, exam
   // and subject already chosen) shows marks straight away; Previous / Next
   // then walk the class.
@@ -195,17 +220,39 @@ export default function AssessmentPage() {
                   value={selectedStudent?.id || ''}
                   disabled={!roster.length || academicStudents.loading}
                   onChange={(event) => setStudent(event.target.value)}
+                  className={MARK_STATUS[markStatus(selectedStudent)]?.className || ''}
                 >
                   <option value="">{t('Choose student', 'Choose student')}</option>
-                  {roster.map((student) => (
-                    <option key={student.id} value={student.id}>
-                      {student.rollNumber ? `${student.rollNumber} - ` : ''}
-                      {student.name}
-                    </option>
-                  ))}
+                  {roster.map((student) => {
+                    const status = MARK_STATUS[markStatus(student)];
+                    return (
+                      <option
+                        key={student.id}
+                        value={student.id}
+                        className={status?.className || ''}
+                        title={status ? t(status.en, status.ne) : undefined}
+                      >
+                        {status ? `${status.dot} ` : ''}
+                        {student.rollNumber ? `${student.rollNumber} - ` : ''}
+                        {student.name}
+                        {status ? ` (${student.markProgress.assessed}/${student.markProgress.total})` : ''}
+                      </option>
+                    );
+                  })}
                 </Select>
               </Field>
             </fieldset>
+            {showStatus && (
+              <p className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted" aria-live="polite">
+                <span>{t(`Marks for ${selectedExam?.name || 'this exam'}, all themes:`, `${selectedExam?.name || 'यो परीक्षा'} का अङ्क, सबै थिम:`)}</span>
+                {Object.entries(MARK_STATUS).map(([key, status]) => (
+                  <span key={key} className="inline-flex items-center gap-1">
+                    <span aria-hidden>{status.dot}</span>
+                    {t(status.en, status.ne)} ({statusCounts[key]})
+                  </span>
+                ))}
+              </p>
+            )}
             {roster.length > 1 && selectedStudent && (
               <div className="mt-3 flex items-center justify-between gap-2 border-t border-line pt-3">
                 <button
@@ -285,6 +332,8 @@ export default function AssessmentPage() {
                   return next;
                 });
                 sheetQuery.setData(saved);
+                // Recolour this student in the list (green / yellow / red).
+                academicStudents.reload();
               }}
             />
           )}

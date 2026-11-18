@@ -227,6 +227,45 @@ export async function loadStudentSheet(actor, input) {
   return serializeSheet({ actor, data, year, subjectRow, allOutcomes, student, enrollment, records, locked });
 }
 
+/**
+ * How far each student's marks are entered for one exam in one subject: the
+ * learning outcomes of every theme assigned to that exam, and how many of them
+ * carry a score. Drives the green / yellow / red marks in the Assessment
+ * student list. Returns null when the exam has no outcomes in this subject.
+ */
+export async function examMarkProgress(actor, { academicYear, grade, subject, exam }) {
+  await connectDB();
+  const year = await loadAcademicYear(actor, academicYear);
+  const examRow = await CasExam.findOne({ _id: exam, school: actor.school, academicYear: year.id, status: 'ACTIVE' }).select('_id').lean();
+  assert(examRow, 'Exam unavailable for this academic year', 404);
+  const { subjectRow, outcomes } = await subjectAndOutcomes(actor, { grade, subject });
+  await assertTeacherExamAssignment(actor, {
+    academicYear: year.id, exam: examRow._id, grade, subject: subjectRow._id,
+  });
+  const assigned = await CasThemeExam.find({
+    school: actor.school, academicYear: year.id, grade, subject: subjectRow._id, exam: examRow._id,
+  }).select('themeKey').lean();
+  const themeKeys = new Set(assigned.map((row) => row.themeKey));
+  const examOutcomes = outcomes.filter((outcome) => themeKeys.has(themeIdentity(outcome)));
+  if (!examOutcomes.length) return null;
+
+  const records = await CasAssessment.find({
+    school: actor.school, academicYear: year.id, exam: examRow._id, grade, subject: subjectRow._id,
+    outcome: { $in: examOutcomes.map((outcome) => outcome._id) },
+    'attempts.0': { $exists: true },
+  }).select('student outcome').lean();
+  const assessed = new Map();
+  for (const record of records) {
+    const key = String(record.student);
+    if (!assessed.has(key)) assessed.set(key, new Set());
+    assessed.get(key).add(String(record.outcome));
+  }
+  return {
+    total: examOutcomes.length,
+    assessedFor: (studentId) => assessed.get(String(studentId))?.size || 0,
+  };
+}
+
 /** Summarize one student's progress across every assessable theme in a subject. */
 /**
  * Student Progress for one student and subject. The school sees everyone; a
@@ -358,9 +397,10 @@ export async function buildStudentSubjectProgress(actor, input) {
 }
 
 /**
- * A book page commits atomically. Regular marks stay fixed after saving, but
- * dates and the visible latest reassessment can be corrected while preserving
- * the superseded values on the attempt itself.
+ * A book page commits atomically. Until the exam's result is published, every
+ * score on the page can be corrected or cleared (a teacher's typing mistake);
+ * superseded values stay on the attempt (`revisions`) and cleared attempts in
+ * `removedAttempts`. Once published, the page is locked.
  */
 export async function saveSheet(actor, input) {
   const data = sheetInput.parse(input);
@@ -412,22 +452,47 @@ export async function saveSheet(actor, input) {
       const initial = initialIndex >= 0 ? nextAttempts[initialIndex] : null;
       const latest = latestIndex != null ? nextAttempts[latestIndex] : null;
       let attemptsChanged = false;
+      const removed = [];
 
-      if (initial) {
-        assert(initial.level === row.regularLevel,
-          `The saved regular score for ${outcome.code} cannot be changed. Record reassessment instead.`, 409);
+      // Until the result is published (checked above), a mistaken score can be
+      // corrected or removed. A correction keeps the replaced value in the
+      // attempt's `revisions`; a removal keeps the whole attempt in
+      // `removedAttempts`, so the record stays auditable.
+      if (initial && row.regularLevel === null) {
+        // Clearing the regular score clears the outcome: extra support cannot
+        // stand without a regular assessment.
+        removed.push(...nextAttempts.map((attempt) => removedAttempt(attempt, actor)));
+        nextAttempts.length = 0;
+        attemptsChanged = true;
+      } else if (initial) {
+        const patch = {};
+        if (initial.level !== row.regularLevel) patch.level = row.regularLevel;
         if (initial.assessmentDate !== row.regularDate) {
           const date = validateAssessmentDate({ value: row.regularDate, academicYear: year });
           const nextAfterInitial = nextAttempts.find((attempt, index) => index > initialIndex);
           assert(!nextAfterInitial || date <= nextAfterInitial.assessmentDate,
             `The regular assessment date for ${outcome.code} must be on or before the first reassessment.`, 409);
-          nextAttempts[initialIndex] = correctAttempt(initial, { assessmentDate: date }, actor);
+          patch.assessmentDate = date;
+        }
+        if (Object.keys(patch).length) {
+          nextAttempts[initialIndex] = correctAttempt(initial, patch, actor);
           attemptsChanged = true;
         }
       }
-      if (latest) {
-        assert(row.remedialLevel !== null,
-          `The saved extra-support assessment for ${outcome.code} cannot be removed.`, 409);
+      if (latest && row.remedialLevel === null && nextAttempts.length) {
+        // Removing the extra-support score removes every reassessment: the
+        // page shows only the latest, and an older one must not reappear.
+        removed.push(...nextAttempts
+          .filter((attempt) => attempt.attemptType === 'REASSESSMENT')
+          .map((attempt) => removedAttempt(attempt, actor)));
+        nextAttempts.splice(0, nextAttempts.length, ...nextAttempts.filter((attempt) => attempt.attemptType !== 'REASSESSMENT'));
+        attemptsChanged = true;
+      }
+      if (nextAttempts.length && row.remedialLevel !== null) {
+        // A corrected regular score of 4 cannot carry extra support.
+        const regularOnly = nextAttempts.filter((attempt) => attempt.attemptType === 'INITIAL');
+        assert(canReassess(regularOnly),
+          `${outcome.code} scored 4, so it has no extra-support assessment. Clear that score first.`, 409);
       }
 
       if (!initial && row.regularLevel !== null) {
@@ -490,7 +555,7 @@ export async function saveSheet(actor, input) {
       if (!attemptsChanged && row.remarks === currentRemarks) continue;
       // An empty, untouched row does not create an assessment record.
       if (!existing && !attemptsChanged) continue;
-      changes.push({ outcome, existing, revision, attempts: nextAttempts, attemptsChanged, remarks: row.remarks });
+      changes.push({ outcome, existing, revision, attempts: nextAttempts, attemptsChanged, remarks: row.remarks, removed });
     }
 
     // A write to the same draft document serializes with publication. A plain
@@ -505,7 +570,7 @@ export async function saveSheet(actor, input) {
     }
 
     for (const change of changes) {
-      const { outcome, existing, revision, attempts, attemptsChanged, remarks } = change;
+      const { outcome, existing, revision, attempts, attemptsChanged, remarks, removed } = change;
       const acceptedLevel = getAcceptedLevel(attempts);
       let saved;
       if (existing) {
@@ -520,6 +585,7 @@ export async function saveSheet(actor, input) {
               sheetRemarks: remarks,
               revision: revision + 1,
             },
+            ...(removed.length ? { $push: { removedAttempts: { $each: removed } } } : {}),
           },
           { returnDocument: 'after', session, runValidators: true },
         ).lean();
@@ -563,6 +629,17 @@ function attemptRevision(attempt, actor) {
     correctedByModel: actor.role === 'TEACHER' ? 'Teacher' : 'User',
     correctedBy: actor.id,
     correctedByName: actor.name,
+  };
+}
+
+/** A cleared attempt, kept for the audit trail with who cleared it and when. */
+function removedAttempt(attempt, actor) {
+  return {
+    ...attempt,
+    removedAt: new Date(),
+    removedByModel: actor.role === 'TEACHER' ? 'Teacher' : 'User',
+    removedBy: actor.id,
+    removedByName: actor.name,
   };
 }
 

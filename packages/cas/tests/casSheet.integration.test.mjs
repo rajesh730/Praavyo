@@ -213,9 +213,111 @@ describe('student book persistence on an isolated MongoDB replica set', {
     rows = rowsFrom(result.sheet);
     rows[0].regularDate = '2025-05-16';
     await assert.rejects(service.saveSheet(f.actor, { ...f.scope, rows }), { status: 409 });
+
+    // Before publishing, a mistyped regular score is corrected in place; the
+    // replaced value is kept on the attempt.
     rows = rowsFrom(result.sheet);
     rows[0].regularLevel = 1;
-    await assert.rejects(service.saveSheet(f.actor, { ...f.scope, rows }), { status: 409 });
+    result = await service.saveSheet(f.actor, { ...f.scope, rows });
+    stored = await Assessment.findOne({ student: f.students[0], outcome: f.outcomes[0]._id }).lean();
+    assert.deepEqual(stored.attempts.map((attempt) => attempt.level), [1, 1, 3, 2, 4]);
+    assert.equal(stored.attempts[0].revisions.at(-1).level, 2);
+    assert.equal(result.sheet.rows[0].regularLevel, 1);
+  });
+
+  it('corrects and clears mistaken scores until the result is published, keeping an audit trail', async () => {
+    const f = await fixture();
+    let result = await service.saveSheet(f.actor, f.payload());
+    const stored = () => Assessment.findOne({ student: f.students[0], outcome: f.outcomes[0]._id }).lean();
+
+    // Regular 2 -> 3 is a correction, not a reassessment: it may also lower.
+    let rows = rowsFrom(result.sheet);
+    rows[0].regularLevel = 3;
+    result = await service.saveSheet(f.actor, { ...f.scope, rows });
+    assert.equal(result.sheet.rows[0].acceptedLevel, 3);
+    assert.deepEqual((await stored()).attempts.map((attempt) => attempt.level), [3]);
+    assert.equal((await stored()).attempts[0].revisions[0].level, 2);
+
+    // Extra support on a 3, then the regular is corrected to 4: the
+    // extra-support score must be cleared, and is kept in removedAttempts.
+    rows = rowsFrom(result.sheet);
+    rows[0].remedialLevel = 4;
+    rows[0].remedialDate = '2025-05-12';
+    result = await service.saveSheet(f.actor, { ...f.scope, rows });
+    rows = rowsFrom(result.sheet);
+    rows[0].regularLevel = 4;
+    await assert.rejects(service.saveSheet(f.actor, { ...f.scope, rows }), { status: 409, message: /scored 4/ });
+    rows[0].remedialLevel = null;
+    rows[0].remedialDate = '';
+    result = await service.saveSheet(f.actor, { ...f.scope, rows });
+    assert.equal(result.sheet.rows[0].remedialLevel, null);
+    assert.equal(result.sheet.rows[0].acceptedLevel, 4);
+    assert.deepEqual((await stored()).removedAttempts.map((attempt) => [attempt.attemptType, attempt.level]), [['REASSESSMENT', 4]]);
+
+    // Clearing the regular score leaves the outcome unassessed again.
+    rows = rowsFrom(result.sheet);
+    rows[0].regularLevel = null;
+    rows[0].regularDate = '';
+    result = await service.saveSheet(f.actor, { ...f.scope, rows });
+    assert.equal(result.sheet.rows[0].regularLevel, null);
+    assert.equal(result.sheet.rows[0].acceptedLevel, null);
+    assert.equal(result.sheet.totals.assessedCount, 1);
+    const cleared = await stored();
+    assert.deepEqual(cleared.attempts, []);
+    assert.equal(cleared.acceptedLevel, null);
+    assert.equal(cleared.removedAttempts.length, 2);
+    assert.equal(cleared.removedAttempts[1].removedByName, 'Test school');
+
+    // It can be scored again afterwards.
+    rows = rowsFrom(result.sheet);
+    rows[0].regularLevel = 2;
+    rows[0].regularDate = '2025-05-13';
+    result = await service.saveSheet(f.actor, { ...f.scope, rows });
+    assert.equal(result.sheet.rows[0].acceptedLevel, 2);
+
+    // Once the exam's card is published, nothing can be corrected.
+    await Report.create({
+      school: f.actor.school, academicYear: f.year._id, student: f.students[0], grade: 'Grade 3',
+      exam: f.exam._id, status: 'PUBLISHED', snapshot: {}, publishedAt: new Date(),
+    });
+    rows = rowsFrom(result.sheet);
+    rows[0].regularLevel = 4;
+    await assert.rejects(service.saveSheet(f.actor, { ...f.scope, rows }), { status: 409, message: /published/ });
+  });
+
+  it('counts each student’s entered marks for an exam (green / yellow / red in Assessment)', async () => {
+    const f = await fixture();
+    const scope = { academicYear: f.scope.academicYear, grade: 'Grade 3', subject: f.scope.subject, exam: f.scope.exam };
+    let progress = await service.examMarkProgress(f.actor, scope);
+    assert.equal(progress.total, 2);
+    assert.equal(progress.assessedFor(f.students[0]), 0);
+
+    const partial = f.payload();
+    partial.rows[1] = { ...partial.rows[1], regularLevel: null, regularDate: '' };
+    await service.saveSheet(f.actor, partial);
+    progress = await service.examMarkProgress(f.actor, scope);
+    assert.equal(progress.assessedFor(f.students[0]), 1);
+
+    await service.saveSheet(f.actor, f.payload({ student: String(f.students[1]) }));
+    progress = await service.examMarkProgress(f.actor, scope);
+    assert.equal(progress.assessedFor(f.students[1]), 2);
+
+    // A cleared score no longer counts.
+    const sheet = await service.loadStudentSheet(f.actor, { ...f.scope, student: String(f.students[1]) });
+    const rows = rowsFrom(sheet);
+    rows[0] = { ...rows[0], regularLevel: null, regularDate: '' };
+    await service.saveSheet(f.actor, { ...f.scope, student: String(f.students[1]), rows });
+    progress = await service.examMarkProgress(f.actor, scope);
+    assert.equal(progress.assessedFor(f.students[1]), 1);
+
+    // A teacher sees counts only for an exam and subject assigned to them.
+    const teacher = { ...f.actor, id: String(id()), role: 'TEACHER' };
+    await assert.rejects(service.examMarkProgress(teacher, scope), { status: 403 });
+    await TeacherAssignment.create({
+      school: f.actor.school, academicYear: f.year._id, exam: f.exam._id,
+      grade: 'Grade 3', subject: f.subject._id, teacher: teacher.id, assignedBy: f.actor.id,
+    });
+    assert.equal((await service.examMarkProgress(teacher, scope)).total, 2);
   });
 
   it('refuses reassessment after a regular 4', async () => {
@@ -394,15 +496,11 @@ describe('student book persistence on an isolated MongoDB replica set', {
     );
   });
 
-  it('rejects clearing an already recorded mark and permits a no-change resubmission', async () => {
+  it('permits a no-change resubmission without writing anything', async () => {
     const f = await fixture();
     const first = await service.saveSheet(f.actor, f.payload());
     const same = await service.saveSheet(f.actor, { ...f.scope, rows: rowsFrom(first.sheet) });
     assert.equal(same.saved, 0);
-    const rows = rowsFrom(same.sheet);
-    rows[0].regularLevel = null;
-    rows[0].regularDate = '';
-    await assert.rejects(service.saveSheet(f.actor, { ...f.scope, rows }), { status: 409 });
   });
 
   it('rejects school, enrollment, subject and theme mismatches before writing', async () => {

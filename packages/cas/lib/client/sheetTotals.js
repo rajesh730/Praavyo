@@ -19,13 +19,16 @@ function isBlank(value) {
  * The accepted mark for one row, with any unsaved edits applied.
  *
  * Three things feed in, and the highest wins:
- *  - `acceptedLevel` already stored against the row. This is a result the
- *    student has EARNED, so clearing a draft cell cannot take it away — only a
- *    correction on the server can.
+ *  - `acceptedLevel` already stored against the row (the best of every saved
+ *    attempt, including older reassessments the page no longer shows),
  *  - the regular mark, and
  *  - the mark after extra support,
- * each overridden by the draft when the draft carries that key, so emptying a
- * cell the teacher has not saved yet does drop it.
+ * each overridden by the draft when the draft carries that key.
+ *
+ * A changed regular mark, or a cleared extra-support mark, is a CORRECTION
+ * (allowed until the result is published): the saved best no longer counts,
+ * only what the page now shows. A new extra-support mark is a reassessment and
+ * keeps the best result already earned.
  *
  * Throws on a value that is neither blank nor a level 1-4, rather than quietly
  * scoring it.
@@ -34,7 +37,14 @@ export function acceptedRowLevel(row = {}, draft) {
   const pick = (key) =>
     draft && Object.prototype.hasOwnProperty.call(draft, key) ? draft[key] : row[key];
 
-  const candidates = [row.acceptedLevel, pick('regularLevel'), pick('remedialLevel')];
+  const saved = (key) => (isBlank(row[key]) ? null : row[key]);
+  const regularCorrected = isBlank(pick('regularLevel'))
+    ? saved('regularLevel') !== null
+    : pick('regularLevel') !== saved('regularLevel');
+  const remedialCleared = isBlank(pick('remedialLevel')) && saved('remedialLevel') !== null;
+  const corrected = Boolean(draft) && (regularCorrected || remedialCleared);
+
+  const candidates = [corrected ? null : row.acceptedLevel, pick('regularLevel'), pick('remedialLevel')];
 
   return getAcceptedLevel(
     candidates.filter((level) => !isBlank(level)).map((level) => ({ level })),

@@ -122,11 +122,8 @@ export default function AssessmentBook({
 
   function updateRemedial(row, level) {
     const current = draft[row.outcome];
-    // Clearing a new attempt on top of a saved one puts the saved one back.
-    if (level === null && row.remedialLevel != null) {
-      update(row.outcome, { remedialLevel: row.remedialLevel, remedialDate: row.remedialDate });
-      return;
-    }
+    // Choosing "—" clears the extra-support score, saved or not: until the
+    // result is published a mistaken score can be removed.
     update(row.outcome, {
       remedialLevel: level,
       remedialDate: level !== null && !current.remedialDate ? sheet.today : current.remedialDate,
@@ -274,10 +271,11 @@ export default function AssessmentBook({
                 const acceptedLevel = acceptedNow(row);
                 const status = rowStatus(acceptedLevel);
                 const regularDateLocked = disabled || value.regularLevel == null;
-                const regularMarkLocked = disabled || row.regularLevel != null;
-                const hasRemedial = value.remedialLevel != null || row.remedialLevel != null;
-                const canUseRemedial = acceptedLevel != null && acceptedLevel <= REASSESS_MAX;
-                const remedialDisabled = disabled || (!canUseRemedial && !hasRemedial);
+                // Every score stays editable until the result is published
+                // (then `disabled` locks the whole page).
+                const regularMarkLocked = disabled;
+                const canUseRemedial = value.regularLevel != null && acceptedLevel != null && acceptedLevel <= REASSESS_MAX;
+                const remedialDisabled = disabled || (!canUseRemedial && value.remedialLevel == null);
                 const regularStatus = inputStatus(value.regularLevel);
                 const remedialStatus = status || inputStatus(value.remedialLevel);
                 return (
@@ -416,8 +414,8 @@ export default function AssessmentBook({
         {sheet.rows.some((row) => row.regularLevel != null) && !sheet.locked && (
           <p className="cas-book-date-note">
             {t(
-              'Regular scores stay fixed, but dates and the latest reassessment can be corrected. The obtained total always uses the higher score between regular assessment and reassessment.',
-              'नियमित अङ्क स्थिर रहन्छ, तर मिति र पछिल्लो पुनः मूल्याङ्कन सच्याउन सकिन्छ। प्राप्ताङ्कमा नियमित मूल्याङ्कन र पुनः मूल्याङ्कनमध्ये ठूलो अङ्क प्रयोग हुन्छ।',
+              'Entered a wrong score? Change it, or choose “—” to clear it, then send again. Scores can be corrected until the result is published. The obtained total uses the higher score between regular assessment and reassessment.',
+              'गलत अङ्क भर्नुभयो? सच्याउनुहोस् वा “—” छानेर हटाउनुहोस्, अनि फेरि पठाउनुहोस्। नतिजा प्रकाशित नभएसम्म अङ्क सच्याउन सकिन्छ। प्राप्ताङ्कमा नियमित मूल्याङ्कन र पुनः मूल्याङ्कनमध्ये ठूलो अङ्क प्रयोग हुन्छ।',
             )}
           </p>
         )}

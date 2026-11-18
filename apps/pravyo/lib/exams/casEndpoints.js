@@ -4,7 +4,7 @@ import { syncDefaultCurriculum } from '@pravyo/cas/lib/casLibraryService';
 import { listExams } from '@pravyo/cas/lib/casExamService';
 import { loadCurriculum } from '@pravyo/cas/lib/casCurriculumService';
 import { assertTeacherGradeAssignment, teacherGradeScope } from '@pravyo/cas/lib/casTeacherAssignmentService';
-import { loadThemes, loadStudentSheet, saveSheet, loadStudentSubjectProgress } from '@pravyo/cas/lib/casSheetService';
+import { loadThemes, loadStudentSheet, saveSheet, loadStudentSubjectProgress, examMarkProgress } from '@pravyo/cas/lib/casSheetService';
 import { loadProgressOptions } from '@pravyo/cas/lib/casProgressAccess';
 import CasSubject from '@pravyo/db/models/cas/CasSubject';
 import { studentTakesSubject } from '@pravyo/core/subjectScope';
@@ -63,6 +63,8 @@ export function curriculum({ actor, query }) {
  * The Pravyo roster for a grade and year. CAS never creates these records.
  * With `subject`, only the students who take that subject (its sections and,
  * for an optional subject, the students the school assigned to it).
+ * With `subject` and `exam`, each student also carries `markProgress`
+ * ({ assessed, total }): how many of that exam's learning outcomes have a score.
  */
 export async function students({ actor, query }) {
   const grade = query.get('grade');
@@ -80,9 +82,20 @@ export async function students({ actor, query }) {
     ? await CasSubject.findOne({ _id: subjectId, school: actor.school, grade }).select('kind sections').lean()
     : null;
   const rows = await loadStudents(actor, { grade, yearStart: year.yearStart });
-  return rows.filter((student) =>
+  const roster = rows.filter((student) =>
     (!section || student.section === section) &&
     (!subject || studentTakesSubject(subject, student)));
+
+  const examId = query.get('exam') || '';
+  if (!subject || !/^[a-f\d]{24}$/i.test(examId)) return roster;
+  const progress = await examMarkProgress(actor, {
+    academicYear: year.id, grade, subject: subjectId, exam: examId,
+  });
+  if (!progress) return roster;
+  return roster.map((student) => ({
+    ...student,
+    markProgress: { assessed: progress.assessedFor(student.id), total: progress.total },
+  }));
 }
 
 /** The themes inside one subject, with how many outcomes each holds. */
