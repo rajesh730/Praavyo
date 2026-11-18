@@ -22,6 +22,7 @@ import {
 } from "@/components/WritingMedia";
 import { normalizeImageUrl } from "@/lib/imageUrls";
 import { formatPlacement } from "@/lib/displayFormat";
+import { getMapDirectionsUrl, parseGoogleMapEmbed } from "@/lib/googleMapEmbed";
 import { ArrowRight as FaArrowRight, BookOpen as FaBookOpen, CircleCheck as FaCheckCircle, Mail as FaEnvelope, Globe as FaGlobe, GraduationCap as FaGraduationCap, MapPin as FaMapMarkerAlt, Medal as FaMedal, PenTool as FaPenNib, Phone as FaPhone, School as FaSchool, Star as FaStar, Trophy as FaTrophy, UserRound as FaUserTie } from "lucide-react";
 import { FaFacebookF, FaInstagram, FaLinkedinIn, FaTiktok, FaTwitter, FaYoutube } from "react-icons/fa";
 
@@ -125,7 +126,7 @@ async function getSchoolData(id) {
     status: { $in: ["APPROVED", "SUBSCRIBED"] },
   })
     .select(
-      "schoolName principalName schoolLocation website establishedYear schoolConfig"
+      "schoolName principalName schoolLocation schoolMapEmbedUrl website establishedYear schoolConfig"
     )
     .lean();
 
@@ -550,6 +551,47 @@ function ConnectCard({ websiteUrl, socialLinks, contactEmail, contactPhone }) {
   );
 }
 
+function LocationCard({ schoolName, address, mapEmbedUrl }) {
+  // Checked again here so only a Google Maps embed is ever framed.
+  const { url } = parseGoogleMapEmbed(mapEmbedUrl);
+  if (!url) return null;
+  const directionsUrl = getMapDirectionsUrl(
+    url,
+    [schoolName, address].filter(Boolean).join(", ")
+  );
+
+  return (
+    <section id="location" className="card scroll-mt-28 p-4">
+      <h2 className="inline-flex items-center gap-2 text-lg font-semibold text-ink">
+        <FaMapMarkerAlt className="text-brand-strong" />
+        Location
+      </h2>
+      {address && <p className="mt-2 text-sm text-subtle">{address}</p>}
+      <div className="mt-4 overflow-hidden rounded-card border border-line-strong">
+        <iframe
+          src={url}
+          title={`Map showing ${schoolName || "the school"}`}
+          className="block h-64 w-full border-0"
+          loading="lazy"
+          referrerPolicy="no-referrer-when-downgrade"
+          allowFullScreen
+        />
+      </div>
+      {directionsUrl && (
+        <a
+          href={directionsUrl}
+          target="_blank"
+          rel="noreferrer"
+          className="btn btn-secondary mt-3 inline-flex w-full items-center justify-center gap-2 font-semibold"
+        >
+          <FaMapMarkerAlt aria-hidden />
+          Get directions
+        </a>
+      )}
+    </section>
+  );
+}
+
 export default async function PublicSchoolPage({ params }) {
   const resolvedParams = await params;
   const data = await getSchoolData(resolvedParams.id);
@@ -787,6 +829,11 @@ export default async function PublicSchoolPage({ params }) {
               socialLinks={profile?.socialLinks}
               contactEmail={profile?.contactEmail}
               contactPhone={profile?.contactPhone}
+            />
+            <LocationCard
+              schoolName={school.schoolName}
+              address={school.schoolLocation}
+              mapEmbedUrl={school.schoolMapEmbedUrl}
             />
           </aside>
         </div>

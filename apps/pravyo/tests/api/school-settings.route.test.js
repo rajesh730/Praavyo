@@ -1,4 +1,5 @@
 jest.mock("next-auth", () => ({ getServerSession: jest.fn() }));
+jest.mock("next/cache", () => ({ revalidatePath: jest.fn() }));
 jest.mock("@/lib/authOptions", () => ({ authOptions: {} }));
 jest.mock("@/lib/db", () => jest.fn());
 jest.mock("@/lib/settingsAudit", () => ({
@@ -30,6 +31,7 @@ jest.mock("@pravyo/db/models/TeacherMembership", () => ({
 }));
 
 import { getServerSession } from "next-auth";
+import { revalidatePath } from "next/cache";
 import User from "@/models/User";
 import SchoolConfig from "@/models/SchoolConfig";
 import { PUT } from "@/app/api/school/settings/route";
@@ -158,6 +160,43 @@ describe("school settings credentials and persistence", () => {
       expect.objectContaining({ new: true, runValidators: true })
     );
     expect(SchoolConfig.findOneAndUpdate).not.toHaveBeenCalled();
+  });
+
+  it("saves only the checked link from pasted Google Maps embed code", async () => {
+    const link = "https://www.google.com/maps/embed?pb=!1m18!2d85.3364!3d27.7323";
+    User.findByIdAndUpdate.mockResolvedValue({
+      schoolName: "Old School",
+      email: "old@school.test",
+      schoolMapEmbedUrl: link,
+    });
+
+    const response = await PUT(
+      request({
+        identity: {
+          mapEmbedUrl: `<iframe src="${link}" width="600" height="450" loading="lazy"></iframe>`,
+        },
+      })
+    );
+    const json = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(User.findByIdAndUpdate).toHaveBeenCalledWith(
+      "school-1",
+      { schoolMapEmbedUrl: link },
+      expect.anything()
+    );
+    expect(json.data.identity.mapEmbedUrl).toBe(link);
+    expect(revalidatePath).toHaveBeenCalledWith("/schools/school-1");
+  });
+
+  it("rejects a map that is not a Google Maps embed", async () => {
+    const response = await PUT(
+      request({ identity: { mapEmbedUrl: '<iframe src="https://evil.test/x"></iframe>' } })
+    );
+
+    expect(response.status).toBe(400);
+    expect((await response.json()).message).toMatch(/Google Maps embed/);
+    expect(User.findByIdAndUpdate).not.toHaveBeenCalled();
   });
 
   it("normalizes and persists the school IEMIS number", async () => {

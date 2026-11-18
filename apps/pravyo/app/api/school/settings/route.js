@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { requireApiSession } from "@/lib/authz";
 import connectDB from "@/lib/db";
 import User from "@/models/User";
@@ -8,6 +9,7 @@ import TeacherMembership from "@pravyo/db/models/TeacherMembership";
 import { buildGradeLabels } from "@/lib/schoolGrades";
 import { checkSchoolIemis } from "@/lib/iemisRegistry";
 import { recordSettingsAudit } from "@/lib/settingsAudit";
+import { parseGoogleMapEmbed } from "@/lib/googleMapEmbed";
 import {
   errorResponse,
   successResponse,
@@ -43,7 +45,7 @@ export async function GET() {
     await connectDB();
 
     const user = await User.findById(session.user.id).select(
-      "schoolName principalName principalPhone email schoolPhone schoolLocation website establishedYear schoolConfig"
+      "schoolName principalName principalPhone email schoolPhone schoolLocation schoolMapEmbedUrl website establishedYear schoolConfig"
     );
 
     if (!user) {
@@ -90,6 +92,7 @@ export async function GET() {
         email: user.email || "",
         phone: user.schoolPhone || "",
         address: user.schoolLocation || "",
+        mapEmbedUrl: user.schoolMapEmbedUrl || "",
         website: user.website || "",
         establishedYear: user.establishedYear || "",
       },
@@ -133,7 +136,7 @@ export async function PUT(req) {
 
     const [existingUser, existingConfig] = await Promise.all([
       User.findById(session.user.id).select(
-        "schoolName principalName principalPhone email schoolPhone schoolLocation website establishedYear"
+        "schoolName principalName principalPhone email schoolPhone schoolLocation schoolMapEmbedUrl website establishedYear"
       ),
       SchoolConfig.findOne({ school: session.user.id }),
     ]);
@@ -173,6 +176,11 @@ export async function PUT(req) {
     if (identity.phone !== undefined) userUpdate.schoolPhone = cleanText(identity.phone);
     if (identity.address !== undefined) {
       userUpdate.schoolLocation = cleanText(identity.address);
+    }
+    if (identity.mapEmbedUrl !== undefined) {
+      const { url, error: mapError } = parseGoogleMapEmbed(identity.mapEmbedUrl);
+      if (mapError) return validationError(mapError);
+      userUpdate.schoolMapEmbedUrl = url;
     }
     if (identity.website !== undefined) {
       userUpdate.website = cleanText(identity.website);
@@ -251,6 +259,7 @@ export async function PUT(req) {
           email: existingUser?.email || "",
           phone: existingUser?.schoolPhone || "",
           address: existingUser?.schoolLocation || "",
+          mapEmbedUrl: existingUser?.schoolMapEmbedUrl || "",
           website: existingUser?.website || "",
           establishedYear: existingUser?.establishedYear || "",
         },
@@ -270,6 +279,7 @@ export async function PUT(req) {
           email: updatedUser?.email || "",
           phone: updatedUser?.schoolPhone || "",
           address: updatedUser?.schoolLocation || "",
+          mapEmbedUrl: updatedUser?.schoolMapEmbedUrl || "",
           website: updatedUser?.website || "",
           establishedYear: updatedUser?.establishedYear || "",
         },
@@ -283,6 +293,12 @@ export async function PUT(req) {
       },
     });
 
+    // Name, address and map show on the public school page; refresh it now
+    // instead of after its page cache runs out.
+    if (Object.keys(userUpdate).length > 0) {
+      revalidatePath(`/schools/${session.user.id}`);
+    }
+
     return successResponse(200, "School settings updated", {
       identity: {
         schoolName: updatedUser.schoolName || "",
@@ -291,6 +307,7 @@ export async function PUT(req) {
         email: updatedUser.email || "",
         phone: updatedUser.schoolPhone || "",
         address: updatedUser.schoolLocation || "",
+        mapEmbedUrl: updatedUser.schoolMapEmbedUrl || "",
         website: updatedUser.website || "",
         establishedYear: updatedUser.establishedYear || "",
       },

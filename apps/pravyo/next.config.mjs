@@ -83,6 +83,8 @@ const nextConfig = {
               "base-uri 'self'",
               "object-src 'none'",
               "frame-ancestors 'self'",
+              // School location maps (lib/googleMapEmbed.js) are Google embeds.
+              "frame-src 'self' https://www.google.com",
               "img-src 'self' data: blob: https:",
               "font-src 'self' data: https:",
               "style-src 'self' 'unsafe-inline' https:",

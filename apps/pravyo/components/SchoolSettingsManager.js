@@ -8,6 +8,8 @@ import CalendarToggle from "@/components/common/CalendarToggle";
 import WebsiteApiKeysPanel from "@/components/settings/WebsiteApiKeysPanel";
 import ReportCardImagesPanel from "@/components/settings/ReportCardImagesPanel";
 import IemisSettingsPanel from "@/components/settings/IemisSettingsPanel";
+import SchoolMapField from "@/components/settings/SchoolMapField";
+import { parseGoogleMapEmbed } from "@/lib/googleMapEmbed";
 
 const defaultConfig = {
   schoolName: "",
@@ -17,6 +19,7 @@ const defaultConfig = {
   phone: "",
   principalPhone: "",
   address: "",
+  mapEmbedUrl: "",
   city: "",
   state: "",
   pincode: "",
@@ -69,6 +72,7 @@ function getSanitizedConfig(config) {
     phone: String(config.phone || "").trim(),
     principalPhone: String(config.principalPhone || "").trim(),
     address: String(config.address || "").trim(),
+    mapEmbedUrl: String(config.mapEmbedUrl || "").trim(),
     city: String(config.city || "").trim(),
     state: String(config.state || "").trim(),
     pincode: String(config.pincode || "").trim(),
@@ -92,6 +96,7 @@ function buildSettingsPatch(current, saved) {
     "email",
     "phone",
     "address",
+    "mapEmbedUrl",
     "website",
     "establishedYear",
   ];
@@ -173,6 +178,7 @@ export default function SchoolSettingsManager() {
         phone: identity.phone || "",
         principalPhone: identity.principalPhone || "",
         address: identity.address || "",
+        mapEmbedUrl: identity.mapEmbedUrl || "",
         city: settingsConfig.city || "",
         state: settingsConfig.state || "",
         pincode: settingsConfig.pincode || "",
@@ -192,6 +198,7 @@ export default function SchoolSettingsManager() {
         phone: identity.phone || "",
         principalPhone: identity.principalPhone || "",
         address: identity.address || "",
+        mapEmbedUrl: identity.mapEmbedUrl || "",
         city: settingsConfig.city || "",
         state: settingsConfig.state || "",
         pincode: settingsConfig.pincode || "",
@@ -289,6 +296,18 @@ export default function SchoolSettingsManager() {
         return;
       }
 
+      if (payload.identity.mapEmbedUrl !== undefined) {
+        const { url, error: mapError } = parseGoogleMapEmbed(
+          payload.identity.mapEmbedUrl
+        );
+        if (mapError) {
+          setMessage({ type: "error", text: mapError });
+          setSaving(false);
+          return;
+        }
+        payload.identity.mapEmbedUrl = url;
+      }
+
       if (payload.identity.establishedYear) {
         const year = Number(payload.identity.establishedYear);
         const currentYear = new Date().getFullYear();
@@ -318,6 +337,7 @@ export default function SchoolSettingsManager() {
       const persistedConfig = {
         ...sanitizedConfig,
         email: savedIdentity.email ?? sanitizedConfig.email,
+        mapEmbedUrl: savedIdentity.mapEmbedUrl ?? sanitizedConfig.mapEmbedUrl,
         establishedYear:
           savedIdentity.establishedYear ?? sanitizedConfig.establishedYear,
         schoolCode: savedSettings.schoolCode ?? sanitizedConfig.schoolCode,
@@ -356,6 +376,7 @@ export default function SchoolSettingsManager() {
         JSON.stringify({
           phone: savedConfig.phone,
           address: savedConfig.address,
+          mapEmbedUrl: savedConfig.mapEmbedUrl,
           city: savedConfig.city,
           state: savedConfig.state,
           pincode: savedConfig.pincode,
@@ -363,6 +384,7 @@ export default function SchoolSettingsManager() {
         JSON.stringify({
           phone: sanitizedConfig.phone,
           address: sanitizedConfig.address,
+          mapEmbedUrl: sanitizedConfig.mapEmbedUrl,
           city: sanitizedConfig.city,
           state: sanitizedConfig.state,
           pincode: sanitizedConfig.pincode,
@@ -719,6 +741,15 @@ export default function SchoolSettingsManager() {
                   value={config.address}
                   onChange={handleChange}
                   className="input w-full"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <SchoolMapField
+                  value={config.mapEmbedUrl}
+                  onChange={(value) => {
+                    setIsDirty(true);
+                    setConfig((prev) => ({ ...prev, mapEmbedUrl: value }));
+                  }}
                 />
               </div>
               <div>

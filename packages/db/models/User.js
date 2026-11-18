@@ -49,6 +49,13 @@ const UserSchema = new mongoose.Schema(
     schoolLocation: {
       type: String,
     },
+    // Checked Google Maps embed link (apps/pravyo/lib/googleMapEmbed.js),
+    // shown publicly on /schools/[id] like the address.
+    schoolMapEmbedUrl: {
+      type: String,
+      trim: true,
+      default: "",
+    },
     province: {
       type: String,
       trim: true,
