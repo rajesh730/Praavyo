@@ -21,6 +21,7 @@ const defaultConfig = {
     eventPublishingMode: "SUPER_ADMIN_REVIEW",
     defaultPublicResults: true,
     allowSchoolShowcases: true,
+    internalExamsLocked: true,
   },
   defaults: {
     pendingSchoolRestrictions: true,
@@ -55,6 +56,15 @@ function getRiskWarnings(nextConfig, currentConfig) {
   ) {
     warnings.push(
       "Schools will no longer be able to publish showcase pages going forward."
+    );
+  }
+
+  if (
+    currentConfig.governance.internalExamsLocked !== false &&
+    nextConfig.governance.internalExamsLocked === false
+  ) {
+    warnings.push(
+      "Internal Exam will open: every school and teacher can enter it and start entering marks."
     );
   }
 
@@ -1004,6 +1014,27 @@ export default function SuperAdminSettingsManager() {
               <p className="text-xs text-brand">
                 Scope: affects school showcase publishing and visibility policy
                 going forward.
+              </p>
+            </div>
+          </div>
+
+          <div className="rounded-card border border-line-strong bg-surface p-4 sm:p-5">
+            <h2 className="mb-5 flex items-center gap-2 font-semibold text-ink">
+              <FiLock className="text-warning" />
+              Feature Access
+            </h2>
+            <div className="grid gap-4">
+              <ToggleField
+                checked={config.governance.internalExamsLocked !== false}
+                onChange={(value) =>
+                  updateSection("governance", "internalExamsLocked", value)
+                }
+                label="Lock Internal Exam (not ready yet)"
+                description="While ticked, no school or teacher can open Internal Exam: its screens show a locked notice and its mark entry, exam and publishing APIs refuse. Untick to open it for everyone."
+              />
+              <p className="text-xs text-brand">
+                Scope: all schools and teachers. CAS is not affected, and results
+                already published stay visible to parents and students.
               </p>
             </div>
           </div>

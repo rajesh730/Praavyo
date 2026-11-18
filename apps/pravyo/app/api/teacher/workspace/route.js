@@ -11,6 +11,7 @@ import CasExamTeacherAssignment from '@pravyo/db/models/cas/CasExamTeacherAssign
 import TeacherMembership from '@pravyo/db/models/TeacherMembership';
 import TeacherTeachingAssignment from '@pravyo/db/models/TeacherTeachingAssignment';
 import { activeSchoolsForTeacher, isActiveTeacherMember } from '@pravyo/db/teacherMemberships';
+import { isInternalExamLocked } from '@/lib/exams/internalExamLock';
 
 const subjectTitle = (subject) => subject.titleEn || subject.titleNe || subject.code;
 
@@ -135,6 +136,8 @@ export const GET = defineRoute({ roles: ['TEACHER'] }, async ({ session }) => {
     teacher: { name: teacher.name, username: teacher.username || '', email: teacher.email, phone: teacher.phone || '', designation: membership?.designation || '' },
     school: { id: String(school), name: session.user.schoolName || schools.find((row) => row.id === String(school))?.name || 'School' },
     canSwitchSchool: schools.length > 1,
+    // Exams tab shows Internal Exam as locked while the Super Admin keeps it closed.
+    internalExamLocked: await isInternalExamLocked(),
     assignments: assignments.map((row) => {
       const subject = row.subject ? subjectById.get(String(row.subject)) : null;
       return {

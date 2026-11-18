@@ -64,6 +64,12 @@ const PlatformSettingSchema = new mongoose.Schema(
         type: Boolean,
         default: true,
       },
+      // Internal Exam is not ready: locked until the Super Admin opens it
+      // (lib/exams/internalExamLock.js).
+      internalExamsLocked: {
+        type: Boolean,
+        default: true,
+      },
     },
     defaults: {
       pendingSchoolRestrictions: {
