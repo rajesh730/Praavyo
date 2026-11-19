@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ChevronRight, ClipboardCheck, FileSpreadsheet, Lock } from 'lucide-react';
+import { ChevronRight, ClipboardCheck, FileSpreadsheet } from 'lucide-react';
 
 /**
  * Exams: the teacher's chooser between the two kinds of result, the same
@@ -32,28 +32,12 @@ export default function ExamsTab({ workspace }) {
       title: 'Internal Exam',
       grades: 'Grades 1–10',
       text: "Marks for the school's own question papers, subject by subject.",
-      // Locked by the Super Admin until the feature is ready.
-      locked: workspace.internalExamLocked !== false,
     },
   ];
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
-      {options.map(({ href, icon: Icon, title, grades, text, status, waiting, locked }) => locked ? (
-        <div key={href} className="card flex gap-4 p-5 opacity-75" aria-disabled="true">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-card bg-surface-2 text-muted">
-            <Lock aria-hidden />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="flex flex-wrap items-center gap-2">
-              <span className="text-lg font-semibold text-ink">{title}</span>
-              <span className="badge badge-neutral text-xs">{grades}</span>
-              <span className="badge badge-warning text-xs">Locked · not ready yet</span>
-            </span>
-            <span className="mt-1 block text-sm text-muted">{text}</span>
-          </span>
-        </div>
-      ) : (
+      {options.map(({ href, icon: Icon, title, grades, text, status, waiting }) => (
         <Link key={href} href={href} className="card group flex gap-4 p-5 transition hover:border-brand">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-card bg-brand-soft text-brand">
             <Icon aria-hidden />

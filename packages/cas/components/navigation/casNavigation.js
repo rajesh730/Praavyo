@@ -28,6 +28,8 @@ export const INTERNAL_EXAM_NAV_LINKS = [
   { name: 'Attendance & Activities', href: '/school/internal-exam/attendance', icon: FaCalendarCheck, initials: 'AA' },
   { name: 'Manage Exams', href: '/school/internal-exam/exams', icon: FaCalendarAlt, initials: 'EX' },
   { name: 'Results', href: '/school/internal-exam/results', icon: FaFileAlt, initials: 'RS' },
+  // Published cards only, like CAS's Published Results.
+  { name: 'Published Results', href: '/school/internal-exam/published-results', icon: FaFolderOpen, initials: 'PR' },
   { name: 'CAS (Grades 1–5)', href: '/school/cas/assessment', icon: FaFolderOpen, initials: 'CA' },
 ];
 

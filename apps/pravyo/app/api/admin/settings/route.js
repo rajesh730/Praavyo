@@ -2,7 +2,6 @@ import { requireApiSession } from "@/lib/authz";
 import connectDB from "@/lib/db";
 import PlatformSetting from "@/models/PlatformSetting";
 import { recordSettingsAudit } from "@/lib/settingsAudit";
-import { clearInternalExamLockCache } from "@/lib/exams/internalExamLock";
 import {
   errorResponse,
   successResponse,
@@ -129,8 +128,6 @@ export async function PUT(req) {
     settings.updatedBy = session.user.id;
 
     await settings.save();
-    // Apply a changed Internal Exam lock now on this server, not after the cache expires.
-    clearInternalExamLockCache();
 
     await recordSettingsAudit({
       entityType: "PLATFORM_SETTINGS",

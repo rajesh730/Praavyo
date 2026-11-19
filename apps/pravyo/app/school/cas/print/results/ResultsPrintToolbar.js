@@ -15,7 +15,7 @@ const sheets = () => document.querySelectorAll('main .cas-a4');
  * a PDF file instead (Student Result and Published Results ask for that from
  * a hidden frame).
  */
-export default function ResultsPrintToolbar({ lang, count, autoPrint, autoDownload, fileName }) {
+export default function ResultsPrintToolbar({ lang, count, autoPrint, autoDownload, fileName, backHref = '/school/cas/student-result', backLabel = 'Student Result' }) {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [downloading, setDownloading] = useState(false);
@@ -55,8 +55,8 @@ export default function ResultsPrintToolbar({ lang, count, autoPrint, autoDownlo
   return (
     <div className="cas-print-hide mx-auto flex max-w-[210mm] flex-wrap items-center justify-between gap-3 px-4 py-4">
       <div className="flex items-center gap-3 text-sm">
-        <Link href="/school/cas/student-result" className="font-semibold text-brand">
-          ← Student Result
+        <Link href={backHref} className="font-semibold text-brand">
+          ← {backLabel}
         </Link>
         <span className="text-muted">
           {count} report card{count === 1 ? '' : 's'}

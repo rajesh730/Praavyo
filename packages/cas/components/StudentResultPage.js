@@ -3,11 +3,10 @@
 import { useState } from 'react';
 import { useRememberedState } from '@pravyo/ui/rememberedState';
 import Link from 'next/link';
-import { Calculator as FaCalculator, Download as FaDownload, Eye as FaEye, FileText as FaFileAlt, Send as FaPaperPlane, Printer as FaPrint, Search as FaSearch } from 'lucide-react';
+import { Calculator as FaCalculator, Download as FaDownload, Eye as FaEye, FileText as FaFileAlt, Printer as FaPrint, Search as FaSearch } from 'lucide-react';
 import { DEFAULT_CAS_EXAM_TERM } from '@pravyo/core/casExamTerms';
 import { useCas } from './CasLayout.js';
-import { casFetch, useCasQuery, useCasMutation } from '../lib/client/useCas.js';
-import PublishCheckDialog from './result/PublishCheckDialog.js';
+import { useCasQuery } from '../lib/client/useCas.js';
 import { downloadPdfFromPage } from '../lib/client/pdfDownload.js';
 import {
   PageHeader, Card, Button, Field, Select, Alert, Spinner, EmptyState,
@@ -30,16 +29,11 @@ const FILTERS = [
 /**
  * Student Result — every student's report card for a grade and academic year.
  *
- * Publish lives only at the top and always publishes the WHOLE grade — every
- * section, every student — never a chosen few. It first checks every
- * student's marks in every subject; missing marks are listed, and the school
- * either enters them or chooses "Publish anyway", which completes the results
- * with the exam's missing-work rule (Manage Exams). Ticking students only
- * chooses what to print or download. Publishing sends each card to the
- * student and every guardian linked to them. There is no unpublish here:
- * results are taken down a whole exam at a time in Manage Exams, which
- * deletes the cards and unlocks the marks. Each card offers only what concerns that one sheet: its
- * calculation, print and download.
+ * A place to check, print and download cards. Publishing and unpublishing
+ * happen only in Manage Exams (owner, 2026-11-20), a whole exam for a whole
+ * grade at a time, with the missing-marks check there. Ticking students only
+ * chooses what to print or download. Each card offers only what concerns
+ * that one sheet: its calculation, print and download.
  *
  * Every academic year stays here. Choosing an earlier year shows that year's
  * results exactly as they were published, including students who have since
@@ -48,7 +42,8 @@ const FILTERS = [
 export default function StudentResultPage() {
   const { school, years, academicYear, setYearId, actor, lang, t } = useCas();
   const grades = school?.grades || [];
-  const canPublish = actor?.role === 'SCHOOL_ADMIN';
+  // Publishing happens only in Manage Exams (owner, 2026-11-20).
+  const isSchool = actor?.role === 'SCHOOL_ADMIN';
 
   // Filters are remembered until the page is refreshed, so returning to this
   // screen shows the same result view.
@@ -67,9 +62,6 @@ export default function StudentResultPage() {
   // page tall per pupil. Each opens on demand, printing is unaffected.
   const [previews, setPreviews] = useState(new Set());
   const [downloading, setDownloading] = useState('');
-  const [outcome, setOutcome] = useState(null);
-  // { check, loadError } while the publish dialog is open.
-  const [publishCheck, setPublishCheck] = useState(null);
   const grade = (grades.includes(chosenGrade) && chosenGrade) || grades[0] || '';
   const sections = sectionsForGrade(school?.gradeSections, grade);
   // Only live sections: one deleted on the dashboard stops filtering here.
@@ -146,8 +138,7 @@ export default function StudentResultPage() {
         themeAssignmentIds: themeAssignmentIds.join(','),
       })}`
     : null;
-  const { data, loading, error: loadError, reload } = useCasQuery(cardsPath);
-  const { run, pending, error, success, setSuccess } = useCasMutation();
+  const { data, loading, error: loadError } = useCasQuery(cardsPath);
 
   const students = data?.students || [];
   const counts = Object.fromEntries(FILTERS.map((item) => [
@@ -161,9 +152,8 @@ export default function StudentResultPage() {
   const visibleCards = visible.filter((student) => student.report);
   const chosen = visibleCards.filter((student) => selected.has(student.id));
   // Print and download apply to the ticked students, or to everyone in view.
-  // Publishing does not: it is always the whole grade.
+  // (Publishing is done in Manage Exams, always for the whole grade.)
   const scope = chosen.length ? chosen : visibleCards;
-  const canStartPublish = Boolean(academicYear?.id && grade && selectedExam && themeAssignmentIds.length);
   const missingCredits = (students.find((s) => s.report)?.report.snapshot.subjects || [])
     .filter((subject) => subject.creditHours == null);
 
@@ -171,7 +161,6 @@ export default function StudentResultPage() {
     setSelected(new Set());
     setWorkings(new Set());
     setPreviews(new Set());
-    setOutcome(null);
   }
 
   function changeExam(value) {
@@ -224,55 +213,6 @@ export default function StudentResultPage() {
     }
   }
 
-  /** The result being published: the whole grade, never a section or a few. */
-  function publishScope() {
-    return {
-      academicYear: academicYear.id,
-      grade,
-      format,
-      examTerm,
-      resultMode,
-      ...(resultMode === 'EXAM' && selectedExam ? { examId: selectedExam.id } : {}),
-      includePrevious,
-      themeAssignmentIds,
-    };
-  }
-
-  /** Opens the publish dialog with a fresh check of every student's marks. */
-  async function openPublish() {
-    if (!canStartPublish) return;
-    setOutcome(null);
-    setSuccess('');
-    setPublishCheck({ check: null, loadError: '' });
-    try {
-      const check = await casFetch('/api/cas/results/publish', {
-        method: 'POST',
-        body: { ...publishScope(), checkOnly: true },
-      });
-      setPublishCheck({ check, loadError: '' });
-    } catch (checkError) {
-      setPublishCheck({ check: null, loadError: checkError.message });
-    }
-  }
-
-  async function publish(publishAnyway) {
-    setPublishCheck(null);
-    const result = await run('/api/cas/results/publish', {
-      method: 'POST',
-      body: { ...publishScope(), publishAnyway },
-    });
-    if (result.ok) {
-      const { published = [], failed = [], skipped = [], completedMissing = 0 } = result.data || {};
-      setSuccess(t(
-        `${grade} result published: ${published.length} report card${published.length === 1 ? '' : 's'} sent to students and parents.${completedMissing ? ` ${completedMissing} missing subject mark${completedMissing === 1 ? ' was' : 's were'} completed by the exam's missing-marks rule.` : ''}`,
-        `${grade} को नतिजा प्रकाशित: ${published.length} नतिजा पत्र पठाइयो।`,
-      ));
-      setOutcome({ failed, skipped });
-      setSelected(new Set());
-      reload();
-    }
-  }
-
   function toggle(set, setter, id) {
     const next = new Set(set);
     if (next.has(id)) next.delete(id);
@@ -291,33 +231,16 @@ export default function StudentResultPage() {
       <PageHeader
         title={t('Student Result', 'विद्यार्थी नतिजा')}
         description={t(
-          'Report cards for every student, calculated from continuous assessment. Publishing sends each card to the student and their parents.',
-          'निरन्तर मूल्याङ्कनबाट तयार हरेक विद्यार्थीको नतिजा पत्र। प्रकाशित गर्दा विद्यार्थी र अभिभावकले देख्छन्।',
+          'Report cards for every student, calculated from continuous assessment. Check, print or download them here.',
+          'निरन्तर मूल्याङ्कनबाट तयार हरेक विद्यार्थीको नतिजा पत्र। यहाँ जाँच्न, प्रिन्ट वा डाउनलोड गर्न सकिन्छ।',
         )}
-        actions={
-          canPublish && (
-            <div className="flex flex-wrap gap-2">
-              <Button disabled={pending || !canStartPublish} onClick={openPublish}>
-                <FaPaperPlane className="text-xs" />
-                {pending
-                  ? t('Working...', 'हुँदैछ...')
-                  : t(`Publish ${grade} result`, `${grade} को नतिजा प्रकाशित`)}
-              </Button>
-            </div>
-          )
-        }
       />
-
-      {publishCheck && (
-        <PublishCheckDialog
-          t={t}
-          title={t(`Publish ${selectedExam?.name || 'this result'} for ${grade}?`, `${grade} को ${selectedExam?.name || 'नतिजा'} प्रकाशित गर्ने?`)}
-          grade={grade}
-          check={publishCheck.check}
-          loadError={publishCheck.loadError}
-          onCancel={() => setPublishCheck(null)}
-          onPublish={publish}
-        />
+      {isSchool && (
+        <p className="-mt-2 mb-4 text-sm text-muted">
+          {t('Results are published and unpublished only in ', 'नतिजा प्रकाशन र अप्रकाशन ')}
+          <Link href="/school/cas/exams" className="font-semibold text-brand underline">{t('Manage Exams', 'परीक्षा व्यवस्थापन')}</Link>
+          {t('.', ' बाट मात्र हुन्छ।')}
+        </p>
       )}
 
       <Card>
@@ -450,20 +373,7 @@ export default function StudentResultPage() {
         )}
       </Card>
 
-      {(loadError || error) && <Alert tone="danger">{loadError || error}</Alert>}
-      {success && <Alert tone="success">{success}</Alert>}
-      {outcome && (outcome.skipped.length > 0 || outcome.failed.length > 0) && (
-        <Alert tone="warning">
-          <p className="font-semibold">{t('Not published', 'प्रकाशित भएन')}:</p>
-          <ul className="mt-1 list-disc pl-5">
-            {[...outcome.skipped, ...outcome.failed].map((item, index) => (
-              <li key={index}>
-                {item.name || nameOf(students, item.student) || t('A result', 'एउटा नतिजा')}: {item.reason}
-              </li>
-            ))}
-          </ul>
-        </Alert>
-      )}
+      {loadError && <Alert tone="danger">{loadError}</Alert>}
       {missingCredits.length > 0 && (
         <Alert tone="warning">
           {missingCredits.map((subject) => t(subject.titleEn, subject.titleNe)).join(', ')}{' '}
@@ -732,8 +642,4 @@ function historyGroups(reports) {
 
 function initials(name) {
   return String(name || '?').split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase();
-}
-
-function nameOf(students, id) {
-  return students.find((student) => student.id === id)?.name;
 }

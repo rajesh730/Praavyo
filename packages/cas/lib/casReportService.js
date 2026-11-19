@@ -612,8 +612,17 @@ export async function loadGradeReportCards(actor, input) {
     students: students.map((student) => {
       const identity = { id: student.id, name: student.name, rollNumber: student.rollNumber || '' };
       const stored = reportByStudent.get(student.id);
+      // The student's live details print on the card (a section only when the
+      // school configured it for the grade; loadStudents drops any other).
+      const studentBranding = {
+        ...branding,
+        studentIemis: student.iemisNumber || '',
+        studentName: student.name || '',
+        studentRoll: student.rollNumber || '',
+        studentSection: student.section || '',
+      };
       if (stored?.status === 'PUBLISHED') {
-        return { ...identity, status: 'PUBLISHED', report: { ...serializeReport(stored), branding: { ...branding, studentIemis: student.iemisNumber || '' } } };
+        return { ...identity, status: 'PUBLISHED', report: { ...serializeReport(stored), branding: studentBranding } };
       }
       const result = computeResult(
         curriculumFor(curriculum, student),
@@ -630,7 +639,7 @@ export async function loadGradeReportCards(actor, input) {
         fullyAssessed: result.total.fullyAssessed,
         report: {
           id: null,
-          branding: { ...branding, studentIemis: student.iemisNumber || '' },
+          branding: studentBranding,
           student: student.id,
           grade: data.grade,
           status: 'PREVIEW',
@@ -887,6 +896,7 @@ export async function loadReports(actor, {
   exam,
   format,
   search,
+  student,
 } = {}) {
   requireSchoolAdmin(actor);
   await connectDB();
@@ -894,6 +904,8 @@ export async function loadReports(actor, {
     school: actor.school,
     ...(academicYear ? { academicYear } : {}),
     ...(grade ? { grade } : {}),
+    // One student's cards (Published Results → Student).
+    ...(/^[a-f\d]{24}$/i.test(String(student || '')) ? { student } : {}),
     ...(status ? { status } : {}),
     ...(section ? { 'snapshot.student.section': section } : {}),
     // WHOLE_YEAR = cards that belong to no exam (the whole-year final result).

@@ -29,6 +29,12 @@ const internalExamRecordSchema = new mongoose.Schema({
     absentDays: dayCount,
   },
 
+  // Extra-activity marks by activity id ({ discipline: 9, a1b2c3…: 8 }),
+  // each out of the full marks in the school's InternalActivitySet.
+  activityMarks: { type: mongoose.Schema.Types.Mixed, default: undefined },
+
+  // Before activities had marks: the eight fixed activities as text. Still
+  // read when an activity has no mark (@pravyo/core/internalActivities).
   extraActivities: {
     discipline: grade,
     personalHygiene: grade,

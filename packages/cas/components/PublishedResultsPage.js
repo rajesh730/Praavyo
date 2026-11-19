@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import { useRememberedState } from '@pravyo/ui/rememberedState';
-import { Download as FaDownload, Printer as FaPrint, Search as FaSearch } from 'lucide-react';
+import { Download as FaDownload, Printer as FaPrint } from 'lucide-react';
+import StudentSearchBox from './ui/StudentSearchBox.js';
 import { useCas } from './CasLayout.js';
 import { useCasQuery } from '../lib/client/useCas.js';
 import { downloadPdfFromPage } from '../lib/client/pdfDownload.js';
@@ -10,7 +11,7 @@ import { sectionsForGrade } from '../lib/casSections.js';
 import ReportCard from './report/ReportCard.js';
 import A4Viewport from './report/A4Viewport.js';
 import {
-  PageHeader, Card, Button, EmptyState, Field, Input, Select, Spinner,
+  PageHeader, Card, Button, EmptyState, Field, Select, Spinner,
 } from './ui/Kit.js';
 
 // CAS results are always drawn in the Classic layout, whatever format an
@@ -31,7 +32,7 @@ export default function PublishedResultsPage() {
   const [chosenGrade, setChosenGrade] = useRememberedState('cas-published:grade', '');
   const [section, setSection] = useRememberedState('cas-published:section', '');
   const [exam, setExam] = useRememberedState('cas-published:exam', '');
-  const [searchInput, setSearchInput] = useRememberedState('cas-published:search-input', '');
+  const [student, setStudent] = useRememberedState('cas-published:student', '');
   const [search, setSearch] = useRememberedState('cas-published:search', '');
   const [showAssessedThemes, setShowAssessedThemes] = useRememberedState('cas-published:show-themes', false);
   const [downloading, setDownloading] = useState('');
@@ -44,6 +45,15 @@ export default function PublishedResultsPage() {
       : null,
   );
   const sections = sectionsQuery.data || sectionsForGrade(school?.gradeSections, grade);
+
+  // The grade's students (in the chosen section), roll order, for the Student dropdown.
+  const studentsQuery = useCasQuery(
+    academicYear?.id && grade
+      ? `/api/cas/students?${new URLSearchParams({ academicYear: academicYear.id, grade, ...(section ? { section } : {}) })}`
+      : null,
+  );
+  const studentOptions = Array.isArray(studentsQuery.data) ? studentsQuery.data : [];
+  const activeStudent = studentOptions.some((item) => item.id === student) ? student : '';
 
   const examsQuery = useCasQuery(
     academicYear?.id && grade
@@ -59,6 +69,7 @@ export default function PublishedResultsPage() {
           ...(section ? { section } : {}),
           ...(exam ? { exam } : {}),
           ...(search ? { search } : {}),
+          ...(activeStudent ? { student: activeStudent } : {}),
         })}`
       : null,
   );
@@ -80,10 +91,7 @@ export default function PublishedResultsPage() {
     setChosenGrade(value);
     setSection('');
     setExam('');
-  }
-
-  function applySearch() {
-    setSearch(searchInput.trim());
+    setStudent('');
   }
 
   return (
@@ -104,9 +112,9 @@ export default function PublishedResultsPage() {
         />
 
         <Card>
-          <div className="grid items-end gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+          <div className="grid items-end gap-3 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7">
             <Field label="Academic year">
-              <Select value={academicYear?.id || ''} onChange={(event) => { setYearId(event.target.value); setSection(''); setExam(''); }}>
+              <Select value={academicYear?.id || ''} onChange={(event) => { setYearId(event.target.value); setSection(''); setExam(''); setStudent(''); }}>
                 {years.map((year) => <option key={year.id} value={year.id}>{year.label}</option>)}
               </Select>
             </Field>
@@ -116,7 +124,7 @@ export default function PublishedResultsPage() {
               </Select>
             </Field>
             <Field label="Section">
-              <Select value={section} disabled={!sections.length} onChange={(event) => setSection(event.target.value)}>
+              <Select value={section} disabled={!sections.length} onChange={(event) => { setSection(event.target.value); setStudent(''); }}>
                 <option value="">All sections</option>
                 {sections.map((item) => <option key={item} value={item}>{item}</option>)}
               </Select>
@@ -128,12 +136,18 @@ export default function PublishedResultsPage() {
                 <option value={WHOLE_YEAR}>Whole year (final result)</option>
               </Select>
             </Field>
-            <Field label="Student, roll or result title">
-              <div className="flex gap-2">
-                <Input value={searchInput} placeholder="Search" onChange={(event) => setSearchInput(event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') applySearch(); }} />
-                <Button className="px-3" aria-label="Search published results" onClick={applySearch}><FaSearch /></Button>
-              </div>
-            </Field>
+            {/* One box: type to search (name, roll or result title) or pick a student. Not a <label>, so picking a suggestion does not reopen the list. */}
+            <div className="mb-3 block xl:col-span-2">
+              <span className="label">Student, roll or result title</span>
+              <StudentSearchBox
+                students={studentOptions}
+                loading={studentsQuery.loading}
+                studentId={activeStudent}
+                search={search}
+                onSelectStudent={setStudent}
+                onSearch={setSearch}
+              />
+            </div>
             <Field label="Display">
               <label className="btn btn-secondary flex cursor-pointer items-center gap-2 font-medium">
                 <input type="checkbox" className="h-4 w-4 accent-[var(--brand-primary)]" checked={showAssessedThemes} onChange={(event) => setShowAssessedThemes(event.target.checked)} />

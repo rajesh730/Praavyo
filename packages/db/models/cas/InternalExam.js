@@ -20,7 +20,6 @@ const internalExamSchema = new mongoose.Schema({
   term: { type: String, enum: ['FIRST', 'SECOND', 'THIRD', 'FINAL'], required: true },
   name: { type: String, required: true, trim: true, maxlength: 120 },
   fullMarks: { type: Number, required: true, min: 1, max: 1000, default: 100 },
-  passPercent: { type: Number, required: true, min: 0, max: 100, default: 35 },
   subjectFullMarks: {
     type: [{
       _id: false,
@@ -38,7 +37,6 @@ const internalExamSchema = new mongoose.Schema({
   // pinned, unpublished exam back to the current structure in Manage Exams.
   markScheme: {
     type: new mongoose.Schema({
-      passEachPart: { type: Boolean, default: true },
       subjects: {
         type: [{ _id: false, subject: reqRefId('CasSubject'), structure: { type: markStructureSchema, required: true } }],
         default: [],

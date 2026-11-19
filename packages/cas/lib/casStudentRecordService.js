@@ -64,7 +64,10 @@ async function studentAndEnrollment(actor, data, year, session = null) {
       entry.academicYearStart === year.yearStart,
   );
   assert(enrollment, `${student.name} is not enrolled in ${data.grade} for ${year.label}`, 409);
-  return { student, enrollment };
+  // A section counts only when the school has configured it for this grade.
+  const raw = String(enrollment.section || student.section || '').trim();
+  const section = raw && (await loadGradeSections(actor, data.grade)).includes(raw) ? raw : '';
+  return { student: { ...student, section }, enrollment: { ...enrollment, section } };
 }
 
 function serializeRecord({ actor, data, year, student, enrollment, record, locked }) {

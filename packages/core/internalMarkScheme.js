@@ -35,9 +35,9 @@ export function newFieldId() {
   return `f${random.slice(0, 11).toLowerCase()}`;
 }
 
-/** The structure a grade without one uses: the exam's full marks as one theory mark. */
-export function legacyStructure(fullMarks) {
-  return { theoryFullMarks: Number(fullMarks) || 100, internalFullMarks: 0, fields: [] };
+/** The default structure before a grade saves its own assessment structure. */
+export function legacyStructure() {
+  return { theoryFullMarks: 50, internalFullMarks: 50, fields: [] };
 }
 
 export function totalFullMarks(structure) {

@@ -25,7 +25,6 @@ import { GRADE_BANDS, calculateGpa, gradeFor, gradeForGpa } from './casGrading.j
 import { entryColumns, hasInternal, legacyStructure, totalFullMarks } from './internalMarkScheme.js';
 
 export const DEFAULT_FULL_MARKS = 100;
-export const DEFAULT_PASS_PERCENT = 35;
 /** NG carries grade point 0.0 on internal exams. */
 export const NG_GRADE_POINT = 0;
 
@@ -43,6 +42,51 @@ export const INTERNAL_GRADE_SCALE = [
   { range: `Below ${GRADE_BANDS.at(-1).min}`, grade: 'NG', description: 'Not Graded', point: NG_GRADE_POINT.toFixed(1) },
 ];
 
+/** Descriptions printed on the marks scale (owner's 50-mark table, 2026-11-19). */
+const MARK_SCALE_DESCRIPTIONS = {
+  'A+': { en: 'Outstanding', ne: 'सर्वोत्तम' },
+  A: { en: 'Excellent', ne: 'अत्युत्तम' },
+  'B+': { en: 'Very Good', ne: 'उत्कृष्ट' },
+  B: { en: 'Good', ne: 'उत्तम' },
+  'C+': { en: 'Satisfactory / Above Average', ne: 'सन्तोषजनक' },
+  C: { en: 'Acceptable / Average', ne: 'प्राप्य' },
+  D: { en: 'Basic / Below Average', ne: 'आधारभूत' },
+  NG: { en: 'Fail (Requires grade-increment/re-exam)', ne: 'अवर्गीकृत (ग्रेड वृद्धि/पुनः परीक्षा आवश्यक)' },
+};
+
+/**
+ * The same bands written as scores for a paper of `fullMarks`, in steps of
+ * `step` (50 marks → A+ 45.0 – 50.0, A 40.0 – 44.5 … D 17.5 – 19.5, NG below
+ * 17.5). Display only: a score is still graded by its percentage, so this
+ * scale and INTERNAL_GRADE_SCALE always agree.
+ */
+export function gradeScaleForMarks(fullMarks = 50, step = 0.5) {
+  const fmt = (value) => value.toFixed(1);
+  const lowOf = (min) => Math.ceil(round2((fullMarks * min) / 100) / step - 1e-9) * step;
+  const rows = GRADE_BANDS.map((band, index) => {
+    const low = lowOf(band.min);
+    const high = index === 0 ? fullMarks : round2(lowOf(GRADE_BANDS[index - 1].min) - step);
+    return {
+      score: `${fmt(low)} – ${fmt(high)}`,
+      percent: index === 0 ? `${band.min}% – 100%` : `${band.min}% – ${GRADE_BANDS[index - 1].min - 1}%`,
+      grade: band.grade,
+      point: band.gradePoint.toFixed(1),
+      description: MARK_SCALE_DESCRIPTIONS[band.grade].en,
+      descriptionNe: MARK_SCALE_DESCRIPTIONS[band.grade].ne,
+    };
+  });
+  const lowest = GRADE_BANDS.at(-1).min;
+  rows.push({
+    score: `Below ${fmt(lowOf(lowest))}`,
+    percent: `Below ${lowest}%`,
+    grade: 'NG',
+    point: NG_GRADE_POINT.toFixed(1),
+    description: MARK_SCALE_DESCRIPTIONS.NG.en,
+    descriptionNe: MARK_SCALE_DESCRIPTIONS.NG.ne,
+  });
+  return rows;
+}
+
 /** Grade a percentage; NG gets grade point 0.0. Null in, null out. */
 export function gradeOf(percent) {
   const graded = gradeFor(percent);
@@ -56,18 +100,12 @@ export function subjectFullMarks(exam, subjectId) {
   return Number(override?.fullMarks) || Number(exam?.fullMarks) || DEFAULT_FULL_MARKS;
 }
 
-/** Pass marks for a full-marks figure, as printed on the sheet (two decimals at most). */
-export function passMarksFor(fullMarks, passPercent = DEFAULT_PASS_PERCENT) {
-  return round2((fullMarks * passPercent) / 100);
-}
-
 /** One graded part (TH or INT) once its marks are all in. */
-function gradedPart(fullMarks, obtained, passPercent) {
-  const passMarks = passMarksFor(fullMarks, passPercent);
-  if (!isMarks(obtained)) return { fullMarks, passMarks, entered: false, obtained: null, percent: null, grade: null, gradePoint: null, passed: false };
+function gradedPart(fullMarks, obtained) {
+  if (!isMarks(obtained)) return { fullMarks, entered: false, obtained: null, percent: null, grade: null, gradePoint: null };
   const percent = round2((obtained / fullMarks) * 100);
   const graded = gradeOf(percent);
-  return { fullMarks, passMarks, entered: true, obtained: round2(obtained), percent, grade: graded.grade, gradePoint: graded.gradePoint, passed: obtained >= passMarks };
+  return { fullMarks, entered: true, obtained: round2(obtained), percent, grade: graded.grade, gradePoint: graded.gradePoint };
 }
 
 /**
@@ -90,13 +128,10 @@ function normalizeEntry(entry) {
  * nothing is entered. A blank is never read as 0: the line stays unentered
  * until every part is typed. An absent student scores 0, grade ABS.
  *
- * `passEachPart`: theory and internal must each reach the pass percentage;
- * failing either makes the subject NG.
  */
-export function subjectLine(subject, entry, passPercent = DEFAULT_PASS_PERCENT, { passEachPart = true } = {}) {
+export function subjectLine(subject, entry) {
   const structure = subject.structure || legacyStructure(subject.fullMarks);
   const fullMarks = totalFullMarks(structure);
-  const passMarks = passMarksFor(fullMarks, passPercent);
   const columns = entryColumns(structure);
   const split = hasInternal(structure) && Number(structure.theoryFullMarks) > 0;
   const { theory, internal, absent } = normalizeEntry(entry);
@@ -106,11 +141,11 @@ export function subjectLine(subject, entry, passPercent = DEFAULT_PASS_PERCENT, 
   const internalEntered = internalColumns.length > 0 && internalColumns.every((column) => isMarks(valueOf(column)));
   const internalSoFar = round2(internalColumns.reduce((sum, column) => sum + (isMarks(valueOf(column)) ? valueOf(column) : 0), 0));
   const theoryPart = Number(structure.theoryFullMarks) > 0
-    ? gradedPart(Number(structure.theoryFullMarks), theory, passPercent)
+    ? gradedPart(Number(structure.theoryFullMarks), theory)
     : null;
   const internalPart = hasInternal(structure)
     ? {
-      ...gradedPart(Number(structure.internalFullMarks), internalEntered ? internalSoFar : null, passPercent),
+      ...gradedPart(Number(structure.internalFullMarks), internalEntered ? internalSoFar : null),
       soFar: internalSoFar,
       fields: (structure.fields || []).map((field) => ({
         id: field.id, name: field.name, fullMarks: Number(field.fullMarks),
@@ -126,29 +161,23 @@ export function subjectLine(subject, entry, passPercent = DEFAULT_PASS_PERCENT, 
     titleNe: subject.titleNe || '',
     creditHours: Number.isFinite(subject.creditHours) ? subject.creditHours : null,
     fullMarks,
-    passMarks,
     split,
     theory: theoryPart,
     internal: internalPart,
   };
 
   if (absent) {
-    return { ...base, entered: true, partial: false, absent: true, obtained: 0, percent: 0, grade: 'ABS', gradePoint: NG_GRADE_POINT, passed: false };
+    return { ...base, entered: true, partial: false, absent: true, obtained: 0, percent: 0, grade: 'ABS', gradePoint: NG_GRADE_POINT };
   }
   const typed = columns.filter((column) => isMarks(valueOf(column))).length;
   if (!columns.length || typed < columns.length) {
-    return { ...base, entered: false, partial: typed > 0, absent: false, obtained: null, percent: null, grade: null, gradePoint: null, passed: false };
+    return { ...base, entered: false, partial: typed > 0, absent: false, obtained: null, percent: null, grade: null, gradePoint: null };
   }
 
   const obtained = round2((theoryPart?.obtained || 0) + (internalPart?.obtained || 0));
   const percent = round2((obtained / fullMarks) * 100);
-  const parts = [theoryPart, internalPart].filter(Boolean);
-  const partFailed = parts.some((part) => !part.passed);
-  const passed = passEachPart && parts.length > 1 ? !partFailed : obtained >= passMarks;
-  const graded = passEachPart && parts.length > 1 && partFailed
-    ? { grade: 'NG', gradePoint: NG_GRADE_POINT }
-    : gradeOf(percent);
-  return { ...base, entered: true, partial: false, absent: false, obtained, percent, grade: graded.grade, gradePoint: graded.gradePoint, passed };
+  const graded = gradeOf(percent);
+  return { ...base, entered: true, partial: false, absent: false, obtained, percent, grade: graded.grade, gradePoint: graded.gradePoint };
 }
 
 /**
@@ -160,8 +189,8 @@ export function subjectLine(subject, entry, passPercent = DEFAULT_PASS_PERCENT, 
  * GPA is weighted by credit hours like CAS. When the school has set no credit
  * hours at all for the grade, every subject counts equally instead.
  */
-export function internalExamResult({ subjects = [], marks = {}, passPercent = DEFAULT_PASS_PERCENT, passEachPart = true }) {
-  const lines = subjects.map((subject) => subjectLine(subject, marks[String(subject.id)], passPercent, { passEachPart }));
+export function internalExamResult({ subjects = [], marks = {} }) {
+  const lines = subjects.map((subject) => subjectLine(subject, marks[String(subject.id)]));
   const complete = lines.length > 0 && lines.every((line) => line.entered);
   const fullMarks = round2(lines.reduce((sum, line) => sum + line.fullMarks, 0));
   const obtained = lines.reduce((sum, line) => sum + (line.obtained || 0), 0);
@@ -175,12 +204,10 @@ export function internalExamResult({ subjects = [], marks = {}, passPercent = DE
     subjects: lines,
     complete,
     split: lines.some((line) => line.split),
-    passEachPart,
     fullMarks,
     obtained: round2(obtained),
     percent: complete && fullMarks ? round2((obtained / fullMarks) * 100) : null,
     gpa,
     overallGrade: overall?.grade || null,
-    passed: complete && lines.every((line) => line.passed),
   };
 }

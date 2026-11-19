@@ -3,8 +3,6 @@ import { redirect } from 'next/navigation';
 import Link from 'next/link';
 import { authOptions } from '@/lib/authOptions';
 import CasLayout from '@pravyo/cas/components/CasLayout';
-import InternalExamLocked from '@/components/exams/InternalExamLocked';
-import { isInternalExamLocked } from '@/lib/exams/internalExamLock';
 
 export const dynamic = 'force-dynamic';
 
@@ -49,11 +47,6 @@ export default async function CasAreaLayout({ children }) {
         </div>
       </main>
     );
-  }
-
-  // Not ready yet: the Super Admin keeps Internal Exam locked (its API refuses too).
-  if (await isInternalExamLocked()) {
-    return <InternalExamLocked backHref="/school/exams" />;
   }
 
   return <CasLayout area="internal">{children}</CasLayout>;

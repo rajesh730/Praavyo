@@ -1,18 +1,26 @@
-import { gradeFor } from '@pravyo/core/casGrading';
-import { ECA_FIELDS, hasAttendance, hasExtraActivities } from '@pravyo/core/casSupplementary';
-import { GRADE_SCALE, picker, issueDateOf, examTitleOf, valueOrDash } from './reportText.js';
+import { ECA_FIELDS } from '@pravyo/core/casSupplementary';
+import { picker, issueDateOf, examTitleOf, academicYearOf, valueOrDash } from './reportText.js';
+import {
+  FillerRows, GradingScale, INK, LINE, RemarksBox, SheetFoot, SheetFrame, SheetTop, SOFT, Td, Th, remarkFor,
+} from './gradeSheet.js';
 
 /**
- * The internal (school) exam report card — the Modern format.
+ * The internal (school) exam report card: a GRADE-SHEET, laid out like the
+ * schools' own printed sheet (owner's sample, 2026-11-19). The CAS card is
+ * drawn from the same parts (gradeSheet.js), so the two always match.
  *
- * Marks-based: each subject's full marks, pass marks, marks obtained, grade and
- * grade point, then the total, percentage, GPA and pass/fail. CAS results keep
- * the Classic grade sheet; this card exists only for internal exams.
+ * Grades only, never marks: for each subject its full marks, credit hours,
+ * TH grade, INT grade, the final (obtained) grade and its grade point; then
+ * the total full marks, the Average Grade (AG) and the GPA. Attendance, extra
+ * activities, the grading scale, a remark, the issue date and four
+ * signatures follow. Prints on ONE A4 page (checked at 10 subjects and 12
+ * activities).
  *
  * Like the CAS layouts it has no hooks and no 'use client', so the school's
  * screen and the guardian's portal draw the identical card.
  */
-const BRAND = '#2b59c3';
+// Blank rows keep the grade table a steady height.
+const MIN_ROWS = 7;
 
 export default function InternalExamReport({ report, lang = 'en' }) {
   const s = report?.snapshot;
@@ -20,253 +28,174 @@ export default function InternalExamReport({ report, lang = 'en' }) {
 
   const pick = picker(lang);
   const subjects = s.subjects || [];
-  const { logoUrl, reportImageUrl, principalName, classTeachers, schoolIemis, studentIemis } = report.branding || {};
-  const issueDate = issueDateOf(report);
-  // The remark follows the result: the grade band's own words when passed,
-  // otherwise the subjects that were not passed.
-  const notPassed = subjects.filter((line) => line.entered && !line.passed).map((line) => pick(line.titleEn, line.titleNe));
-  const remark = s.passed
-    ? (lang === 'ne' ? gradeFor(s.percent)?.remarkNe : gradeFor(s.percent)?.remarkEn) || '-'
-    : notPassed.length
-      ? `${lang === 'ne' ? 'सुधार आवश्यक' : 'Needs improvement in'}: ${notPassed.join(', ')}`
-      : '-';
-  // Recorded on Internal Exam → Attendance & Activities. A section the school
-  // has not filled in is left off the card (cards published before this
-  // existed have neither).
+  // School and student details are live (casBranding), so a change in the
+  // records shows on every card; the snapshot copy is only a fallback.
+  const live = report.branding || {};
+  const school = {
+    name: live.schoolName || s.school?.name || 'School',
+    address: live.schoolAddress || s.school?.address || '',
+    logoUrl: live.logoUrl,
+    reportImageUrl: live.reportImageUrl,
+    iemis: live.schoolIemis || s.school?.iemisNumber,
+  };
+  const student = {
+    name: live.studentName || s.student?.name,
+    grade: s.student?.grade,
+    roll: live.studentRoll ?? s.student?.rollNumber,
+    section: 'studentSection' in live ? live.studentSection : s.student?.section,
+    iemis: live.studentIemis ?? s.student?.iemisNumber,
+  };
   const attendance = s.attendance || {};
-  const extraActivities = s.extraActivities || {};
-  const showAttendance = hasAttendance(attendance);
-  const showActivities = hasExtraActivities(extraActivities);
-  const summary = [
-    ['Total marks', `${valueOrDash(s.obtained)} / ${valueOrDash(s.fullMarks)}`],
-    ['Percentage', s.percent == null ? '-' : `${s.percent}%`],
-    ['GPA', valueOrDash(s.gpa)],
-    ['Result', s.passed ? 'PASS' : 'NOT PASSED'],
-  ];
+  // The school's own activities, each "obtained/full" (e.g. 9/10). Cards
+  // published before activities had full marks show their old values.
+  const activityRows = Array.isArray(s.activities)
+    ? s.activities.map((line) => ({ id: line.id, name: line.name, value: activityText(line) }))
+    : ECA_FIELDS.map((field) => ({ id: field.key, name: field.label, value: s.extraActivities?.[field.key] || '-' }));
+  const gpa = typeof s.gpa === 'number' ? s.gpa.toFixed(2) : valueOrDash(s.gpa);
+  const title = examTitleOf(s);
+  const year = academicYearOf(s);
 
   return (
-    <article className="cas-a4 cas-a4-fit overflow-hidden rounded-lg border border-[#c9d3ea] bg-white text-[#111]">
-      <header className="flex items-center gap-4 px-6 py-4 text-white" style={{ background: BRAND }}>
-        {logoUrl ? (
-          // A plain <img>, so the downloaded PDF can draw it too.
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={logoUrl} alt={`${s.school?.name || 'School'} logo`} className="h-14 w-14 rounded-full bg-white object-contain p-1" />
-        ) : (
-          <div className="grid h-14 w-14 shrink-0 place-items-center rounded-full bg-white text-xl font-bold" style={{ color: BRAND }}>
-            {(s.school?.name || 'S').slice(0, 1)}
-          </div>
-        )}
-        <div className="min-w-0 flex-1 text-center">
-          <h1 className="text-xl font-bold leading-tight">{s.school?.name || 'School'}</h1>
-          {s.school?.address && <p className="text-[11px] opacity-90">{s.school.address}</p>}
-          <p className="mt-1 text-[11px] font-semibold uppercase tracking-[0.2em] opacity-90">Progress Report</p>
-        </div>
-        {reportImageUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={reportImageUrl} alt="" className="h-14 w-14 rounded bg-white object-contain p-1" />
-        ) : <span className="w-14" aria-hidden="true" />}
-      </header>
+    <SheetFrame>
+      <SheetTop
+        school={school}
+        examTitle={`${title}${year && !String(title).includes(year) ? ` ${year}` : ''}`}
+        student={student}
+        sheetLabel={lang === 'ne' ? 'ग्रेड - सिट' : 'GRADE - SHEET'}
+      />
 
-      <div className="px-6 py-4">
-        <p className="text-center text-base font-bold" style={{ color: BRAND }}>{examTitleOf(s)}</p>
-
-        <dl className="mt-3 grid grid-cols-2 gap-x-6 gap-y-1 rounded-md bg-[#f2f5fc] px-4 py-2 text-[11px] sm:grid-cols-3">
-          <Detail label="Name" value={s.student?.name} />
-          <Detail label="Class" value={s.student?.grade} />
-          <Detail label="Roll No." value={s.student?.rollNumber} />
-          {s.student?.section ? <Detail label="Section" value={s.student.section} /> : null}
-          {/* Both government IEMIS numbers, live from the records. */}
-          <Detail label="Student IEMIS No." value={studentIemis || s.student?.iemisNumber} />
-          <Detail label="School IEMIS No." value={schoolIemis || s.school?.iemisNumber} />
-          <Detail label="Academic Year" value={s.academicYear?.label} />
-        </dl>
-
-        <table className="mt-4 w-full table-fixed border-collapse text-[11px]">
-          <colgroup>
-            <col className="w-[7%]" />
-            <col className="w-[33%]" />
-            <col className="w-[11%]" />
-            <col className="w-[11%]" />
-            <col className="w-[13%]" />
-            <col className="w-[12%]" />
-            <col className="w-[13%]" />
-          </colgroup>
-          <thead>
-            <tr className="text-white" style={{ background: BRAND }}>
-              <Th>S.N.</Th>
-              <Th left>Subject</Th>
-              <Th>Full Marks</Th>
-              <Th>Pass Marks</Th>
-              <Th>Obtained Marks</Th>
-              <Th>Grade</Th>
-              <Th>Grade Point</Th>
+      {/* Grades */}
+      <table className="w-full table-fixed border-collapse text-[11px]">
+        <colgroup>
+          <col className="w-[6%]" />
+          <col className="w-[30%]" />
+          <col className="w-[10%]" />
+          <col className="w-[10%]" />
+          <col className="w-[10%]" />
+          <col className="w-[10%]" />
+          <col className="w-[12%]" />
+          <col className="w-[12%]" />
+        </colgroup>
+        <thead>
+          <tr style={{ background: SOFT }}>
+            <Th>S/N</Th>
+            <Th left>Subjects</Th>
+            <Th>Full Marks</Th>
+            <Th>Credit Hour</Th>
+            <Th>TH Grade</Th>
+            <Th>INT. Grade</Th>
+            <Th>Obtained Grade</Th>
+            <Th>Grade Point</Th>
+          </tr>
+        </thead>
+        <tbody>
+          {subjects.map((subject, index) => (
+            <tr key={subject.id || index}>
+              <Td>{index + 1}</Td>
+              <Td left>{pick(subject.titleEn, subject.titleNe) || '-'}</Td>
+              <Td>{valueOrDash(subject.fullMarks)}</Td>
+              <Td>{valueOrDash(subject.creditHours)}</Td>
+              <Td>{partGrade(subject, subject.theory)}</Td>
+              <Td>{partGrade(subject, subject.internal)}</Td>
+              <Td bold>{subject.absent ? 'ABS' : valueOrDash(subject.grade)}</Td>
+              <Td>{subject.gradePoint == null ? '-' : subject.gradePoint.toFixed(1)}</Td>
             </tr>
-          </thead>
-          <tbody>
-            {subjects.map((subject, index) => (
-              <tr key={subject.id || index} className={index % 2 ? 'bg-[#f7f9fd]' : ''}>
-                <Td>{index + 1}</Td>
-                <Td left>{pick(subject.titleEn, subject.titleNe) || '-'}</Td>
-                <Td>{subject.fullMarks}</Td>
-                <Td>{subject.passMarks}</Td>
-                <Td className={subject.entered && !subject.passed ? 'font-bold text-[#b42318]' : ''}>
-                  {subject.absent ? 'Absent' : valueOrDash(subject.obtained)}
-                </Td>
-                <Td>{valueOrDash(subject.grade)}</Td>
-                <Td>{subject.gradePoint == null ? '-' : subject.gradePoint.toFixed(1)}</Td>
-              </tr>
-            ))}
-            <tr className="font-bold" style={{ background: '#e7edf9' }}>
-              <Td />
-              <Td left>Total</Td>
-              <Td>{valueOrDash(s.fullMarks)}</Td>
-              <Td />
-              <Td>{valueOrDash(s.obtained)}</Td>
-              <Td>{valueOrDash(s.overallGrade)}</Td>
-              <Td>{valueOrDash(s.gpa)}</Td>
-            </tr>
-          </tbody>
-        </table>
-
-        <div className="mt-4 grid grid-cols-4 gap-2">
-          {summary.map(([label, value]) => (
-            <div key={label} className="rounded-md border border-[#c9d3ea] px-2 py-2 text-center">
-              <p className="text-[10px] uppercase tracking-wide text-[#555]">{label}</p>
-              <p
-                className="mt-0.5 text-sm font-bold"
-                style={{ color: label === 'Result' ? (s.passed ? '#1f7a3f' : '#b42318') : BRAND }}
-              >
-                {value}
-              </p>
-            </div>
           ))}
-        </div>
+          <FillerRows count={MIN_ROWS - subjects.length} columns={8} />
+          <tr className="font-bold" style={{ background: SOFT }}>
+            <Td />
+            <Td />
+            <Td>{valueOrDash(s.fullMarks)}</Td>
+            <td colSpan={4} className="border px-2 py-1.5 text-right" style={{ borderColor: LINE }}>
+              Average Grade (AG): <span className="ml-1 text-[13px]" style={{ color: INK }}>{valueOrDash(s.overallGrade)}</span>
+            </td>
+            <Td><span className="text-[13px]" style={{ color: INK }}>{gpa}</span></Td>
+          </tr>
+        </tbody>
+      </table>
 
-        {(showAttendance || showActivities) && (
-          <div className={`mt-4 grid gap-4 ${showAttendance && showActivities ? 'grid-cols-[1fr_2.2fr]' : 'grid-cols-1'}`}>
-            {showAttendance && (
-              <div>
-                <h3 className="mb-1 text-xs font-bold" style={{ color: BRAND }}>Attendance</h3>
-                <table className="w-full border-collapse text-[10px]">
-                  <tbody>
-                    <LabelRow label="Working Days" value={valueOrDash(attendance.workingDays)} />
-                    <LabelRow label="Present Days" value={valueOrDash(attendance.presentDays)} />
-                    <LabelRow label="Absent Days" value={valueOrDash(attendance.absentDays)} />
-                  </tbody>
-                </table>
-              </div>
-            )}
-            {showActivities && (
-              <div>
-                <h3 className="mb-1 text-xs font-bold" style={{ color: BRAND }}>Extra Activities</h3>
-                {/* Two label/grade pairs per row keeps all eight within four lines. */}
-                <table className="w-full border-collapse text-[10px]">
-                  <tbody>
-                    {pairs(ECA_FIELDS).map((pair) => (
-                      <tr key={pair[0].key}>
-                        {pair.map((field) => (
-                          <LabelCells key={field.key} label={field.label} value={extraActivities[field.key] || '-'} />
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </div>
-        )}
-
-        <div className="mt-4 grid grid-cols-[1.3fr_1fr] gap-4">
-          <div>
-            <h3 className="mb-1 text-xs font-bold" style={{ color: BRAND }}>Grading Scale</h3>
-            <table className="w-full border-collapse text-[10px]">
-              <thead>
-                <tr className="bg-[#eef2fb]">
-                  <ScaleCell head>Percentage</ScaleCell>
-                  <ScaleCell head>Grade</ScaleCell>
-                  <ScaleCell head>Description</ScaleCell>
-                  <ScaleCell head>Grade Point</ScaleCell>
-                </tr>
-              </thead>
+      {/* Attendance + activities | grading scale + remarks */}
+      <div className="cas-avoid-break mt-3 grid grid-cols-[1.25fr_1fr] gap-3 text-[10px]">
+        <div className="space-y-2">
+          <section>
+            <h3 className="mb-0.5 text-center text-[11.5px] font-bold">Attendance</h3>
+            <table className="w-full border-collapse">
               <tbody>
-                {GRADE_SCALE.map((row) => (
-                  <tr key={row.grade}>
-                    <ScaleCell>{row.range}</ScaleCell>
-                    <ScaleCell>{row.grade}</ScaleCell>
-                    <ScaleCell>{row.performance}</ScaleCell>
-                    <ScaleCell>{row.point}</ScaleCell>
-                  </tr>
-                ))}
+                <LabelRow label="Working Days" value={valueOrDash(attendance.workingDays)} />
+                <LabelRow label="Present Days" value={valueOrDash(attendance.presentDays)} />
+                <LabelRow label="Absent Days" value={valueOrDash(attendance.absentDays)} />
               </tbody>
             </table>
-          </div>
-          <div className="text-[11px]">
-            <h3 className="mb-1 text-xs font-bold" style={{ color: BRAND }}>Remarks</h3>
-            <div className="min-h-[4rem] rounded-md border border-[#c9d3ea] p-2 italic">
-              {remark}
-            </div>
-            <p className="mt-2 text-[10px] text-[#555]">
-              Pass marks are {s.passPercent ?? 35}% of each subject&apos;s full marks.
-            </p>
-          </div>
+          </section>
+          {activityRows.length > 0 && (
+            <section>
+              <h3 className="mb-0.5 text-center text-[11.5px] font-bold">Extra Activities</h3>
+              {/* Two activities per row, so even a long list stays on the one page. */}
+              <table className="w-full table-fixed border-collapse">
+                <colgroup><col className="w-[34%]" /><col className="w-[16%]" /><col className="w-[34%]" /><col className="w-[16%]" /></colgroup>
+                <tbody>
+                  {pairsOf(activityRows).map((pair) => (
+                    <tr key={pair[0].id}>
+                      {pair.map((row) => <LabelCells key={row.id} label={row.name} value={row.value} />)}
+                      {pair.length === 1 && <><td className="border" style={{ borderColor: LINE }} /><td className="border" style={{ borderColor: LINE }} /></>}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </section>
+          )}
         </div>
 
-        <footer className="cas-a4-foot mt-8 grid grid-cols-3 gap-8 text-center text-[10px]">
-          <Signature value={classTeachers?.[s.student?.grade] || ''} label="Class Teacher" />
-          <Signature value={principalName || ''} label="Principal" />
-          <Signature value={issueDate} label="Issue Date" />
-        </footer>
+        <div className="flex flex-col gap-2">
+          {/* On internal exams NG carries grade point 0.0. */}
+          <GradingScale ngPoint="0.0" />
+          <RemarksBox remark={remarkFor(s.overallGrade, lang)} />
+        </div>
       </div>
-    </article>
+
+      <SheetFoot
+        issueDate={issueDateOf(report)}
+        classTeacher={live.classTeachers?.[s.student?.grade] || ''}
+        principal={live.principalName || ''}
+      />
+    </SheetFrame>
   );
 }
 
-function Detail({ label, value }) {
+/** "9/10" for a mark, the old text as it was ("A"), or "-" when nothing is recorded. */
+function activityText(line) {
+  if (typeof line.obtained === 'number') return `${line.obtained}/${line.fullMarks}`;
+  return line.obtained ? String(line.obtained) : '-';
+}
+
+/** A part's grade (TH or INT): ABS when absent, '-' when the subject has no such part. */
+function partGrade(subject, part) {
+  if (!part) return '-';
+  if (subject.absent) return 'ABS';
+  return valueOrDash(part.grade);
+}
+
+function LabelRow({ label, value }) {
   return (
-    <div className="flex gap-1">
-      <dt className="text-[#555]">{label}:</dt>
-      <dd className="font-semibold">{valueOrDash(value)}</dd>
-    </div>
+    <tr>
+      <td className="border px-2 py-[2px] text-left" style={{ borderColor: LINE }}>{label}</td>
+      <td className="w-[28%] border px-1 py-[2px] text-center font-semibold uppercase" style={{ borderColor: LINE }}>{value}</td>
+    </tr>
   );
 }
 
-function Th({ children, left = false }) {
-  return <th className={`border border-[#c9d3ea] px-1 py-1.5 text-[10px] font-bold leading-tight ${left ? 'pl-2 text-left' : 'text-center'}`}>{children}</th>;
-}
-
-function Td({ children, left = false, className = '' }) {
-  return <td className={`border border-[#c9d3ea] px-1 py-1 ${left ? 'pl-2 text-left' : 'text-center'} ${className}`}>{children}</td>;
-}
-
-function pairs(list) {
-  const rows = [];
-  for (let index = 0; index < list.length; index += 2) rows.push(list.slice(index, index + 2));
-  return rows;
-}
-
+/** A label and its value as two cells, for the two-per-row activities table. */
 function LabelCells({ label, value }) {
   return (
     <>
-      <td className="border border-[#c9d3ea] bg-[#f7f9fd] px-2 py-[3px] text-left">{label}</td>
-      <td className="w-[14%] border border-[#c9d3ea] px-1 py-[3px] text-center font-semibold uppercase">{value}</td>
+      <td className="truncate border px-1.5 py-[2px] text-left" style={{ borderColor: LINE }} title={label}>{label}</td>
+      <td className="border px-1 py-[2px] text-center font-semibold" style={{ borderColor: LINE }}>{value}</td>
     </>
   );
 }
 
-function LabelRow({ label, value }) {
-  return <tr><LabelCells label={label} value={value} /></tr>;
-}
-
-function ScaleCell({ children, head = false }) {
-  const Tag = head ? 'th' : 'td';
-  return <Tag className={`border border-[#c9d3ea] px-1 py-[3px] text-center ${head ? 'font-bold' : ''}`}>{children}</Tag>;
-}
-
-function Signature({ value = '', label }) {
-  return (
-    <div>
-      <p className="h-5 border-b border-[#111] text-center text-[11px] font-semibold leading-5">{value}</p>
-      <p className="pt-1">{label}</p>
-    </div>
-  );
+function pairsOf(list) {
+  const rows = [];
+  for (let index = 0; index < list.length; index += 2) rows.push(list.slice(index, index + 2));
+  return rows;
 }

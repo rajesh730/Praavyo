@@ -18,7 +18,7 @@ import { LIBRARY_GRADES } from '@pravyo/core/themeLibrary';
 
 // Every field below exists on the Pravyo school account. CAS never asks a
 // school to retype any of it and never stores its own copy.
-const SCHOOL_FIELDS =
+export const SCHOOL_FIELDS =
   'schoolName name email principalName principalPhone schoolLocation ' +
   'streetAddress province district municipality ward tole postalCode ' +
   'schoolPhone website establishedYear calendarPreference';
@@ -67,7 +67,8 @@ export async function loadGradeSections(actor, grade) {
   return sectionsForGrade(config?.gradeSections || [], grade);
 }
 
-function formatAddress(school, config) {
+/** The school's address as one line, from its Pravyo profile. */
+export function formatAddress(school, config) {
   const parts = [
     school.tole,
     school.streetAddress,
@@ -124,9 +125,15 @@ function normalizeYear(year) {
  * Reads enrolment history rather than the student's current grade, so a student
  * since promoted still appears for the year being assessed. CAS never creates a
  * Student — it only reads this list.
+ *
+ * A section is kept only when the school has configured it for the grade
+ * (Settings → grade sections). A section left on an enrollment for a grade
+ * with no sections, or one since removed, reads as none on every screen.
  */
 export async function loadStudents(actor, { grade, yearStart, history = false }) {
   await connectDB();
+  const config = await SchoolConfig.findOne({ school: actor.school }).select('gradeSections').lean();
+  const configuredSections = new Set(sectionsForGrade(config?.gradeSections || [], grade));
   const students = await Student.find({
     // `history` reads who was enrolled that year, whatever they are now. A
     // result from an earlier year must still list a student who has since
@@ -155,13 +162,18 @@ export async function loadStudents(actor, { grade, yearStart, history = false })
         rollNumber: enrollment?.rollNumber || s.rollNumber || '',
         registrationNumber: s.registrationNumber || '',
         iemisNumber: s.iemisNumber || '',
-        section: enrollment?.section || s.section || '',
+        section: configuredSection(enrollment?.section || s.section, configuredSections),
         // Optional subjects the school assigned; see @pravyo/core/subjectScope.
         subjectChoices: (s.subjectChoices || []).map(String),
       };
     })
     // Roll numbers are strings in Pravyo, so "10" must not sort before "2".
     .sort(byRollThenName);
+}
+
+function configuredSection(section, configured) {
+  const value = String(section || '').trim();
+  return value && configured.has(value) ? value : '';
 }
 
 export function byRollThenName(a, b) {

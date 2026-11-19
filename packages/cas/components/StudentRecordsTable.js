@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { CheckCheck as FaCheckAll, Save as FaSave } from 'lucide-react';
-import { ECA_FIELDS, emptyAttendance, normalizeAttendance } from '@pravyo/core/casSupplementary';
+import { emptyAttendance, normalizeAttendance } from '@pravyo/core/casSupplementary';
+import { parseActivityMark } from '@pravyo/core/internalActivities';
 import { useCasMutation } from '../lib/client/useCas.js';
 import {
   Alert,
@@ -41,25 +42,28 @@ function makeDraft(table) {
       {
         revision: row.revision ?? 0,
         attendance: normalizeAttendance(row.attendance),
-        extraActivities: { ...(row.extraActivities || {}) },
+        // Typed text per activity id: a mark, or old text such as "A".
+        activities: Object.fromEntries(
+          Object.entries(row.activityMarks || {}).map(([id, value]) => [id, value == null ? '' : String(value)]),
+        ),
       },
     ]),
   );
 }
 
-/** Extra activities are entered once per exam; a saved row is read-only. */
-function hasActivities(values) {
-  return ECA_FIELDS.some((field) => String(values?.[field.key] || '').trim());
-}
-
+/**
+ * Until the exam is published every saved figure stays editable; publishing
+ * locks the rows (`row.locked`), unpublishing reopens them.
+ */
 export default function StudentRecordsTable({ mode, table, onSaved, t }) {
   const { run, pending, error, success, setError, setSuccess } = useCasMutation();
   const [draft, setDraft] = useState(() => makeDraft(table));
   const [classWorkingDays, setClassWorkingDays] = useState(() => commonWorkingDays(table));
   const rows = table.students || [];
+  // The school's own activities, each with its full marks (Manage Exams → Extra Activities).
+  const activities = table.activities || [];
   const canEdit = table.canRecord && !pending;
-  const activitiesSaved = (row) => mode !== 'attendance' && hasActivities(row.extraActivities);
-  const editableRows = rows.filter((row) => !row.locked && !activitiesSaved(row));
+  const editableRows = rows.filter((row) => !row.locked);
   const original = useMemo(() => makeDraft(table), [table]);
   const workingDays = parseCount(classWorkingDays);
 
@@ -81,10 +85,18 @@ export default function StudentRecordsTable({ mode, table, onSaved, t }) {
     if (!before || !after) return false;
     return (
       JSON.stringify(normalizeAttendance(before.attendance)) !== JSON.stringify(submittedAttendance(row.student.id)) ||
-      ECA_FIELDS.some((field) =>
-        String(before.extraActivities?.[field.key] || '').trim() !== String(after.extraActivities?.[field.key] || '').trim())
+      activities.some((field) =>
+        String(before.activities?.[field.id] || '').trim() !== String(after.activities?.[field.id] || '').trim())
     );
   }).length;
+
+  /** Activity cells that are not a mark within full marks (old text such as "A" included). */
+  const invalidActivities = mode === 'attendance' ? 0 : rows.reduce((sum, row) => sum + activities.filter((field) => {
+    const text = draft[row.student.id]?.activities?.[field.id];
+    const before = original[row.student.id]?.activities?.[field.id];
+    if (String(text || '').trim() === String(before || '').trim()) return false;
+    return parseActivityMark(text, field.fullMarks) === undefined;
+  }).length, 0);
 
   // Typed figures are easy to lose by leaving the page before saving.
   useEffect(() => {
@@ -137,22 +149,42 @@ export default function StudentRecordsTable({ mode, table, onSaved, t }) {
     setSuccess('');
   }
 
-  function updateActivity(studentId, field, value) {
+  /** A keystroke in an activity cell; refused when it is not a mark within full marks. */
+  function updateActivity(studentId, field, text) {
+    const value = text.trim();
+    if (value && !/^\d{0,3}(\.\d{0,2})?$/.test(value)) {
+      setError(t(`${field.name}: type a mark (a number).`, `${field.name}: अङ्क लेख्नुहोस्।`));
+      return;
+    }
+    if (value && Number(value) > field.fullMarks) {
+      setError(t(`${field.name}: the mark can't be more than ${field.fullMarks}.`, `${field.name}: अङ्क ${field.fullMarks} भन्दा बढी हुन सक्दैन।`));
+      return;
+    }
     setDraft((current) => {
       const currentRow = current[studentId] || {};
       return {
         ...current,
         [studentId]: {
           ...currentRow,
-          extraActivities: {
-            ...(currentRow.extraActivities || {}),
-            [field]: value,
-          },
+          activities: { ...(currentRow.activities || {}), [field.id]: value },
         },
       };
     });
     setError('');
     setSuccess('');
+  }
+
+  /** The marks a row sends: only the cells changed, as a number or null (cleared). */
+  function submittedActivities(studentId) {
+    const before = original[studentId]?.activities || {};
+    const after = draft[studentId]?.activities || {};
+    const marks = {};
+    for (const field of activities) {
+      if (String(after[field.id] || '').trim() === String(before[field.id] || '').trim()) continue;
+      const parsed = parseActivityMark(after[field.id], field.fullMarks);
+      if (parsed !== undefined) marks[field.id] = parsed;
+    }
+    return marks;
   }
 
   const typedPresentDays = mode === 'attendance' &&
@@ -166,7 +198,7 @@ export default function StudentRecordsTable({ mode, table, onSaved, t }) {
 
   async function save(event) {
     event.preventDefault();
-    if (!canEdit || hasInvalidAttendance || missingWorkingDays) return;
+    if (!canEdit || hasInvalidAttendance || missingWorkingDays || invalidActivities) return;
     const result = await run(
       '/api/cas/internal-exams/records',
       {
@@ -180,12 +212,7 @@ export default function StudentRecordsTable({ mode, table, onSaved, t }) {
               student: row.student.id,
               revision: rowDraft.revision ?? row.revision ?? 0,
               attendance: submittedAttendance(row.student.id),
-              extraActivities: Object.fromEntries(
-                ECA_FIELDS.map((field) => [
-                  field.key,
-                  String(rowDraft.extraActivities?.[field.key] || '').trim(),
-                ]),
-              ),
+              activityMarks: submittedActivities(row.student.id),
             };
           }),
         },
@@ -204,7 +231,6 @@ export default function StudentRecordsTable({ mode, table, onSaved, t }) {
   }
 
   const hasLockedRows = rows.some((row) => row.locked);
-  const savedActivityRows = rows.filter(activitiesSaved).length;
   const recordFor = table.exam?.name || '';
 
   return (
@@ -219,11 +245,11 @@ export default function StudentRecordsTable({ mode, table, onSaved, t }) {
             'कक्षाको कार्य दिन एक पटक राख्नुहोस्, त्यसपछि प्रत्येक विद्यार्थीको उपस्थित दिन। अनुपस्थित दिन आफैं निकालिन्छ।',
           )
           : t(
-            'Fill the table directly, then save the visible students together.',
-            'Fill the table directly, then save the visible students together.',
+            'Type each mark out of the full marks shown under the activity, then save. The school sets the activities and their full marks in Manage Exams → Extra Activities.',
+            'हरेक क्रियाकलापमुनि देखाइएको पूर्णाङ्कभित्र अङ्क लेखेर सेभ गर्नुहोस्। क्रियाकलाप र पूर्णाङ्क परीक्षा व्यवस्थापन → अतिरिक्त क्रियाकलापमा तय हुन्छ।',
           )}
         actions={(
-          <Button type="submit" disabled={!canEdit || hasInvalidAttendance || missingWorkingDays || !changedCount}>
+          <Button type="submit" disabled={!canEdit || hasInvalidAttendance || missingWorkingDays || Boolean(invalidActivities) || !changedCount}>
             <FaSave aria-hidden />
             {pending
               ? t('Saving...', 'Saving...')
@@ -235,6 +261,16 @@ export default function StudentRecordsTable({ mode, table, onSaved, t }) {
       >
         {error && <Alert tone="danger">{error}</Alert>}
         {success && <Alert tone="success">{success}</Alert>}
+        {mode !== 'attendance' && !activities.length && (
+          <Alert tone="info">
+            {t('Your school has no extra activities. Add them in Manage Exams → Extra Activities.', 'विद्यालयमा कुनै अतिरिक्त क्रियाकलाप छैन। परीक्षा व्यवस्थापन → अतिरिक्त क्रियाकलापमा थप्नुहोस्।')}
+          </Alert>
+        )}
+        {invalidActivities > 0 && (
+          <Alert tone="danger">
+            {t('Some activity cells are not a mark within their full marks. Correct or clear them before saving.', 'केही कोठाको अङ्क पूर्णाङ्कभित्र छैन। सेभ गर्नुअघि सच्याउनुहोस् वा खाली गर्नुहोस्।')}
+          </Alert>
+        )}
         {!table.canRecord && (
           <Alert tone="info">
             {t(
@@ -249,19 +285,6 @@ export default function StudentRecordsTable({ mode, table, onSaved, t }) {
               'These results are published, so attendance and extra activities are locked. Unpublish the exam in Manage Exams to make changes.',
               'नतिजा प्रकाशित भएकाले हाजिरी र अतिरिक्त क्रियाकलाप लक छन्। परिवर्तन गर्न परीक्षा व्यवस्थापनमा अप्रकाशित गर्नुहोस्।',
             )}
-          </Alert>
-        )}
-        {savedActivityRows > 0 && (
-          <Alert tone="info">
-            {savedActivityRows === rows.length
-              ? t(
-                `Extra activities for ${recordFor} are already saved and shown read-only.`,
-                `${recordFor} को अतिरिक्त क्रियाकलाप सेभ भइसकेको छ, हेर्न मात्र मिल्छ।`,
-              )
-              : t(
-                'Students whose extra activities are already saved are shown read-only. Fill the remaining students.',
-                'अतिरिक्त क्रियाकलाप सेभ भइसकेका विद्यार्थी हेर्न मात्र मिल्छ। बाँकी विद्यार्थी भर्नुहोस्।',
-              )}
           </Alert>
         )}
         {missingWorkingDays && (
@@ -322,9 +345,9 @@ export default function StudentRecordsTable({ mode, table, onSaved, t }) {
         ) : (
           <ActivitiesTable
             rows={rows}
+            activities={activities}
             draft={draft}
             canEdit={canEdit}
-            isSaved={activitiesSaved}
             onChange={updateActivity}
             t={t}
           />
@@ -401,36 +424,42 @@ function AttendancePercent({ attendance }) {
   return <span className={`font-semibold tabular-nums ${tone}`}>{percent}%</span>;
 }
 
-function ActivitiesTable({ rows, draft, canEdit, isSaved, onChange, t }) {
+function ActivitiesTable({ rows, activities, draft, canEdit, onChange, t }) {
+  if (!activities.length) return null;
   return (
-    <TableWrap minWidth="78rem">
+    <TableWrap minWidth={`${Math.max(36, 12 + activities.length * 8.5)}rem`}>
       <thead>
         <tr>
           <Th>{t('Students', 'Students')}</Th>
-          {ECA_FIELDS.map((field) => (
-            <Th key={field.key} className="text-center">
-              {field.label}
+          {activities.map((field) => (
+            <Th key={field.id} className="text-center">
+              <span className="block">{field.name}</span>
+              {/* Full marks under each activity, so every mark reads "out of". */}
+              <span className="block font-normal normal-case text-muted">/ {field.fullMarks}</span>
             </Th>
           ))}
         </tr>
       </thead>
       <tbody>
         {rows.map((row) => {
-          const values = draft[row.student.id]?.extraActivities || {};
-          const disabled = !canEdit || row.locked || isSaved(row);
+          const values = draft[row.student.id]?.activities || {};
+          const disabled = !canEdit || row.locked;
           return (
             <tr key={row.student.id}>
               <Td label={t('Students', 'Students')}>
                 <StudentName row={row} t={t} />
               </Td>
-              {ECA_FIELDS.map((field) => (
-                <Td key={field.key} label={field.label} className="text-center">
+              {activities.map((field) => (
+                <Td key={field.id} label={`${field.name} / ${field.fullMarks}`} className="text-center">
                   <Input
-                    value={values[field.key] || ''}
-                    maxLength={20}
+                    value={values[field.id] || ''}
+                    inputMode="decimal"
+                    autoComplete="off"
+                    placeholder={`/${field.fullMarks}`}
+                    aria-label={`${row.student.name} ${field.name} out of ${field.fullMarks}`}
                     disabled={disabled}
-                    className="mx-auto max-w-[6rem] text-center uppercase"
-                    onChange={(event) => onChange(row.student.id, field.key, event.target.value)}
+                    className="mx-auto max-w-[6rem] text-center"
+                    onChange={(event) => onChange(row.student.id, field, event.target.value)}
                   />
                 </Td>
               ))}

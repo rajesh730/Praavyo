@@ -16,6 +16,7 @@ export const GET = handler(({ actor, query }) => {
     exam: query.get('exam') || undefined,
     format: query.get('format') || undefined,
     search: query.get('search') || undefined,
+    student: query.get('student') || undefined,
   });
 });
 

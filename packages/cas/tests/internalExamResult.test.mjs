@@ -1,51 +1,51 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { INTERNAL_GRADE_SCALE, gradeOf, internalExamResult, passMarksFor, subjectFullMarks } from '@pravyo/core/internalExamResult';
+import { INTERNAL_GRADE_SCALE, gradeOf, gradeScaleForMarks, internalExamResult, subjectFullMarks } from '@pravyo/core/internalExamResult';
 import { entryColumns, entryConflicts, entryFromRow, structureProblems } from '@pravyo/core/internalMarkScheme';
 
-const subject = (id, fullMarks, creditHours = null) => ({ id, titleEn: id, fullMarks, creditHours });
-
-test('marks grade as a percentage of the full marks the school chose', () => {
-  const out50 = internalExamResult({ subjects: [subject('math', 50)], marks: { math: { marks: 40 } } });
-  const out100 = internalExamResult({ subjects: [subject('math', 100)], marks: { math: { marks: 80 } } });
-  assert.equal(out50.subjects[0].percent, 80);
-  assert.equal(out50.subjects[0].grade, 'A');
-  assert.equal(out100.subjects[0].grade, 'A');
+const subject = (id, fullMarks = 100, creditHours = null) => ({
+  id,
+  titleEn: id,
+  fullMarks,
+  creditHours,
+  structure: { theoryFullMarks: 50, internalFullMarks: 50, fields: [] },
 });
 
-test('totals, percentage and pass across subjects', () => {
+test('uses a 50 TH + 50 INT structure', () => {
+  const result = internalExamResult({ subjects: [subject('math')], marks: { math: { theory: 40, internal: { INT: 40 } } } });
+  assert.equal(result.subjects[0].fullMarks, 100);
+  assert.equal(result.subjects[0].percent, 80);
+  assert.equal(result.subjects[0].grade, 'A');
+});
+
+test('totals, percentage and grades across subjects', () => {
   const result = internalExamResult({
-    subjects: [subject('math', 50), subject('science', 50), subject('english', 50)],
-    marks: { math: { marks: 50 }, science: { marks: 42 }, english: { marks: 33 } },
+    subjects: [subject('math'), subject('science'), subject('english')],
+    marks: { math: { theory: 25, internal: { INT: 25 } }, science: { theory: 21, internal: { INT: 21 } }, english: { theory: 16.5, internal: { INT: 16.5 } } },
   });
   assert.equal(result.complete, true);
   assert.equal(result.obtained, 125);
-  assert.equal(result.fullMarks, 150);
-  assert.equal(result.percent, 83.33);
-  assert.equal(result.passed, true);
-  // No credit hours set: every subject weighs the same (4.0, 3.6, 2.8).
-  assert.equal(result.gpa, 3.47);
+  assert.equal(result.fullMarks, 300);
+  assert.equal(result.percent, 41.67);
+  // No credit hours set: every subject weighs the same (1.6, 1.6, 1.2).
+  assert.equal(result.gpa, 1.47);
 });
 
-test('a missing mark leaves the result incomplete, absent fails the subject', () => {
-  const missing = internalExamResult({ subjects: [subject('math', 50), subject('science', 50)], marks: { math: { marks: 30 } } });
+test('a missing mark leaves the result incomplete and absence is recorded', () => {
+  const missing = internalExamResult({ subjects: [subject('math'), subject('science')], marks: { math: { theory: 30, internal: { INT: 30 } } } });
   assert.equal(missing.complete, false);
   assert.equal(missing.percent, null);
   assert.equal(missing.gpa, null);
 
-  const absent = internalExamResult({ subjects: [subject('math', 50), subject('science', 50)], marks: { math: { marks: 30 }, science: { absent: true } } });
+  const absent = internalExamResult({ subjects: [subject('math'), subject('science')], marks: { math: { theory: 30, internal: { INT: 30 } }, science: { absent: true } } });
   assert.equal(absent.complete, true);
   assert.equal(absent.subjects[1].grade, 'ABS');
-  assert.equal(absent.passed, false);
 });
 
-test('pass marks and per-subject full marks', () => {
-  assert.equal(passMarksFor(50, 35), 17.5);
+test('uses per-subject full marks', () => {
   const exam = { fullMarks: 50, subjectFullMarks: [{ subject: 'computer', fullMarks: 25 }] };
   assert.equal(subjectFullMarks(exam, 'computer'), 25);
   assert.equal(subjectFullMarks(exam, 'math'), 50);
-  const below = internalExamResult({ subjects: [subject('math', 50)], marks: { math: { marks: 17 } } });
-  assert.equal(below.subjects[0].passed, false);
 });
 
 // ── TH/INT marks structure (owner spec 2026-11-19) ──────────────────────────
@@ -124,8 +124,8 @@ test('new scale: below 35% is NG with grade point 0.0, and it counts in the GPA'
   assert.equal(gradeOf((44.5 / 50) * 100).grade, 'A');
   assert.equal(gradeOf((17.5 / 50) * 100).grade, 'D');
   const result = internalExamResult({
-    subjects: [subject('math', 50), subject('science', 50)],
-    marks: { math: { marks: 50 }, science: { marks: 10 } },
+    subjects: [subject('math'), subject('science')],
+    marks: { math: { theory: 50, internal: { INT: 50 } }, science: { theory: 5, internal: { INT: 5 } } },
   });
   assert.equal(result.subjects[1].grade, 'NG');
   assert.equal(result.gpa, 2); // (4.0 + 0.0) / 2
@@ -133,18 +133,13 @@ test('new scale: below 35% is NG with grade point 0.0, and it counts in the GPA'
   assert.equal(INTERNAL_GRADE_SCALE[1].range, '80 – 89');
 });
 
-test('theory and internal must each pass when passEachPart is on', () => {
+test('theory and internal contribute to one subject grade', () => {
   const science = structured('science', 50, 50, fields(25, 25));
-  // TH 15/50 = 30% fails, though the total 15 + 48 = 63% would pass.
+  // TH 15/50 + INT 48/50 = 63/100, graded by the overall subject percentage.
   const marks = { science: { theory: 15, internal: internalOf(24, 24) } };
-  const strict = internalExamResult({ subjects: [science], marks }).subjects[0];
-  assert.equal(strict.theory.passed, false);
-  assert.equal(strict.passed, false);
-  assert.equal(strict.grade, 'NG');
-  assert.equal(strict.gradePoint, 0);
-  const pooled = internalExamResult({ subjects: [science], marks, passEachPart: false }).subjects[0];
-  assert.equal(pooled.passed, true);
-  assert.equal(pooled.grade, 'B');
+  const result = internalExamResult({ subjects: [science], marks }).subjects[0];
+  assert.equal(result.grade, 'B');
+  assert.equal(result.gradePoint, 2.8);
 });
 
 test('structure validation: TH + INT = total, fields must fill INT exactly', () => {
@@ -166,4 +161,20 @@ test('columns, old rows, and marks that would no longer fit', () => {
   assert.deepEqual(entryConflicts(structure, { theory: 45, internal: { field1: 9 } }), []);
   assert.equal(entryConflicts({ ...structure, theoryFullMarks: 40 }, { theory: 45, internal: {} }).length, 1);
   assert.equal(entryConflicts({ ...structure, fields: fields(20) }, { theory: 1, internal: { field2: 5 } }).length, 1);
+});
+
+test('the 50-mark scale matches the owner table and the percentage grades', () => {
+  const scale = gradeScaleForMarks(50);
+  assert.deepEqual(scale.map((row) => row.score), [
+    '45.0 – 50.0', '40.0 – 44.5', '35.0 – 39.5', '30.0 – 34.5', '25.0 – 29.5', '20.0 – 24.5', '17.5 – 19.5', 'Below 17.5',
+  ]);
+  assert.deepEqual(scale.map((row) => row.grade), ['A+', 'A', 'B+', 'B', 'C+', 'C', 'D', 'NG']);
+  assert.deepEqual(scale.map((row) => row.point), ['4.0', '3.6', '3.2', '2.8', '2.4', '2.0', '1.6', '0.0']);
+  assert.equal(scale[0].percent, '90% – 100%');
+  assert.equal(scale[6].percent, '35% – 39%');
+  assert.equal(scale[7].percent, 'Below 35%');
+  // Every boundary score grades the same way as its percentage.
+  assert.equal(gradeOf((44.5 / 50) * 100).grade, 'A');
+  assert.equal(gradeOf((17.5 / 50) * 100).grade, 'D');
+  assert.equal(gradeOf((17 / 50) * 100).grade, 'NG');
 });

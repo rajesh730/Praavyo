@@ -2,16 +2,23 @@ import mongoose from 'mongoose';
 import { casOptions, refId, reqRefId } from './casShared.js';
 
 /**
- * A grade's internal-exam marks structure, set by the school in Manage Exams
- * and used by EVERY internal exam of that grade (First, Second, Third
- * Terminal, Final, board…): the theory/internal split and the school's own
- * internal assessment fields. Rules: @pravyo/core/internalMarkScheme.
+ * The school's internal-exam marks structure, set in Manage Exams →
+ * Assessment and used by EVERY internal exam of EVERY grade (First, Second,
+ * Third Terminal, Final, board…): the theory/internal split and the school's
+ * own internal assessment fields. Rules: @pravyo/core/internalMarkScheme.
  *
- * `default` covers every subject; `subjects` holds per-subject overrides
- * (e.g. Computer with a Practical field). An exam copies the structure it
- * used onto itself when published (InternalExam.markScheme), so later edits
- * here never change a published result.
+ * One record per school, stored with `grade: SCHOOL_WIDE_GRADE`. Records with
+ * a real grade were saved before the structure became school-wide
+ * (2026-11-19); they apply only to that grade, and only until the school
+ * saves the school-wide one.
+ *
+ * `default` covers every subject; `subjects` (per-subject overrides) is kept
+ * empty for the school-wide record. An exam copies the structure it used onto
+ * itself when published (InternalExam.markScheme), so later edits here never
+ * change a published result.
  */
+export const SCHOOL_WIDE_GRADE = '*';
+
 const fieldSchema = new mongoose.Schema({
   id: { type: String, required: true, match: /^[a-z0-9]{4,24}$/ },
   name: { type: String, required: true, trim: true, maxlength: 60 },
@@ -36,8 +43,6 @@ const internalMarkSchemeSchema = new mongoose.Schema({
     }],
     default: [],
   },
-  // Theory and internal must each reach the pass percentage (failing either = NG).
-  passEachPart: { type: Boolean, default: true },
   revision: { type: Number, default: 0 },
   updatedBy: refId('User'),
   // The previous versions, newest last (kept short): who changed what, when.
@@ -49,7 +54,6 @@ const internalMarkSchemeSchema = new mongoose.Schema({
       savedBy: refId('User'),
       default: mongoose.Schema.Types.Mixed,
       subjects: mongoose.Schema.Types.Mixed,
-      passEachPart: Boolean,
     }],
     default: [],
   },
