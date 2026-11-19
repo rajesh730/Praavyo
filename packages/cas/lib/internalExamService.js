@@ -5,6 +5,7 @@ import InternalExam from '@pravyo/db/models/cas/InternalExam';
 import InternalExamMark from '@pravyo/db/models/cas/InternalExamMark';
 import InternalExamReport from '@pravyo/db/models/cas/InternalExamReport';
 import InternalExamRecord from '@pravyo/db/models/cas/InternalExamRecord';
+import InternalMarkScheme from '@pravyo/db/models/cas/InternalMarkScheme';
 import TeacherTeachingAssignment from '@pravyo/db/models/TeacherTeachingAssignment';
 import { CAS_EXAM_TERM_VALUES, examTermOf } from '@pravyo/core/casExamTerms';
 import { EXAMINED_FILTER, studentTakesSubject } from '@pravyo/core/subjectScope';
@@ -15,7 +16,21 @@ import {
   DEFAULT_PASS_PERCENT,
   internalExamResult,
   subjectFullMarks,
+  subjectLine,
 } from '@pravyo/core/internalExamResult';
+import {
+  DIRECT_INTERNAL_KEY,
+  FIELD_ID_PATTERN,
+  MAX_FIELDS,
+  cleanStructure,
+  entryColumns,
+  entryConflicts,
+  entryFromRow,
+  legacyStructure,
+  structureForSubject,
+  structureProblems,
+  totalFullMarks,
+} from '@pravyo/core/internalMarkScheme';
 import { assert, requireSchoolAdmin } from './casAccess.js';
 import { loadAcademicYear, loadGradeSections, loadSchool, loadStudents } from './casContext.js';
 
@@ -64,15 +79,41 @@ const examUpdateInput = z.object({
   issueDate: issueDate.optional(),
 }).strict();
 
+// Only the keys sent change; everything else on the row is kept, so two
+// people typing different cells of the same student never overwrite each
+// other. null clears a value back to "not entered" (never 0).
+const optionalMark = z.union([marksValue, z.null()]).optional();
+const internalKey = z.string().refine((key) => key === DIRECT_INTERNAL_KEY || FIELD_ID_PATTERN.test(key), 'Unknown internal field');
 const marksInput = z.object({
   exam: objectId,
   entries: z.array(z.object({
     student: objectId,
     subject: objectId,
-    // null clears the mark back to "not entered".
-    marks: z.union([marksValue, z.null()]),
-    absent: z.boolean().default(false),
+    // `marks` is the one-number cell of a subject with no internal part (= theory).
+    marks: optionalMark,
+    theory: optionalMark,
+    internal: z.record(internalKey, z.union([marksValue, z.null()])).optional(),
+    absent: z.boolean().optional(),
   }).strict()).min(1).max(5000),
+}).strict();
+
+const structureMarks = z.number().min(0).max(1000);
+const structureInput = z.object({
+  totalFullMarks: z.number().min(0).max(1000).optional(),
+  theoryFullMarks: structureMarks,
+  internalFullMarks: structureMarks,
+  fields: z.array(z.object({
+    id: z.string().regex(FIELD_ID_PATTERN, 'Invalid field id'),
+    name: z.string().trim().min(1, 'Every internal field needs a name').max(60),
+    fullMarks: z.number().min(0).max(1000),
+  }).strict()).max(MAX_FIELDS).default([]),
+}).strict();
+const schemeInput = z.object({
+  grade,
+  revision: z.number().int().min(0),
+  passEachPart: z.boolean().default(true),
+  default: structureInput,
+  subjects: z.array(z.object({ subject: objectId, structure: structureInput }).strict()).max(60).default([]),
 }).strict();
 
 const dayCountInput = z.union([z.number().int().min(0).max(400), z.null()]);
@@ -95,7 +136,7 @@ const recordsInput = z.object({
 
 let indexes = null;
 function ensureIndexes() {
-  indexes ||= Promise.all([InternalExam, InternalExamMark, InternalExamReport, InternalExamRecord].map((model) => model.createIndexes()))
+  indexes ||= Promise.all([InternalExam, InternalExamMark, InternalExamReport, InternalExamRecord, InternalMarkScheme].map((model) => model.createIndexes()))
     .catch((error) => { indexes = null; throw error; });
   return indexes;
 }
@@ -119,6 +160,56 @@ function serializeExam(row) {
     issueDate: row.issueDate || '',
     published: Boolean(row.publishedAt),
     publishedAt: row.publishedAt || null,
+    // Keeps the marks structure it was published with (see InternalExam.markScheme).
+    pinned: Boolean(row.markScheme),
+  };
+}
+
+/** A grade's marks structure (the same for every exam of the grade), or null. */
+async function loadScheme(actor, gradeName) {
+  return InternalMarkScheme.findOne({ school: actor.school, grade: gradeName })
+    .collation({ locale: 'en', strength: 2 })
+    .lean();
+}
+
+/**
+ * How one exam reads its subjects' marks structures:
+ *   - pinned (published once): the structure saved on the exam;
+ *   - published before structures existed: one theory mark, as it was;
+ *   - otherwise: the grade's current structure.
+ */
+function examStructures(exam, scheme) {
+  if (exam.markScheme) {
+    const pinned = new Map((exam.markScheme.subjects || []).map((row) => [String(row.subject), row.structure]));
+    return {
+      passEachPart: exam.markScheme.passEachPart !== false,
+      structureOf: (subjectId) => pinned.get(String(subjectId)) || legacyStructure(subjectFullMarks(exam, subjectId)),
+    };
+  }
+  if (exam.publishedAt || !scheme) {
+    return { passEachPart: scheme?.passEachPart !== false, structureOf: (subjectId) => legacyStructure(subjectFullMarks(exam, subjectId)) };
+  }
+  return {
+    passEachPart: scheme.passEachPart !== false,
+    structureOf: (subjectId) => structureForSubject(scheme, subjectId, subjectFullMarks(exam, subjectId)),
+  };
+}
+
+function serializeStructure(structure) {
+  const clean = cleanStructure(structure);
+  return { ...clean, totalFullMarks: totalFullMarks(clean) };
+}
+
+function serializeScheme(row) {
+  if (!row) return null;
+  return {
+    id: String(row._id),
+    grade: row.grade,
+    revision: row.revision || 0,
+    passEachPart: row.passEachPart !== false,
+    default: serializeStructure(row.default),
+    subjects: (row.subjects || []).map((item) => ({ subject: String(item.subject), structure: serializeStructure(item.structure) })),
+    updatedAt: row.updatedAt || null,
   };
 }
 
@@ -223,32 +314,39 @@ export async function deleteExam(actor, { id }) {
 
 /**
  * Everything the mark-entry grid and the results screen need: subjects with
- * their full marks, students with the subjects each takes, the marks, and
- * each student's computed result.
+ * their marks structure, students with the subjects each takes, the marks,
+ * and each student's computed result.
  */
 async function buildSheet(actor, exam, { section = '' } = {}) {
   const year = await loadAcademicYear(actor, String(exam.academicYear));
-  const [subjectRows, roster, markRows] = await Promise.all([
+  const [subjectRows, roster, markRows, scheme] = await Promise.all([
     gradeSubjects(actor, exam.grade),
     loadStudents(actor, { grade: exam.grade, yearStart: year.yearStart, history: Boolean(exam.publishedAt) }),
-    InternalExamMark.find({ school: actor.school, exam: exam._id }).select('student subject marks absent').lean(),
+    InternalExamMark.find({ school: actor.school, exam: exam._id }).select('student subject marks theory internal absent').lean(),
+    loadScheme(actor, exam.grade),
   ]);
+  const structures = examStructures(exam, scheme);
 
-  const subjects = subjectRows.map((row) => ({
-    id: String(row._id),
-    code: row.code,
-    titleEn: row.titleEn,
-    titleNe: row.titleNe || '',
-    creditHours: Number.isFinite(row.creditHours) ? row.creditHours : null,
-    fullMarks: subjectFullMarks(exam, row._id),
-    raw: row,
-  }));
+  const subjects = subjectRows.map((row) => {
+    const structure = cleanStructure(structures.structureOf(row._id));
+    return {
+      id: String(row._id),
+      code: row.code,
+      titleEn: row.titleEn,
+      titleNe: row.titleNe || '',
+      creditHours: Number.isFinite(row.creditHours) ? row.creditHours : null,
+      fullMarks: totalFullMarks(structure),
+      structure,
+      columns: entryColumns(structure),
+      raw: row,
+    };
+  });
 
   const marks = {};
   for (const row of markRows) {
     const student = String(row.student);
     marks[student] ||= {};
-    marks[student][String(row.subject)] = { marks: row.marks, absent: Boolean(row.absent) };
+    marks[student][String(row.subject)] = entryFromRow(row);
   }
 
   const students = roster
@@ -258,11 +356,13 @@ async function buildSheet(actor, exam, { section = '' } = {}) {
       return {
         ...student,
         takes: takes.map((subject) => subject.id),
-        result: internalExamResult({ subjects: takes, marks: marks[student.id] || {}, passPercent: exam.passPercent }),
+        result: internalExamResult({
+          subjects: takes, marks: marks[student.id] || {}, passPercent: exam.passPercent, passEachPart: structures.passEachPart,
+        }),
       };
     });
 
-  return { year, subjects: subjects.map(({ raw, ...subject }) => subject), students, marks };
+  return { year, subjects: subjects.map(({ raw, ...subject }) => subject), students, marks, passEachPart: structures.passEachPart };
 }
 
 export async function loadSheet(actor, { exam: examId, section = '' }) {
@@ -274,24 +374,42 @@ export async function loadSheet(actor, { exam: examId, section = '' }) {
   assert(!section || sections.includes(section), 'Choose a section configured for this grade');
   const sheet = await buildSheet(actor, exam, { section });
 
-  const subjects = sheet.subjects.map((subject) => ({
-    ...subject,
-    canEdit: !exam.publishedAt && (access.editSubjects === null || access.editSubjects.has(subject.id)),
-    // How many of the students taking this subject have a mark or absence.
-    entered: sheet.students.filter((student) => student.takes.includes(subject.id) && sheet.marks[student.id]?.[subject.id]).length,
-    expected: sheet.students.filter((student) => student.takes.includes(subject.id)).length,
-  }));
+  const subjects = sheet.subjects.map((subject) => {
+    const lines = sheet.students
+      .filter((student) => student.takes.includes(subject.id))
+      .map((student) => student.result.subjects.find((line) => line.id === subject.id));
+    return {
+      ...subject,
+      canEdit: !exam.publishedAt && (access.editSubjects === null || access.editSubjects.has(subject.id)),
+      // Students taking this subject whose marks are complete (or absent).
+      entered: lines.filter((line) => line?.entered).length,
+      partial: lines.filter((line) => line?.partial).length,
+      expected: lines.length,
+    };
+  });
 
   return {
     exam: serializeExam(exam),
     sections,
     subjects,
+    passEachPart: sheet.passEachPart,
     students: sheet.students,
     marks: Object.fromEntries(sheet.students.map((student) => [student.id, sheet.marks[student.id] || {}])),
     canPublish: actor.role === 'SCHOOL_ADMIN',
   };
 }
 
+const MAX_REVISIONS = 20;
+const sameEntry = (a, b) => (a?.theory ?? null) === (b?.theory ?? null)
+  && Boolean(a?.absent) === Boolean(b?.absent)
+  && JSON.stringify(Object.entries(a?.internal || {}).sort()) === JSON.stringify(Object.entries(b?.internal || {}).sort());
+const hasTwoDecimals = (value) => Math.abs(Math.round(value * 100) - value * 100) < 1e-6;
+
+/**
+ * Save typed marks. Each entry changes only the parts it sends (theory, an
+ * internal field, absent); the server checks every value against the
+ * subject's structure and works out the totals itself.
+ */
 export async function saveMarks(actor, input) {
   await ready();
   const data = marksInput.parse(input);
@@ -303,8 +421,17 @@ export async function saveMarks(actor, input) {
   const sheet = await buildSheet(actor, exam);
   const students = new Map(sheet.students.map((student) => [student.id, student]));
   const subjects = new Map(sheet.subjects.map((subject) => [subject.id, subject]));
+  const existingRows = await InternalExamMark.find({
+    school: actor.school,
+    exam: exam._id,
+    student: { $in: [...new Set(data.entries.map((entry) => entry.student))] },
+    subject: { $in: [...new Set(data.entries.map((entry) => entry.subject))] },
+  }).select('student subject marks theory internal absent').lean();
+  const existing = new Map(existingRows.map((row) => [`${row.student}:${row.subject}`, row]));
 
-  const operations = data.entries.map((entry) => {
+  const operations = [];
+  const merged = new Map();
+  for (const entry of data.entries) {
     const student = students.get(entry.student);
     const subject = subjects.get(entry.subject);
     assert(student, 'A student in this list is not enrolled in this grade');
@@ -315,32 +442,199 @@ export async function saveMarks(actor, input) {
       `You are not assigned to enter ${subject.titleEn} marks`,
       403,
     );
-    if (entry.marks !== null) {
-      assert(entry.marks <= subject.fullMarks, `${subject.titleEn} marks cannot be more than ${subject.fullMarks}`);
-      assert(Math.abs(Math.round(entry.marks * 100) - entry.marks * 100) < 1e-6, 'Marks can have at most two decimal places');
-    }
 
-    const filter = { exam: exam._id, student: entry.student, subject: entry.subject };
-    if (entry.marks === null && !entry.absent) return { deleteOne: { filter } };
-    return {
+    const key = `${entry.student}:${entry.subject}`;
+    const before = merged.get(key) || entryFromRow(existing.get(key)) || { theory: null, internal: {}, absent: false };
+    const next = { theory: before.theory, internal: { ...before.internal }, absent: before.absent };
+    const columns = new Map(subject.columns.map((column) => [column.key, column]));
+    const check = (column, value) => {
+      if (value === null) return;
+      assert(column, `${subject.titleEn} has no such mark column. Reload the page.`);
+      assert(value <= column.fullMarks, `${student.name}: ${subject.titleEn} ${column.label} cannot be more than ${column.fullMarks}`);
+      assert(hasTwoDecimals(value), `${student.name}: ${subject.titleEn} ${column.label} can have at most two decimal places`);
+    };
+
+    for (const theory of [entry.marks, entry.theory]) {
+      if (theory === undefined) continue;
+      check(columns.get('TH'), theory);
+      next.theory = theory;
+    }
+    for (const [field, value] of Object.entries(entry.internal || {})) {
+      check(columns.get(field), value);
+      if (value === null) delete next.internal[field];
+      else next.internal[field] = value;
+    }
+    if (entry.absent !== undefined) next.absent = entry.absent;
+    merged.set(key, next);
+  }
+
+  for (const [key, next] of merged) {
+    const [studentId, subjectId] = key.split(':');
+    const row = existing.get(key);
+    const before = entryFromRow(row);
+    if (sameEntry(before, next) && !(row && row.marks !== undefined && row.marks !== null)) continue;
+    const filter = { exam: exam._id, student: studentId, subject: subjectId };
+    if (next.theory === null && !Object.keys(next.internal).length && !next.absent) {
+      if (row) operations.push({ deleteOne: { filter } });
+      continue;
+    }
+    const line = subjectLine(subjects.get(subjectId), next, exam.passPercent, { passEachPart: sheet.passEachPart });
+    operations.push({
       updateOne: {
         filter,
         update: {
           $set: {
             school: actor.school,
-            marks: entry.absent ? null : entry.marks,
-            absent: entry.absent,
+            theory: next.theory,
+            internal: next.internal,
+            total: line.entered && !line.absent ? line.obtained : null,
+            absent: next.absent,
             enteredBy: actor.id,
             enteredByRole: actor.role,
           },
+          // Old single-number rows move into `theory`.
+          $unset: { marks: '' },
+          ...(row ? {
+            $push: {
+              revisions: {
+                $each: [{ at: new Date(), by: row.enteredBy || null, byRole: row.enteredByRole || '', theory: before.theory, internal: before.internal, absent: before.absent }],
+                $slice: -MAX_REVISIONS,
+              },
+            },
+          } : {}),
         },
         upsert: true,
       },
-    };
-  });
+    });
+  }
 
-  await InternalExamMark.bulkWrite(operations, { ordered: true });
+  if (operations.length) await InternalExamMark.bulkWrite(operations, { ordered: true });
   return { saved: operations.length };
+}
+
+/** Marks in unpinned, unpublished exams of a grade that a new structure would no longer fit. */
+async function schemeConflicts(actor, gradeName, nextScheme, { examIds } = {}) {
+  const exams = await InternalExam.find({
+    school: actor.school, grade: gradeName, publishedAt: null,
+    ...(examIds ? { _id: { $in: examIds } } : { markScheme: null }),
+  }).select('name fullMarks subjectFullMarks').lean();
+  if (!exams.length) return [];
+  const [rows, subjectRows] = await Promise.all([
+    InternalExamMark.find({ school: actor.school, exam: { $in: exams.map((exam) => exam._id) } })
+      .select('exam subject marks theory internal absent').lean(),
+    CasSubject.find({ school: actor.school, grade: gradeName }).select('titleEn').lean(),
+  ]);
+  const examById = new Map(exams.map((exam) => [String(exam._id), exam]));
+  const subjectTitle = new Map(subjectRows.map((row) => [String(row._id), row.titleEn]));
+  const problems = new Map();
+  for (const row of rows) {
+    const exam = examById.get(String(row.exam));
+    const structure = structureForSubject(nextScheme, row.subject, subjectFullMarks(exam, row.subject));
+    for (const reason of entryConflicts(structure, entryFromRow(row))) {
+      const key = `${exam.name} · ${subjectTitle.get(String(row.subject)) || 'a subject'}: ${reason}`;
+      problems.set(key, (problems.get(key) || 0) + 1);
+    }
+  }
+  return [...problems].map(([text, count]) => `${text} (${count} student${count === 1 ? '' : 's'})`);
+}
+
+/** The grade's marks structure for Manage Exams, with its subjects. School admin only. */
+export async function getScheme(actor, { grade: gradeName }) {
+  requireSchoolAdmin(actor);
+  await ready();
+  assert(gradeName, 'Choose a grade');
+  const [scheme, subjects] = await Promise.all([loadScheme(actor, gradeName), gradeSubjects(actor, gradeName)]);
+  return {
+    grade: gradeName,
+    scheme: serializeScheme(scheme),
+    subjects: subjects.map((row) => ({ id: String(row._id), code: row.code, titleEn: row.titleEn, titleNe: row.titleNe || '' })),
+  };
+}
+
+/**
+ * Save the grade's marks structure. It applies at once to every exam of the
+ * grade that has not been published; published exams keep theirs. Refused
+ * while marks already entered would no longer fit (a removed field, or full
+ * marks lowered below a typed mark).
+ */
+export async function saveScheme(actor, input) {
+  requireSchoolAdmin(actor);
+  await ready();
+  const data = schemeInput.parse(input);
+
+  const problems = [];
+  const label = (name, list) => list.map((text) => `${name}: ${text}`);
+  problems.push(...label('Default', structureProblems(data.default, { totalFullMarks: data.default.totalFullMarks })));
+  const subjectIds = data.subjects.map((row) => row.subject);
+  assert(new Set(subjectIds).size === subjectIds.length, 'A subject is listed twice');
+  const subjectRows = subjectIds.length
+    ? await CasSubject.find({ _id: { $in: subjectIds }, school: actor.school, grade: data.grade }).select('titleEn').lean()
+    : [];
+  assert(subjectRows.length === subjectIds.length, 'A subject in this structure is not in this grade');
+  const titles = new Map(subjectRows.map((row) => [String(row._id), row.titleEn]));
+  for (const row of data.subjects) {
+    problems.push(...label(titles.get(row.subject), structureProblems(row.structure, { totalFullMarks: row.structure.totalFullMarks })));
+  }
+  assert(!problems.length, problems.join(' '));
+
+  const next = {
+    passEachPart: data.passEachPart,
+    default: cleanStructure(data.default),
+    subjects: data.subjects.map((row) => ({ subject: row.subject, structure: cleanStructure(row.structure) })),
+  };
+  const conflicts = await schemeConflicts(actor, data.grade, next);
+  assert(
+    !conflicts.length,
+    `Marks already entered would not fit this structure. Correct or clear them first, or keep the old full marks: ${conflicts.slice(0, 6).join('; ')}${conflicts.length > 6 ? '; …' : ''}`,
+    409,
+  );
+
+  const current = await loadScheme(actor, data.grade);
+  assert((current?.revision || 0) === data.revision, 'Someone else changed this marks structure. Reload before saving.', 409);
+  if (current) {
+    const saved = await InternalMarkScheme.findOneAndUpdate(
+      { _id: current._id, school: actor.school, revision: current.revision || 0 },
+      {
+        $set: { ...next, updatedBy: actor.id },
+        $inc: { revision: 1 },
+        $push: {
+          history: {
+            $each: [{ revision: current.revision || 0, savedAt: current.updatedAt, savedBy: current.updatedBy || null, default: current.default, subjects: current.subjects, passEachPart: current.passEachPart !== false }],
+            $slice: -MAX_REVISIONS,
+          },
+        },
+      },
+      { new: true, runValidators: true },
+    ).lean();
+    assert(saved, 'Someone else changed this marks structure. Reload before saving.', 409);
+  } else {
+    try {
+      await InternalMarkScheme.create({ ...next, school: actor.school, grade: data.grade, revision: 1, updatedBy: actor.id });
+    } catch (error) {
+      assert(error?.code !== 11000, 'Someone else just saved this marks structure. Reload before saving.', 409);
+      throw error;
+    }
+  }
+  return getScheme(actor, { grade: data.grade });
+}
+
+/**
+ * A once-published exam keeps the structure it was published with. This
+ * switches an unpublished one back to the grade's current structure, after
+ * checking its marks fit.
+ */
+export async function useCurrentScheme(actor, { exam: examId }) {
+  requireSchoolAdmin(actor);
+  await ready();
+  const exam = await loadExam(actor, examId);
+  assert(!exam.publishedAt, 'Unpublish the results before changing the marks structure', 409);
+  if (!exam.markScheme) return serializeExam(exam);
+  const scheme = await loadScheme(actor, exam.grade);
+  const conflicts = await schemeConflicts(actor, exam.grade, scheme, { examIds: [exam._id] });
+  assert(!conflicts.length, `Marks already entered would not fit the current structure: ${conflicts.slice(0, 6).join('; ')}`, 409);
+  const row = await InternalExam.findOneAndUpdate({ _id: exam._id, school: actor.school, publishedAt: null }, { $set: { markScheme: null } }, { new: true }).lean();
+  assert(row, 'The exam changed while saving. Reload and try again.', 409);
+  return serializeExam(row);
 }
 
 /** Each student's attendance and extra activities for an exam, by student id. */
@@ -376,7 +670,10 @@ function snapshotFor({ school, exam, year, student, record }) {
       registrationNumber: student.registrationNumber,
       iemisNumber: student.iemisNumber || '',
     },
+    // Each line carries TH and INT (marks, grade, grade point, field marks).
     subjects: result.subjects,
+    split: result.split,
+    passEachPart: result.passEachPart,
     fullMarks: result.fullMarks,
     obtained: result.obtained,
     percent: result.percent,
@@ -439,7 +736,15 @@ export async function publishExam(actor, { exam: examId }) {
     publishedBy: actor.id,
     publishedAt: now,
   })));
-  await InternalExam.updateOne({ _id: exam._id, school: actor.school }, { $set: { publishedAt: now, publishedBy: actor.id } });
+  await InternalExam.updateOne({ _id: exam._id, school: actor.school }, {
+    $set: {
+      publishedAt: now,
+      publishedBy: actor.id,
+      // Freeze the structure these results used: later edits to the grade's
+      // structure must not change them, even after an unpublish.
+      markScheme: { passEachPart: sheet.passEachPart, subjects: sheet.subjects.map((subject) => ({ subject: subject.id, structure: subject.structure })) },
+    },
+  });
   return { published: sheet.students.length };
 }
 
@@ -448,7 +753,14 @@ export async function unpublishExam(actor, { exam: examId }) {
   await ready();
   const exam = await loadExam(actor, examId);
   const { deletedCount } = await InternalExamReport.deleteMany({ school: actor.school, exam: exam._id });
-  await InternalExam.updateOne({ _id: exam._id, school: actor.school }, { $set: { publishedAt: null, publishedBy: null } });
+  // Published before structures existed: keep reading it as one theory mark.
+  const pin = exam.markScheme || !exam.publishedAt ? {} : {
+    markScheme: {
+      passEachPart: true,
+      subjects: (await gradeSubjects(actor, exam.grade)).map((row) => ({ subject: row._id, structure: legacyStructure(subjectFullMarks(exam, row._id)) })),
+    },
+  };
+  await InternalExam.updateOne({ _id: exam._id, school: actor.school }, { $set: { publishedAt: null, publishedBy: null, ...pin } });
   return { unpublished: deletedCount };
 }
 

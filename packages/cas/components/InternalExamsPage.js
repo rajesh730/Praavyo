@@ -10,6 +10,7 @@ import { useCasMutation } from '../lib/client/useCas.js';
 import { Alert, Badge, Button, Card, EmptyState, Field, Input, PageHeader, Select, Spinner } from './ui/Kit.js';
 import IssueDateInput from './ui/IssueDateInput.js';
 import { InternalExamFilterBar, useInternalExamFilters } from './InternalExamFilters.js';
+import InternalAssessmentConfiguration from './InternalAssessmentConfiguration.js';
 
 const EMPTY_FORM = {
   term: 'FIRST', name: '', fullMarks: DEFAULT_FULL_MARKS, passPercent: DEFAULT_PASS_PERCENT, issueDate: '', overrides: {},
@@ -113,6 +114,8 @@ export default function InternalExamsPage() {
       )}
       <Alert tone="danger">{error}</Alert>
       <Alert tone="success">{success}</Alert>
+
+      {canEdit && <InternalAssessmentConfiguration grade={grade} />}
 
       <Card
         title={grade ? t(`${grade} exams`, `${grade} का परीक्षा`) : t('Exams', 'परीक्षाहरू')}
