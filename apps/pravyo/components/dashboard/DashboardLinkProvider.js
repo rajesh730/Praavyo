@@ -15,8 +15,9 @@ import { isDashboardPath, isSignedInAreaPath, resolveDashboardLink } from "@/lib
  * Mounted once at the app root. On every signed-in screen (admin, school, CAS,
  * internal exam, teacher, student, parent) it:
  *   - catches clicks on links to the public site — including saved
- *     notification links and `target="_blank"` buttons — and opens them in a
- *     viewer on top of the dashboard instead;
+ *     notification links and `target="_blank"` buttons — and sends them to the
+ *     same service inside the dashboard instead; certificates open in a viewer
+ *     on top of the dashboard;
  *   - exposes `useDashboardLink()` for code that navigates programmatically
  *     (notification bells), so those follow the same rules.
  */
@@ -118,16 +119,18 @@ export function DashboardLinkProvider({ children }) {
   const framed = useIsFramed();
 
   const role = session?.user?.role || null;
+  const userId = session?.user?.id || null;
   const active = Boolean(role) && !framed && isSignedInAreaPath(pathname || "");
 
   const resolve = useCallback(
     (href) =>
       resolveDashboardLink(href, {
         role,
+        userId,
         origin: window.location.origin,
         currentPath: window.location.pathname,
       }),
-    [role]
+    [role, userId]
   );
 
   const run = useCallback(

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { BookOpen as FaBookOpen, CalendarDays as FaCalendarAlt, BadgeCheck as FaCertificate, Check as FaCheck, Download as FaDownload, ExternalLink as FaExternalLinkAlt, Earth as FaGlobeAsia, House as FaHome, PenTool as FaPenNib, School as FaSchool, Share2 as FaShareAlt, X as FaTimes, Trophy as FaTrophy, CircleUser as FaUserCircle } from "lucide-react";
+import { BookOpen as FaBookOpen, CalendarDays as FaCalendarAlt, BadgeCheck as FaCertificate, Check as FaCheck, Download as FaDownload, GraduationCap as FaGraduationCap, Earth as FaGlobeAsia, House as FaHome, PenTool as FaPenNib, School as FaSchool, Share2 as FaShareAlt, X as FaTimes, Trophy as FaTrophy, CircleUser as FaUserCircle } from "lucide-react";
 import AlertBanner from "@/components/ui/AlertBanner";
 import EmptyState from "@/components/EmptyState";
 import LoadingState from "@/components/ui/LoadingState";
@@ -158,13 +158,13 @@ function PublicProfileCard({ studentId, name }) {
         </div>
       </div>
       <div className="flex shrink-0 flex-wrap gap-2">
+        {/* Signed-in students stay in the dashboard: My Journey holds the same
+            achievements, certificates and writing as the public profile. */}
         <Link
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
+          href="/student/journey"
           className="btn btn-primary inline-flex items-center justify-center gap-2 transition-colors"
         >
-          <FaExternalLinkAlt /> View profile
+          <FaGraduationCap /> View my journey
         </Link>
         <button
           type="button"

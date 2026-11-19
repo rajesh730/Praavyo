@@ -68,17 +68,28 @@ export async function GET(_request, props) {
       );
     }
 
+    // What the student's school shares, or the student's OWN published
+    // writing from any school (My Journey lists writing from earlier schools,
+    // and signed-in students read it here, not on the public site).
     const article = await SchoolMagazineArticle.findOne({
       _id: params.id,
-      school: student.school,
+      isDeleted: { $ne: true },
       $or: [
-        { isMagazinePublished: true },
         {
-          status: { $in: ["SUBMITTED", "APPROVED"] },
-          showOnSchoolWall: { $ne: false },
+          school: student.school,
+          $or: [
+            { isMagazinePublished: true },
+            {
+              status: { $in: ["SUBMITTED", "APPROVED"] },
+              showOnSchoolWall: { $ne: false },
+            },
+          ],
+        },
+        {
+          authorStudent: student._id,
+          $or: [{ isPublished: true }, { status: "APPROVED" }, { isMagazinePublished: true }],
         },
       ],
-      isDeleted: { $ne: true },
     })
       .populate("authorStudent", "name grade rollNumber")
       .populate("magazineIssue")

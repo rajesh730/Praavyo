@@ -9,7 +9,6 @@ import {
   ChevronDown,
   ChevronRight,
   ClipboardCheck,
-  Globe,
   GraduationCap,
   Lock,
   Pencil,
@@ -33,6 +32,7 @@ import EmptyState from "@/components/EmptyState";
 import AlertBanner from "@/components/ui/AlertBanner";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import ParticipantTable from "@/components/trainings/ParticipantTable";
+import PublicShareButton from "@/components/public/PublicShareButton";
 
 /**
  * Praavyo trainings, run by the super admin: create → publish → schools
@@ -418,7 +418,8 @@ function TrainingDetail({ id, calendar, onBack, onEdit, onDeleted }) {
             {training.status === "DRAFT" && <button type="button" disabled={Boolean(busy)} onClick={() => setStatus("publish", (data) => ({ title: "Published — schools can register now", message: toldSchools(data?.schoolsNotified || 0) }))} className="btn btn-primary"><Send aria-hidden /> Publish</button>}
             {training.status === "PUBLISHED" && <button type="button" disabled={Boolean(busy)} onClick={() => setStatus("close", (data) => ({ title: "Registration closed", message: data?.schoolsNotified ? `${data.schoolsNotified} registered school${data.schoolsNotified === 1 ? " was" : "s were"} asked to send attendance after the training.` : "" }))} className="btn btn-secondary"><Lock aria-hidden /> Close registration</button>}
             {training.status === "CLOSED" && <button type="button" disabled={Boolean(busy)} onClick={() => setStatus("reopen", "Registration reopened")} className="btn btn-secondary"><Unlock aria-hidden /> Reopen registration</button>}
-            {training.status !== "DRAFT" && <a href={`/trainings/${training.id}`} target="_blank" rel="noopener noreferrer" className="btn btn-ghost"><Globe aria-hidden /> Public page</a>}
+            {/* Signed-in people stay in the dashboard: share the public page, don't open it. */}
+            {training.status !== "DRAFT" && <PublicShareButton href={`/trainings/${training.id}`} title={training.title} label="Copy public link" className="btn btn-ghost" />}
             <button type="button" onClick={() => onEdit(training)} className="btn btn-ghost"><Pencil aria-hidden /> Edit</button>
             <button type="button" onClick={() => setConfirm({ kind: "delete" })} className="btn-icon btn-ghost text-muted hover:!text-danger" aria-label="Delete training" title="Delete training"><Trash2 aria-hidden /></button>
           </div>

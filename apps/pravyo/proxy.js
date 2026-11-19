@@ -1,6 +1,7 @@
 import { withAuth } from 'next-auth/middleware';
 import { NextResponse } from 'next/server';
 import { teacherRedirectForSchoolPath } from './lib/teacherAreaRoutes.js';
+import { dashboardHrefForPublicPath, isPublicPagePath } from './lib/dashboardLinks.js';
 
 const DASHBOARD_BY_ROLE = {
     SUPER_ADMIN: '/admin/dashboard',
@@ -29,6 +30,17 @@ export default withAuth(
         // This keeps `/` cacheable and avoids a session-backed DB lookup.
         if (pathname === '/' && token?.role && !token?.error) {
             const destination = DASHBOARD_BY_ROLE[token.role];
+            if (destination) {
+                return NextResponse.redirect(new URL(destination, req.url));
+            }
+        }
+
+        // Signed-in people never see the public site: a public page reached
+        // any way (typed, bookmarked, an old notification) opens the same
+        // service inside their own dashboard (lib/dashboardLinks.js).
+        // Certificates and /verify are documents and are not matched here.
+        if (token?.role && !token?.error && isPublicPagePath(pathname)) {
+            const destination = dashboardHrefForPublicPath(pathname, { role: token.role, userId: token.id });
             if (destination) {
                 return NextResponse.redirect(new URL(destination, req.url));
             }
@@ -121,8 +133,9 @@ export default withAuth(
         },
         callbacks: {
             authorized: ({ req, token }) => {
-                // The public homepage remains accessible without a session.
-                if (req.nextUrl.pathname === '/') {
+                // The public homepage and public pages remain open without a
+                // session; they are matched only to redirect signed-in people.
+                if (req.nextUrl.pathname === '/' || isPublicPagePath(req.nextUrl.pathname)) {
                     return true;
                 }
                 // Allow /student/login without authentication
@@ -143,6 +156,18 @@ export default withAuth(
 export const config = {
     matcher: [
         '/',
+        // Public pages: matched only so signed-in people are sent to their
+        // dashboard (keep in step with PUBLIC_PAGE_PREFIXES).
+        '/events/:path*',
+        '/trainings/:path*',
+        '/schools/:path*',
+        '/students/:path*',
+        '/writings/:path*',
+        '/magazines/:path*',
+        '/winners',
+        '/notices',
+        '/search',
+        '/student-voices',
         '/admin/:path*',
         '/school/:path*',
         '/teacher/:path*',

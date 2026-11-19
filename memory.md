@@ -17,8 +17,14 @@ running live Praavyo; they want clean, single-source designs and say so often.
   before that could still touch published exams (see "Data findings").
 - **Current exam (11-10):** `CasExam.isCurrent`, set in Manage Exams; every CAS
   exam picker falls back to it.
-- **Stay inside the dashboard (11-13):** signed-in clicks to public pages open
-  in a viewer (`lib/dashboardLinks.js`, `DashboardLinkProvider`), never leave.
+- **No public pages once signed in (11-13, tightened 11-19):** a signed-in
+  person never sees the public site, not even in a viewer. Every public page
+  maps to the same service in the role's dashboard
+  (`dashboardHrefForPublicPath` in `lib/dashboardLinks.js`): clicks via
+  `DashboardLinkProvider`, any other arrival via `proxy.js` redirects. Only
+  certificates and `/verify` (documents) open in the viewer, `embed=1`, with
+  no public navigation. Dashboard screens share public pages with "Copy public
+  link" (`PublicShareButton`), never open them.
 - **Trainings (11-06):** Platform Events = Competitions + Trainings; per-school
   attendance, certificates for students or teachers (`lib/trainings.js`).
 - **Media reads never delete (11-04, 11-06):** the stale old-domain deployment

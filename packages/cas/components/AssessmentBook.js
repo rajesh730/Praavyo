@@ -148,8 +148,8 @@ export default function AssessmentBook({
         },
       }, {
         successMessage: t(
-          'Saved to the school database.',
-          'विद्यालय डाटाबेसमा सुरक्षित भयो।',
+          'Saved.',
+          'सुरक्षित भयो।',
         ),
       });
       if (result.ok) {
@@ -394,7 +394,7 @@ export default function AssessmentBook({
             <FaSave aria-hidden="true" />
             {pending
               ? t('Saving...', 'सुरक्षित हुँदै...')
-              : t('Send to school database', 'विद्यालय डाटाबेसमा पठाउनुहोस्')}
+              : t('Save', 'सुरक्षित गर्नुहोस्')}
           </Button>
           <p>
             {t(

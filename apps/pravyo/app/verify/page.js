@@ -89,11 +89,14 @@ function Field({ label, value }) {
 export default async function VerifyCertificatePage({ searchParams }) {
   const resolved = await searchParams;
   const code = resolved?.code || "";
+  // `embed=1`: opened from a signed-in dashboard's viewer, which has its own
+  // close button — the public site's navigation stays out of it.
+  const isEmbedded = resolved?.embed === "1";
   const result = await verifyCode(code);
 
   return (
-    <main className="min-h-screen bg-surface-2 pb-24 text-ink">
-      <PublicSiteNav active="home" />
+    <main className={`min-h-screen bg-surface-2 text-ink ${isEmbedded ? "pb-6" : "pb-24"}`}>
+      {!isEmbedded && <PublicSiteNav active="home" />}
 
       <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6">
         <div className="text-center">
@@ -112,6 +115,7 @@ export default async function VerifyCertificatePage({ searchParams }) {
 
         {/* GET form — no client JS required */}
         <form action="/verify" method="get" className="mt-4 flex flex-col gap-3 sm:flex-row">
+          {isEmbedded && <input type="hidden" name="embed" value="1" />}
           <input
             type="text"
             name="code"
@@ -155,7 +159,11 @@ export default async function VerifyCertificatePage({ searchParams }) {
             {result.certificate.certificateUrl && (
               <div className="border-t border-line px-5 py-4">
                 <Link
-                  href={result.certificate.certificateUrl}
+                  href={
+                    isEmbedded
+                      ? `${result.certificate.certificateUrl}${result.certificate.certificateUrl.includes("?") ? "&" : "?"}embed=1`
+                      : result.certificate.certificateUrl
+                  }
                   className="inline-flex items-center gap-2 text-sm font-semibold text-brand"
                 >
                   View the certificate

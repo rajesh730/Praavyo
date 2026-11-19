@@ -8,7 +8,6 @@ import {
   Check,
   ClipboardCheck,
   Clock,
-  Globe,
   GraduationCap,
   Presentation,
   Printer,
@@ -151,6 +150,10 @@ function TrainingCard({ training, calendar, onRegister, onAttendance }) {
   const marked = registration ? registration.presentCount + registration.absentCount : 0;
   const certificates = registration?.certificates || [];
   const [showCertificates, setShowCertificates] = useState(false);
+  // The full description reads here, in the dashboard — signed-in schools do
+  // not go to the public training page.
+  const [showDetails, setShowDetails] = useState(false);
+  const longDescription = (training.description || "").length > 160 || (training.description || "").includes("\n");
 
   // What the school sees next to the actions: where it stands, in one line.
   const standing =
@@ -186,7 +189,16 @@ function TrainingCard({ training, calendar, onRegister, onAttendance }) {
               {!registration && !training.registrationOpen && <span className="badge badge-warning">Registration closed</span>}
             </div>
             <h3 className="mt-1.5 text-base font-semibold text-ink">{training.title}</h3>
-            {training.description && <p className="mt-1 line-clamp-2 whitespace-pre-wrap text-sm leading-6 text-body">{training.description}</p>}
+            {training.description && (
+              <>
+                <p className={`mt-1 whitespace-pre-wrap text-sm leading-6 text-body ${showDetails ? "" : "line-clamp-2"}`}>{training.description}</p>
+                {longDescription && (
+                  <button type="button" onClick={() => setShowDetails((value) => !value)} aria-expanded={showDetails} className="mt-0.5 text-xs font-semibold text-brand hover:underline">
+                    {showDetails ? "Show less" : "Read more"}
+                  </button>
+                )}
+              </>
+            )}
             <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted">
               {!forTeachers && <span>{training.grades.length ? training.grades.join(", ") : "All grades"}</span>}
               {training.registrationDeadline && training.registrationOpen && !registration && (
@@ -208,7 +220,6 @@ function TrainingCard({ training, calendar, onRegister, onAttendance }) {
                 <Users aria-hidden /> {showCertificates ? "Hide students" : `${forTeachers ? "Teachers" : "Students"} (${registration.participantCount})`}
               </button>
             )}
-            <a href={`/trainings/${training.id}`} target="_blank" rel="noopener noreferrer" className="btn btn-ghost btn-sm"><Globe aria-hidden /> Public page</a>
             {status === "COMPLETED" ? (
               <a href={`/certificates/bulk?ids=${certificates.map((row) => row.id).join(",")}`} target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-sm"><Printer aria-hidden /> Print all</a>
             ) : status === "SUBMITTED" ? (

@@ -227,7 +227,7 @@ export default function StudentHistory() {
             {filtered.writings.map((w) => (
               <a
                 key={w.id}
-                href={`/writings/${w.id}`}
+                href={`/student/school-wall/${w.id}`}
                 className="card transition-colors hover:border-brand-line hover:bg-surface-2 block p-4 transition-colors hover:border-brand-line"
               >
                 <div className="flex flex-wrap items-center gap-2">

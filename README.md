@@ -53,7 +53,7 @@ theme. The form uses the supplied table's grouped date/score columns, learning
 outcomes, assessment areas, tools, remarks and signature/footer layout. Known
 Grade 3 theme working hours come from the source PDF.
 
-Fill dated levels (1–4) and press **Send to school database**. The whole page
+Fill dated levels (1–4) and press **Save**. The whole page
 saves atomically, including partially completed pages. Blank outcomes are
 excluded from percentage calculations; coverage is shown separately. Saved
 regular assessments remain fixed; further support assessments append to the

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import Link from "next/link";
 import {
   Archive,
   ArchiveRestore,
@@ -12,8 +11,8 @@ import {
   RefreshCw,
   Search,
   X,
-  ExternalLink,
 } from "lucide-react";
+import PublicShareButton from "@/components/public/PublicShareButton";
 import EmptyState from "@/components/EmptyState";
 import AlertBanner from "@/components/ui/AlertBanner";
 import DateTile from "@/components/common/DateTile";
@@ -123,10 +122,9 @@ export default function SchoolInquiryInbox() {
           </div>
         </div>
         <div className="flex flex-wrap gap-2">
+          {/* Signed-in schools stay in the dashboard: share the form's link for families, don't open it. */}
           {publicUrl && (
-            <Link href={publicUrl} target="_blank" rel="noopener noreferrer" className="btn btn-ghost">
-              <ExternalLink aria-hidden /> See the form
-            </Link>
+            <PublicShareButton href={publicUrl} title="inquiry form" label="Copy form link" className="btn btn-ghost" />
           )}
           <button type="button" onClick={() => load(tab)} className="btn btn-secondary">
             <RefreshCw aria-hidden /> Refresh

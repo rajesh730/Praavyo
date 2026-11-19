@@ -1,11 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { CalendarDays as FaCalendarAlt, CircleAlert as FaAlert, CircleCheck as FaCheckCircle, SquareCheck as FaCheckSquare, Mail as FaEnvelope, ExternalLink as FaExternalLinkAlt, Globe as FaGlobe, Image as FaImage, Link as FaLink, Phone as FaPhone, Save as FaSave, LoaderCircle as FaSpinner, Star as FaStar, Trophy as FaTrophy, Users as FaUsers } from "lucide-react";
+import { CalendarDays as FaCalendarAlt, CircleAlert as FaAlert, CircleCheck as FaCheckCircle, SquareCheck as FaCheckSquare, Mail as FaEnvelope, Globe as FaGlobe, Image as FaImage, Link as FaLink, Phone as FaPhone, Save as FaSave, LoaderCircle as FaSpinner, Star as FaStar, Trophy as FaTrophy, Users as FaUsers } from "lucide-react";
 import { FaFacebookF, FaInstagram, FaLinkedinIn, FaTiktok, FaTwitter, FaYoutube } from "react-icons/fa";
 import { normalizeImageUrl } from "@/lib/imageUrls";
 import SchoolLogoMark from "@/components/public/SchoolLogoMark";
+import PublicShareButton from "@/components/public/PublicShareButton";
 import AppDate from "@/components/common/AppDate";
 import ImageUploadField from "@/components/media/ImageUploadField";
 
@@ -265,16 +265,14 @@ export default function ShowcaseProfileManager() {
                   </p>
                 </div>
               </div>
+              {/* Signed-in schools stay in the dashboard: share the public page, don't open it. */}
               {publicSchoolUrl && (
-                <Link
+                <PublicShareButton
                   href={publicSchoolUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  title="school page"
+                  label="Copy public link"
                   className="btn btn-secondary btn-sm inline-flex items-center justify-center gap-2"
-                >
-                  View Public Page
-                  <FaExternalLinkAlt />
-                </Link>
+                />
               )}
             </div>
           </section>
@@ -543,15 +541,12 @@ export default function ShowcaseProfileManager() {
                 </div>
 
                 {publicSchoolUrl && (
-                  <Link
+                  <PublicShareButton
                     href={publicSchoolUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    title="school page"
+                    label="Copy public link"
                     className="btn btn-secondary btn-sm mt-4 inline-flex w-full items-center justify-center gap-2"
-                  >
-                    Visit Public Page
-                    <FaExternalLinkAlt />
-                  </Link>
+                  />
                 )}
               </div>
             </div>
