@@ -47,7 +47,8 @@ export function configureCasRealtime(nextSchoolId) {
 
 // Only invalidation metadata crosses tabs; school data stays in authenticated GETs.
 export function publishCasChange(path, target = globalThis.window) {
-  if (!target || !/^\/api\/cas\//.test(path)) return;
+  // School (/api/cas/) and teacher (/api/teacher/exams/) saves alike.
+  if (!target || !/^\/api\/(cas|teacher\/exams)\//.test(path)) return;
   dispatchChange(target);
   try {
     target.localStorage.setItem(storageKey, `${Date.now()}:${Math.random()}`);

@@ -57,12 +57,6 @@ export function gradeSummaries(workspace) {
   }));
 }
 
-export function resultSummary(result) {
-  return result.kind === 'CLASS_RESULT'
-    ? `Overall: ${result.overallGrade || '—'}${result.gpa != null ? ` · GPA ${result.gpa}` : ''}`
-    : `${result.subject}: ${result.gradeResult || '—'}${result.obtained != null ? ` · ${result.obtained}/${result.fullMarks ?? '—'}` : ''}`;
-}
-
 /**
  * Open the CAS assessment book already filtered to one exam, grade and subject.
  * Uses the same remembered filters the book reads; anything that no longer

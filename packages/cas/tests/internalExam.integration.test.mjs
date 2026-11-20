@@ -90,9 +90,9 @@ describe('internal exam flow on an isolated MongoDB replica set', {
     assert.deepEqual(saved.scheme.default.fields.map((field) => field.name), ['Class Test', 'Practical', 'Attendance']);
 
     // 2. Exams: a Grade 1 Second Terminal exam, and a Grade 2 one using the same structure.
-    const created = await service.createExam(actor, { academicYear: String(year._id), grade: 'Grade 1', term: 'SECOND', name: 'Second Terminal Examination', issueDate: '2083/07/15' });
+    const created = await service.createExam(actor, { academicYear: String(year._id), grade: 'Grade 1', name: 'Second Terminal Examination', issueDate: '2083/07/15' });
     const exam = created.exam || created;
-    const other = await service.createExam(actor, { academicYear: String(year._id), grade: 'Grade 2', term: 'SECOND', name: 'Second Terminal Examination' });
+    const other = await service.createExam(actor, { academicYear: String(year._id), grade: 'Grade 2', name: 'Second Terminal Examination' });
     const otherSheet = await service.loadSheet(actor, { exam: (other.exam || other).id });
     assert.deepEqual(otherSheet.subjects[0].columns.map((column) => `${column.label}/${column.fullMarks}`), ['TH/50', 'Class Test/20', 'Practical/20', 'Attendance/10']);
 
@@ -166,11 +166,14 @@ describe('internal exam flow on an isolated MongoDB replica set', {
     const cards = await service.loadCards(actor, { exam: exam.id });
     assert.equal(cards.length, 3);
     assert.equal(cards[0].preview, true);
+    assert.equal(cards[0].snapshot.examTitle, 'Second Terminal Examination', 'no report title: the exam name');
+    await service.updateExam(actor, { id: exam.id, reportTitle: 'Second Terminal Examination 2083' });
     assert.equal(cards.find((card) => card._id === String(students[0])).snapshot.overallGrade, top.overallGrade);
     assert.deepEqual(await service.publishExam(actor, { exam: exam.id }), { published: 3 });
     const published = await service.loadCards(actor, { exam: exam.id });
     const card = published.find((row) => row.snapshot.student.id === String(students[0])).snapshot;
-    assert.equal(card.examTitle, 'Second Terminal Examination');
+    assert.equal(card.examTitle, 'Second Terminal Examination 2083', 'the report title heads the card');
+    assert.equal(card.examName, 'Second Terminal Examination');
     assert.equal(card.obtained, 182.5);
     assert.deepEqual(line(card, 'Nepali').internal.fields.map((field) => [field.name, field.obtained]), [['Class Test', 19], ['Practical', 18], ['Attendance', 10]]);
     const row = await InternalExam.findById(exam.id).lean();
@@ -230,12 +233,128 @@ describe('internal exam flow on an isolated MongoDB replica set', {
     assert.equal(lineOfActivity('ECA'), undefined);
   });
 
+  it('creates, edits and deletes an exam once for every grade', async () => {
+    const { actor, year } = await fixture();
+    const { default: SchoolConfig } = await import('@pravyo/db/models/SchoolConfig');
+    await SchoolConfig.collection.insertOne({ school: new mongoose.Types.ObjectId(actor.school), grades: ['Grade 1', 'Grade 2'] });
+    const academicYear = String(year._id);
+    const names = async (grade) => (await service.listExams(actor, { academicYear, grade })).exams.map((row) => `${row.name}/${row.issueDate}`);
+
+    const created = await service.createExam(actor, { academicYear, grade: 'Grade 1', name: 'First Terminal Examination' });
+    assert.deepEqual(created.createdForGrades, ['Grade 1', 'Grade 2']);
+    assert.deepEqual(await names('Grade 2'), ['First Terminal Examination/']);
+    await assert.rejects(
+      service.createExam(actor, { academicYear, grade: 'Grade 2', name: 'first terminal examination' }),
+      /already exists for every grade/,
+    );
+
+    // A grade added later picks up the school's exams when its list opens.
+    await SchoolConfig.collection.updateOne({ school: new mongoose.Types.ObjectId(actor.school) }, { $set: { grades: ['Grade 1', 'Grade 2', 'Grade 3'] } });
+    assert.deepEqual(await names('Grade 3'), ['First Terminal Examination/']);
+
+    // Any name the school types: no fixed term list (owner, 2026-11-20).
+    const unitTest = await service.createExam(actor, { academicYear, grade: 'Grade 1', name: 'Unit Test 1' });
+    assert.equal(unitTest.term, undefined);
+    assert.deepEqual(await names('Grade 2'), ['First Terminal Examination/', 'Unit Test 1/']);
+    await service.deleteExam(actor, { id: unitTest.id });
+
+    // The report title is the card's heading; empty prints the exam name.
+    assert.equal(created.reportTitle, '');
+    await service.updateExam(actor, { id: created.id, reportTitle: 'First Terminal Examination 2083' });
+    const titled = (await service.listExams(actor, { academicYear, grade: 'Grade 2' })).exams[0];
+    assert.equal(titled.reportTitle, 'First Terminal Examination 2083', 'the title is shared by every grade');
+    await service.updateExam(actor, { id: created.id, reportTitle: '' });
+
+    await service.updateExam(actor, { id: created.id, name: 'First Term Exam', issueDate: '2083/07/15' });
+    for (const grade of ['Grade 1', 'Grade 2', 'Grade 3']) assert.deepEqual(await names(grade), ['First Term Exam/2083/07/15']);
+
+    // Publishing stays per grade, and a published grade blocks shared edits.
+    await InternalExam.updateOne({ school: actor.school, grade: 'Grade 2' }, { $set: { publishedAt: new Date() } });
+    await assert.rejects(service.updateExam(actor, { id: created.id, name: 'Renamed' }), /Unpublish its results for Grade 2/);
+    await assert.rejects(service.deleteExam(actor, { id: created.id }), /Unpublish its results for Grade 2/);
+    await InternalExam.updateOne({ school: actor.school, grade: 'Grade 2' }, { $set: { publishedAt: null } });
+
+    await service.deleteExam(actor, { id: created.id });
+    assert.equal(await InternalExam.countDocuments({ school: actor.school }), 0);
+  });
+
+  it('lets a subject teacher (Teachers page) enter only their subject, theory and internal', async () => {
+    const { actor, year, subjects, students } = await fixture();
+    const [nepali, maths] = subjects;
+    const academicYear = String(year._id);
+    const teacherId = id();
+    const otherId = id();
+    await mongoose.connection.collection('teachers').insertMany([
+      { _id: teacherId, name: 'Synthetic Teacher', email: `${teacherId}@example.test` },
+      { _id: otherId, name: 'Other Teacher', email: `${otherId}@example.test` },
+    ]);
+    await mongoose.connection.collection('teachermemberships').insertMany([
+      { teacher: teacherId, school: new mongoose.Types.ObjectId(actor.school), status: 'ACTIVE' },
+      { teacher: otherId, school: new mongoose.Types.ObjectId(actor.school), status: 'ACTIVE' },
+    ]);
+    const teacher = { id: String(teacherId), school: actor.school, role: 'TEACHER', name: 'Synthetic Teacher' };
+    const exam = await service.createExam(actor, { academicYear, grade: 'Grade 1', name: 'First Terminal Examination' });
+    const teaching = mongoose.connection.collection('teacherteachingassignments');
+    const school = new mongoose.Types.ObjectId(actor.school);
+    // A class teacher row alone opens nothing.
+    await teaching.insertOne({ school, teacher: teacherId, grade: 'Grade 1', assignmentType: 'CLASS_TEACHER', subject: null });
+
+    // Nothing assigned: no grades, no exams, no sheet.
+    assert.deepEqual(await service.listExamGrades(teacher), []);
+    assert.deepEqual((await service.listExams(teacher, { academicYear, grade: 'Grade 1' })).exams, []);
+    await assert.rejects(service.loadSheet(teacher, { exam: exam.id }), /not assigned you a subject/);
+
+    // The Teachers page makes them the Grade 1 Nepali teacher: that is the
+    // whole of their access, in every exam of the grade.
+    await teaching.insertOne({ school, teacher: teacherId, grade: 'Grade 1', assignmentType: 'SUBJECT_TEACHER', subject: nepali._id });
+    const panel = await service.listExamTeachers(actor, { exam: exam.id });
+    assert.deepEqual(panel.subjects.find((row) => row.id === String(nepali._id)).teachers.map((row) => row.name), ['Synthetic Teacher']);
+    assert.deepEqual(panel.subjects.find((row) => row.id === String(maths._id)).teachers, []);
+    assert.deepEqual(await service.listExamGrades(teacher), ['Grade 1']);
+    assert.deepEqual((await service.listExams(teacher, { academicYear, grade: 'Grade 1' })).exams.map((row) => row.id), [exam.id]);
+
+    // The sheet holds Nepali only; Mathematics is neither shown nor savable.
+    const sheet = await service.loadSheet(teacher, { exam: exam.id });
+    assert.deepEqual(sheet.subjects.map((row) => row.titleEn), ['Nepali']);
+    assert.equal(sheet.subjects[0].canEdit, true);
+    await service.saveMarks(teacher, { exam: exam.id, entries: [{ student: String(students[0]), subject: String(nepali._id), marks: 40 }] });
+    await assert.rejects(
+      service.saveMarks(teacher, { exam: exam.id, entries: [{ student: String(students[0]), subject: String(maths._id), marks: 40 }] }),
+      /not assigned to enter Mathematics/,
+    );
+    // Internal / practical marks follow the same rule as theory.
+    await service.saveScheme(actor, { revision: 0, default: STRUCTURE, subjects: [] });
+    const withInternal = await service.loadSheet(teacher, { exam: exam.id });
+    assert.deepEqual(withInternal.subjects.map((row) => row.titleEn), ['Nepali'], 'internal tab lists only their subject too');
+    await service.saveMarks(teacher, { exam: exam.id, entries: [{ student: String(students[0]), subject: String(nepali._id), internal: { fclasstest01: 15 } }] });
+    await assert.rejects(
+      service.saveMarks(teacher, { exam: exam.id, entries: [{ student: String(students[0]), subject: String(maths._id), internal: { fclasstest01: 15 } }] }),
+      /not assigned to enter Mathematics/,
+    );
+    assert.equal((await service.loadSheet(actor, { exam: exam.id })).marks[String(students[0])][String(nepali._id)].internal.fclasstest01, 15);
+
+    // The school reads the teacher's mark on its own sheet: one set of records.
+    const schoolSheet = await service.loadSheet(actor, { exam: exam.id });
+    assert.equal(schoolSheet.marks[String(students[0])][String(nepali._id)].theory, 40);
+
+    // A second exam needs no setup: the subject teacher has it at once.
+    const second = await service.createExam(actor, { academicYear, grade: 'Grade 1', name: 'Second Terminal Examination' });
+    assert.deepEqual((await service.loadSheet(teacher, { exam: second.id })).subjects.map((row) => row.titleEn), ['Nepali']);
+
+    // Another teacher with no subject gets nothing; removing the subject on the
+    // Teachers page removes access at once.
+    await assert.rejects(service.loadSheet({ ...teacher, id: String(otherId) }, { exam: exam.id }), /not assigned you a subject/);
+    await teaching.deleteOne({ teacher: teacherId, assignmentType: 'SUBJECT_TEACHER' });
+    await assert.rejects(service.loadSheet(teacher, { exam: exam.id }), /not assigned you a subject/);
+    assert.equal((await service.loadSheet(actor, { exam: exam.id })).marks[String(students[0])][String(nepali._id)].theory, 40, 'marks stay');
+  });
+
   it('shows a section only when the school has configured it for the grade', async () => {
     const { actor, year, students } = await fixture();
     const { default: SchoolConfig } = await import('@pravyo/db/models/SchoolConfig');
     // A stale section left on an enrollment of a grade with no sections.
     await Student.collection.updateOne({ _id: students[0] }, { $set: { 'enrollments.0.section': 'A' } });
-    const created = await service.createExam(actor, { academicYear: String(year._id), grade: 'Grade 1', term: 'FIRST', name: 'First Terminal Examination' });
+    const created = await service.createExam(actor, { academicYear: String(year._id), grade: 'Grade 1', name: 'First Terminal Examination' });
     const exam = created.exam || created;
     const sectionOf = async () => (await service.loadSheet(actor, { exam: exam.id })).students.find((row) => row.id === String(students[0])).section;
 

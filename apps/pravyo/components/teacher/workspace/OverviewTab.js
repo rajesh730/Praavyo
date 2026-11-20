@@ -2,13 +2,12 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { BookOpen, ChevronRight, ClipboardCheck, GraduationCap, PenLine, Repeat, School, Users } from 'lucide-react';
-import AppDate from '@/components/common/AppDate';
+import { BookOpen, ChevronRight, ClipboardCheck, PenLine, Repeat, School, Users } from 'lucide-react';
 import TeacherCertificates from './TeacherCertificates';
-import { gradeSummaries, openMarkEntry, resultSummary } from './shared';
+import { gradeSummaries, openMarkEntry } from './shared';
 import { CardHeading, Initials, MetricGrid } from './ui';
 
-/** The landing tab: where I work, what is waiting, what was just published. */
+/** The landing tab: where I work and what is waiting for marks. */
 export default function OverviewTab({ workspace }) {
   const router = useRouter();
   const grades = gradeSummaries(workspace);
@@ -31,7 +30,6 @@ export default function OverviewTab({ workspace }) {
           { label: 'My Students', value: totalStudents, note: `In ${grades.length} grade${grades.length === 1 ? '' : 's'}`, icon: Users, tone: 'brand' },
           { label: 'Subjects I Teach', value: subjectCount, note: classGrades.length ? `Class teacher · ${classGrades.join(', ')}` : 'Subject teacher', icon: BookOpen, tone: 'success' },
           { label: 'Open for Marks', value: openForEntry.length, note: openForEntry.length ? 'Waiting for your entry' : 'Nothing waiting', icon: PenLine, tone: 'warning' },
-          { label: 'Published Results', value: workspace.publishedResults.length, note: 'For your subjects and class', icon: GraduationCap, tone: 'brand' },
         ]}
       />
 
@@ -50,67 +48,37 @@ export default function OverviewTab({ workspace }) {
         )}
       </section>
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <section className="card overflow-hidden">
-          <div className="p-3">
-            <CardHeading
-              title="Open for mark entry"
-              description="CAS exams your school opened for you."
-              action={<SeeAll href="/teacher/dashboard?tab=exams" />}
-            />
-          </div>
-          {openForEntry.length === 0 ? (
-            <p className="mx-3 mb-3 rounded-card border border-dashed border-line-strong p-4 text-sm font-semibold text-muted">
-              {workspace.examAccess.length
-                ? 'Nothing to enter right now. Your exams are published, so their marks are locked.'
-                : 'Nothing to enter right now. Exams appear here when your school opens them for you.'}
-            </p>
-          ) : (
-            <ul className="divide-y divide-line border-t border-line">
-              {openForEntry.slice(0, 5).map((row) => (
-                <li key={`${row.examId}-${row.grade}-${row.subjectId}`} className="flex items-center gap-3 px-3 py-2.5">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control bg-brand-soft text-brand-strong">
-                    <ClipboardCheck aria-hidden size={16} />
-                  </span>
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold text-ink">{row.subject} · {row.grade}</span>
-                    <span className="block truncate text-xs font-semibold text-muted">{row.exam}</span>
-                  </span>
-                  <button type="button" onClick={() => openMarkEntry(router, row)} className="btn btn-primary btn-sm shrink-0">Enter marks</button>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-
-        <section className="card overflow-hidden">
-          <div className="p-3">
-            <CardHeading
-              title="Latest published results"
-              description="The newest results for your subjects and class."
-              action={<SeeAll href="/teacher/dashboard?tab=results" />}
-            />
-          </div>
-          {workspace.publishedResults.length === 0 ? (
-            <p className="mx-3 mb-3 rounded-card border border-dashed border-line-strong p-4 text-sm font-semibold text-muted">
-              Results for your subjects and class appear here after the school publishes them.
-            </p>
-          ) : (
-            <ul className="divide-y divide-line border-t border-line">
-              {workspace.publishedResults.slice(0, 5).map((result, index) => (
-                <li key={`${result.studentName}-${result.subject || 'overall'}-${index}`} className="flex items-center gap-3 px-3 py-2.5">
-                  <Initials name={result.studentName} />
-                  <span className="min-w-0 flex-1">
-                    <span className="block truncate text-sm font-semibold text-ink">{result.studentName}</span>
-                    <span className="block truncate text-xs font-semibold text-muted">{resultSummary(result)}</span>
-                  </span>
-                  <span className="shrink-0 text-xs font-semibold text-muted"><AppDate value={result.publishedAt} fallback="—" /></span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-      </div>
+      <section className="card overflow-hidden">
+        <div className="p-3">
+          <CardHeading
+            title="Open for mark entry"
+            description="CAS exams your school opened for you."
+            action={<SeeAll href="/teacher/dashboard?tab=exams" />}
+          />
+        </div>
+        {openForEntry.length === 0 ? (
+          <p className="mx-3 mb-3 rounded-card border border-dashed border-line-strong p-4 text-sm font-semibold text-muted">
+            {workspace.examAccess.length
+              ? 'Nothing to enter right now. Your exams are published, so their marks are locked.'
+              : 'Nothing to enter right now. Exams appear here when your school opens them for you.'}
+          </p>
+        ) : (
+          <ul className="divide-y divide-line border-t border-line">
+            {openForEntry.slice(0, 5).map((row) => (
+              <li key={`${row.examId}-${row.grade}-${row.subjectId}`} className="flex items-center gap-3 px-3 py-2.5">
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-control bg-brand-soft text-brand-strong">
+                  <ClipboardCheck aria-hidden size={16} />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-sm font-semibold text-ink">{row.subject} · {row.grade}</span>
+                  <span className="block truncate text-xs font-semibold text-muted">{row.exam}</span>
+                </span>
+                <button type="button" onClick={() => openMarkEntry(router, row)} className="btn btn-primary btn-sm shrink-0">Enter marks</button>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
 
       {grades.length > 0 && (
         <section className="card p-3">
@@ -127,7 +95,7 @@ export default function OverviewTab({ workspace }) {
                     <span className="font-semibold text-ink">{entry.grade}</span>
                     {entry.classTeacher && <span className="badge badge-brand text-xs">Class teacher</span>}
                     {entry.subjects.length > 0 && (
-                      <span className="truncate text-xs font-semibold text-muted">{entry.subjects.join(', ')}</span>
+                      <span className="max-w-full truncate text-xs font-semibold text-muted">{entry.subjects.join(', ')}</span>
                     )}
                   </span>
                   <span className="font-semibold tabular-nums text-ink">{entry.students}</span>

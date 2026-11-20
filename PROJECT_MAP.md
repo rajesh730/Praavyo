@@ -183,20 +183,24 @@ school). `npm run provision:curriculum` still exists to push to every school at 
 "Exams" (`/school/exams`) chooses between:
 - *CAS* — Grades 1–5 only (the CAS shell filters `school.grades` through
   `usesResultSheet`); results always render Classic, no format dropdown.
-- *Internal Exam* (`/school/internal-exam/{marks,attendance,exams,results}`,
+- *Internal Exam* (`/school/internal-exam/{marks,attendance,exams,results,published-results}`,
   same shell with `area="internal"`) — the school's own papers, Grades 1–10.
-  Models `InternalExam` (grade + term, full marks default + per-subject
-  overrides, pass %), `InternalExamMark`, `InternalExamRecord` (attendance +
-  extra activities per exam, school admin only, entered on "Attendance &
-  Activities", locked while published), `InternalExamReport` (frozen snapshots);
+  An exam is created once for every grade (stored as one `InternalExam` row
+  per grade, grouped by year + name; each grade publishes on its own).
+  Models `InternalExam`, `InternalExamMark` (TH + internal fields by id),
+  `InternalMarkScheme` (one school-wide TH/INT structure), `InternalActivitySet`
+  (the school's activities with full marks), `InternalExamRecord` (attendance +
+  activity marks per exam), `InternalExamReport` (frozen snapshots);
   service `packages/cas/lib/internalExamService.js`; maths
-  `packages/core/internalExamResult.js` (percentage of full marks → the CAS
-  grade bands; equal weights when no credit hours); card
-  `components/report/InternalExamReport.js` (the "Modern" card). Teachers
-  edit only subjects they hold as SUBJECT_TEACHER (TeacherTeachingAssignment);
-  class teachers read. Publishing needs every mark entered and locks marks;
+  `packages/core/internalExamResult.js` + `internalMarkScheme.js` (TH, INT and
+  final each graded on their own %, CAS bands, NG = 0.0); card
+  `components/report/InternalExamReport.js` (shares `report/gradeSheet.js`
+  with the CAS card). A subject teacher on the Teachers page enters that
+  subject in every exam of the grade, at `/teacher/exams/internal`, and
+  nothing else (Manage Exams > Teachers only shows this, read-only).
+  Unpublished = everything editable; publishing needs every mark and locks;
   parents/students read both collections via `lib/casPublished.js`.
-  Practical/internal-assessment marks and combined final results: not built.
+  Combined final results: not built. Details: `memory.md` (2026-11-18..20).
 
 **CAS boundaries.** `packages/cas/lib/casContext.js` is the only CAS module
 that reads Pravyo collections. CAS never creates accounts or students.

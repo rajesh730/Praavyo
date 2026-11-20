@@ -2,22 +2,21 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { CalendarDays, ClipboardList, ListChecks, RefreshCw, Lock as FaLock, Pen as FaPen, Plus as FaPlus, Send as FaPaperPlane, Trash2 as FaTrash, Unlock as FaUnlock, PenLine, Award } from 'lucide-react';
-import { CAS_EXAM_TERMS } from '@pravyo/core/casExamTerms';
+import { CalendarDays, ClipboardList, ListChecks, RefreshCw, Users, Lock as FaLock, Pen as FaPen, Plus as FaPlus, Send as FaPaperPlane, Trash2 as FaTrash, Unlock as FaUnlock, PenLine, Award } from 'lucide-react';
 import { useCas } from './CasLayout.js';
 import { useCasMutation } from '../lib/client/useCas.js';
-import { Alert, Badge, Button, Card, EmptyState, Field, Input, PageHeader, Select, Spinner } from './ui/Kit.js';
-import IssueDateInput from './ui/IssueDateInput.js';
+import { Alert, Badge, Button, Card, EmptyState, PageHeader, Spinner } from './ui/Kit.js';
+import { EMPTY_EXAM_FORM, InternalExamFields, examBody } from './InternalExamForm.js';
 import { InternalExamFilterBar, useInternalExamFilters } from './InternalExamFilters.js';
 import InternalAssessmentConfiguration from './InternalAssessmentConfiguration.js';
 import InternalGradingScale from './InternalGradingScale.js';
 import InternalActivitiesConfiguration from './InternalActivitiesConfiguration.js';
-
-const EMPTY_FORM = { term: 'FIRST', name: '', issueDate: '' };
+import InternalExamTeachersPanel from './InternalExamTeachersPanel.js';
 
 /**
  * Manage internal exams, in four tabs:
- *   Exams         one exam per grade and term (create, mark entry, publish)
+ *   Exams         school-wide exams, created once for every grade; each grade
+ *                 enters marks and publishes on its own
  *   Assessment    the school-wide TH / INT structure every exam of every grade uses
  *   Extra Activities the school's own activities, each with full marks
  *   Grading scale the 50-mark scale and the percentage scale (read-only)
@@ -29,7 +28,9 @@ export default function InternalExamsPage() {
   const { run, pending, error, success, setSuccess } = useCasMutation();
   // null = closed, 'new' = create form, an exam id = editing that exam.
   const [editing, setEditing] = useState(null);
-  const [form, setForm] = useState(EMPTY_FORM);
+  const [form, setForm] = useState(EMPTY_EXAM_FORM);
+  // The exam whose subject teachers are open, like CAS's teacher access panel.
+  const [teachersFor, setTeachersFor] = useState(null);
   const canEdit = actor?.role === 'SCHOOL_ADMIN';
   const [tab, setTab] = useState('exams');
   const tabs = [
@@ -44,13 +45,13 @@ export default function InternalExamsPage() {
 
   function open(exam) {
     if (!exam) {
-      setForm(EMPTY_FORM);
+      setForm(EMPTY_EXAM_FORM);
       setEditing('new');
       return;
     }
     setForm({
-      term: exam.term,
       name: exam.name,
+      reportTitle: exam.reportTitle || '',
       issueDate: exam.issueDate,
     });
     setEditing(exam.id);
@@ -58,14 +59,10 @@ export default function InternalExamsPage() {
 
   async function save(event) {
     event.preventDefault();
-    const body = {
-      term: form.term,
-      name: form.name,
-      issueDate: form.issueDate || '',
-    };
+    const body = examBody(form);
     const result = editing === 'new'
-      ? await run('/api/cas/internal-exams', { method: 'POST', body: { ...body, academicYear: academicYear.id, grade } }, { successMessage: t('Exam created', 'परीक्षा सिर्जना भयो') })
-      : await run('/api/cas/internal-exams', { method: 'PATCH', body: { ...body, id: editing } }, { successMessage: t('Exam saved', 'परीक्षा सुरक्षित भयो') });
+      ? await run('/api/cas/internal-exams', { method: 'POST', body: { ...body, academicYear: academicYear.id, grade } }, { successMessage: t(`${form.name} created for every grade`, `${form.name} सबै कक्षाका लागि सिर्जना भयो`) })
+      : await run('/api/cas/internal-exams', { method: 'PATCH', body: { ...body, id: editing } }, { successMessage: t('Exam saved for every grade', 'परीक्षा सबै कक्षाका लागि सुरक्षित भयो') });
     if (result.ok) {
       setEditing(null);
       examsQuery.reload();
@@ -73,7 +70,7 @@ export default function InternalExamsPage() {
   }
 
   async function remove(exam) {
-    if (!window.confirm(t(`Delete ${exam.name}? Every mark entered for it will be deleted too.`, `${exam.name} मेटाउने? यसका सबै अङ्क पनि मेटिन्छन्।`))) return;
+    if (!window.confirm(t(`Delete ${exam.name} from every grade? Every mark, attendance and activity entered for it in every grade will be deleted too.`, `${exam.name} सबै कक्षाबाट मेटाउने? सबै कक्षाका यसका अङ्क, हाजिरी र क्रियाकलाप पनि मेटिन्छन्।`))) return;
     const result = await run('/api/cas/internal-exams', { method: 'DELETE', body: { id: exam.id } }, { successMessage: t('Exam deleted', 'परीक्षा मेटियो') });
     if (result.ok) examsQuery.reload();
   }
@@ -102,8 +99,6 @@ export default function InternalExamsPage() {
     });
     if (result.ok) examsQuery.reload();
   }
-
-  const termTitle = (value) => CAS_EXAM_TERMS.find((term) => term.value === value)?.title || value;
 
   return (
     <>
@@ -143,23 +138,20 @@ export default function InternalExamsPage() {
       {activeTab === 'exams' && (
         <Card
           title={grade ? t(`${grade} exams`, `${grade} का परीक्षा`) : t('Exams', 'परीक्षाहरू')}
+          description={t(
+            'An exam is created once for the whole school and applies to every grade. Each grade enters its marks and publishes its results on its own.',
+            'परीक्षा एक पटक सिर्जना गर्दा सबै कक्षामा लागू हुन्छ। हरेक कक्षाले आफ्नै अङ्क प्रविष्टि र नतिजा प्रकाशन गर्छ।',
+          )}
           actions={canEdit && grade && editing !== 'new' && <Button onClick={() => open(null)}><FaPlus aria-hidden /> {t('Create exam', 'परीक्षा सिर्जना')}</Button>}
         >
           {editing && (
             <form onSubmit={save} className="mb-4 rounded-card border border-line bg-surface-2 p-3">
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                <Field label={t('Term', 'परीक्षा चरण')} required>
-                  <Select value={form.term} onChange={(event) => setForm({ ...form, term: event.target.value, name: form.name || '' })}>
-                    {CAS_EXAM_TERMS.map((term) => <option key={term.value} value={term.value}>{term.title}</option>)}
-                  </Select>
-                </Field>
-                <Field label={t('Exam name', 'परीक्षाको नाम')} required>
-                  <Input required minLength={2} maxLength={120} value={form.name} placeholder={`${termTitle(form.term)} ${academicYear?.label || ''}`.trim()} onChange={(event) => setForm({ ...form, name: event.target.value })} />
-                </Field>
-                <Field label={t('Issue date (B.S.)', 'जारी मिति (वि.सं.)')}>
-                  <IssueDateInput value={form.issueDate} onChange={(issueDate) => setForm({ ...form, issueDate })} calendar={actor?.calendar} t={t} />
-                </Field>
-              </div>
+              <InternalExamFields form={form} setForm={setForm} academicYear={academicYear} calendar={actor?.calendar} t={t} />
+              <p className="mt-2 text-sm text-muted">
+                {editing === 'new'
+                  ? t('This exam is created for every grade of the school.', 'यो परीक्षा विद्यालयका सबै कक्षाका लागि सिर्जना हुन्छ।')
+                  : t('The name, report title and issue date change for every grade.', 'नाम, नतिजा शीर्षक र जारी मिति सबै कक्षामा परिवर्तन हुन्छ।')}
+              </p>
 
               <div className="mt-3 flex gap-2">
                 <Button type="submit" disabled={pending}>{pending ? t('Saving…', 'सुरक्षित हुँदैछ…') : t('Save exam', 'परीक्षा सुरक्षित गर्नुहोस्')}</Button>
@@ -171,18 +163,18 @@ export default function InternalExamsPage() {
           {examsQuery.loading ? <Spinner label={t('Loading exams…', 'परीक्षा लोड हुँदैछ…')} />
             : !exams.length ? (
               <EmptyState
-                title={t('No internal exams for this grade yet', 'यस कक्षाको आन्तरिक परीक्षा छैन')}
+                title={t('No internal exams yet', 'आन्तरिक परीक्षा छैन')}
                 description={canEdit ? t('Create the first one, e.g. First Terminal Examination.', 'पहिलो परीक्षा सिर्जना गर्नुहोस्।') : t('Your school has not created one yet.', 'विद्यालयले अझै सिर्जना गरेको छैन।')}
               />
             ) : (
               <ul className="divide-y divide-line">
                 {exams.map((exam) => (
-                  <li key={exam.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
+                  <li key={exam.id} className="py-3">
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
                     <div className="min-w-0">
                       <p className="font-semibold text-ink">{exam.name}</p>
                       <p className="mt-0.5 flex flex-wrap items-center gap-2 text-sm text-muted">
-                        <span>{exam.termTitle}</span>
-                        <span>· {exam.pinned && !exam.published
+                        <span>{exam.pinned && !exam.published
                           ? t('Still on the structure it was published with', 'प्रकाशन हुँदाकै संरचनामा')
                           : t('School-wide assessment structure', 'विद्यालय-व्यापी मूल्याङ्कन संरचना')}</span>
                         {exam.published
@@ -194,6 +186,11 @@ export default function InternalExamsPage() {
                       <Link href="/school/internal-exam/marks" onClick={() => filters.setExam(exam.id)} className="btn btn-secondary btn-sm inline-flex items-center gap-1.5">
                         <PenLine size={14} aria-hidden /> {exam.published ? t('View marks', 'अङ्क हेर्नुहोस्') : t('Mark entry', 'अङ्क प्रविष्टि')}
                       </Link>
+                      {canEdit && (
+                        <Button variant="secondary" className="btn-sm" aria-expanded={teachersFor === exam.id} onClick={() => setTeachersFor(teachersFor === exam.id ? null : exam.id)}>
+                          <Users size={14} aria-hidden /> {t('Teachers', 'शिक्षक')}
+                        </Button>
+                      )}
                       {canEdit && (exam.published ? (
                         <Button variant="secondary" className="btn-sm" disabled={pending} onClick={() => setConfirming({ exam, publish: false })}>
                           <FaUnlock size={14} aria-hidden /> {t('Unpublish', 'अप्रकाशित')}
@@ -215,6 +212,8 @@ export default function InternalExamsPage() {
                         </>
                       )}
                     </div>
+                  </div>
+                  {canEdit && teachersFor === exam.id && <InternalExamTeachersPanel exam={exam} grade={grade} t={t} />}
                   </li>
                 ))}
               </ul>

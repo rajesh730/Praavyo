@@ -269,9 +269,10 @@ export default function InternalMarkEntryPage() {
   /** SN, Roll and Student: the same first three columns in every table. */
   const studentHead = (
     <>
-      <th className={`sticky left-0 z-20 w-12 min-w-12 bg-surface-2 ${th}`}>{t('SN', 'क्र.सं.')}</th>
+      <th className={`w-12 min-w-12 bg-surface-2 sm:sticky sm:left-0 sm:z-20 ${th}`}>{t('SN', 'क्र.सं.')}</th>
       <th className={`w-14 bg-surface-2 ${th}`}>{t('Roll', 'रोल')}</th>
-      <th className={`sticky left-12 z-20 bg-surface-2 ${thLeft}`}>{t('Student', 'विद्यार्थी')}</th>
+      {/* Phones pin only the Student column, so the mark columns get the room. */}
+      <th className={`sticky left-0 z-20 bg-surface-2 sm:left-12 ${thLeft}`}>{t('Student', 'विद्यार्थी')}</th>
     </>
   );
   /** SN, roll, and the name tinted green / yellow / red with the count, e.g. 3/5. */
@@ -280,12 +281,13 @@ export default function InternalMarkEntryPage() {
     const look = MARK_STATUS[status];
     return (
       <>
-        <td className="sticky left-0 z-10 w-12 min-w-12 bg-surface px-3 py-1.5 text-center text-muted tabular-nums">{serial.get(student.id)}</td>
+        <td className="w-12 min-w-12 bg-surface px-3 py-1.5 text-center text-muted tabular-nums sm:sticky sm:left-0 sm:z-10">{serial.get(student.id)}</td>
         <td className="px-3 py-1.5 text-center text-muted">{student.rollNumber || '—'}</td>
-        <td className={`sticky left-12 z-10 whitespace-nowrap px-3 py-1.5 font-medium text-ink ${look?.cell || 'bg-surface'}`} title={look ? t(look.en, look.ne) : undefined}>
-          <span className="flex items-center gap-2">
+        <td className={`sticky left-0 z-10 whitespace-nowrap px-2 py-1.5 font-medium text-ink sm:left-12 sm:px-3 ${look?.cell || 'bg-surface'}`} title={look ? `${student.name} · ${t(look.en, look.ne)}` : student.name}>
+          {/* A long name shortens on phones; the full name is in the title. */}
+          <span className="flex max-w-[10rem] items-center gap-2 sm:max-w-none">
             {look && <span className={`h-2.5 w-2.5 shrink-0 rounded-full ${look.dot}`} aria-hidden />}
-            <span>{student.name}</span>
+            <span className="min-w-0 truncate sm:overflow-visible">{student.name}</span>
             {look && <span className="ml-auto pl-2 text-xs font-normal tabular-nums text-muted">{progress.entered}/{progress.total}</span>}
           </span>
         </td>
@@ -485,9 +487,9 @@ export default function InternalMarkEntryPage() {
       {published && <Alert tone="info">{t('These results are published, so marks are locked. Unpublish the exam in Manage Exams before correcting them.', 'नतिजा प्रकाशित भएकाले अंक लक छन्। परिवर्तनका लागि परीक्षा अप्रकाशित गर्नुहोस्।')}</Alert>}
 
       {!filters.grades.length && !filters.loading ? (
-        <Card><EmptyState title={t('No grades to show', 'कक्षा छैन')} description={t('Ask your school to assign you a grade and subject on the Teachers page.', 'विद्यालयलाई शिक्षकको कक्षा र विषय तोक्न भन्नुहोस्।')} /></Card>
+        <Card><EmptyState title={t('No grades to show', 'कक्षा छैन')} description={(api.audience === 'teacher' ? t('Ask your school to make you a subject teacher on its Teachers page.', 'विद्यालयलाई शिक्षक पृष्ठमा तपाईंलाई विषय शिक्षक तोक्न भन्नुहोस्।') : undefined)} /></Card>
       ) : !exam && !filters.examsQuery.loading ? (
-        <Card><EmptyState title={t('No internal exam for this grade yet', 'यस कक्षाको आन्तरिक परीक्षा छैन')} description={api.audience === 'teacher' ? t('Your school creates internal exams. Marks can be entered once it does.', 'विद्यालयले परीक्षा बनाएपछि अंक प्रविष्ट गर्न सकिन्छ।') : undefined} action={api.audience === 'teacher' ? undefined : <Link href="/school/internal-exam/exams" className="btn btn-primary">{t('Manage exams', 'परीक्षा व्यवस्थापन')}</Link>} /></Card>
+        <Card><EmptyState title={api.audience === 'teacher' ? t('No exam to enter marks for', 'अङ्क प्रविष्ट गर्ने परीक्षा छैन') : t('No internal exam for this grade yet', 'यस कक्षाको आन्तरिक परीक्षा छैन')} description={api.audience === 'teacher' ? t('This grade has no open internal exam right now. Published exams are locked until your school unpublishes them.', 'यस कक्षामा अहिले खुला आन्तरिक परीक्षा छैन।') : undefined} action={api.audience === 'teacher' ? undefined : <Link href="/school/internal-exam/exams" className="btn btn-primary">{t('Manage exams', 'परीक्षा व्यवस्थापन')}</Link>} /></Card>
       ) : !sheet ? <Card><Spinner label={t('Loading marks…', 'अंक लोड हुँदैछ…')} /></Card>
         : !rows.length ? <Card><EmptyState title={t('No students in this grade or section', 'यस कक्षामा विद्यार्थी छैनन्')} /></Card>
           : !subjects.length ? <Card><EmptyState title={t('This grade has no examined subjects', 'यस कक्षामा परीक्षा हुने विषय छैन')} /></Card>

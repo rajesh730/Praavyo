@@ -1,10 +1,12 @@
 'use client';
 
+import { useState } from 'react';
 import { useRememberedState } from '@pravyo/ui/rememberedState';
 import { useCas } from './CasLayout.js';
 import { useCasQuery } from '../lib/client/useCas.js';
 import { sectionsForGrade } from '../lib/casSections.js';
 import { Card, Field, Select } from './ui/Kit.js';
+import { InternalExamCreateDialog } from './InternalExamForm.js';
 
 /**
  * Year → grade → section → exam, shared by the three internal-exam screens.
@@ -43,10 +45,37 @@ export function useInternalExamFilters({ withSection = true } = {}) {
   };
 }
 
+const CREATE_EXAM = '__create__';
+
 export function InternalExamFilterBar({ filters, t, showExam = true, withSection = true }) {
-  const { years, academicYear, setYearId, grades, grade, setGrade, sections, section, setSection, exams, exam, setExam } = filters;
+  const { years, academicYear, setYearId, grades, grade, setGrade, sections, section, setSection, exams, exam, setExam, examsQuery } = filters;
+  const { actor, api } = useCas();
+  // The school can create an exam right from the picker (teachers cannot).
+  const canCreate = showExam && actor?.role === 'SCHOOL_ADMIN' && api.audience === 'school' && Boolean(grade && academicYear?.id);
+  const [creating, setCreating] = useState(false);
+
+  function chooseExam(value) {
+    if (value === CREATE_EXAM) setCreating(true);
+    else setExam(value);
+  }
+
   return (
     <Card>
+      {creating && (
+        <InternalExamCreateDialog
+          api={api}
+          academicYear={academicYear}
+          grade={grade}
+          calendar={actor?.calendar}
+          t={t}
+          onCancel={() => setCreating(false)}
+          onCreated={(created) => {
+            setCreating(false);
+            setExam(created.id);
+            examsQuery.reload();
+          }}
+        />
+      )}
       <div className="grid items-end gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <Field label={t('Academic year', 'शैक्षिक वर्ष')}>
           <Select value={academicYear?.id || ''} onChange={(event) => { setYearId(event.target.value); setExam(''); }}>
@@ -69,9 +98,10 @@ export function InternalExamFilterBar({ filters, t, showExam = true, withSection
         )}
         {showExam && (
           <Field label={t('Exam', 'परीक्षा')}>
-            <Select value={exam?.id || ''} onChange={(event) => setExam(event.target.value)} disabled={!exams.length}>
+            <Select value={exam?.id || ''} onChange={(event) => chooseExam(event.target.value)} disabled={!exams.length && !canCreate}>
               {!exams.length && <option value="">{t('No exams yet', 'परीक्षा छैन')}</option>}
               {exams.map((item) => <option key={item.id} value={item.id}>{item.name}{item.published ? ` (${t('published', 'प्रकाशित')})` : ''}</option>)}
+              {canCreate && <option value={CREATE_EXAM}>{t('+ Create exam', '+ परीक्षा सिर्जना')}</option>}
             </Select>
           </Field>
         )}

@@ -9,10 +9,13 @@ import { ChevronRight, ClipboardCheck, FileSpreadsheet } from 'lucide-react';
  *
  *   - CAS: continuous assessment for Grades 1–5, the exams the school opened
  *     to this teacher (only those not yet published).
- *   - Internal Exam: the school's own papers for Grades 1–10, entered as marks.
+ *   - Internal Exam: the school's own papers for Grades 1–10, entered as marks
+ *     for the subjects the Teachers page gives this teacher, in every exam of
+ *     that grade not yet published.
  */
 export default function ExamsTab({ workspace }) {
   const openCas = workspace.examAccess.filter((row) => row.publishStatus !== 'PUBLISHED').length;
+  const openInternal = workspace.internalOpen || 0;
 
   const options = [
     {
@@ -31,15 +34,19 @@ export default function ExamsTab({ workspace }) {
       icon: FileSpreadsheet,
       title: 'Internal Exam',
       grades: 'Grades 1–10',
-      text: "Marks for the school's own question papers, subject by subject.",
+      text: "Marks for the school's own question papers, for the subjects you teach (as set on your school's Teachers page).",
+      status: openInternal
+        ? `${openInternal} subject${openInternal === 1 ? '' : 's'} open for marks`
+        : 'Nothing waiting for marks',
+      waiting: openInternal > 0,
     },
   ];
 
   return (
     <div className="grid gap-4 md:grid-cols-2">
       {options.map(({ href, icon: Icon, title, grades, text, status, waiting }) => (
-        <Link key={href} href={href} className="card group flex gap-4 p-5 transition hover:border-brand">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-card bg-brand-soft text-brand">
+        <Link key={href} href={href} className="card group flex gap-3 p-4 transition hover:border-brand sm:gap-4 sm:p-5">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-card bg-brand-soft text-brand sm:h-12 sm:w-12">
             <Icon aria-hidden />
           </span>
           <span className="min-w-0 flex-1">

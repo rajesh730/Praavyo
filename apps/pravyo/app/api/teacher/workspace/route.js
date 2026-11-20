@@ -8,6 +8,7 @@ import CasExam from '@pravyo/db/models/cas/CasExam';
 import CasSubject from '@pravyo/db/models/cas/CasSubject';
 import CasReport from '@pravyo/db/models/cas/CasReport';
 import CasExamTeacherAssignment from '@pravyo/db/models/cas/CasExamTeacherAssignment';
+import InternalExam from '@pravyo/db/models/cas/InternalExam';
 import TeacherMembership from '@pravyo/db/models/TeacherMembership';
 import TeacherTeachingAssignment from '@pravyo/db/models/TeacherTeachingAssignment';
 import { activeSchoolsForTeacher, isActiveTeacherMember } from '@pravyo/db/teacherMemberships';
@@ -16,9 +17,9 @@ const subjectTitle = (subject) => subject.titleEn || subject.titleNe || subject.
 
 /**
  * Everything a teacher sees on their dashboard, for the school chosen in their
- * session — and only what that school assigned to them. Results appear only
- * once the school has PUBLISHED them: a subject teacher sees their subject, a
- * class teacher sees the whole result for their grade.
+ * session — and only what that school assigned to them. Published results are
+ * not part of the teacher dashboard (owner, 2026-11-20: the Results tab was
+ * removed), so no report card is read here.
  */
 export const GET = defineRoute({ roles: ['TEACHER'] }, async ({ session }) => {
   const school = session.user.schoolId;
@@ -40,19 +41,24 @@ export const GET = defineRoute({ roles: ['TEACHER'] }, async ({ session }) => {
   const grants = year
     ? await CasExamTeacherAssignment.find({ school, teacher: teacher._id, academicYear: year._id }).select('exam grade subject').lean()
     : [];
+  // Internal exam marks waiting for this teacher: each subject they teach
+  // (Teachers page) in each still-unpublished internal exam of that grade.
+  const taughtSubjects = assignments.filter((row) => row.assignmentType === 'SUBJECT_TEACHER' && row.subject);
+  const openInternalExams = year && taughtSubjects.length
+    ? await InternalExam.find({ school, academicYear: year._id, grade: { $in: [...new Set(taughtSubjects.map((row) => row.grade))] }, publishedAt: null }).select('grade').lean()
+    : [];
+  const internalOpen = taughtSubjects.reduce((sum, row) => sum + openInternalExams.filter((exam) => exam.grade === row.grade).length, 0);
   const subjectIds = [...new Set([
     ...assignments.filter((row) => row.subject).map((row) => String(row.subject)),
     ...grants.map((row) => String(row.subject)),
   ])];
 
-  const [subjects, students, reports, exams] = await Promise.all([
+  const [subjects, students, exams] = await Promise.all([
     subjectIds.length ? CasSubject.find({ _id: { $in: subjectIds }, school }).select('grade code titleEn titleNe').lean() : [],
     grades.length ? Student.find({
       school, status: 'ACTIVE', isDeleted: { $ne: true },
       grade: { $in: [...new Set(grades.flatMap((grade) => getEquivalentGradeValues(grade)))] },
     }).select('name grade section rollNumber').sort({ grade: 1, rollNumber: 1, name: 1 }).lean() : [],
-    grades.length ? CasReport.find({ school, status: 'PUBLISHED', grade: { $in: grades } })
-      .select('student grade exam snapshot publishedAt').sort({ publishedAt: -1 }).limit(500).lean() : [],
     grants.length ? CasExam.find({ _id: { $in: [...new Set(grants.map((row) => String(row.exam)))] }, school }).select('name isCurrent status').lean() : [],
   ]);
   const subjectById = new Map(subjects.map((subject) => [String(subject._id), subject]));
@@ -76,61 +82,6 @@ export const GET = defineRoute({ roles: ['TEACHER'] }, async ({ session }) => {
   const publication = (row) => ({
     publishStatus: publishedKeys.has(`${row.exam}|${row.grade}`) ? 'PUBLISHED' : 'OPEN',
   });
-  const subjectAssignments = assignments.filter((row) => row.assignmentType === 'SUBJECT_TEACHER' && subjectById.has(String(row.subject)));
-  const classGrades = new Set(assignments.filter((row) => row.assignmentType === 'CLASS_TEACHER').map((row) => row.grade));
-
-  const reportExamIds = [...new Set(reports.map((report) => report.exam && String(report.exam)).filter(Boolean))];
-  const reportExams = reportExamIds.length ? await CasExam.find({ _id: { $in: reportExamIds }, school }).select('name').lean() : [];
-  const reportExamName = new Map(reportExams.map((exam) => [String(exam._id), exam.name]));
-
-  const publishedResults = reports.flatMap((report) => {
-    const snapshot = report.snapshot || {};
-    const student = snapshot.student || {};
-    const base = {
-      // Lets the dashboard group results by student, then open one student.
-      studentId: String(report.student),
-      studentName: student.name || 'Student',
-      rollNumber: student.rollNumber || '',
-      section: student.section || '',
-      grade: report.grade,
-      examId: report.exam ? String(report.exam) : '',
-      exam: report.exam ? reportExamName.get(String(report.exam)) || '' : '',
-      publishedAt: report.publishedAt,
-    };
-    // A class teacher sees the whole published card: every subject, then the
-    // overall result. A subject teacher only ever gets their own subjects.
-    const classSummary = classGrades.has(report.grade)
-      ? [{
-          ...base,
-          kind: 'CLASS_RESULT',
-          overallGrade: snapshot.overallGrade || '',
-          overallRemark: snapshot.overallRemarkEn || '',
-          gpa: snapshot.gpa ?? null,
-          subjects: (snapshot.subjects || []).map((row) => ({
-            title: row.titleEn || row.titleNe || row.subjectCode || 'Subject',
-            creditHours: row.creditHours ?? null,
-            achievement: row.achievement ?? null,
-            gradePoint: row.gradePoint ?? null,
-            grade: row.grade || '',
-            obtained: row.obtained ?? null,
-            fullMarks: row.fullMarks ?? null,
-            remark: row.remarkEn || '',
-            absent: Boolean(row.absent),
-          })),
-        }]
-      : [];
-    const subjectSummaries = (snapshot.subjects || []).flatMap((result) => {
-      const assignment = subjectAssignments.find((row) => row.grade === report.grade && subjectById.get(String(row.subject)).code === result.subjectCode);
-      return assignment ? [{
-        ...base, kind: 'SUBJECT_RESULT',
-        subject: subjectTitle(subjectById.get(String(assignment.subject))),
-        gradeResult: result.grade || '', obtained: result.obtained ?? null, fullMarks: result.fullMarks ?? null,
-        achievement: result.achievement ?? null, remark: result.remarkEn || '', absent: Boolean(result.absent),
-      }] : [];
-    });
-    return [...classSummary, ...subjectSummaries];
-  });
-
   return successResponse(200, 'Teacher workspace loaded', {
     teacher: { name: teacher.name, username: teacher.username || '', email: teacher.email, phone: teacher.phone || '', designation: membership?.designation || '' },
     school: { id: String(school), name: session.user.schoolName || schools.find((row) => row.id === String(school))?.name || 'School' },
@@ -154,6 +105,8 @@ export const GET = defineRoute({ roles: ['TEACHER'] }, async ({ session }) => {
         subject: subjectTitle(subjectById.get(String(row.subject))),
         ...publication(row),
       })),
+    // Subject × exam pairs open for internal marks (see above).
+    internalOpen,
     // `grade` is reported as the assigned grade label ("Grade 3"), whichever
     // equivalent spelling the student record uses ("3", "grade 3").
     students: students.map((student) => ({
@@ -161,6 +114,5 @@ export const GET = defineRoute({ roles: ['TEACHER'] }, async ({ session }) => {
       grade: grades.find((grade) => getEquivalentGradeValues(grade).includes(student.grade)) || student.grade,
       section: student.section || '', rollNumber: student.rollNumber || '',
     })),
-    publishedResults,
   });
 });

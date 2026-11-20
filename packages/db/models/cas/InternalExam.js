@@ -3,7 +3,10 @@ import { casOptions, refId, reqRefId } from './casShared.js';
 import { markStructureSchema } from './InternalMarkScheme.js';
 
 /**
- * A school's own written exam (First Terminal, Final, …) for one grade.
+ * One grade's copy of a school's own written exam (First Terminal, Final, …).
+ * The school creates an exam once and every grade gets a copy with the same
+ * academic year + name (see internalExamService); each copy holds that
+ * grade's publishing, lock and pinned structure.
  *
  * Separate from CasExam on purpose: CAS assesses learning outcomes by theme
  * for Grades 1–5, this records plain marks for Grades 1–10. Grades 1–5 get a
@@ -17,8 +20,14 @@ const internalExamSchema = new mongoose.Schema({
   school: reqRefId('User'),
   academicYear: reqRefId('AcademicYear'),
   grade: { type: String, required: true, trim: true },
-  term: { type: String, enum: ['FIRST', 'SECOND', 'THIRD', 'FINAL'], required: true },
+  // The school types its own exam name (owner, 2026-11-20): internal exams
+  // have no fixed term list and share nothing with CAS's exam terms. `term`
+  // is kept only on exams created before that; nothing reads it.
+  term: { type: String, enum: ['FIRST', 'SECOND', 'THIRD', 'FINAL'] },
   name: { type: String, required: true, trim: true, maxlength: 120 },
+  // The heading printed at the top of the report card ("First Terminal
+  // Examination 2083"). Empty = the exam name. Internal only, like CAS's own.
+  reportTitle: { type: String, trim: true, maxlength: 120, default: '' },
   fullMarks: { type: Number, required: true, min: 1, max: 1000, default: 100 },
   subjectFullMarks: {
     type: [{
@@ -55,5 +64,13 @@ internalExamSchema.index(
   { unique: true, collation: { locale: 'en', strength: 2 } },
 );
 internalExamSchema.index({ school: 1, academicYear: 1, grade: 1, term: 1 });
+
+// A dev server that loaded the model before `reportTitle` (or with `term`
+// still required) keeps that stale copy across hot reloads and refuses the
+// new field; drop it so the current schema is registered.
+const cached = mongoose.models.InternalExam;
+if (cached && (!cached.schema.path('reportTitle') || cached.schema.path('term')?.isRequired)) {
+  delete mongoose.models.InternalExam;
+}
 
 export default mongoose.models.InternalExam || mongoose.model('InternalExam', internalExamSchema);

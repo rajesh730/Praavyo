@@ -9,14 +9,13 @@ import ProgramManager from "@/components/programs/ProgramManager";
 import UpcomingPrograms from "@/components/programs/UpcomingPrograms";
 import OverviewTab from "@/components/teacher/workspace/OverviewTab";
 import ExamsTab from "@/components/teacher/workspace/ExamsTab";
-import ResultsTab from "@/components/teacher/workspace/ResultsTab";
 import StudentsTab from "@/components/teacher/workspace/StudentsTab";
 import ProfileTab from "@/components/teacher/workspace/ProfileTab";
 import { useTeacherWorkspace } from "@/components/teacher/workspace/shared";
 import PageHeader from "@/components/ui/PageHeader";
 import LoadingState from "@/components/ui/LoadingState";
 import AlertBanner from "@/components/ui/AlertBanner";
-import { CalendarDays, ClipboardCheck, GraduationCap, Presentation, UserRound, Users } from "lucide-react";
+import { CalendarDays, ClipboardCheck, Presentation, UserRound, Users } from "lucide-react";
 
 /**
  * The teacher workspace, one tab per job. The tabs are the sidebar and phone
@@ -27,7 +26,7 @@ const TABS = {
   overview: {
     icon: Presentation,
     title: (name) => `Namaste, ${name}`,
-    description: "Your school, what is open for marks, and the latest results.",
+    description: "Your school and what is open for marks.",
     Component: OverviewTab,
   },
   exams: {
@@ -35,12 +34,6 @@ const TABS = {
     title: () => "Exams",
     description: "Choose CAS for Grades 1–5 assessment, or the internal exam for marks.",
     Component: ExamsTab,
-  },
-  results: {
-    icon: GraduationCap,
-    title: () => "Published results",
-    description: "Results for your subjects, and your whole class if you are its class teacher.",
-    Component: ResultsTab,
   },
   students: {
     icon: Users,

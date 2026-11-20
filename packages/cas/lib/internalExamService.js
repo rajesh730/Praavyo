@@ -6,8 +6,9 @@ import InternalExamMark from '@pravyo/db/models/cas/InternalExamMark';
 import InternalExamReport from '@pravyo/db/models/cas/InternalExamReport';
 import InternalExamRecord from '@pravyo/db/models/cas/InternalExamRecord';
 import InternalMarkScheme, { SCHOOL_WIDE_GRADE } from '@pravyo/db/models/cas/InternalMarkScheme';
+import Teacher from '@pravyo/db/models/Teacher';
 import TeacherTeachingAssignment from '@pravyo/db/models/TeacherTeachingAssignment';
-import { CAS_EXAM_TERM_VALUES, examTermOf } from '@pravyo/core/casExamTerms';
+import { teacherIdsAtSchool } from '@pravyo/db/teacherMemberships';
 import { EXAMINED_FILTER, studentTakesSubject } from '@pravyo/core/subjectScope';
 import { parseBsNumeric } from '@pravyo/core/nepaliDate';
 import { normalizeAttendance, normalizeExtraActivities } from '@pravyo/core/casSupplementary';
@@ -40,9 +41,16 @@ import { loadAcademicYear, loadGradeSections, loadSchool, loadStudents } from '.
 /**
  * Internal (school) exams: the school's own written papers for Grades 1–10.
  *
- *   - The school creates an exam per grade and sets full marks.
- *   - The school, or a subject teacher assigned on the Teachers page, enters
- *     marks; a class teacher may read the whole grade.
+ *   - The school creates an exam once (First Terminal, …) and it applies to
+ *     every grade, like a CAS exam (owner, 2026-11-20). It is stored as one
+ *     row per grade, grouped by academic year + name, because each grade
+ *     enters marks, publishes and locks on its own. Create, edit and delete
+ *     act on the whole group; a grade added later gets the school's exams
+ *     the first time its exam list is opened.
+ *   - The school enters marks, and so does each subject teacher the Teachers
+ *     page lists for a grade: their subject, in every exam of that grade. A
+ *     teacher sees only those subjects, on unpublished exams, through the
+ *     teacher API; the marks are the same records the school's screens read.
  *   - The school records each student's attendance and extra activities per
  *     exam (InternalExamRecord). CAS does not collect these.
  *   - The school publishes: every student gets a frozen report card that
@@ -59,11 +67,19 @@ const issueDate = z.string().trim().max(10)
   .refine((value) => !value || Boolean(parseBsNumeric(value)), 'Write the issue date in B.S. as YYYY/MM/DD, e.g. 2083/06/08');
 const subjectFullMarksInput = z.array(z.object({ subject: objectId, fullMarks: z.number().int().min(1).max(1000) }).strict()).max(40);
 
+// `grade` is the grade the school was looking at: the exam is created for
+// every grade, and this grade's copy is returned.
+// The school types the exam's name itself; there is no fixed term list and
+// nothing is shared with CAS's exam terms (owner, 2026-11-20). `term` from a
+// page opened before that change is accepted and ignored.
+const ignoredTerm = z.string().max(20).optional();
 const examCreateInput = z.object({
   academicYear: objectId,
-  grade,
-  term: z.enum(CAS_EXAM_TERM_VALUES),
+  grade: grade.optional(),
+  term: ignoredTerm,
   name: z.string().trim().min(2).max(120),
+  // Heading at the top of the report card; empty = the exam name.
+  reportTitle: z.string().trim().max(120).default(''),
   fullMarks: z.number().int().min(1).max(1000).default(DEFAULT_FULL_MARKS),
   subjectFullMarks: subjectFullMarksInput.default([]),
   issueDate: issueDate.default(''),
@@ -73,8 +89,9 @@ const examCreateInput = z.object({
 // create schema's defaults back in and silently reset unsent fields.
 const examUpdateInput = z.object({
   id: objectId,
-  term: z.enum(CAS_EXAM_TERM_VALUES).optional(),
+  term: ignoredTerm,
   name: z.string().trim().min(2).max(120).optional(),
+  reportTitle: z.string().trim().max(120).optional(),
   fullMarks: z.number().int().min(1).max(1000).optional(),
   subjectFullMarks: subjectFullMarksInput.optional(),
   issueDate: issueDate.optional(),
@@ -165,9 +182,9 @@ function serializeExam(row) {
     id: String(row._id),
     academicYear: String(row.academicYear),
     grade: row.grade,
-    term: row.term,
-    termTitle: examTermOf(row.term).title,
     name: row.name,
+    // As saved; empty means the card prints the exam name.
+    reportTitle: row.reportTitle || '',
     fullMarks: row.fullMarks,
     subjectFullMarks: (row.subjectFullMarks || []).map((item) => ({ subject: String(item.subject), fullMarks: item.fullMarks })),
     issueDate: row.issueDate || '',
@@ -234,18 +251,27 @@ function serializeScheme(row) {
 }
 
 /**
- * What the actor may do in a grade. School admin: everything. Teacher: read
- * the grade if they teach in it, edit only their assigned subjects.
+ * The Teachers page's subject-teacher rows (grade + subject per teacher): the
+ * ONLY source of internal-exam mark entry (owner, 2026-11-20: "for Grade 10
+ * it's English"). A teacher gets their subject in every internal exam of
+ * that grade, and nothing else. Grades match case-insensitively.
  */
-async function gradeAccess(actor, gradeName) {
+function subjectTeacherRows(actor, filter = {}) {
+  return TeacherTeachingAssignment.find({ school: actor.school, assignmentType: 'SUBJECT_TEACHER', subject: { $ne: null }, ...filter })
+    .collation({ locale: 'en', strength: 2 });
+}
+
+/**
+ * What the actor may do with one grade's copy of an exam. School admin:
+ * everything. Teacher: only the subjects the Teachers page gives them in
+ * that grade; they neither see nor edit the others.
+ */
+async function examAccess(actor, exam) {
   if (actor.role === 'SCHOOL_ADMIN') return { canRead: true, editSubjects: null };
   assert(actor.role === 'TEACHER', 'Only the school and its teachers can open internal exams', 403);
-  const rows = await TeacherTeachingAssignment.find({ school: actor.school, teacher: actor.id, grade: gradeName })
-    .select('assignmentType subject').lean();
-  return {
-    canRead: rows.length > 0,
-    editSubjects: new Set(rows.filter((row) => row.assignmentType === 'SUBJECT_TEACHER' && row.subject).map((row) => String(row.subject))),
-  };
+  const rows = await subjectTeacherRows(actor, { teacher: actor.id, grade: exam.grade }).select('subject').lean();
+  const editSubjects = new Set(rows.map((row) => String(row.subject)));
+  return { canRead: editSubjects.size > 0, editSubjects };
 }
 
 async function loadExam(actor, id) {
@@ -263,12 +289,74 @@ async function gradeSubjects(actor, gradeName) {
     .lean();
 }
 
-/** Grades the actor can see: all of the school's for the admin, taught grades for a teacher. */
+/** Grades the actor can see: all of the school's for the admin, assigned grades for a teacher. */
 export async function listExamGrades(actor) {
   await ready();
   if (actor.role === 'SCHOOL_ADMIN') return null;
-  const rows = await TeacherTeachingAssignment.find({ school: actor.school, teacher: actor.id }).select('grade').lean();
+  const rows = await subjectTeacherRows(actor, { teacher: actor.id }).select('grade').lean();
   return [...new Set(rows.map((row) => row.grade))];
+}
+
+// Exam names and grades match case-insensitively, like the unique index.
+const NAME_COLLATION = { locale: 'en', strength: 2 };
+const nameKey = (value) => String(value || '').trim().toLowerCase();
+
+/** The school's configured grades (its Pravyo settings). */
+async function schoolGrades(actor) {
+  return (await loadSchool(actor)).grades || [];
+}
+
+/** Every grade's copy of one school-wide exam: same school, year and name. */
+async function examGroup(actor, exam) {
+  return InternalExam.find({ school: actor.school, academicYear: exam.academicYear, name: exam.name })
+    .collation(NAME_COLLATION)
+    .lean();
+}
+
+/** Insert exam rows, skipping any a parallel request already created. */
+async function insertExamRows(rows) {
+  if (!rows.length) return;
+  try {
+    await InternalExam.insertMany(rows, { ordered: false });
+  } catch (error) {
+    const writeErrors = error?.writeErrors || [];
+    const duplicatesOnly = error?.code === 11000 || (writeErrors.length && writeErrors.every((item) => (item.code ?? item.err?.code) === 11000));
+    if (!duplicatesOnly) throw error;
+  }
+}
+
+/**
+ * Gives `gradeName` its copy of every school-wide exam of the year it is
+ * missing (a grade added after the exam was created, or exams made per grade
+ * before exams were school-wide). Returns each exam's position (by name) in
+ * the order the school created them, so every grade lists them alike.
+ */
+async function syncGradeExams(actor, year, gradeName) {
+  const rows = await InternalExam.find({ school: actor.school, academicYear: year.id })
+    .select('grade name reportTitle issueDate createdAt createdBy')
+    .sort({ createdAt: 1, _id: 1 })
+    .lean();
+  const groups = new Map();
+  for (const row of rows) {
+    const key = nameKey(row.name);
+    if (!groups.has(key)) groups.set(key, { first: row, grades: new Set() });
+    groups.get(key).grades.add(nameKey(row.grade));
+  }
+  const grades = await schoolGrades(actor);
+  if (grades.some((item) => nameKey(item) === nameKey(gradeName))) {
+    await insertExamRows([...groups.values()]
+      .filter((group) => !group.grades.has(nameKey(gradeName)))
+      .map(({ first }) => ({
+        school: actor.school,
+        academicYear: year.id,
+        grade: gradeName,
+        name: first.name,
+        reportTitle: first.reportTitle || '',
+        issueDate: first.issueDate || '',
+        createdBy: first.createdBy || null,
+      })));
+  }
+  return new Map([...groups.keys()].map((key, index) => [key, index]));
 }
 
 /** A grade's exams for a year, plus its examined subjects for the full-marks editor. */
@@ -276,19 +364,24 @@ export async function listExams(actor, { academicYear, grade: gradeName }) {
   await ready();
   assert(academicYear && gradeName, 'Choose an academic year and grade');
   const year = await loadAcademicYear(actor, academicYear);
-  const access = await gradeAccess(actor, gradeName);
-  if (!access.canRead) return { exams: [], subjects: [] };
+  const isTeacher = actor.role === 'TEACHER';
+  if (isTeacher) {
+    // A teacher of a subject in this grade (Teachers page) sees every exam of
+    // the grade still open: published results are locked and leave their list
+    // (the school unpublishes to reopen one). Anyone else sees none.
+    const teaches = await subjectTeacherRows(actor, { teacher: actor.id, grade: gradeName }).select('_id').limit(1).lean();
+    if (!teaches.length) return { exams: [], subjects: [] };
+  } else {
+    requireSchoolAdmin(actor);
+  }
+  const order = await syncGradeExams(actor, year, gradeName);
   const [rows, subjects] = await Promise.all([
-    InternalExam.find({
-      school: actor.school, academicYear: year.id, grade: gradeName,
-      // A teacher works only on exams still open: published results are
-      // locked and leave their list (the school unpublishes to reopen one).
-      ...(actor.role === 'TEACHER' ? { publishedAt: null } : {}),
-    }).sort({ createdAt: 1 }).lean(),
-    gradeSubjects(actor, gradeName),
+    InternalExam.find({ school: actor.school, academicYear: year.id, grade: gradeName, ...(isTeacher ? { publishedAt: null } : {}) }).sort({ createdAt: 1 }).lean(),
+    isTeacher ? [] : gradeSubjects(actor, gradeName),
   ]);
+  const position = (row) => order.get(nameKey(row.name)) ?? Number.MAX_SAFE_INTEGER;
   return {
-    exams: rows.map(serializeExam),
+    exams: rows.sort((a, b) => position(a) - position(b)).map(serializeExam),
     subjects: subjects.map((row) => ({ id: String(row._id), code: row.code, titleEn: row.titleEn, titleNe: row.titleNe || '' })),
   };
 }
@@ -300,36 +393,96 @@ async function assertSubjectsInGrade(actor, gradeName, overrides) {
   assert(count === new Set(ids).size, 'A subject in the full-marks list is not in this grade');
 }
 
+const gradeList = (rows) => rows.map((row) => row.grade).join(', ');
+
+/**
+ * Create a school-wide exam: one copy for every grade of the school (plus
+ * the grade on screen). Grades that already have an exam of this name in the
+ * year keep theirs. Returns the copy for `grade`.
+ */
 export async function createExam(actor, input) {
   requireSchoolAdmin(actor);
   await ready();
-  const data = examCreateInput.parse(input);
+  const { subjectFullMarks: overrides, grade: gradeName, term: _term, ...data } = examCreateInput.parse(input);
   const year = await loadAcademicYear(actor, data.academicYear);
-  await assertSubjectsInGrade(actor, data.grade, data.subjectFullMarks);
-  const row = await InternalExam.create({ ...data, academicYear: year.id, school: actor.school, createdBy: actor.id });
-  return serializeExam(row.toObject());
+  const grades = [];
+  for (const item of [...await schoolGrades(actor), gradeName].filter(Boolean)) {
+    if (!grades.some((known) => nameKey(known) === nameKey(item))) grades.push(item);
+  }
+  assert(grades.length, 'Add the school’s grades in its settings before creating an exam');
+  if (overrides.length) {
+    assert(gradeName, 'Choose the grade these subject full marks belong to');
+    await assertSubjectsInGrade(actor, gradeName, overrides);
+  }
+
+  const existing = await InternalExam.find({ school: actor.school, academicYear: year.id, name: data.name })
+    .collation(NAME_COLLATION).select('grade').lean();
+  const have = new Set(existing.map((row) => nameKey(row.grade)));
+  const missing = grades.filter((item) => !have.has(nameKey(item)));
+  assert(missing.length, `${data.name} already exists for every grade in ${year.label}`, 409);
+
+  await insertExamRows(missing.map((item) => ({
+    ...data,
+    academicYear: year.id,
+    grade: item,
+    subjectFullMarks: nameKey(item) === nameKey(gradeName) ? overrides : [],
+    school: actor.school,
+    createdBy: actor.id,
+  })));
+  const [row] = await InternalExam.find({ school: actor.school, academicYear: year.id, name: data.name, grade: gradeName || missing[0] })
+    .collation(NAME_COLLATION).limit(1).lean();
+  assert(row, 'The exam could not be created. Reload and try again.', 409);
+  return { ...serializeExam(row), createdForGrades: missing };
 }
 
+/**
+ * Edit a school-wide exam. Name, report title and issue date change on every grade's
+ * copy, so they stay one exam; subject full marks belong to this grade's
+ * copy only. Refused while any grade's results are published.
+ */
 export async function updateExam(actor, input) {
   requireSchoolAdmin(actor);
   await ready();
-  const { id, ...data } = examUpdateInput.parse(input);
+  const { id, subjectFullMarks: overrides, term: _term, ...shared } = examUpdateInput.parse(input);
   const exam = await loadExam(actor, id);
-  assert(!exam.publishedAt, 'Unpublish the results before changing this exam', 409);
-  if (data.subjectFullMarks) await assertSubjectsInGrade(actor, exam.grade, data.subjectFullMarks);
-  const row = await InternalExam.findOneAndUpdate({ _id: exam._id, school: actor.school }, { $set: data }, { new: true, runValidators: true }).lean();
-  return serializeExam(row);
+  const group = await examGroup(actor, exam);
+  const published = group.filter((row) => row.publishedAt);
+  assert(!published.length, `${exam.name} is shared by every grade. Unpublish its results for ${gradeList(published)} before changing it.`, 409);
+  if (shared.name && nameKey(shared.name) !== nameKey(exam.name)) {
+    const clash = await InternalExam.exists({ school: actor.school, academicYear: exam.academicYear, name: shared.name }).collation(NAME_COLLATION);
+    assert(!clash, `An exam named ${shared.name} already exists in this academic year`, 409);
+  }
+  if (overrides) await assertSubjectsInGrade(actor, exam.grade, overrides);
+
+  if (Object.keys(shared).length) {
+    await InternalExam.updateMany(
+      { school: actor.school, _id: { $in: group.map((row) => row._id) }, publishedAt: null },
+      { $set: shared },
+      { runValidators: true },
+    );
+  }
+  if (overrides) {
+    await InternalExam.updateOne({ _id: exam._id, school: actor.school }, { $set: { subjectFullMarks: overrides } }, { runValidators: true });
+  }
+  return serializeExam(await loadExam(actor, id));
 }
 
+/**
+ * Delete a school-wide exam from every grade, with every grade's marks,
+ * attendance and activities for it. Refused while any grade is published.
+ */
 export async function deleteExam(actor, { id }) {
   requireSchoolAdmin(actor);
   await ready();
   const exam = await loadExam(actor, id);
-  assert(!exam.publishedAt, 'Unpublish the results before deleting this exam', 409);
-  await InternalExamMark.deleteMany({ school: actor.school, exam: exam._id });
-  await InternalExamRecord.deleteMany({ school: actor.school, exam: exam._id });
-  await InternalExam.deleteOne({ _id: exam._id, school: actor.school });
-  return { id: String(exam._id) };
+  const group = await examGroup(actor, exam);
+  const published = group.filter((row) => row.publishedAt);
+  assert(!published.length, `${exam.name} is shared by every grade. Unpublish its results for ${gradeList(published)} before deleting it.`, 409);
+  const ids = group.map((row) => row._id);
+  await InternalExamMark.deleteMany({ school: actor.school, exam: { $in: ids } });
+  await InternalExamRecord.deleteMany({ school: actor.school, exam: { $in: ids } });
+  await InternalExam.deleteMany({ school: actor.school, _id: { $in: ids }, publishedAt: null });
+  return { id: String(exam._id), grades: group.map((row) => row.grade) };
 }
 
 /**
@@ -337,15 +490,17 @@ export async function deleteExam(actor, { id }) {
  * their marks structure, students with the subjects each takes, the marks,
  * and each student's computed result.
  */
-async function buildSheet(actor, exam, { section = '' } = {}) {
+async function buildSheet(actor, exam, { section = '', subjectIds = null } = {}) {
   const year = await loadAcademicYear(actor, String(exam.academicYear));
-  const [subjectRows, roster, markRows, scheme] = await Promise.all([
+  const [allSubjects, roster, markRows, scheme] = await Promise.all([
     gradeSubjects(actor, exam.grade),
     loadStudents(actor, { grade: exam.grade, yearStart: year.yearStart, history: Boolean(exam.publishedAt) }),
     InternalExamMark.find({ school: actor.school, exam: exam._id }).select('student subject marks theory internal absent').lean(),
     loadScheme(actor, exam.grade),
   ]);
   const structures = examStructures(exam, scheme);
+  // A teacher's sheet holds only their assigned subjects (marks and results too).
+  const subjectRows = subjectIds ? allSubjects.filter((row) => subjectIds.has(String(row._id))) : allSubjects;
 
   const subjects = subjectRows.map((row) => {
     const structure = cleanStructure(structures.structureOf(row._id));
@@ -364,6 +519,7 @@ async function buildSheet(actor, exam, { section = '' } = {}) {
 
   const marks = {};
   for (const row of markRows) {
+    if (subjectIds && !subjectIds.has(String(row.subject))) continue;
     const student = String(row.student);
     marks[student] ||= {};
     marks[student][String(row.subject)] = entryFromRow(row);
@@ -386,11 +542,11 @@ async function buildSheet(actor, exam, { section = '' } = {}) {
 export async function loadSheet(actor, { exam: examId, section = '' }) {
   await ready();
   const exam = await loadExam(actor, examId);
-  const access = await gradeAccess(actor, exam.grade);
-  assert(access.canRead, 'Your school has not assigned you to this grade', 403);
+  const access = await examAccess(actor, exam);
+  assert(access.canRead, 'Your school has not assigned you a subject in this exam', 403);
   const sections = await loadGradeSections(actor, exam.grade);
   assert(!section || sections.includes(section), 'Choose a section configured for this grade');
-  const sheet = await buildSheet(actor, exam, { section });
+  const sheet = await buildSheet(actor, exam, { section, subjectIds: access.editSubjects });
 
   const subjects = sheet.subjects.map((subject) => {
     const lines = sheet.students
@@ -432,8 +588,8 @@ export async function saveMarks(actor, input) {
   const data = marksInput.parse(input);
   const exam = await loadExam(actor, data.exam);
   assert(!exam.publishedAt, 'Results are published. Unpublish them to change marks.', 409);
-  const access = await gradeAccess(actor, exam.grade);
-  assert(access.canRead, 'Your school has not assigned you to this grade', 403);
+  const access = await examAccess(actor, exam);
+  assert(access.canRead, 'Your school has not assigned you a subject in this exam', 403);
 
   const sheet = await buildSheet(actor, exam);
   const students = new Map(sheet.students.map((student) => [student.id, student]));
@@ -527,6 +683,37 @@ export async function saveMarks(actor, input) {
 
   if (operations.length) await InternalExamMark.bulkWrite(operations, { ordered: true });
   return { saved: operations.length };
+}
+
+/**
+ * Who enters each subject's marks in one grade's exam, for Manage Exams >
+ * Teachers. Read-only here: it is the Teachers page's subject-teacher list
+ * (the only source of internal-exam mark entry), shown per subject.
+ */
+export async function listExamTeachers(actor, { exam: examId }) {
+  requireSchoolAdmin(actor);
+  await ready();
+  const exam = await loadExam(actor, examId);
+  const [subjects, rows, activeIds] = await Promise.all([
+    gradeSubjects(actor, exam.grade),
+    subjectTeacherRows(actor, { grade: exam.grade }).select('teacher subject').lean(),
+    teacherIdsAtSchool(actor.school),
+  ]);
+  const active = new Set(activeIds.map(String));
+  const teacherIds = [...new Set(rows.map((row) => String(row.teacher)).filter((id) => active.has(id)))];
+  const teachers = teacherIds.length
+    ? await Teacher.find({ _id: { $in: teacherIds } }).select('name').sort({ name: 1, _id: 1 }).lean()
+    : [];
+  const nameOf = new Map(teachers.map((teacher) => [String(teacher._id), teacher.name]));
+  return {
+    exam: serializeExam(exam),
+    subjects: subjects.map((row) => {
+      const id = String(row._id);
+      const ids = [...new Set(rows.filter((item) => String(item.subject) === id).map((item) => String(item.teacher)))]
+        .filter((teacherId) => nameOf.has(teacherId));
+      return { id, code: row.code, titleEn: row.titleEn, titleNe: row.titleNe || '', teachers: ids.map((teacherId) => ({ id: teacherId, name: nameOf.get(teacherId) })) };
+    }),
+  };
 }
 
 /**
@@ -668,7 +855,9 @@ function snapshotFor({ school, exam, year, student, record, activities = [] }) {
       iemisNumber: school.iemisNumber,
     },
     academicYear: { id: year.id, label: year.label, yearStart: year.yearStart },
-    examTitle: exam.name,
+    // The card's heading: the school's report title, else the exam name.
+    examTitle: exam.reportTitle || exam.name,
+    examName: exam.name,
     examTerm: exam.term,
     issueDate: exam.issueDate || '',
     student: {
@@ -715,6 +904,11 @@ export async function listPublishedCards(actor, { academicYear = '', grade: grad
     filter = { school: actor.school, academicYear, grade: gradeName, ...(/^[a-f\d]{24}$/i.test(exam) ? { exam } : {}) };
   }
   const rows = await InternalExamReport.find(filter).sort({ publishedAt: -1 }).lean();
+  // Exams list in the order the school created them (there is no term order).
+  const examRows = rows.length
+    ? await InternalExam.find({ school: actor.school, _id: { $in: [...new Set(rows.map((row) => String(row.exam)))] } }).select('createdAt').lean()
+    : [];
+  const createdAt = new Map(examRows.map((row) => [String(row._id), row.createdAt]));
   return rows.map((row) => ({
     _id: String(row._id),
     id: String(row._id),
@@ -724,7 +918,7 @@ export async function listPublishedCards(actor, { academicYear = '', grade: grad
     student: String(row.student),
     exam: String(row.exam),
     grade: row.grade,
-    examTerm: row.examTerm,
+    examCreatedAt: createdAt.get(String(row.exam)) || null,
     snapshot: row.snapshot,
     publishedAt: row.publishedAt,
   }));

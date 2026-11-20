@@ -8,9 +8,10 @@ import {
  *
  * Drawn as the same GRADE-SHEET as the Internal Exam card (gradeSheet.js,
  * owner 2026-11-19: "theme must be same") but with CAS's own figures: for
- * each subject its credit hours, outcomes assessed, achievement, grade point,
- * grade and remark, then the totals, GPA and Average Grade. A guardian asking
- * "how was this worked out?" can still read it off the page.
+ * each subject its credit hours, grade point, grade and remark, then the
+ * total credit hours, GPA and Average Grade. Outcomes assessed and
+ * achievement % are not printed (owner, 2026-11-20); they stay in the
+ * snapshot and on the school's screens.
  *
  * School and student details are live (casBranding); the snapshot copy is
  * only a fallback. Hook-free, so the school's print route and the guardian's
@@ -43,7 +44,6 @@ export default function ClassicReport({ report, lang = 'en' }) {
     iemis: live.studentIemis ?? s.student?.iemisNumber,
   };
   const gpa = typeof s.gpa === 'number' ? s.gpa.toFixed(2) : valueOrDash(s.gpa);
-  const achievementOf = (subject) => (subject.absent ? t.absent : subject.achievement == null ? t.notAssessed : `${subject.achievement}%`);
 
   return (
     <SheetFrame>
@@ -63,21 +63,17 @@ export default function ClassicReport({ report, lang = 'en' }) {
       <table className="w-full table-fixed border-collapse text-[11px]">
         <colgroup>
           <col className="w-[6%]" />
-          <col className="w-[22%]" />
-          <col className="w-[8%]" />
+          <col className="w-[34%]" />
+          <col className="w-[10%]" />
           <col className="w-[12%]" />
-          <col className="w-[14%]" />
-          <col className="w-[9%]" />
-          <col className="w-[9%]" />
-          <col className="w-[20%]" />
+          <col className="w-[10%]" />
+          <col className="w-[28%]" />
         </colgroup>
         <thead>
           <tr style={{ background: SOFT }}>
             <Th>S/N</Th>
             <Th left>Subjects</Th>
             <Th>Credit Hour</Th>
-            <Th>Outcomes Assessed</Th>
-            <Th>Achievement</Th>
             <Th>Grade Point</Th>
             <Th>Grade</Th>
             <Th left>Remarks</Th>
@@ -89,20 +85,16 @@ export default function ClassicReport({ report, lang = 'en' }) {
               <Td>{index + 1}</Td>
               <Td left>{pick(subject.titleEn, subject.titleNe) || '-'}</Td>
               <Td>{valueOrDash(subject.creditHours)}</Td>
-              <Td>{subject.assessedCount ?? 0} / {subject.outcomeCount ?? 0}</Td>
-              <Td bold>{achievementOf(subject)}</Td>
               <Td>{subject.gradePoint == null ? '-' : Number(subject.gradePoint).toFixed(1)}</Td>
               <Td bold>{valueOrDash(subject.grade)}</Td>
               <Td left className="truncate">{pick(subject.remarkEn, subject.remarkNe) || '-'}</Td>
             </tr>
           ))}
-          <FillerRows count={MIN_ROWS - subjects.length} columns={8} />
+          <FillerRows count={MIN_ROWS - subjects.length} columns={6} />
           <tr className="font-bold" style={{ background: SOFT }}>
             <Td />
             <Td left>{t.overall}</Td>
             <Td>{valueOrDash(s.totalCreditHours)}</Td>
-            <Td>{s.total?.assessedCount ?? 0} / {s.total?.outcomeCount ?? 0}</Td>
-            <Td>{s.total?.achievement == null ? t.notAssessed : `${s.total.achievement}%`}</Td>
             <td colSpan={3} className="border px-2 py-1.5 text-right" style={{ borderColor: LINE }}>
               GPA: <span className="mr-3 text-[13px]" style={{ color: INK }}>{gpa}</span>
               Average Grade (AG): <span className="ml-1 text-[13px]" style={{ color: INK }}>{valueOrDash(s.overallGrade)}</span>

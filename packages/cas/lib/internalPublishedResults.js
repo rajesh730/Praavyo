@@ -1,8 +1,6 @@
 import { listPublishedCards } from './internalExamService.js';
 import { withBranding } from './casBranding.js';
 
-const TERM_ORDER = ['FIRST', 'SECOND', 'THIRD', 'FINAL'];
-
 /**
  * Internal Exam → Published Results: only published cards, with the school's
  * and each student's live details attached (casBranding). Section and search
@@ -10,7 +8,7 @@ const TERM_ORDER = ['FIRST', 'SECOND', 'THIRD', 'FINAL'];
  * section only when the school configured it for the grade) decide what is
  * found, exactly as the card shows them.
  *
- * Order: exam (First → Final), then roll number, then name.
+ * Order: exam (in the order the school created them), then roll number, then name.
  */
 export async function publishedInternalCards(actor, { academicYear, grade, exam, section = '', search = '', student = '', ids } = {}) {
   const cards = await withBranding(actor.school, await listPublishedCards(actor, { academicYear, grade, exam, ids }));
@@ -28,16 +26,19 @@ export async function publishedInternalCards(actor, { academicYear, grade, exam,
 }
 
 function byExamThenRoll(a, b) {
-  const term = termRank(a.examTerm) - termRank(b.examTerm);
-  if (term) return term;
-  if (a.exam !== b.exam) return String(a.snapshot?.examTitle || '').localeCompare(String(b.snapshot?.examTitle || ''));
+  if (a.exam !== b.exam) {
+    const order = examTime(a) - examTime(b);
+    if (order) return order;
+    return String(a.snapshot?.examTitle || '').localeCompare(String(b.snapshot?.examTitle || ''));
+  }
   const ra = Number(a.branding?.studentRoll ?? a.snapshot?.student?.rollNumber);
   const rb = Number(b.branding?.studentRoll ?? b.snapshot?.student?.rollNumber);
   if (Number.isFinite(ra) && Number.isFinite(rb) && ra !== rb) return ra - rb;
   return String(a.branding?.studentName || a.snapshot?.student?.name || '').localeCompare(String(b.branding?.studentName || b.snapshot?.student?.name || ''));
 }
 
-function termRank(term) {
-  const index = TERM_ORDER.indexOf(term);
-  return index === -1 ? TERM_ORDER.length : index;
+/** When the card's exam was created; a card whose exam is gone sorts last. */
+function examTime(card) {
+  const time = card.examCreatedAt ? new Date(card.examCreatedAt).getTime() : NaN;
+  return Number.isFinite(time) ? time : Number.MAX_SAFE_INTEGER;
 }

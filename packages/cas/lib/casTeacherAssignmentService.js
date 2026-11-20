@@ -52,7 +52,7 @@ export async function assertTeacherExamAssignment(actor, {
  * The grades a teacher works in, per workspace, so their Grade filter lists
  * only those:
  *   - cas:      grades where the school opened a CAS exam subject to them
- *   - internal: grades the school assigned them on the Teachers page
+ *   - internal: grades where the Teachers page makes them a subject teacher
  * Returns null for anyone but a teacher (the school sees every grade).
  */
 export async function teacherGradeScope(actor) {
@@ -60,7 +60,8 @@ export async function teacherGradeScope(actor) {
   await connectDB();
   const [cas, internal] = await Promise.all([
     CasExamTeacherAssignment.distinct('grade', { school: actor.school, teacher: actor.id }),
-    TeacherTeachingAssignment.distinct('grade', { school: actor.school, teacher: actor.id }),
+    // Subject teachers only: that is what opens internal-exam mark entry.
+    TeacherTeachingAssignment.distinct('grade', { school: actor.school, teacher: actor.id, assignmentType: 'SUBJECT_TEACHER', subject: { $ne: null } }),
   ]);
   return { cas, internal };
 }

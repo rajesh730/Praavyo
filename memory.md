@@ -2,6 +2,224 @@
 
 Newest sections first. Where sections disagree, the newer one wins.
 
+## Internal Exam completed, CAS corrections, maps - 2026-11-18 to 2026-11-20 (read first)
+
+Everything decided and built since the 2026-11-17 section. It replaces the
+older "Internal Exam module (built 2026-11-03)" section wherever they differ
+(access, full marks, pass %, "theory/internal split not built").
+
+### Internal Exam: what it is now (Grades 1-10, school's own papers)
+- **Screens (school):** `/school/internal-exam/` Mark Entry (`marks`),
+  Attendance & Activities (`attendance`), Manage Exams (`exams`), Results
+  (`results`), Published Results (`published-results`, print at
+  `print/published`). Menu in `casNavigation.js` (`INTERNAL_NAV_LINKS`).
+  **Teacher:** `/teacher/exams/internal` (Mark Entry only).
+- **Code:** service `packages/cas/lib/internalExamService.js`; maths
+  `packages/core/internalExamResult.js`; structure rules
+  `packages/core/internalMarkScheme.js`; activities
+  `packages/core/internalActivities.js`; card
+  `packages/cas/components/report/InternalExamReport.js`, drawn from the same
+  parts as the CAS card (`report/gradeSheet.js`, owner 11-19: "theme must be
+  same"). Endpoints shared by both doors: `apps/pravyo/lib/exams/internalExamEndpoints.js`.
+- **Models** (`packages/db/models/cas/`): `InternalExam` (one row per grade,
+  see "school-wide exams"), `InternalExamMark` (theory + `internal{fieldId}` +
+  absent + `revisions`), `InternalExamRecord` (attendance + `activityMarks`),
+  `InternalExamReport` (frozen card), `InternalMarkScheme` (structure),
+  `InternalActivitySet` (activity list). Teacher access comes from
+  `TeacherTeachingAssignment` (Teachers page), see below.
+
+### Launch lock: added 11-18, removed 11-20
+- 11-18 the owner asked to lock Internal Exam ("not ready"): a Super Admin
+  switch returned 423 from every internal route. **Commit 53c74df (11-20)
+  removed it** (`PlatformSetting` field, settings switch and
+  `InternalExamLocked` screen are gone). `lib/exams/internalExamLock.js` now
+  only re-exports `handler` / `teacherHandler` under the old names
+  (`internalExamHandler`, `internalExamTeacherHandler`). New internal routes
+  still use those names.
+
+### TH / INT marks structure (owner spec 11-19, Internal Exam only, CAS untouched)
+- **One structure for the whole school** (every grade, every exam): owner
+  "assessment will be global, we don't need filter there". Stored as one
+  `InternalMarkScheme` with grade `SCHOOL_WIDE_GRADE` ('*'); an older per-grade
+  record applies only until the school-wide one is saved. No per-subject overrides.
+- Manage Exams > **Assessment**: the school types Full marks and TH; INT = Full
+  minus TH (never typed); internal fields (Weekly Test, Assignment, any name,
+  max 12) must add up to INT. No fields = one INT mark. Marks are typed against
+  real full marks (no rescaling); INT = sum of fields; total = TH + INT,
+  worked out on the server. Blank is never zero; `AB` = absent.
+- Marks are stored by stable field id (`FIELD_ID_PATTERN`), never fixed columns.
+- Saving a structure is refused while marks already entered would not fit (a
+  removed field, or full marks lowered below a typed mark).
+- **Publishing pins the structure** onto the exam (`InternalExam.markScheme`).
+  Unpublishing switches back to the current structure when the marks fit;
+  otherwise the exam keeps its pinned one and Manage Exams shows "Use current
+  structure".
+- **Grading** (owner 11-19): CAS bands 90% A+ 4.0 down to 35% D 1.6, below 35%
+  = NG with grade point 0.0, which counts in the GPA (internal only; CAS's NG
+  rule is untouched). TH, INT and final are each graded on their own
+  percentage; grades are never averaged. Manage Exams > **Grading scale** shows
+  the owner's 50-mark table (`gradeScaleForMarks(50)`) and the percentage
+  scale, display only. No pass % anywhere.
+
+### Attendance & extra activities (internal only)
+- Activities are per school: the default eight (Discipline, Personal Hygiene,
+  Class Work, Home Work, ECA, Art & Craft, Handwriting, Project /
+  Presentation, each /10) until the school saves its own in Manage Exams >
+  **Extra Activities** (add, remove, rename, change full marks). Marks are kept
+  by activity id. Old text values ("9") still read. The card prints `9/10`.
+- Lowering full marks below an entered mark in an unpublished exam is refused.
+- CAS never shows attendance/activities (since 11-06); `casSupplementary`
+  ECA fields are untouched.
+
+### Editing and publishing rules
+- **Unpublished = everything editable** (owner 11-19): marks, attendance,
+  activities, structure. The old "activities saved once become read-only" rule
+  was removed. Publishing is the only lock; unpublish (Manage Exams) deletes
+  the cards and reopens everything.
+- Publishing needs every mark entered or the student marked absent (whole grade).
+- Mark corrections are audited (`InternalExamMark.revisions`, last 20).
+
+### School-wide exams (owner 11-20)
+- "If I create First Terminal Exam it should apply to every grade, like CAS."
+  Creating an exam on any grade makes it for **every grade** in
+  `SchoolConfig.grades`. Edit (name, term, issue date) and delete act on all
+  grades. Both are refused while any grade's copy is published (the message
+  names those grades).
+- Stored as **one `InternalExam` row per grade, grouped by school + academic
+  year + name (case-insensitive)**, because each grade still enters marks,
+  publishes and locks on its own and every mark, record and card points at
+  that grade's exam id. A grade added later gets the school's exams the first
+  time its exam list opens (`syncGradeExams` in `listExams`, school admin only).
+  Exams made per grade before this change were spread to every grade the same way.
+- **Exam names are typed, not chosen (owner 11-20):** "keep the CAS exam and
+  internal exam separate… I want to write my own". Internal exams no longer
+  have a Term (the fixed First/Second/Third/Final list came from CAS's
+  `casExamTerms.js`, which internal code no longer imports). The form has
+  three fields like CAS's: **Exam name** (listed on every screen), **Report
+  title** (`InternalExam.reportTitle`, the heading at the top of the card;
+  empty = the exam name) and **Issue date**. All three are shared by every
+  grade. Snapshot: `examTitle` = report title or name, plus `examName`. `InternalExam.term`
+  is optional and kept only on older exams; the API accepts and ignores a
+  `term` from an old open page. Published Results orders exams by creation
+  date (`examCreatedAt`), not term. CAS terms are untouched.
+- **Create from any Exam picker (owner 11-20):** the Exam dropdown on Mark
+  Entry, Attendance & Activities and Results ends with "+ Create exam" for the
+  school (not teachers). It opens `InternalExamCreateDialog` and then selects
+  the new exam. The form fields live once in `components/InternalExamForm.js`,
+  which Manage Exams uses too.
+
+### Teachers enter internal marks for the subjects they teach (owner 11-20)
+- **Source = the Teachers page, nothing else.** A `SUBJECT_TEACHER` row in
+  `TeacherTeachingAssignment` (grade + subject) gives that teacher that
+  subject in **every** internal exam of the grade, automatically, on both the
+  Theory and Internal / Practical tabs. Nothing else opens marks; a
+  class-teacher row alone opens nothing (`subjectTeacherRows` / `examAccess`
+  in `internalExamService.js`; grades match case-insensitively).
+- History: earlier the same day I built per-exam ticks in Manage Exams
+  (`InternalExamTeacherAssignment`, like CAS's exam access). The owner
+  rejected it: "for Grade 10 it's English, but from Manage Exams this teacher
+  can be ticked for Nepali, and English is not shown on the dashboard, not
+  appropriate". That model, its POST route and its cleanups were removed
+  before any commit. A dev session may have written a few rows to the
+  `internalexamteacherassignments` collection; nothing reads them.
+- Manage Exams > **Teachers** on each exam row is now **read-only**
+  (`InternalExamTeachersPanel.js`, `GET /api/cas/internal-exams/teachers` →
+  `listExamTeachers`): each subject with its teachers from the Teachers page,
+  a warning badge when a subject has none (then only the school enters it),
+  and a link to the Teachers page (`/school/dashboard?tab=teachers`).
+- Teacher: grades = `teacherGradeScope().internal` (subject-teacher grades
+  only); exams = every unpublished exam of those grades; sheet = only their
+  subjects (other marks never sent); another subject returns 403 ("You are
+  not assigned to enter Mathematics marks"). Removing the subject on the
+  Teachers page removes access at once; marks stay.
+- Marks are the same records (one service, two doors). Every save publishes
+  `CAS_ASSESSMENT_CHANGED` on `cas-assessment:<school>`, so open school and
+  teacher screens re-fetch live. `publishCasChange` covers teacher paths
+  (`/api/teacher/exams/`) too.
+- Teacher dashboard > Exams: the Internal Exam card shows "N subjects open for
+  marks" = subjects taught × unpublished exams of that grade in the active
+  year (`internalOpen` from `/api/teacher/workspace`).
+- CAS is unchanged: CAS mark entry still uses its own per-exam "Exam access"
+  (`CasExamTeacherAssignment`).
+
+### Teacher dashboard has no Results tab (owner 11-20)
+- "Remove this result from the teacher section": the teacher's **Results**
+  tab is gone (nav entry in `TEACHER_NAV_LINKS`, `ResultsTab.js` deleted,
+  `?tab=results` now opens Overview). Overview lost its "Published Results"
+  number card and "Latest published results" list. `/api/teacher/workspace`
+  no longer reads or sends published cards (`publishedResults` removed); it
+  still checks CAS publication so "Open for marks" hides locked exams.
+  Teachers keep Student Progress in the CAS workspace.
+- Phone-only spacing fixes the same day: internal mark sheet pins only the
+  Student column below `sm` and shortens long names; Exams cards tighter;
+  filter-bar buttons side by side on phones.
+
+### Shared screen pieces (11-19/11-20)
+- `ui/StudentSearchBox.js`: one box to pick or type a student (name, roll).
+- Mark entry student status everywhere: green = all marks entered, yellow =
+  some, red = none, with counts as filter chips.
+- Sections show only when `SchoolConfig.gradeSections` lists them for the grade.
+  Enrollments carry stale sections ("A" on Green Villege Grade 1), so never
+  print `enrollment.section` raw. Identity on cards is read live (`casBranding`).
+
+### CAS changes in the same days
+- **CAS card columns (owner 11-20, "last and final change"):** the Classic
+  card's subject table no longer prints **Outcomes Assessed** or
+  **Achievement**. It is S/N, Subjects, Credit Hour, Grade Point, Grade,
+  Remarks; the Overall row is credit hours + GPA + Average Grade. The data
+  stays in the snapshot. Absent subjects still read "Not attended exam" in
+  Remarks. Nothing else on the card changed (`report/ClassicReport.js`).
+- **Scores editable until publish (owner 11-18).** "What if a teacher enters
+  marks by mistake": a changed regular score is a correction (old value kept
+  in the attempt's `revisions`). Clearing the regular score clears the outcome;
+  clearing extra support removes every reassessment. Cleared attempts move to
+  `CasAssessment.removedAttempts` with who and when. A regular 4 cannot carry
+  extra support (409). `acceptedLevel` may be null after a clear. The
+  published-exam lock is unchanged.
+- CAS student dropdown shows green/yellow/red per student over every theme of
+  the chosen exam (`markProgress {assessed,total}` from `/students?exam=`).
+- AssessmentBook semantic buttons (11-19).
+
+### Rest of the platform, 11-17 to 11-19
+- **School map (11-18):** Settings > Contact & Location takes Google Maps
+  "Embed a map" code or link. Only a checked `https://www.google.com/maps/embed`
+  URL is stored (`User.schoolMapEmbedUrl`, rules in `lib/googleMapEmbed.js`,
+  field `components/settings/SchoolMapField.js`) and shown on `/schools/[id]`.
+  CSP gained `frame-src https://www.google.com`.
+- **Stay inside the dashboard (tightened 11-19):** the school Trainings card
+  had a "Public page" link; removed. Rule: no dashboard link to `/trainings`,
+  `/events`, `/schools`, `/students`, `/writings`, `/magazines`, `/notices`
+  and no `target="_blank"` to them. Share with `PublicShareButton` ("Copy
+  public link"). `lib/dashboardLinks.js` maps every public path to the role's
+  dashboard; `proxy.js` redirects other arrivals.
+- **Certificates (11-17):** fonts are local woff2 via `next/font/local`
+  (`components/certificates/fonts/`); `next/font/google` crashed certificate
+  pages in dev. Public certificate page bug fixed (`lib/certificates.js`).
+- **Deploys:** Vercel Hobby blocked every push while the repo was private
+  (11-17/18; live stayed on 38ef501). The repo is now public. Blocked
+  deployments never rerun, and empty commits are skipped ("Not affected").
+
+### Dev-server traps seen again
+- 11-20: `CLIENT_FETCH_ERROR … "<!DOCTYPE" is not valid JSON` = every `/api`
+  route 404. Cause: a production build in `apps/pravyo/.next` (from 11-19
+  16:05) next to the dev files. Fix: stop `npm run dev`, delete
+  `apps/pravyo/.next`, start again. Never run `next build` in this checkout
+  while the owner's dev server may run.
+- New models or fields need a dev-server restart before they show.
+
+### Tests (11-20)
+- `npm test` (packages/cas) 129 pass with
+  `CAS_TEST_MONGOD="C:/Program Files/MongoDB/Server/6.0/bin/mongod.exe"`
+  (integration included; without it the DB tests are skipped). `npm run
+  test:pravyo` 864 pass. `internalExam.integration.test.mjs` covers the full
+  flow, school-wide exams, typed names and report titles, and subject-teacher
+  access (theory and internal).
+
+### Open questions for the owner
+- Combine terminal exams into a final result? (Still not built.)
+- TH pass rule (fail a subject on a low theory mark even if the total passes)?
+- Should a class teacher read the whole grade's internal marks again (removed 11-20)?
+
 ## Students, parents, teachers and IEMIS - 2026-11-04 to 2026-11-17 (read first)
 
 Everything decided and built since the 2026-11-03 section. Owner = the person
@@ -101,6 +319,7 @@ running live Praavyo; they want clean, single-source designs and say so often.
 - Teacher filters: only their grades (context `teacherGrades`), only exams
   opened to them **and not yet published** (CAS and internal), only subjects
   opened to them in the chosen exam. Teacher assignments have no section field.
+  *(Internal exams: subject teachers from the Teachers page, every exam of the grade, since 2026-11-20; see above.)*
 - Teachers are kept out of `/school/*` (`lib/teacherAreaRoutes.js` + proxy +
   school CAS/internal layouts) except `/school/events/*` and `/school/messages`.
   The student-summary API now limits teachers to grades they teach.
@@ -251,6 +470,8 @@ words if passed, else "Needs improvement in: <subjects>"), not fixed text.
   cleaned from production (would need the owner's go-ahead).
 
 ### Internal Exam module (built 2026-11-03)
+*Superseded in part by the 2026-11-18..20 section: TH/INT structure, no pass %,
+school-wide exams, and teacher access from Teachers-page subject teachers only (class teachers no longer read the grade).*
 - Models (`packages/db/models/cas/`): `InternalExam` (school, academicYear,
   grade, term FIRST/SECOND/THIRD/FINAL, name, `fullMarks` default for every
   subject, `subjectFullMarks` overrides, `passPercent` default 35, issueDate,

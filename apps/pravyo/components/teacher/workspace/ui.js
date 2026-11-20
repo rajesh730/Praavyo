@@ -102,7 +102,8 @@ export function FilterTabs({ tabs, active, onChange, label }) {
 export function FilterPanel({ children, columns = 'xl:grid-cols-[minmax(240px,1fr)_180px_180px_auto]' }) {
   return (
     <div className="rounded-card border border-line-strong bg-surface p-3 shadow-card">
-      <div className={`grid gap-3 sm:grid-cols-2 ${columns}`}>{children}</div>
+      {/* Phones: fields full width, the buttons side by side underneath. */}
+      <div className={`grid grid-cols-2 gap-3 max-sm:[&>*]:col-span-2 max-sm:[&>button]:col-span-1 ${columns}`}>{children}</div>
     </div>
   );
 }

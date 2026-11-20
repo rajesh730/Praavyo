@@ -59,7 +59,6 @@ export const TEACHER_NAV_LINKS = [
   // Exams: a chooser between CAS and the Internal Exam, as on the school
   // dashboard. Each opens the teacher's exam workspace (/teacher/exams/...).
   { name: "Exams", href: "/teacher/dashboard?tab=exams", icon: FaClipboardCheck },
-  { name: "Results", href: "/teacher/dashboard?tab=results", icon: FaGraduationCap },
   { name: "Students", href: "/teacher/dashboard?tab=students", icon: FaUsers },
   { name: "Events", href: "/teacher/dashboard?tab=events", icon: FaCalendarAlt },
   { name: "My Profile", href: "/teacher/dashboard?tab=profile", icon: UserRound },
