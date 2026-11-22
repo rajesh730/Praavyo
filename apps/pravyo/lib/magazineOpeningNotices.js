@@ -73,3 +73,23 @@ export function announceMagazineWritingOpen({ issue, schoolId, authorId }) {
     content: `Students can now submit writing for ${magazineTitle}. Open Writing and choose this magazine before sending your work.`,
   });
 }
+
+/**
+ * Show or hide a magazine notice in everyone's notice list. No new push is
+ * sent. A notice the school deleted itself is left deleted.
+ */
+export async function setMagazineNoticeActive(noticeId, active) {
+  if (!noticeId) return;
+  try {
+    const notice = await Notice.findOneAndUpdate(
+      { _id: noticeId, isDeleted: { $ne: true } },
+      { $set: { isActive: Boolean(active) } },
+      { new: true }
+    )
+      .select("scope targetAudience")
+      .lean();
+    if (notice) publishNoticeRealtimeEvent({ scope: notice.scope, targetAudience: notice.targetAudience });
+  } catch (error) {
+    console.error("[magazine] notice update failed:", error.message);
+  }
+}

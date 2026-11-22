@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRememberedState } from "@pravyo/ui/rememberedState";
 import { bsAcademicYearLabel, formatMonthYear } from "@pravyo/core/nepaliDate";
-import { ArrowLeft as FaArrowLeft, BookOpen as FaBookOpen, CalendarDays as FaCalendarAlt, CircleCheck as FaCheckCircle, SquarePen as FaEdit, House as FaHome, Inbox as FaInbox, Plus as FaPlus, Newspaper as FaRegNewspaper, X as FaTimes } from "lucide-react";
+import { ArrowLeft as FaArrowLeft, BookOpen as FaBookOpen, CalendarDays as FaCalendarAlt, CircleCheck as FaCheckCircle, SquarePen as FaEdit, House as FaHome, Eye as FaEye, Inbox as FaInbox, Plus as FaPlus, Undo2 as FaUndo, Newspaper as FaRegNewspaper, X as FaTimes } from "lucide-react";
 import SchoolMagazineReviewManager from "@/components/school/SchoolMagazineReviewManager";
 import AlertBanner from "@/components/ui/AlertBanner";
 import LoadingState from "@/components/ui/LoadingState";
@@ -464,6 +464,37 @@ export default function SchoolMagazineManager() {
     }
   };
 
+  // Takes a published magazine back to a draft. Its writing is kept.
+  const handleUnpublishIssue = async (issue) => {
+    if (!window.confirm(`Unpublish ${issue.title}?
+
+Students, teachers and the home page will stop showing it. The writing inside it is kept, so you can change it and publish again.`)) return false;
+    try {
+      setIssueBusy(true);
+      setError("");
+      setSuccess("");
+      const res = await fetch("/api/school/magazine-issues", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "UNPUBLISH", issueId: issue.id }),
+      });
+      const payload = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(payload.message || "Failed to unpublish magazine");
+      setSuccess(payload.message || "Magazine unpublished");
+      if (payload.issue?.id) {
+        setCurrentIssue((current) => (current?.id === payload.issue.id ? payload.issue : current));
+        setMagazineIssues((existing) => existing.map((item) => (item.id === payload.issue.id ? payload.issue : item)));
+      }
+      await loadMagazineIssues();
+      return true;
+    } catch (unpublishError) {
+      setError(unpublishError.message || "Failed to unpublish magazine");
+      return false;
+    } finally {
+      setIssueBusy(false);
+    }
+  };
+
   const handleRenameIssue = async (issueId, title) => {
     try {
       setIssueBusy(true);
@@ -695,6 +726,7 @@ It is removed from the magazine, the school wall, the global wall and the studen
               busyId={busyId}
               onCreateIssue={handleCreateIssue}
               onPublishIssue={handlePublishIssue}
+              onUnpublishIssue={handleUnpublishIssue}
               onDeleteIssue={handleDeleteIssue}
               onToggleIssueHome={handleToggleIssueHome}
               onToggleIssueWriting={handleToggleIssueWriting}
@@ -817,6 +849,7 @@ function PublishingPanel({
   busyId,
   onCreateIssue,
   onPublishIssue,
+  onUnpublishIssue,
   onDeleteIssue,
   onToggleIssueHome,
   onToggleIssueWriting,
@@ -926,6 +959,20 @@ function PublishingPanel({
       : approvedArticles;
   const activeCount =
     mode === "magazine" ? selectedMagazineArticles.length : panelConfig.count;
+  // Opens a magazine to see (and manage) the writing inside it.
+  const openIssue = (issue) => {
+    onSelectIssue(issue.id);
+    onOpenIssueWorkspace();
+  };
+  // An unpublished magazine is a draft again, so it moves to "Open to write";
+  // keep it open there so the school can carry on editing it.
+  const unpublishIssue = async (issue) => {
+    const didUnpublish = await onUnpublishIssue(issue);
+    if (didUnpublish) {
+      setIssueView("open");
+      onSelectIssue(issue.id);
+    }
+  };
   const publishIssue = async (issue) => {
     const didPublish = await onPublishIssue(issue.id);
     if (didPublish) {
@@ -992,10 +1039,20 @@ function PublishingPanel({
                     <FaCheckCircle aria-hidden /> Publish to students
                   </button>
                 )}
+                {selectedIssue.status === "PUBLISHED" && (
+                  <button
+                    type="button"
+                    onClick={() => unpublishIssue(selectedIssue)}
+                    disabled={issueBusy}
+                    className="btn btn-secondary inline-flex items-center justify-center gap-2"
+                  >
+                    <FaUndo aria-hidden /> Unpublish
+                  </button>
+                )}
               </div>
               <p className="mt-2 text-sm text-muted">
                 {selectedIssue.status === "PUBLISHED"
-                  ? "Published. Students read it in the magazine section, and it is closed for new writing."
+                  ? "Published. Students read it in the magazine section, and it is closed for new writing. Unpublish it to make changes, then publish again."
                   : selectedIssue.acceptingSubmissions
                     ? "Writing is open. Students can choose this magazine from their Writing desk; teachers and school can review each submission."
                     : "Writing is closed. Turn it on when students may start submitting to this magazine."}
@@ -1086,11 +1143,9 @@ function PublishingPanel({
                   issues={visibleMagazineIssues}
                   selectedId={selectedIssue?.id}
                   busy={issueBusy}
-                  onOpen={(issue) => {
-                    onSelectIssue(issue.id);
-                    onOpenIssueWorkspace();
-                  }}
+                  onOpen={openIssue}
                   onPublish={publishIssue}
+                  onUnpublish={unpublishIssue}
                   onToggleHome={onToggleIssueHome}
                   onDelete={(issue) => onDeleteIssue(issue.id)}
                 />
@@ -1125,11 +1180,16 @@ function PublishingPanel({
           </section>
           )}
 
-          {mode === "magazine" && isIssueWorkspaceOpen && selectedIssue && selectedMagazineArticles.length > 0 && (
+          {mode === "magazine" && isIssueWorkspaceOpen && selectedIssue && (
             <section className="space-y-3">
               <h3 className="font-semibold text-ink">
                 Inside {selectedIssue?.title || "Magazine"} ({selectedMagazineArticles.length})
               </h3>
+              {selectedMagazineArticles.length === 0 ? (
+                <p className="rounded-control border border-line bg-surface px-4 py-3 text-sm font-semibold text-muted">
+                  No writing is in this magazine yet. Switch a piece below to “Added” to put it in.
+                </p>
+              ) : (
               <WritingTable
                 articles={selectedMagazineArticles}
                 busyId={busyId}
@@ -1143,6 +1203,7 @@ function PublishingPanel({
                 }
                 emptyState={null}
               />
+              )}
             </section>
           )}
 
@@ -1220,7 +1281,7 @@ function IssueTitle({ issue, busy, onRename }) {
  * home-page visibility and the actions. Clicking a row opens the issue to
  * manage its writing. On phones the same rows stack.
  */
-function IssueTable({ issues, selectedId, busy, onOpen, onPublish, onToggleHome, onDelete }) {
+function IssueTable({ issues, selectedId, busy, onOpen, onPublish, onUnpublish, onToggleHome, onDelete }) {
   const stop = (fn) => (event) => {
     event.stopPropagation();
     fn();
@@ -1234,6 +1295,14 @@ function IssueTable({ issues, selectedId, busy, onOpen, onPublish, onToggleHome,
 
   const actions = (issue) => (
     <div className="flex flex-wrap justify-end gap-2">
+      <button type="button" onClick={stop(() => onOpen(issue))} className="btn btn-secondary btn-sm inline-flex items-center gap-1.5 whitespace-nowrap">
+        <FaEye aria-hidden size={14} /> View writing
+      </button>
+      {issue.status === "PUBLISHED" && (
+        <button type="button" onClick={stop(() => onUnpublish(issue))} disabled={busy} className="btn btn-secondary btn-sm whitespace-nowrap">
+          Unpublish
+        </button>
+      )}
       {issue.status !== "PUBLISHED" && (
         <button type="button" onClick={stop(() => onPublish(issue))} disabled={busy || (issue.articleCount || 0) === 0}
           title={(issue.articleCount || 0) === 0 ? "Add writing first" : ""} className="btn btn-primary btn-sm whitespace-nowrap">

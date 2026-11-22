@@ -79,6 +79,20 @@ const MagazineIssueSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    // The school notices this magazine posted, so each is shown only while it
+    // is true: "New magazine… writing is closed" until writing opens, and
+    // "Writing is open" only while writing is open (re-shown, not re-sent,
+    // when the school opens writing again).
+    createdNotice: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Notice",
+      default: null,
+    },
+    writingNotice: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Notice",
+      default: null,
+    },
     articles: [
       {
         type: mongoose.Schema.Types.ObjectId,

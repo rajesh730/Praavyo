@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextResponse, after } from "next/server";
 import { requireApiSession } from "@/lib/authz";
 import connectDB from "@/lib/db";
 import MagazineIssue from "@/models/MagazineIssue";
@@ -12,7 +12,17 @@ import { publishWorkIndicatorsUpdate } from "@/lib/workIndicatorRealtime";
 import {
   announceMagazineIssueCreated,
   announceMagazineWritingOpen,
+  setMagazineNoticeActive,
 } from "@/lib/magazineOpeningNotices";
+
+// Telling the whole school (notices, parent messages, phone pushes) can take
+// seconds, so it runs after the response: the school's switch answers at once.
+
+// Withdraw this magazine's notices once they are no longer true.
+function withdrawMagazineNotices(issue) {
+  const ids = [issue.createdNotice, issue.writingNotice].filter(Boolean);
+  if (ids.length) after(() => Promise.all(ids.map((id) => setMagazineNoticeActive(id, false))));
+}
 
 async function serializeIssueWithCount(issue) {
   const serialized = serializeMagazineIssue(issue);
@@ -116,10 +126,13 @@ export async function POST() {
     const serializedIssue = await serializeIssueWithCount(issue);
     // Creation is persisted before announcement so a delivery outage never
     // makes the editor retry and accidentally create a duplicate issue.
-    await announceMagazineIssueCreated({
-      issue,
-      schoolId: session.user.id,
-      authorId: session.user.id,
+    after(async () => {
+      const notice = await announceMagazineIssueCreated({
+        issue,
+        schoolId: session.user.id,
+        authorId: session.user.id,
+      });
+      if (notice) await MagazineIssue.updateOne({ _id: issue._id }, { $set: { createdNotice: notice._id } });
     });
 
     return NextResponse.json({
@@ -148,7 +161,7 @@ export async function PATCH(request) {
     const issueId = body.issueId;
     const action = String(body.action || "").toUpperCase();
 
-    if (!["PUBLISH", "SHOW_HOME", "HIDE_HOME", "RENAME", "OPEN_WRITING", "CLOSE_WRITING"].includes(action)) {
+    if (!["PUBLISH", "UNPUBLISH", "SHOW_HOME", "HIDE_HOME", "RENAME", "OPEN_WRITING", "CLOSE_WRITING"].includes(action)) {
       return NextResponse.json(
         { message: "Invalid magazine issue action" },
         { status: 400 }
@@ -195,10 +208,62 @@ export async function PATCH(request) {
       // The durable state is committed first. A delivery outage must never
       // leave the issue half-open or make the editor retry the action.
       if (opening && !wasOpen) {
-        await announceMagazineWritingOpen({ issue, schoolId: session.user.id, authorId: session.user.id });
+        const { createdNotice, writingNotice } = issue;
+        after(async () => {
+          // "Writing is closed" is no longer true.
+          await setMagazineNoticeActive(createdNotice, false);
+          // Opened before: show that notice again rather than notifying the
+          // whole school a second time (an off/on tap would ping everyone).
+          if (writingNotice) {
+            await setMagazineNoticeActive(writingNotice, true);
+            return;
+          }
+          const notice = await announceMagazineWritingOpen({ issue, schoolId: session.user.id, authorId: session.user.id });
+          if (!notice) return;
+          const saved = await MagazineIssue.findOneAndUpdate(
+            { _id: issue._id, writingNotice: null },
+            { $set: { writingNotice: notice._id } },
+            { new: true }
+          ).select("status acceptingSubmissions").lean();
+          // Closed or published again while the notice was going out.
+          if (saved && (saved.status !== "DRAFT" || !saved.acceptingSubmissions)) {
+            await setMagazineNoticeActive(notice._id, false);
+          }
+        });
+      }
+      if (!opening && wasOpen && issue.writingNotice) {
+        const { writingNotice } = issue;
+        after(() => setMagazineNoticeActive(writingNotice, false));
       }
       return NextResponse.json({
         message: opening ? `${serializedIssue.title} is open for student writing` : `${serializedIssue.title} is closed for new writing`,
+        issue: serializedIssue,
+      });
+    }
+
+    // Unpublish takes the magazine back to a closed draft: students, the
+    // teachers' library and the home page stop showing it (they only read
+    // PUBLISHED issues). Its chosen writing stays in it, so the school can
+    // change the selection and publish again; writing stays closed until
+    // the school reopens it.
+    if (action === "UNPUBLISH") {
+      if (issue.status !== "PUBLISHED") {
+        return NextResponse.json({ message: "This magazine is not published." }, { status: 409 });
+      }
+      issue.status = "DRAFT";
+      issue.acceptingSubmissions = false;
+      issue.publishedAt = null;
+      issue.showOnHome = false;
+      issue.homeShownAt = null;
+      await issue.save();
+
+      const serializedIssue = await serializeIssueWithCount(issue);
+      publishWorkIndicatorsUpdate("magazine-issue-unpublished", {
+        schoolId: String(session.user.id),
+        issueId: serializedIssue.id,
+      });
+      return NextResponse.json({
+        message: `${serializedIssue.title} unpublished. Students and the home page no longer show it; its writing is kept, so you can change it and publish again.`,
         issue: serializedIssue,
       });
     }
@@ -264,6 +329,7 @@ export async function PATCH(request) {
     issue.homeShownAt = issue.homeShownAt || issue.publishedAt || new Date();
     await issue.save();
 
+    withdrawMagazineNotices(issue);
     const serializedIssue = await serializeIssueWithCount(issue);
     publishWorkIndicatorsUpdate("magazine-issue-published", {
       schoolId: String(session.user.id),
@@ -326,6 +392,7 @@ export async function DELETE(request) {
     );
 
     await MagazineIssue.deleteOne({ _id: issue._id });
+    withdrawMagazineNotices(issue);
     publishWorkIndicatorsUpdate("magazine-issue-deleted", {
       schoolId: String(session.user.id),
       issueId: String(issue._id),
