@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { signOutAndForgetDevice } from "@pravyo/ui/signOutDevice";
 import { useRouter } from "next/navigation";
 import { ChevronRight, School } from "lucide-react";
 import LoadingState from "@/components/ui/LoadingState";
@@ -80,7 +81,7 @@ export default function SelectSchoolPage() {
           </ul>
         )}
 
-        <button type="button" onClick={() => signOut({ callbackUrl: "/login" })} className="btn btn-ghost btn-sm mt-6">Sign out</button>
+        <button type="button" onClick={() => signOutAndForgetDevice({ callbackUrl: "/login" })} className="btn btn-ghost btn-sm mt-6">Sign out</button>
       </div>
     </main>
   );

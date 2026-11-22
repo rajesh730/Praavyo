@@ -63,6 +63,11 @@ export async function POST(request) {
       {
         $set: {
           parent: parent._id,
+          // Taken over from a student/school account on the same browser:
+          // it now rings only for this parent.
+          account: parent._id,
+          accountRole: "PARENT",
+          school: null,
           keys: { p256dh, auth },
           authVersion: Number(parent.authVersion || 0),
           expirationTime:

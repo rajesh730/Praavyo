@@ -4,6 +4,7 @@ import Training from "@/models/Training";
 import TrainingRegistration from "@/models/TrainingRegistration";
 import { publishRealtimeEvent } from "@/lib/realtimeBus";
 import { notifyGuardians } from "@/lib/parentNotifications";
+import { pushUserNotifications } from "@/lib/devicePush";
 
 /**
  * Every message a Praavyo training sends, in one place.
@@ -71,8 +72,14 @@ async function upsertNotifications(docs) {
     if (!isDuplicate(error)) throw error;
     result = error.result;
   }
-  const created = Object.keys(result?.upsertedIds || result?.result?.upsertedIds || {}).map(Number);
-  return created.map((index) => docs[index]).filter(Boolean);
+  const upserted = result?.upsertedIds || result?.result?.upsertedIds || {};
+  const created = Object.keys(upserted)
+    .map(Number)
+    .map((index) => docs[index] && { ...docs[index], _id: upserted[index] })
+    .filter(Boolean);
+  // Only rows created now ring a device; a retry or backfill stays silent.
+  await pushUserNotifications(created);
+  return created;
 }
 
 function audienceText(training) {

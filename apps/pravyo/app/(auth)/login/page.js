@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { signIn, signOut, useSession } from "next-auth/react";
+import { signOutAndForgetDevice } from "@pravyo/ui/signOutDevice";
 import Link from "next/link";
 import AuthShell, { AuthSessionPanel } from "@/components/auth/AuthShell";
 import Button, { ButtonLink } from "@/components/ui/Button";
@@ -168,7 +169,7 @@ function LoginContent() {
           <Button
             fullWidth
             variant="secondary"
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={() => signOutAndForgetDevice({ callbackUrl: "/login" })}
           >
             Sign out and use another account
           </Button>

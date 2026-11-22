@@ -1,7 +1,9 @@
 'use client';
 
 import Sidebar from './Sidebar';
-import { signOut, useSession } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
+import { signOutAndForgetDevice } from '@pravyo/ui/signOutDevice';
+import DevicePushBanner from '@/components/notifications/DevicePushBanner';
 import { useEffect, useState } from 'react';
 import { usePathname, useSearchParams } from 'next/navigation';
 import { Menu as FaBars, X as FaTimes } from 'lucide-react';
@@ -10,6 +12,8 @@ import IemisReminder from '@/components/school/IemisReminder';
 import AppTabBar from '@/components/navigation/AppTabBar';
 import InstallAppButton from '@pravyo/ui/installApp';
 import { getRoleNavigationLinks, isNavLinkActive } from '@/components/navigation/appNavigation';
+
+const DEVICE_PUSH_ROLES = new Set(['STUDENT', 'SCHOOL_ADMIN']);
 
 export default function DashboardLayout({ children }) {
   const { data: session } = useSession();
@@ -21,7 +25,7 @@ export default function DashboardLayout({ children }) {
 
   useEffect(() => {
     if (session?.error === 'SessionRevoked') {
-      signOut({ callbackUrl: '/login' });
+      signOutAndForgetDevice({ callbackUrl: '/login' });
     }
   }, [session]);
 
@@ -113,7 +117,13 @@ export default function DashboardLayout({ children }) {
         </header>
 
         <main className="min-h-dvh overflow-x-hidden">
-          <div className="app-frame">{children}</div>
+          <div className="app-frame">
+            {/* Roles whose notices ring the device (lib/devicePush.js). */}
+            {/* Not on the pages that show the full notifications card. */}
+            {DEVICE_PUSH_ROLES.has(role) && !session?.error &&
+              pathname !== '/student/account' && currentTab !== 'settings' && <DevicePushBanner role={role} />}
+            {children}
+          </div>
         </main>
       </div>
 

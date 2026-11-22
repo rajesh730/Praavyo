@@ -1,6 +1,6 @@
 'use client';
 
-import { signOut } from 'next-auth/react';
+import { signOutAndForgetDevice } from '@pravyo/ui/signOutDevice';
 import { Ban as FaBan } from 'lucide-react';
 
 export default function SuspendedPage() {
@@ -15,7 +15,7 @@ export default function SuspendedPage() {
                     Your school&apos;s subscription is currently inactive. Please contact the Super Admin to reactivate your account.
                 </p>
                 <button
-                    onClick={() => signOut({ callbackUrl: '/login' })}
+                    onClick={() => signOutAndForgetDevice({ callbackUrl: '/login' })}
                     className="btn btn-primary transition-colors"
                 >
                     Logout

@@ -17,6 +17,7 @@ import {
   playNewNotificationSound,
 } from "@/lib/client/notificationSound";
 import { detachCurrentParentPushDevice } from "@/lib/client/parentPushSubscription";
+import { deviceRingsForPush } from "@pravyo/ui/devicePush";
 import {
   NOTIFICATION_EVENTS,
   parentNotificationsChannel,
@@ -145,7 +146,11 @@ export function ParentNotificationProvider({ children }) {
         notification?.title ? `${prefix}: ${notification.title}` : prefix,
         5000
       );
-      await playNewNotificationSound();
+      // With push on, the system notification already rings (sw.js); the
+      // in-page cue is only for devices without it, so nothing rings twice.
+      if (!(await deviceRingsForPush().catch(() => false))) {
+        await playNewNotificationSound();
+      }
     },
     [info, parent?.id, refresh, refreshBadges]
   );

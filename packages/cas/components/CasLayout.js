@@ -1,7 +1,8 @@
 'use client';
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
-import { signOut, useSession } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
+import { signOutAndForgetDevice } from '@pravyo/ui/signOutDevice';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useRememberedState } from '@pravyo/ui/rememberedState';
@@ -131,7 +132,7 @@ export default function CasLayout({ children, embedded = false, area = 'cas', au
 
   // A revoked session on the shared Pravyo token signs the user out here too.
   useEffect(() => {
-    if (session?.error === 'SessionRevoked') signOut({ callbackUrl: '/login' });
+    if (session?.error === 'SessionRevoked') signOutAndForgetDevice({ callbackUrl: '/login' });
   }, [session]);
 
   useEffect(() => {

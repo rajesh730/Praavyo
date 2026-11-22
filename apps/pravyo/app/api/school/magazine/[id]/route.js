@@ -3,8 +3,7 @@ import { requireApiSession } from "@/lib/authz";
 import connectDB from "@/lib/db";
 import SchoolMagazineArticle from "@/models/SchoolMagazineArticle";
 import { recordLifecycleAudit } from "@/lib/lifecycle";
-import { normalizeWritingCategory } from "@/lib/writingCategories";
-import { normalizeWritingTags } from "@/lib/writingTags";
+import { validateWritingEdit } from "@/lib/freeWritingDesk";
 import MagazineIssue from "@/models/MagazineIssue";
 import {
   getCurrentMagazineIssue,
@@ -75,27 +74,10 @@ export async function PATCH(request, props) {
     // The school corrects a writing: title, text, type, tags. Saved on the
     // writing itself, so the change shows everywhere it appears.
     if (action === "EDIT") {
-      const title = String(body.title ?? article.title).trim();
-      const content = String(body.content ?? article.content).trim();
-      if (!title) {
-        return NextResponse.json({ message: "The writing needs a title." }, { status: 400 });
+      const { error: editError, changes } = validateWritingEdit(body, article);
+      if (editError) {
+        return NextResponse.json({ message: editError }, { status: 400 });
       }
-      if (!content) {
-        return NextResponse.json({ message: "The writing cannot be empty." }, { status: 400 });
-      }
-      if (title.length > 180) {
-        return NextResponse.json({ message: "The title can be at most 180 characters." }, { status: 400 });
-      }
-      if (content.length > 50000) {
-        return NextResponse.json({ message: "The writing can be at most 50,000 characters." }, { status: 400 });
-      }
-      const changes = {
-        title,
-        content,
-        category: normalizeWritingCategory(body.category ?? article.category),
-        schoolEditedAt: new Date(),
-      };
-      if (body.tags !== undefined) changes.tags = normalizeWritingTags(body.tags);
 
       await SchoolMagazineArticle.updateOne(
         { _id: article._id, school: session.user.id },

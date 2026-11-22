@@ -1,6 +1,7 @@
 import UserNotification from "@/models/UserNotification";
 import { formatPlacementLabel } from "@/lib/results";
 import { notifyGuardians } from "@/lib/parentNotifications";
+import { pushUserNotifications } from "@/lib/devicePush";
 
 // Turn FINALIST -> Finalist, WINNER -> Winner, "1st Runner Up" stays as-is.
 function nicePlacement(value) {
@@ -62,7 +63,8 @@ export async function syncAchievementNotifications({ event, achievements = [] } 
   }
 
   if (docs.length > 0) {
-    await UserNotification.insertMany(docs);
+    const created = await UserNotification.insertMany(docs);
+    await pushUserNotifications(created);
 
     // Results matter to the family as much as to the signed-in student. Reuse
     // the guardian fan-out so link permissions, the durable parent inbox and

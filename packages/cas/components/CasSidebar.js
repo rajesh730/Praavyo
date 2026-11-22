@@ -2,7 +2,8 @@
 
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
-import { signOut, useSession } from 'next-auth/react';
+import { useSession } from 'next-auth/react';
+import { signOutAndForgetDevice } from '@pravyo/ui/signOutDevice';
 import { useEffect } from 'react';
 import { LogOut as FaSignOutAlt, X as FaTimes, ArrowLeft as FaArrowLeft } from 'lucide-react';
 import PravyoLogo from './brand/PravyoLogo.js';
@@ -22,7 +23,7 @@ export default function CasSidebar({ school, academicYear, isMobileOpen, onNavig
    */
   useEffect(() => {
     if (session?.error === 'SessionRevoked') {
-      signOut({ callbackUrl: '/login' });
+      signOutAndForgetDevice({ callbackUrl: '/login' });
     }
   }, [session]);
 
@@ -81,7 +82,7 @@ export default function CasSidebar({ school, academicYear, isMobileOpen, onNavig
         </Link>
         <button
           type="button"
-          onClick={() => signOut({ callbackUrl: '/login' })}
+          onClick={() => signOutAndForgetDevice({ callbackUrl: '/login' })}
           className="nav-item w-full hover:!bg-danger-soft hover:!text-danger"
         >
           <FaSignOutAlt />

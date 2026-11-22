@@ -5,6 +5,7 @@ import EventNotice from "@/models/EventNotice";
 import { getManageableEventOrResponse } from "@/lib/eventRoundAccess";
 import { publishRealtimeEvent } from "@/lib/realtimeBus";
 import { publishEventRealtimeUpdate } from "@/lib/eventRealtime";
+import { pushEventNoticePublished } from "@/lib/devicePush";
 
 const NOTICE_TYPES = [
   "GENERAL",
@@ -103,8 +104,13 @@ export async function PATCH(req, props) {
       );
     }
 
+    // Devices ring only when the notice goes live, never for a later edit.
+    const becomesPublished = notice.status !== "PUBLISHED" && payload.status === "PUBLISHED";
     Object.assign(notice, payload);
     await notice.save();
+    if (becomesPublished) {
+      await pushEventNoticePublished(notice, access.event, { excludeIds: [session.user.id] });
+    }
 
     publishRealtimeEvent("student-notifications", {
       kind: notice.status === "PUBLISHED" ? "event-notice-updated" : "event-notice-removed",

@@ -1,6 +1,7 @@
 import UserNotification from "@/models/UserNotification";
 import { publishRealtimeEvent } from "@/lib/realtimeBus";
 import { publishWorkIndicatorsUpdate } from "@/lib/workIndicatorRealtime";
+import { pushUserNotifications } from "@/lib/devicePush";
 
 function articleTitle(article) {
   return article?.title ? `"${article.title}"` : "your writing";
@@ -19,7 +20,7 @@ async function createUserNotification({
 }) {
   if (!targetRole || !school || !title || !message) return null;
 
-  return UserNotification.create({
+  const notification = await UserNotification.create({
     targetRole,
     recipientUser,
     recipientStudent,
@@ -34,6 +35,8 @@ async function createUserNotification({
       status: article?.status || "",
     },
   });
+  await pushUserNotifications([notification]);
+  return notification;
 }
 
 export async function notifySchoolMagazineSubmitted({

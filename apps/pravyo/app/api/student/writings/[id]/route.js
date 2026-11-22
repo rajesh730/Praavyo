@@ -11,6 +11,7 @@ import { findOpenMagazineIssue } from "@/lib/magazineIssues";
 import { requireApiSession } from "@/lib/authz";
 import { buildStudentLookupForSession } from "@/lib/studentIdentity";
 import {
+  WAITING_FOR_SCHOOL,
   applyTransferredOutAction,
   resetReviewStateIfFullyWithdrawn,
 } from "@/lib/studentWritings";
@@ -211,7 +212,8 @@ export async function PATCH(request, props) {
         previousStatus === "APPROVED" || previousStatus === "SUBMITTED"
           ? previousStatus
           : "SUBMITTED";
-      article.showOnSchoolWall = true;
+      // Sends it back to the school, but never switches the wall on: only the
+      // school or the grade's class teacher does that (owner, 2026-11-22).
 
       if (article.status === "SUBMITTED") {
         article.firstSubmittedAt =
@@ -243,7 +245,7 @@ export async function PATCH(request, props) {
       }
 
       return NextResponse.json({
-        message: "Writing released to school wall",
+        message: WAITING_FOR_SCHOOL,
         article,
       });
     }
@@ -320,8 +322,9 @@ export async function PATCH(request, props) {
     article.coverImage = coverImage;
     article.tags = nextTags;
     article.status = requestedStatus;
-    // Magazine pieces stay off the school wall.
-    article.showOnSchoolWall = requestedStatus === "SUBMITTED" && nextSource !== "MAGAZINE";
+    // A posted or re-posted piece starts OFF the school wall until the school
+    // or the grade's class teacher turns it on. Magazine pieces never go on it.
+    article.showOnSchoolWall = false;
     article.isMagazinePublished = false;
     article.isPublished = false;
     article.magazinePublishedAt = null;
@@ -370,7 +373,7 @@ export async function PATCH(request, props) {
     return NextResponse.json({
       message:
         requestedStatus === "SUBMITTED"
-          ? (nextSource === "MAGAZINE" ? "Sent to the school magazine" : "Posted to school wall")
+          ? (nextSource === "MAGAZINE" ? "Sent to the school magazine" : WAITING_FOR_SCHOOL)
           : "Private writing updated",
       article,
     });

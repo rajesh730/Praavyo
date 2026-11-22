@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { usePathname, useSearchParams } from "next/navigation";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { signOutAndForgetDevice } from "@pravyo/ui/signOutDevice";
 import { useEffect, useRef, useState } from "react";
 import { LogOut as FaSignOutAlt, School as FaSchool, X as FaTimes, ArrowLeftRight as FaExchangeAlt, CalendarDays as FaCalendarAlt, GraduationCap as FaUserGraduate, MessageSquareText as FaCommentDots } from "lucide-react";
 import PravyoLogo from "@/components/brand/PravyoLogo";
@@ -132,7 +133,7 @@ export default function Sidebar({
 
   useEffect(() => {
     if (session?.error === "SessionRevoked") {
-      signOut({ callbackUrl: "/login" });
+      signOutAndForgetDevice({ callbackUrl: "/login" });
     }
   }, [session]);
 
@@ -317,7 +318,7 @@ export default function Sidebar({
         </div>
         <button
           type="button"
-          onClick={() => signOut({ callbackUrl: "/login" })}
+          onClick={() => signOutAndForgetDevice({ callbackUrl: "/login" })}
           className="nav-item w-full hover:!bg-danger-soft hover:!text-danger"
         >
           <FaSignOutAlt />

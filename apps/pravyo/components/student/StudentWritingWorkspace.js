@@ -164,7 +164,7 @@ function getWorkflowMessage(writing) {
   }
 
   if (status === "SUBMITTED") {
-    return "Posted to your school. Your school can keep it on the school wall or select it for the magazine/homepage.";
+    return "Sent to your school. It appears on the school wall once your school turns it on.";
   }
 
   if (status === "APPROVED") {
@@ -215,7 +215,9 @@ function getPlacements(writing) {
   return [
     writing.showOnSchoolWall
       ? { key: "wall", label: "School Wall", icon: FaSchool }
-      : null,
+      : isWaitingForSchool(writing)
+        ? { key: "waiting", label: "Waiting for school", icon: FaSchool }
+        : null,
     writing.isMagazinePublished
       ? { key: "magazine", label: "School Magazine", icon: FaBookOpen }
       : writing.submissionSource === "MAGAZINE" && String(writing.status || "").toUpperCase() !== "DRAFT"
@@ -263,25 +265,21 @@ function getWithdrawalActions(writing) {
   ].filter(Boolean);
 }
 
-function getReleaseActions(writing) {
+// Posted free writing the school has not put on the wall yet. Only the school
+// or the grade's class teacher turns the wall on (owner, 2026-11-22), so the
+// student sees that it is waiting rather than a button to do it herself.
+function isWaitingForSchool(writing) {
   const status = String(writing?.status || "DRAFT").toUpperCase();
-  const canReleaseToSchoolWall =
+  return Boolean(
     writing &&
-    writing.showOnSchoolWall === false &&
-    ["SUBMITTED", "APPROVED"].includes(status) &&
-    !writing.isMagazinePublished &&
-    !writing.isPublished &&
-    !writing.isGlobalWallPublished;
-
-  return [
-    canReleaseToSchoolWall
-      ? {
-          label: "Show on school wall",
-          icon: FaSchool,
-          action: "RELEASE_SCHOOL_WALL",
-        }
-      : null,
-  ].filter(Boolean);
+      !writing.isTransferredOut &&
+      writing.submissionSource !== "MAGAZINE" &&
+      ["SUBMITTED", "APPROVED"].includes(status) &&
+      !writing.showOnSchoolWall &&
+      !writing.isMagazinePublished &&
+      !writing.isPublished &&
+      !writing.isGlobalWallPublished
+  );
 }
 
 
@@ -611,7 +609,7 @@ function WritingEditor({
           <span className="text-xs text-muted">
             {forMagazine
               ? "Your school chooses which writing goes into the magazine. It does not appear on the school wall."
-              : "Classmates see it on the school wall after you post it."}
+              : "Classmates see it on the school wall once your school turns it on."}
           </span>
         </div>
       )}
@@ -934,7 +932,6 @@ function WritingListItem({
   const editAllowed = canEditWriting(writing);
   // School-wall / homepage / magazine actions don't apply once she has left.
   const withdrawalActions = isTransferredOut ? [] : getWithdrawalActions(writing);
-  const releaseActions = isTransferredOut ? [] : getReleaseActions(writing);
 
   const runMenuAction = (callback) => {
     setMenuOpen(false);
@@ -1060,24 +1057,6 @@ function WritingListItem({
                     >
                       <WithdrawIcon className="text-brand-strong" />
                       {withdrawAction.label}
-                    </button>
-                  );
-                })}
-                {releaseActions.map((releaseAction) => {
-                  const ReleaseIcon = releaseAction.icon;
-                  return (
-                    <button
-                      key={releaseAction.action}
-                      type="button"
-                      onClick={() =>
-                        runMenuAction(() =>
-                          onStatusAction(writing, releaseAction.action)
-                        )
-                      }
-                      className="flex w-full items-center gap-2 px-3 py-2 text-left hover:bg-surface"
-                    >
-                      <ReleaseIcon className="text-brand-strong" />
-                      {releaseAction.label}
                     </button>
                   );
                 })}

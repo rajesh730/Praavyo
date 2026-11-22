@@ -11,6 +11,7 @@ import CasExam from '@pravyo/db/models/cas/CasExam';
 import ParentStudentLink from '@pravyo/db/models/ParentStudentLink';
 import UserNotification from '@pravyo/db/models/UserNotification';
 import { notifyGuardians } from '@pravyo/core/parentNotifications';
+import { sendAccountPush } from '@pravyo/core/webPush';
 import ensureCasIndexes from './casIndexes.js';
 import { assert, requireSchoolAdmin } from './casAccess.js';
 import {
@@ -1360,7 +1361,7 @@ async function notifyForReport(report) {
       });
     }
 
-    await UserNotification.updateOne(
+    const studentNotice = await UserNotification.updateOne(
       {
         targetRole: 'STUDENT',
         recipientStudent: report.student,
@@ -1378,6 +1379,18 @@ async function notifyForReport(report) {
       },
       { upsert: true },
     );
+    // Ring the student's devices once, when the notification is first created.
+    if (studentNotice.upsertedCount) {
+      await sendAccountPush(
+        { role: 'STUDENT', accountIds: [String(report.student)] },
+        {
+          notificationId: `result-${report._id}`,
+          title: 'Your result is published',
+          body: 'Your result is available under My Result.',
+          href: `/student/learning/cas/${report._id}`,
+        },
+      );
+    }
 
     await CasReport.updateOne({ _id: report._id }, { $set: { notifiedAt: new Date() } });
   } catch (error) {

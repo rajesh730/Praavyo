@@ -126,13 +126,14 @@ const ROLE_STUDENT_PROFILE = {
 const ROLE_WRITING = {
   SUPER_ADMIN: "/admin/dashboard",
   SCHOOL_ADMIN: "/school/dashboard?tab=magazine",
-  TEACHER: "/teacher/dashboard",
+  TEACHER: "/teacher/school-wall",
   STUDENT: "/student/school-wall",
   PARENT: "/parent/journey",
 };
 
 const ROLE_MAGAZINE = {
   ...ROLE_WRITING,
+  TEACHER: "/teacher/dashboard",
   STUDENT: "/student/magazine",
 };
 

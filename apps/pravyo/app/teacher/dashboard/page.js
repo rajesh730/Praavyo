@@ -11,11 +11,12 @@ import OverviewTab from "@/components/teacher/workspace/OverviewTab";
 import ExamsTab from "@/components/teacher/workspace/ExamsTab";
 import StudentsTab from "@/components/teacher/workspace/StudentsTab";
 import ProfileTab from "@/components/teacher/workspace/ProfileTab";
+import PublishingTab from "@/components/teacher/workspace/PublishingTab";
 import { useTeacherWorkspace } from "@/components/teacher/workspace/shared";
 import PageHeader from "@/components/ui/PageHeader";
 import LoadingState from "@/components/ui/LoadingState";
 import AlertBanner from "@/components/ui/AlertBanner";
-import { CalendarDays, ClipboardCheck, Presentation, UserRound, Users } from "lucide-react";
+import { BookOpen, CalendarDays, ClipboardCheck, Presentation, UserRound, Users } from "lucide-react";
 
 /**
  * The teacher workspace, one tab per job. The tabs are the sidebar and phone
@@ -45,6 +46,12 @@ const TABS = {
     icon: CalendarDays,
     title: () => "Events",
     description: "Programs and competitions your school gave you to run.",
+  },
+  publishing: {
+    icon: BookOpen,
+    title: () => "Publishing Desk",
+    description: "Student writing from the grades you are class teacher of.",
+    Component: PublishingTab,
   },
   profile: {
     icon: UserRound,

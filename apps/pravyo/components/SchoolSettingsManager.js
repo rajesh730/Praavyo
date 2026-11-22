@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { signOut, useSession } from "next-auth/react";
+import { useSession } from "next-auth/react";
+import { signOutAndForgetDevice } from "@pravyo/ui/signOutDevice";
 import { CircleAlert as FiAlertCircle, BookOpen as FiBookOpen, CircleCheck as FiCheckCircle, Lock as FiLock, Mail as FiMail, RotateCcw as FiRotateCcw, Save as FiSave, Settings as FiSettings } from "lucide-react";
 import AcademicYearManager from "@/components/school/AcademicYearManager";
 import CalendarToggle from "@/components/common/CalendarToggle";
@@ -9,6 +10,7 @@ import WebsiteApiKeysPanel from "@/components/settings/WebsiteApiKeysPanel";
 import ReportCardImagesPanel from "@/components/settings/ReportCardImagesPanel";
 import IemisSettingsPanel from "@/components/settings/IemisSettingsPanel";
 import SchoolMapField from "@/components/settings/SchoolMapField";
+import DevicePushBanner from "@/components/notifications/DevicePushBanner";
 import { parseGoogleMapEmbed } from "@/lib/googleMapEmbed";
 
 const defaultConfig = {
@@ -481,7 +483,7 @@ export default function SchoolSettingsManager() {
       });
 
       setTimeout(() => {
-        signOut({ callbackUrl: "/login" });
+        signOutAndForgetDevice({ callbackUrl: "/login" });
       }, 900);
     } catch (error) {
       console.error("Failed to change school password:", error);
@@ -549,6 +551,13 @@ export default function SchoolSettingsManager() {
         </p>
         <CalendarToggle variant="cards" className="mt-4 max-w-2xl" />
       </div>
+      )}
+
+      {activeSettingsTab === "academic" && (
+        <div className="max-w-3xl">
+          {/* Turn on, check, or test phone/laptop notifications. */}
+          <DevicePushBanner role="SCHOOL_ADMIN" variant="card" />
+        </div>
       )}
 
       {message.text && (

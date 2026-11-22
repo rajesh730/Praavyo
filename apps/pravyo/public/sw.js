@@ -61,6 +61,12 @@ self.addEventListener("message", (event) => {
 
 // Push payloads contain only display text and an in-app path. Sensitive data
 // remains behind the authenticated route that opens when the alert is tapped.
+//
+// Every notice RINGS and STAYS (owner, 2026-11-22): the system notification is
+// never silent, even while Praavyo is open, and requireInteraction keeps it on
+// a laptop screen until it is opened or dismissed. On phones it stays in the
+// notification tray until the person clears it. The in-app pages play no
+// sound of their own when this device gets push, so nothing rings twice.
 self.addEventListener("push", (event) => {
   let payload = {};
   try {
@@ -77,25 +83,20 @@ self.addEventListener("push", (event) => {
           (client) => client.visibilityState === "visible"
         );
 
-        // The in-app provider plays one restrained cue while visible. Keep the
-        // required system notification visible but silent in that case so the
-        // same delivery does not make two sounds.
-        await self.registration.showNotification(payload.title || "Pravyo", {
+        await self.registration.showNotification(payload.title || "Praavyo", {
           body: payload.body || "You have a new update.",
           icon: "/pravyo-icon.png?v=2",
           badge: "/apple-icon.png?v=2",
-          tag: payload.tag || "pravyo-update",
-          silent: visibleClients.length > 0,
-          vibrate:
-            visibleClients.length > 0
-              ? undefined
-              : payload.urgent
-                ? [220, 100, 220, 100, 360]
-                : [180, 100, 180],
+          // Unique per notice, so each one is its own entry in the tray.
+          tag: payload.tag || `pravyo-${Date.now()}`,
+          silent: false,
           renotify: true,
+          requireInteraction: true,
+          vibrate: payload.urgent ? [220, 100, 220, 100, 360] : [200, 100, 200],
+          timestamp: Date.parse(payload.createdAt || "") || Date.now(),
           data: {
             notificationId: payload.notificationId || "",
-            href: payload.href || "/parent/notifications",
+            href: payload.href || "/",
           },
         });
 
@@ -111,14 +112,39 @@ self.addEventListener("push", (event) => {
   );
 });
 
+// The browser can replace a push endpoint on its own (key rotation, storage
+// clean-up). Re-subscribe and re-register it, or this device would silently
+// stop ringing. Parents register on their own route; everyone else on /api/me.
+self.addEventListener("pushsubscriptionchange", (event) => {
+  const options = event.oldSubscription?.options;
+  event.waitUntil(
+    (async () => {
+      const subscription =
+        event.newSubscription ||
+        (options ? await self.registration.pushManager.subscribe(options) : null);
+      if (!subscription) return;
+      const body = JSON.stringify(subscription.toJSON());
+      const headers = { "Content-Type": "application/json" };
+      const response = await fetch("/api/me/push-subscription", {
+        method: "POST", headers, body, credentials: "same-origin",
+      });
+      if (response.status === 403) {
+        await fetch("/api/parent/push-subscription", {
+          method: "POST", headers, body, credentials: "same-origin",
+        });
+      }
+    })().catch(() => undefined)
+  );
+});
+
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  const href = event.notification.data?.href || "/parent/notifications";
+  const href = event.notification.data?.href || "/";
   const candidateUrl = new URL(href, self.location.origin);
   const targetUrl =
     candidateUrl.origin === self.location.origin
       ? candidateUrl.href
-      : new URL("/parent/notifications", self.location.origin).href;
+      : new URL("/", self.location.origin).href;
 
   event.waitUntil(
     self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((clients) => {

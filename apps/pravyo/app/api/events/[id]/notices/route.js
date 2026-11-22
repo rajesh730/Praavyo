@@ -8,6 +8,7 @@ import {
 } from "@/lib/eventRoundAccess";
 import { publishRealtimeEvent } from "@/lib/realtimeBus";
 import { publishEventRealtimeUpdate } from "@/lib/eventRealtime";
+import { pushEventNoticePublished } from "@/lib/devicePush";
 
 const NOTICE_TYPES = [
   "GENERAL",
@@ -129,6 +130,7 @@ export async function POST(req, props) {
         event: access.event,
         eventId: params.id,
       });
+      await pushEventNoticePublished(notice, access.event, { excludeIds: [session.user.id] });
     }
 
     return NextResponse.json(

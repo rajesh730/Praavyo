@@ -12,6 +12,14 @@ import MagazineIssue from "@/models/MagazineIssue";
 import { normalizeWritingCategory } from "@/lib/writingCategories";
 
 /**
+ * What a student is told after posting free writing. Posts start OFF the
+ * school wall (owner, 2026-11-22); the school or the grade's class teacher
+ * turns them on in the Publishing Desk.
+ */
+export const WAITING_FOR_SCHOOL =
+  "Sent to your school. It appears on the school wall once your school turns it on.";
+
+/**
  * Is this piece visible on ANY surface — school wall, portfolio, magazine, or
  * the global wall? Used to decide whether a withdrawal has left it fully
  * hidden, in which case its review state should reset.

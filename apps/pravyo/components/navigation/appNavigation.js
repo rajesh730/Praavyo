@@ -61,6 +61,10 @@ export const TEACHER_NAV_LINKS = [
   { name: "Exams", href: "/teacher/dashboard?tab=exams", icon: FaClipboardCheck },
   { name: "Students", href: "/teacher/dashboard?tab=students", icon: FaUsers },
   { name: "Events", href: "/teacher/dashboard?tab=events", icon: FaCalendarAlt },
+  // Class teachers manage their grade's Free Writing (others see why not).
+  { name: "Publishing Desk", href: "/teacher/dashboard?tab=publishing", icon: FaBookOpen },
+  // The current school's School Wall, the same posts its students read.
+  { name: "School Wall", href: "/teacher/school-wall", icon: FaSchool },
   { name: "My Profile", href: "/teacher/dashboard?tab=profile", icon: UserRound },
 ];
 

@@ -10,6 +10,7 @@ import Notice from "@/models/Notice";
 import { requireApiSession } from "@/lib/authz";
 import { publishNoticeRealtimeEvent } from "@/lib/noticeRealtime";
 import { publishNoticeToParents } from "@/lib/notifications/service";
+import { pushNoticePublished } from "@/lib/devicePush";
 
 function canManageNotice(session, notice) {
   if (!session?.user?.id || !notice) return false;
@@ -58,6 +59,8 @@ export async function PATCH(request, props) {
       String(body.status || "").toUpperCase() === "DRAFT"
         ? "DRAFT"
         : "PUBLISHED";
+    // Devices ring only when a notice goes live, never for a later edit.
+    const becomesPublished = notice.status !== "PUBLISHED" && nextStatus === "PUBLISHED";
 
     notice.title = nextTitle;
     notice.content = nextContent;
@@ -104,6 +107,9 @@ export async function PATCH(request, props) {
       // parents added to it. `publishNoticeToParents` is a no-op if guardians
       // were already told, so editing a typo does not re-notify anyone.
       await publishNoticeToParents(notice._id);
+      if (becomesPublished) {
+        await pushNoticePublished(notice, { excludeIds: [session.user.id] });
+      }
     } else {
       publishNoticeRealtimeEvent({
         scope: notice.scope,

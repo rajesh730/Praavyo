@@ -27,11 +27,17 @@ function categoryTone(category = "") {
   return "bg-brand-soft text-brand-strong";
 }
 
+// The school uses the defaults. A class teacher's Publishing Desk passes the
+// /api/teacher/publishing endpoints, their class grades and trackUnread=false
+// (the unread dots are the school's own; a teacher never clears them).
 export default function SchoolMagazineReviewManager({
   onStatsChange,
   selectedGrade,
   onGradeChange,
   providedGradeOptions = [],
+  listEndpoint = "/api/school/magazine-submissions",
+  articleEndpoint = "/api/school/magazine",
+  trackUnread = true,
 }) {
   // Remembered until the page is refreshed.
   const [activeGrade, setActiveGrade] = useRememberedState("magazine-review:grade", "ALL");
@@ -69,7 +75,7 @@ export default function SchoolMagazineReviewManager({
         if (search.trim()) params.append("search", search.trim());
         if (effectiveGrade !== "ALL") params.append("grade", effectiveGrade);
         if (year) params.append("year", year);
-        const res = await fetch(`/api/school/magazine-submissions?${params}`, {
+        const res = await fetch(`${listEndpoint}?${params}`, {
           cache: "no-store",
         });
         const payload = await res.json().catch(() => ({}));
@@ -93,7 +99,7 @@ export default function SchoolMagazineReviewManager({
         setLoading(false);
       }
     },
-    [effectiveGrade, onStatsChange, search, year]
+    [effectiveGrade, listEndpoint, onStatsChange, search, year]
   );
 
   useEffect(() => {
@@ -141,13 +147,13 @@ export default function SchoolMagazineReviewManager({
     setError("");
 
     // Opening a post marks that specific post read → its unread dot clears.
-    if (submission?.isUnread) {
+    if (trackUnread && submission?.isUnread) {
       setSubmissions((current) =>
         current.map((item) =>
           item.id === submission.id ? { ...item, isUnread: false } : item
         )
       );
-      fetch(`/api/school/magazine/${submission.id}`, {
+      fetch(`${articleEndpoint}/${submission.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "MARK_READ" }),
@@ -163,7 +169,7 @@ export default function SchoolMagazineReviewManager({
       setError("");
       setSuccess("");
 
-      const res = await fetch(`/api/school/magazine/${submission.id}`, {
+      const res = await fetch(`${articleEndpoint}/${submission.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action }),
@@ -348,6 +354,7 @@ export default function SchoolMagazineReviewManager({
             {editingSubmission ? (
               <WritingEditForm
                 article={selectedSubmission}
+                endpoint={articleEndpoint}
                 onCancel={() => setEditingSubmission(false)}
                 onSaved={(saved, message) => {
                   const merge = (item) => (item.id === selectedSubmission.id ? { ...item, ...saved, id: item.id } : item);

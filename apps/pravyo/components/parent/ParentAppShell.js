@@ -11,6 +11,7 @@ import ParentNotificationBell from "./ParentNotificationBell";
 import { ParentNotificationProvider } from "./ParentNotificationContext";
 import styles from "./ParentDesign.module.css";
 import InstallAppButton from "@pravyo/ui/installApp";
+import DevicePushBanner from "@/components/notifications/DevicePushBanner";
 
 export default function ParentAppShell({ children }) {
   const { loading, error, needsChildLink, selectedChildId, childList, selectedChild, simpleMode, t, reload, badges } = useParentApp();
@@ -68,7 +69,11 @@ export default function ParentAppShell({ children }) {
         <main id="parent-content" tabIndex={-1} className={styles.main}>
           {/* Remount child-specific pages immediately, so old data/drafts never
               remain under a newly selected child's name while requests load. */}
-          <div key={selectedChildId} className={styles.content}>{children}</div>
+          <div key={selectedChildId} className={styles.content}>
+            {/* Asks to turn on phone notifications (hidden on shared phones). */}
+            <DevicePushBanner role="PARENT" />
+            {children}
+          </div>
         </main>
       </div>
     </div>

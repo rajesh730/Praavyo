@@ -8,7 +8,7 @@ import { WRITING_CATEGORIES, getWritingCategoryLabel } from "@/lib/writingCatego
  * writing itself, so the corrected version shows everywhere it appears — the
  * school wall, the magazine, the home page and the student's own portfolio.
  */
-export default function WritingEditForm({ article, onSaved, onCancel }) {
+export default function WritingEditForm({ article, onSaved, onCancel, endpoint = "/api/school/magazine" }) {
   const [form, setForm] = useState({
     title: article.title || "",
     category: article.category || "BLOG_ARTICLE",
@@ -27,7 +27,7 @@ export default function WritingEditForm({ article, onSaved, onCancel }) {
     setSaving(true);
     setError("");
     try {
-      const res = await fetch(`/api/school/magazine/${article.id}`, {
+      const res = await fetch(`${endpoint}/${article.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "EDIT", ...form }),

@@ -3,6 +3,7 @@ import User from "@/models/User";
 import { publishRealtimeEvent } from "@/lib/realtimeBus";
 import { publishWorkIndicatorsUpdate } from "@/lib/workIndicatorRealtime";
 import { notifyGuardians } from "@/lib/parentNotifications";
+import { pushUserNotifications } from "@/lib/devicePush";
 
 // The family follows a transfer in the parent app; the student still gets a
 // note in their own notifications.
@@ -63,7 +64,8 @@ async function dispatch({ transfer, docs, kind, notifiedStudent, schoolIds }) {
   const validDocs = docs.filter(Boolean);
   if (validDocs.length === 0) return;
 
-  await UserNotification.insertMany(validDocs);
+  const created = await UserNotification.insertMany(validDocs);
+  await pushUserNotifications(created);
 
   // Whatever the student is told, their guardians are told too — they are the
   // ones who act on it now.

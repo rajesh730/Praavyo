@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { signIn, useSession } from "next-auth/react";
+import { signOutAndForgetDevice } from "@pravyo/ui/signOutDevice";
 import Link from "next/link";
 import AuthShell, { AuthSessionPanel } from "@/components/auth/AuthShell";
 import Button, { ButtonLink } from "@/components/ui/Button";
@@ -82,7 +83,7 @@ export default function StudentLogin() {
           <Button
             fullWidth
             variant="secondary"
-            onClick={() => signOut({ callbackUrl: "/login" })}
+            onClick={() => signOutAndForgetDevice({ callbackUrl: "/login" })}
           >
             Sign out and log in as student
           </Button>

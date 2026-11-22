@@ -8,6 +8,7 @@ import { defineRoute } from "@/lib/routeHandler";
 import { buildPagination, escapeRegex, parsePagination } from "@/lib/pagination";
 import { publishNoticeRealtimeEvent } from "@/lib/noticeRealtime";
 import { publishNoticeToParents } from "@/lib/notifications/service";
+import { pushNoticePublished } from "@/lib/devicePush";
 
 export const GET = defineRoute(
   { roles: [], errorMessage: "Failed to fetch notices" },
@@ -189,6 +190,8 @@ export const POST = defineRoute(
       // the already-saved notice, but awaiting it prevents a serverless runtime
       // from freezing the work after the response is sent.
       await publishNoticeToParents(savedNotice._id);
+      // Ring the phones and laptops of the schools / students it reaches.
+      await pushNoticePublished(savedNotice, { excludeIds: [session.user.id] });
     }
 
     return successResponse(201, "Notice published successfully", {

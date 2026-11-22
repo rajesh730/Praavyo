@@ -163,3 +163,34 @@ describe("student writings [id] PATCH — cross-school ownership", () => {
     );
   });
 });
+
+describe("student writings [id] PATCH — the school wall is the school's switch", () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    getServerSession.mockResolvedValue({
+      user: { id: "stu1", role: "STUDENT" },
+    });
+  });
+
+  it("re-sending a writing to school never turns the school wall on", async () => {
+    mockStudent({ _id: "stu1", school: "orbit", name: "Manju" });
+    const article = {
+      _id: ARTICLE_ID,
+      school: "orbit",
+      authorStudent: "stu1",
+      title: "t",
+      content: "c",
+      status: "SUBMITTED",
+      showOnSchoolWall: false,
+      save: jest.fn().mockResolvedValue(undefined),
+    };
+    SchoolMagazineArticle.findOne.mockResolvedValue(article);
+
+    const res = await run({ action: "RELEASE_SCHOOL_WALL" });
+    const json = await res.json();
+
+    expect(res.status).toBe(200);
+    expect(article.showOnSchoolWall).toBe(false);
+    expect(json.message).toMatch(/once your school turns it on/);
+  });
+});

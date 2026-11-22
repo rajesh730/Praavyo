@@ -6,6 +6,7 @@ import TeacherMembership from "@pravyo/db/models/TeacherMembership";
 import Conversation, { CONVERSATION_TOPICS } from "@/models/Conversation";
 import Message from "@/models/Message";
 import UserNotification from "@/models/UserNotification";
+import { pushUserNotifications } from "@/lib/devicePush";
 import { publishRealtimeEvent } from "@/lib/realtimeBus";
 import {
   schoolMessagesChannel,
@@ -355,7 +356,7 @@ export async function appendMessage({
   if (senderType === "PARENT") {
     try {
       const sender = String(senderName || "A parent").trim().slice(0, 80);
-      await UserNotification.create({
+      const schoolNotice = await UserNotification.create({
         targetRole: "SCHOOL_ADMIN",
         school: conversation.school,
         category: "MESSAGE",
@@ -369,6 +370,7 @@ export async function appendMessage({
           source: "PARENT_MESSAGE",
         },
       });
+      await pushUserNotifications([schoolNotice]);
     } catch (error) {
       console.error("[parentMessaging] school notification failed:", error.message);
     }

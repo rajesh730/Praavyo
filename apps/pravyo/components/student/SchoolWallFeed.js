@@ -36,11 +36,15 @@ function gradeLabel(grade) {
   return /^grade\b/i.test(grade) ? grade : `Grade ${grade}`;
 }
 
-export default function SchoolWallFeed() {
-  const { data, loading, error } = useStudentReadingSurface({
-    endpoint: "/api/student/school-wall",
-    surface: "student.schoolWall",
-  });
+// Students read it at /student/school-wall; teachers read the same wall of
+// their current school at /teacher/school-wall (no student nav, no badge).
+export default function SchoolWallFeed({
+  endpoint = "/api/student/school-wall",
+  surface = "student.schoolWall",
+  articleHrefPrefix = "/student/school-wall/",
+  showStudentNav = true,
+}) {
+  const { data, loading, error } = useStudentReadingSurface({ endpoint, surface });
   const [category, setCategory] = useRememberedState("school-wall:category", "ALL");
   const items = useMemo(() => data?.items || [], [data]);
   const visibleItems = useMemo(
@@ -78,7 +82,7 @@ export default function SchoolWallFeed() {
 
   return (
     <div className="space-y-4 sm:space-y-4">
-      <StudentQuickNav className="sm:hidden" />
+      {showStudentNav && <StudentQuickNav className="sm:hidden" />}
       <header className="card p-5 sm:p-6">
         <div className="flex items-start gap-4">
           <span className="surface-brand flex h-10 w-10 shrink-0 items-center justify-center rounded-control text-white">
@@ -193,7 +197,7 @@ export default function SchoolWallFeed() {
                     </div>
                     <WritingTags tags={article.tags} className="mt-3" />
                     <Link
-                      href={`/student/school-wall/${article.id}`}
+                      href={`${articleHrefPrefix}${article.id}`}
                       className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-brand-strong"
                     >
                       Read writing <FaChevronRight />

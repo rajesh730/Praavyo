@@ -15,6 +15,7 @@ import {
   resolveWritingImages,
 } from "@/lib/writingMedia";
 import { normalizeWritingTags } from "@/lib/writingTags";
+import { WAITING_FOR_SCHOOL } from "@/lib/studentWritings";
 
 function buildStudentLookup(session) {
   return {
@@ -141,8 +142,10 @@ export async function POST(request) {
     const content = String(body.content || "").trim();
     const category = normalizeWritingCategory(body.category);
     const submissionSource = normalizeSubmissionSource(body.submissionSource);
-    // A magazine piece goes to the school for the magazine, not the wall.
-    const onWall = (status) => status === "SUBMITTED" && submissionSource !== "MAGAZINE";
+    // Every new post starts OFF the school wall (owner, 2026-11-22): the
+    // school or the grade's class teacher turns it on in the Publishing Desk.
+    // A magazine piece never goes on the wall at all.
+    const onWall = () => false;
     // The magazine it is written for: must be one still open for writing.
     const openIssue =
       submissionSource === "MAGAZINE"
@@ -278,7 +281,7 @@ export async function POST(request) {
         return NextResponse.json({
           message:
             requestedStatus === "SUBMITTED"
-              ? (submissionSource === "MAGAZINE" ? "Sent to the school magazine" : "Posted to school wall")
+              ? (submissionSource === "MAGAZINE" ? "Sent to the school magazine" : WAITING_FOR_SCHOOL)
               : "Private writing updated",
           article,
         });
@@ -337,7 +340,7 @@ export async function POST(request) {
       {
         message:
           requestedStatus === "SUBMITTED"
-            ? (submissionSource === "MAGAZINE" ? "Sent to the school magazine" : "Posted to school wall")
+            ? (submissionSource === "MAGAZINE" ? "Sent to the school magazine" : WAITING_FOR_SCHOOL)
             : "Private writing saved",
         article,
       },

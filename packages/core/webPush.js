@@ -2,8 +2,20 @@ import webPush from "web-push";
 import connectDB from "@pravyo/db";
 import PushSubscription from "@pravyo/db/models/PushSubscription";
 import Parent from "@pravyo/db/models/Parent";
+import User from "@pravyo/db/models/User";
+import Student from "@pravyo/db/models/Student";
+import Teacher from "@pravyo/db/models/Teacher";
 
 const PUSH_CONCURRENCY = 20;
+
+// Where a tap opens when a delivery names no page (or an unsafe one).
+const HOME_BY_ROLE = {
+  PARENT: "/parent/notifications",
+  STUDENT: "/student/notices",
+  TEACHER: "/teacher/dashboard",
+  SCHOOL_ADMIN: "/school/dashboard?tab=notices",
+  SUPER_ADMIN: "/admin/dashboard",
+};
 
 function configuration() {
   // Read on the server only — the browser receives it through
@@ -22,11 +34,11 @@ function configuration() {
   return { publicKey, privateKey, subject };
 }
 
-function safeHref(value) {
+function safeHref(value, role = "PARENT") {
   const path = String(value || "").trim();
   return path.startsWith("/") && !path.startsWith("//")
     ? path.slice(0, 300)
-    : "/parent/notifications";
+    : HOME_BY_ROLE[role] || "/";
 }
 
 export function getWebPushPublicConfig() {
@@ -34,25 +46,55 @@ export function getWebPushPublicConfig() {
   return { enabled: Boolean(publicKey && privateKey), publicKey };
 }
 
-async function sendOne(subscription, delivery) {
-  await webPush.sendNotification(
-    {
-      endpoint: subscription.endpoint,
-      keys: subscription.keys,
-    },
-    JSON.stringify({
-      notificationId: String(delivery.notificationId || ""),
-      title: String(delivery.title || "Pravyo").slice(0, 180),
-      body: String(delivery.body || "You have a new update.").slice(0, 500),
-      href: safeHref(delivery.href),
-      createdAt: delivery.createdAt || new Date().toISOString(),
-      // A unique tag prevents one child's later message replacing an earlier
-      // notice in the phone's notification tray.
-      tag: `pravyo-${String(delivery.notificationId || "update")}`.slice(0, 120),
-      urgent: Boolean(delivery.urgent),
-    }),
-    { TTL: 60 * 60 * 24, urgency: delivery.urgent ? "high" : "normal" }
-  );
+function payloadFor(delivery, role) {
+  const id = String(delivery.notificationId || "");
+  return JSON.stringify({
+    notificationId: id,
+    title: String(delivery.title || "Praavyo").slice(0, 180),
+    body: String(delivery.body || "You have a new update.").slice(0, 500),
+    href: safeHref(delivery.href, role),
+    createdAt: delivery.createdAt || new Date().toISOString(),
+    // A unique tag keeps every notice as its own entry in the notification
+    // tray, so a later one never replaces an earlier one.
+    tag: `pravyo-${id || `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`}`.slice(0, 120),
+    urgent: Boolean(delivery.urgent),
+  });
+}
+
+/**
+ * Send `jobs` ({ subscription, delivery, role }) in small batches. Endpoints
+ * the browser has permanently dropped (404/410) are deleted.
+ */
+async function deliver(jobs) {
+  const { publicKey, privateKey, subject } = configuration();
+  webPush.setVapidDetails(subject, publicKey, privateKey);
+
+  let sent = 0;
+  for (let index = 0; index < jobs.length; index += PUSH_CONCURRENCY) {
+    const batch = jobs.slice(index, index + PUSH_CONCURRENCY);
+    await Promise.all(
+      batch.map(async ({ subscription, delivery, role }) => {
+        try {
+          await webPush.sendNotification(
+            { endpoint: subscription.endpoint, keys: subscription.keys },
+            payloadFor(delivery, role),
+            // High urgency for everything: a notice is the reason the app
+            // exists, and "normal" lets Android hold it while the phone dozes.
+            { TTL: 60 * 60 * 24 * 3, urgency: "high" }
+          );
+          sent += 1;
+        } catch (error) {
+          // 404/410 means the browser permanently invalidated this endpoint.
+          if (error?.statusCode === 404 || error?.statusCode === 410) {
+            await PushSubscription.deleteOne({ endpoint: subscription.endpoint });
+            return;
+          }
+          console.error("[webPush] delivery failed:", error.message);
+        }
+      })
+    );
+  }
+  return sent;
 }
 
 /** Send each durable notification to every current device for its parent. */
@@ -63,14 +105,13 @@ export async function sendPushNotifications(deliveries = []) {
       parentId: String(delivery?.parentId || "").trim(),
     }))
     .filter((delivery) => delivery.parentId);
-  const { publicKey, privateKey, subject } = configuration();
+  const { publicKey, privateKey } = configuration();
 
   if (normalized.length === 0 || !publicKey || !privateKey) {
     return { sent: 0 };
   }
 
   await connectDB();
-  webPush.setVapidDetails(subject, publicKey, privateKey);
 
   const parentIds = Array.from(
     new Set(normalized.map((delivery) => delivery.parentId))
@@ -121,7 +162,7 @@ export async function sendPushNotifications(deliveries = []) {
     }
 
     (deliveriesByParent.get(parentId) || []).forEach((delivery) => {
-      jobs.push({ subscription, delivery });
+      jobs.push({ subscription, delivery, role: "PARENT" });
     });
   });
 
@@ -129,26 +170,88 @@ export async function sendPushNotifications(deliveries = []) {
     await PushSubscription.deleteMany({ endpoint: { $in: staleEndpoints } });
   }
 
-  let sent = 0;
-  for (let index = 0; index < jobs.length; index += PUSH_CONCURRENCY) {
-    const batch = jobs.slice(index, index + PUSH_CONCURRENCY);
-    await Promise.all(
-      batch.map(async ({ subscription, delivery }) => {
-        try {
-          await sendOne(subscription, delivery);
-          sent += 1;
-        } catch (error) {
-          // 404/410 means the browser permanently invalidated this endpoint.
-          if (error?.statusCode === 404 || error?.statusCode === 410) {
-            await PushSubscription.deleteOne({ endpoint: subscription.endpoint });
-            return;
-          }
-          console.error("[webPush] delivery failed:", error.message);
-        }
-      })
-    );
-  }
-
-  return { sent };
+  return { sent: await deliver(jobs) };
 }
 
+/**
+ * Which of `ids` still belong to a working account of `role`, with the
+ * credential generation a device must match (null = not versioned).
+ */
+async function liveAccounts(role, ids) {
+  if (!ids.length) return new Map();
+  if (role === "STUDENT") {
+    const rows = await Student.find({ _id: { $in: ids }, status: "ACTIVE", isDeleted: { $ne: true } })
+      .select("_id")
+      .lean();
+    return new Map(rows.map((row) => [String(row._id), null]));
+  }
+  if (role === "TEACHER") {
+    const rows = await Teacher.find({ _id: { $in: ids }, isDeleted: { $ne: true } }).select("_id").lean();
+    return new Map(rows.map((row) => [String(row._id), null]));
+  }
+  // School and super admin accounts; a suspended or pending school gets none.
+  const rows = await User.find({
+    _id: { $in: ids },
+    role,
+    ...(role === "SCHOOL_ADMIN" ? { status: { $in: ["APPROVED", "SUBSCRIBED"] } } : {}),
+  })
+    .select("_id authVersion")
+    .lean();
+  return new Map(rows.map((row) => [String(row._id), Number(row.authVersion || 0)]));
+}
+
+/**
+ * Push one message to signed-in accounts other than parents.
+ *
+ *   audience.role       STUDENT | TEACHER | SCHOOL_ADMIN | SUPER_ADMIN
+ *   audience.accountIds only these accounts (omit for everyone of the role)
+ *   audience.school     only devices registered at this school
+ *   audience.excludeIds never these accounts (e.g. whoever published it)
+ *
+ * Never throws: an alert failure must not undo the action that caused it.
+ */
+export async function sendAccountPush(audience = {}, delivery = {}) {
+  try {
+    const role = String(audience.role || "").toUpperCase();
+    const { publicKey, privateKey } = configuration();
+    if (!publicKey || !privateKey || !role || role === "PARENT") return { sent: 0 };
+
+    const accountIds = Array.isArray(audience.accountIds)
+      ? [...new Set(audience.accountIds.map((id) => String(id || "")).filter(Boolean))]
+      : null;
+    if (accountIds && accountIds.length === 0) return { sent: 0 };
+
+    await connectDB();
+    const filter = { accountRole: role };
+    if (accountIds) filter.account = { $in: accountIds };
+    if (audience.school) filter.school = audience.school;
+    const subscriptions = await PushSubscription.find(filter)
+      .select("account endpoint keys authVersion expirationTime")
+      .lean();
+    if (!subscriptions.length) return { sent: 0 };
+
+    const excluded = new Set((audience.excludeIds || []).map(String));
+    const live = await liveAccounts(role, [...new Set(subscriptions.map((row) => String(row.account)))]);
+    const now = Date.now();
+    const stale = [];
+    const jobs = [];
+    subscriptions.forEach((subscription) => {
+      const accountId = String(subscription.account);
+      if (excluded.has(accountId)) return;
+      const expired = subscription.expirationTime && new Date(subscription.expirationTime).getTime() <= now;
+      const version = live.get(accountId);
+      const revoked = !live.has(accountId) || (version !== null && Number(subscription.authVersion || 0) !== version);
+      if (expired || revoked) {
+        stale.push(subscription.endpoint);
+        return;
+      }
+      jobs.push({ subscription, delivery, role });
+    });
+
+    if (stale.length) await PushSubscription.deleteMany({ endpoint: { $in: stale } });
+    return { sent: await deliver(jobs) };
+  } catch (error) {
+    console.error("[webPush] account push failed:", error.message);
+    return { sent: 0 };
+  }
+}

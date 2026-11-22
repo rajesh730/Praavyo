@@ -96,6 +96,8 @@ describe("dashboardLinks — signed-in people never see the public site", () => 
     expect(resolve("/writings/w1", "STUDENT")).toEqual({ action: "navigate", href: "/student/school-wall/w1" });
     expect(resolve("/writings/w1")).toEqual({ action: "navigate", href: "/school/dashboard?tab=magazine" });
     expect(resolve("/writings/w1", "PARENT")).toEqual({ action: "navigate", href: "/parent/journey" });
+    expect(resolve("/writings/w1", "TEACHER")).toEqual({ action: "navigate", href: "/teacher/school-wall" });
+    expect(resolve("/magazines/i1", "TEACHER")).toEqual({ action: "navigate", href: "/teacher/dashboard" });
     expect(resolve("/magazines/i1", "STUDENT")).toEqual({ action: "navigate", href: "/student/magazine/issues/i1" });
     expect(resolve("/magazines/i1/articles/a1", "STUDENT")).toEqual({ action: "navigate", href: "/student/magazine/a1" });
     expect(resolve("/magazines/i1")).toEqual({ action: "navigate", href: "/school/dashboard?tab=magazine" });

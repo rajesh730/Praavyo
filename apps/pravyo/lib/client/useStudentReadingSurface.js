@@ -31,7 +31,8 @@ export default function useStudentReadingSurface({ endpoint, surface }) {
   );
 
   useEffect(() => {
-    void markSurfaceSeen(surface);
+    // A surface with no unread badge (e.g. the teacher's School Wall) passes null.
+    if (surface) void markSurfaceSeen(surface);
     void load();
   }, [load, markSurfaceSeen, surface]);
 
