@@ -21,6 +21,12 @@ const PARENT_PUBLIC_PATHS = new Set([
     '/parent/activate',
 ]);
 
+// `/school` must not catch the public `/schools` pages (nor `/student` the
+// public `/students` profiles): area checks match whole path segments.
+function inArea(pathname, prefix) {
+    return pathname === prefix || pathname.startsWith(`${prefix}/`);
+}
+
 export default withAuth(
     function proxy(req) {
         const { pathname } = req.nextUrl;
@@ -52,14 +58,14 @@ export default withAuth(
         // area they can never enter. Resolving PARENT up front avoids that.
         if (token?.role === 'PARENT') {
             if (
-                pathname.startsWith('/admin') ||
-                pathname.startsWith('/school') ||
-                pathname.startsWith('/teacher') ||
-                pathname.startsWith('/student')
+                inArea(pathname, '/admin') ||
+                inArea(pathname, '/school') ||
+                inArea(pathname, '/teacher') ||
+                inArea(pathname, '/student')
             ) {
                 return NextResponse.redirect(new URL('/parent', req.url));
             }
-        } else if (pathname.startsWith('/parent') && !PARENT_PUBLIC_PATHS.has(pathname)) {
+        } else if (inArea(pathname, '/parent') && !PARENT_PUBLIC_PATHS.has(pathname)) {
             // Everyone else is kept out of the Parent App. Staff go to their own
             // dashboard so a mistyped URL does not look like a session failure.
             const destination = DASHBOARD_BY_ROLE[token?.role];
@@ -72,26 +78,26 @@ export default withAuth(
         if (
             token?.role === 'TEACHER' &&
             !token?.schoolId &&
-            (pathname.startsWith('/teacher') || pathname.startsWith('/school')) &&
+            (inArea(pathname, '/teacher') || inArea(pathname, '/school')) &&
             pathname !== '/teacher/select-school'
         ) {
             return NextResponse.redirect(new URL('/teacher/select-school', req.url));
         }
 
         // Protect Admin Routes
-        if (pathname.startsWith('/admin') && token?.role !== 'SUPER_ADMIN') {
+        if (inArea(pathname, '/admin') && token?.role !== 'SUPER_ADMIN') {
             return NextResponse.redirect(new URL('/school/dashboard', req.url));
         }
 
         // Protect School Routes (Teachers & Admins)
-        if (pathname.startsWith('/school')) {
+        if (inArea(pathname, '/school')) {
             if (token?.role !== 'SCHOOL_ADMIN' && token?.role !== 'TEACHER') {
                 if (token?.role === 'SUPER_ADMIN') return NextResponse.redirect(new URL('/admin/dashboard', req.url));
                 // If Student tries to access school/teacher admin area, redirect to student dashboard
                 if (token?.role === 'STUDENT') return NextResponse.redirect(new URL('/student/dashboard', req.url));
                 return NextResponse.redirect(new URL('/login', req.url));
             }
-            if (token?.role === 'SCHOOL_ADMIN' && token?.status === 'UNSUBSCRIBED' && !pathname.startsWith('/school/suspended')) {
+            if (token?.role === 'SCHOOL_ADMIN' && token?.status === 'UNSUBSCRIBED' && !inArea(pathname, '/school/suspended')) {
                 return NextResponse.redirect(new URL('/school/suspended', req.url));
             }
             // The /school area is the school admin's. Teachers work in their
@@ -104,20 +110,20 @@ export default withAuth(
         }
 
         // Protect Teacher Routes (LMS Content Creation)
-        if (pathname.startsWith('/teacher')) {
+        if (inArea(pathname, '/teacher')) {
             if (token?.role !== 'TEACHER' && token?.role !== 'SCHOOL_ADMIN') {
                 return NextResponse.redirect(new URL('/login', req.url));
             }
             // The teacher's exam workspace is for teachers only; the school
             // enters and manages marks in its own area.
-            if (pathname.startsWith('/teacher/exams') && token?.role !== 'TEACHER') {
+            if (inArea(pathname, '/teacher/exams') && token?.role !== 'TEACHER') {
                 return NextResponse.redirect(new URL('/school/exams', req.url));
             }
         }
 
         // Protect Student Routes (LMS Learning)
         // Allow /student/login without authentication
-        if (pathname.startsWith('/student') && pathname !== '/student/login') {
+        if (inArea(pathname, '/student') && pathname !== '/student/login') {
             if (token?.role !== 'STUDENT') {
                 // Redirect teachers/admins back to their dashboards if they try to access student area
                 if (token?.role === 'TEACHER' || token?.role === 'SCHOOL_ADMIN') {
