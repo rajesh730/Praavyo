@@ -399,6 +399,9 @@ export function groupJourney(entries, groupBy = "YEAR") {
     let key;
     let label;
     let subLabel = "";
+    // YEAR groups carry their start year, so the screen can name the year in
+    // the parent's own calendar (BS "२०८३" / AD "2026").
+    let yearStart = null;
 
     if (groupBy === "SCHOOL") {
       key = entry.school?.id || "unknown";
@@ -415,13 +418,14 @@ export function groupJourney(entries, groupBy = "YEAR") {
         : null;
       key = String(entry.academicYearStart ?? fallbackYear ?? "unknown");
       label = entry.academicYear || (fallbackYear ? String(fallbackYear) : "Earlier");
+      yearStart = entry.academicYearStart ?? fallbackYear ?? null;
       // Showing the school under the year is what makes a transfer legible on
       // the timeline: "2025 Orbit" then "2026 Green Village" (§24).
       subLabel = entry.school?.name || "";
     }
 
     if (!groups.has(key)) {
-      groups.set(key, { key, label, subLabel, entries: [] });
+      groups.set(key, { key, label, subLabel, ...(groupBy === "YEAR" ? { yearStart } : {}), entries: [] });
     }
     groups.get(key).entries.push(entry);
   });

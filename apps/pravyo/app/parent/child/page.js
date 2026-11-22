@@ -3,7 +3,7 @@
 import { Suspense, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { CircleCheck as FaCheckCircle, ExternalLink as FaExternalLinkAlt, TriangleAlert, Trophy, PenLine, ScrollText } from "lucide-react";
+import { CircleCheck as FaCheckCircle, ExternalLink as FaExternalLinkAlt, TriangleAlert, Trophy, PenLine, ScrollText, UserRound } from "lucide-react";
 import {
   useParentApp,
   useParentResource,
@@ -13,7 +13,7 @@ import ParentEmptyState from "@/components/parent/ParentEmptyState";
 import WritingReader from "@/components/parent/WritingReader";
 import { formatParentDate } from "@/lib/parentFormat";
 import Glyph from "@/components/ui/Glyph";
-import { academicYearDisplayLabel } from "@pravyo/core/nepaliDate";
+import { academicYearDisplayLabel, academicYearInCalendar } from "@pravyo/core/nepaliDate";
 
 /**
  * "My Child" — the complete portfolio (§18).
@@ -26,11 +26,12 @@ import { academicYearDisplayLabel } from "@pravyo/core/nepaliDate";
  * them, and this screen has nowhere to put them (§18).
  */
 
+// Short labels with an icon each, so all four fit a phone in one row.
 const TABS = [
-  { key: "profile", labelKey: "child.profile" },
-  { key: "achievements", labelKey: "child.achievements" },
-  { key: "writing", labelKey: "child.writing" },
-  { key: "certificates", labelKey: "child.certificates" },
+  { key: "profile", labelKey: "child.profile", icon: UserRound },
+  { key: "achievements", labelKey: "child.achievements", icon: Trophy },
+  { key: "writing", labelKey: "child.writingShort", icon: PenLine },
+  { key: "certificates", labelKey: "child.certificates", icon: ScrollText },
 ];
 
 // `?tab=certificates` opens that tab directly — where a "certificate is
@@ -98,25 +99,25 @@ function ParentChildPortfolio() {
         </p>
       </header>
 
-      <div className="-mx-3 overflow-x-auto overscroll-x-contain px-3 sm:-mx-4 sm:px-4">
-        <div className="flex w-max gap-2">
-          {TABS.map((entry) => (
+      {/* One full-width segmented control: every section visible, no sideways scroll. */}
+      <div role="tablist" aria-label={child.name} className="tabs grid w-full grid-cols-4">
+        {TABS.map((entry) => {
+          const Icon = entry.icon;
+          const active = tab === entry.key;
+          return (
             <button
               key={entry.key}
               type="button"
+              role="tab"
+              aria-selected={active}
               onClick={() => setTab(entry.key)}
-              aria-pressed={tab === entry.key}
-              className={[
-                "btn btn-secondary whitespace-nowrap font-semibold transition-colors",
-                tab === entry.key
-                  ? "border-brand bg-brand text-white"
-                  : "border-line bg-surface text-muted",
-              ].join(" ")}
+              className={`tab h-auto min-w-0 flex-col justify-center gap-1 px-1 py-2 text-xs ${active ? "text-brand" : ""}`}
             >
-              {t(entry.labelKey)}
+              <Icon aria-hidden="true" className="h-4 w-4 shrink-0" strokeWidth={active ? 2.4 : 1.8} />
+              <span className="max-w-full truncate">{t(entry.labelKey)}</span>
             </button>
-          ))}
-        </div>
+          );
+        })}
       </div>
 
       {tab === "profile" ? (
@@ -358,16 +359,10 @@ function ProfileTab({ child, schoolsAttended, calendar, t }) {
     <div className="space-y-4">
       <section className="card p-4">
         <dl className="space-y-2 text-sm">
-          <Row label={t("child.grade")} value={child.grade} />
-          {child.rollNumber ? (
-            <Row label="Roll number" value={child.rollNumber} />
-          ) : null}
-          {child.iemisNumber ? (
-            <Row label="IEMIS number" value={child.iemisNumber} mono />
-          ) : null}
-          {child.platformStudentId ? (
-            <Row label="Praavyo ID" value={child.platformStudentId} mono />
-          ) : null}
+          <Row label={t("child.gradeLabel")} value={child.grade} />
+          <Row label={t("child.rollNumber")} value={child.rollNumber} />
+          <Row label={t("child.iemisNumber")} value={child.iemisNumber} mono />
+          <Row label={t("child.praavyoId")} value={child.platformStudentId} mono />
           <Row label={t("common.school")} value={child.school?.name} />
         </dl>
       </section>
@@ -389,9 +384,11 @@ function ProfileTab({ child, schoolsAttended, calendar, t }) {
                 <p className="text-xs text-muted">
                   {[
                     entry.grade,
-                    academicYearDisplayLabel(entry.academicYear, {
-                      yearStart: entry.academicYearStart,
-                    }),
+                    // In the parent's calendar, like the dates below it
+                    // (BS → "२०८३", AD → "2026").
+                    entry.academicYearStart != null
+                      ? academicYearInCalendar(entry.academicYearStart, calendar)
+                      : academicYearDisplayLabel(entry.academicYear, { calendar }),
                   ]
                     .filter(Boolean)
                     .join(" · ")}
@@ -406,7 +403,7 @@ function ProfileTab({ child, schoolsAttended, calendar, t }) {
                         calendar,
                         relative: false,
                       })}`
-                    : " – Present"}
+                    : ` – ${t("common.present")}`}
                 </p>
               </div>
             </li>
@@ -420,10 +417,10 @@ function ProfileTab({ child, schoolsAttended, calendar, t }) {
 function Row({ label, value, mono = false }) {
   if (!value) return null;
   return (
-    <div className="flex items-baseline justify-between gap-3">
-      <dt className="text-muted">{label}</dt>
+    <div className="flex items-baseline justify-between gap-4">
+      <dt className="shrink-0 text-muted">{label}</dt>
       <dd
-        className={`font-semibold text-ink ${mono ? "font-mono text-xs" : ""}`}
+        className={`min-w-0 text-right font-semibold text-ink [overflow-wrap:anywhere] ${mono ? "font-mono text-xs" : ""}`}
       >
         {value}
       </dd>

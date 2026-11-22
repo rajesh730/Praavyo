@@ -12,13 +12,14 @@ const TABS = [
   // Published continuous-assessment reports. Without a tab here the only
   // route to a child's results was one link below the fold on /parent.
   // Results and Progress both live under /parent/learning.
-  { href: "/parent/learning/cas", match: "/parent/learning", icon: GraduationCap, labelKey: "nav.learning" },
+  { href: "/parent/learning/cas", match: "/parent/learning", icon: GraduationCap, labelKey: "nav.learning", shortLabelKey: "nav.learningShort" },
   { href: "/parent/events", icon: CalendarDays, labelKey: "nav.events" },
   { href: "/parent/messages", icon: MessageCircle, labelKey: "nav.messages" },
   { href: "/parent/child", icon: UserRound, labelKey: "nav.child" },
 ];
 
-function NavItems({ badges }) {
+// `compact` = the phone bar, where six labels share one row: short labels.
+function NavItems({ badges, compact = false }) {
   const pathname = usePathname();
   const { t } = useParentApp();
   return <ul className={styles.navList}>{TABS.map((tab) => {
@@ -31,7 +32,7 @@ function NavItems({ badges }) {
           <Icon aria-hidden="true" strokeWidth={active ? 2.4 : 1.8} />
           {count > 0 && <span className={styles.badge} aria-label={t("nav.newCount", { count })}>{count > 9 ? "9+" : count}</span>}
         </span>
-        <span>{t(tab.labelKey)}</span>
+        <span>{t(compact && tab.shortLabelKey ? tab.shortLabelKey : tab.labelKey)}</span>
       </Link>
     </li>;
   })}</ul>;
@@ -39,7 +40,7 @@ function NavItems({ badges }) {
 
 export default function ParentBottomNav({ badges = {} }) {
   const { t } = useParentApp();
-  return <nav className={`${styles.bottomNav} cas-print-hide`} aria-label={t("nav.parentNavigation")}><NavItems badges={badges} /></nav>;
+  return <nav className={`${styles.bottomNav} cas-print-hide`} aria-label={t("nav.parentNavigation")}><NavItems badges={badges} compact /></nav>;
 }
 
 export function ParentNavRail({ badges = {} }) {

@@ -57,6 +57,7 @@ const en = {
   "nav.events": "Events",
   "nav.messages": "Messages",
   "nav.child": "My Child",
+  "nav.learningShort": "Results",
 
   // --- Status system (§4) ----------------------------------------------
   "status.actionRequired": "ACTION REQUIRED",
@@ -92,6 +93,11 @@ const en = {
   "child.switch": "Switch child",
   "child.selectChild": "Select a child",
   "child.grade": "Grade {grade}",
+  "child.gradeLabel": "Grade",
+  "child.rollNumber": "Roll number",
+  "child.iemisNumber": "IEMIS number",
+  "child.praavyoId": "Praavyo ID",
+  "child.writingShort": "Writing",
 
   // --- Journey ----------------------------------------------------------
   "journey.title": "{name}'s Journey",
@@ -104,6 +110,8 @@ const en = {
   "journey.groupByYear": "Year",
   "journey.groupByGrade": "Grade",
   "journey.groupBySchool": "School",
+  "journey.groupBy": "Group by",
+  "journey.loadMore": "Show more",
   "journey.joined": "Joined {school}",
   "journey.transferred": "Moved to {school}",
   "journey.graduated": "Graduated from {school}",
@@ -272,6 +280,7 @@ const en = {
   "common.today": "Today",
   "common.yesterday": "Yesterday",
   "common.school": "School",
+  "common.present": "Present",
   "common.somethingWrong": "Something went wrong. Please try again.",
 };
 
@@ -307,6 +316,7 @@ const ne = {
   "nav.events": "कार्यक्रम",
   "nav.messages": "सन्देश",
   "nav.child": "मेरो बच्चा",
+  "nav.learningShort": "नतिजा",
 
   "status.actionRequired": "काम गर्नुपर्ने",
   "status.needsAttention": "ध्यान दिनुहोस्",
@@ -338,6 +348,11 @@ const ne = {
   "child.switch": "बच्चा फेर्नुहोस्",
   "child.selectChild": "बच्चा छान्नुहोस्",
   "child.grade": "कक्षा {grade}",
+  "child.gradeLabel": "कक्षा",
+  "child.rollNumber": "रोल नम्बर",
+  "child.iemisNumber": "IEMIS नम्बर",
+  "child.praavyoId": "Praavyo ID",
+  "child.writingShort": "लेखन",
 
   "journey.title": "{name} को यात्रा",
   "journey.all": "सबै",
@@ -349,6 +364,8 @@ const ne = {
   "journey.groupByYear": "वर्ष",
   "journey.groupByGrade": "कक्षा",
   "journey.groupBySchool": "विद्यालय",
+  "journey.groupBy": "समूह",
+  "journey.loadMore": "थप हेर्नुहोस्",
   "journey.joined": "{school} मा भर्ना",
   "journey.transferred": "{school} मा सरुवा",
   "journey.graduated": "{school} बाट उत्तीर्ण",
@@ -507,6 +524,7 @@ const ne = {
   "common.today": "आज",
   "common.yesterday": "हिजो",
   "common.school": "विद्यालय",
+  "common.present": "हालसम्म",
   "common.somethingWrong": "केही गडबड भयो। फेरि प्रयास गर्नुहोस्।",
 };
 

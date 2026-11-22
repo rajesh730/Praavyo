@@ -95,57 +95,59 @@ export default function ParentJourneyPage() {
         ) : null}
       </header>
 
-      {/* Horizontally scrolling filter chips — no dropdowns on a phone. */}
-      <div className="-mx-3 overflow-x-auto overscroll-x-contain px-3 sm:-mx-4 sm:px-4">
-        <div className="flex w-max gap-2 pb-1">
-          {FILTERS.map((entry) => {
-            const active = filter === entry.key;
-            const count = data?.counts?.[entry.key];
-            return (
-              <button
-                key={entry.key}
-                type="button"
-                onClick={() => setFilter(entry.key)}
-                aria-pressed={active}
-                className={[
-                  "btn btn-secondary whitespace-nowrap font-semibold transition-colors",
-                  active
-                    ? "border-brand bg-brand text-white"
-                    : "border-line bg-surface text-muted",
-                ].join(" ")}
-              >
-                {t(entry.labelKey)}
-                {typeof count === "number" && count > 0 ? (
-                  <span className={active ? "ml-1.5 text-white" : "ml-1.5 opacity-60"}>
-                    {count}
-                  </span>
-                ) : null}
-              </button>
-            );
-          })}
-        </div>
+      {/* Filter pills wrap onto a second line instead of scrolling sideways,
+          so every filter is visible at once — no dropdowns on a phone. */}
+      <div className="flex flex-wrap gap-2">
+        {FILTERS.map((entry) => {
+          const active = filter === entry.key;
+          const count = data?.counts?.[entry.key];
+          return (
+            <button
+              key={entry.key}
+              type="button"
+              onClick={() => setFilter(entry.key)}
+              aria-pressed={active}
+              className={[
+                "inline-flex h-9 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 text-sm font-semibold transition-colors",
+                active
+                  ? "border-brand bg-brand text-white"
+                  : "border-line bg-surface text-muted hover:border-brand-line hover:text-ink",
+              ].join(" ")}
+            >
+              {t(entry.labelKey)}
+              {typeof count === "number" && count > 0 ? (
+                <span
+                  className={[
+                    "min-w-5 rounded-full px-1.5 text-center text-xs leading-5",
+                    active ? "bg-white/20 text-white" : "bg-surface-2 text-muted",
+                  ].join(" ")}
+                >
+                  {count}
+                </span>
+              ) : null}
+            </button>
+          );
+        })}
       </div>
 
-      <div className="-mx-3 flex items-center gap-2 overflow-x-auto overscroll-x-contain px-3 pb-1 sm:mx-0 sm:px-0">
-        <span className="shrink-0 text-xs font-medium text-muted">
-          {t("journey.groupByYear")}:
+      <div className="flex items-center gap-3">
+        <span className="shrink-0 text-xs font-semibold text-muted">
+          {t("journey.groupBy")}
         </span>
-        {GROUPS.map((entry) => (
-          <button
-            key={entry.key}
-            type="button"
-            onClick={() => setGroupBy(entry.key)}
-            aria-pressed={groupBy === entry.key}
-            className={[
-              "btn btn-ghost btn-sm shrink-0 whitespace-nowrap font-semibold transition-colors",
-              groupBy === entry.key
-                ? "bg-brand-soft text-brand"
-                : "text-muted hover:bg-surface-2",
-            ].join(" ")}
-          >
-            {t(entry.labelKey)}
-          </button>
-        ))}
+        <div role="radiogroup" aria-label={t("journey.groupBy")} className="tabs">
+          {GROUPS.map((entry) => (
+            <button
+              key={entry.key}
+              type="button"
+              role="radio"
+              aria-checked={groupBy === entry.key}
+              onClick={() => setGroupBy(entry.key)}
+              className={`tab ${groupBy === entry.key ? "is-active" : ""}`}
+            >
+              {t(entry.labelKey)}
+            </button>
+          ))}
+        </div>
       </div>
 
       {state.loading && !data ? (
@@ -155,6 +157,11 @@ export default function ParentJourneyPage() {
           emoji="⚠️"
           tone="neutral"
           title={t("common.somethingWrong")}
+          action={
+            <button type="button" onClick={() => load(1, false)} className="btn btn-primary">
+              {t("common.retry")}
+            </button>
+          }
         />
       ) : !hasEntries ? (
         <ParentEmptyState
@@ -173,7 +180,7 @@ export default function ParentJourneyPage() {
               disabled={state.loading}
               className="btn btn-secondary w-full"
             >
-              {state.loading ? t("common.loading") : t("common.retry")}
+              {state.loading ? t("common.loading") : t("journey.loadMore")}
             </button>
           ) : null}
         </>

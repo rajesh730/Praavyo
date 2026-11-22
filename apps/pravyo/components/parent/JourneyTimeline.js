@@ -5,6 +5,7 @@ import { CircleCheck as FaCheckCircle } from "lucide-react";
 import { useParentApp } from "./ParentAppContext";
 import { formatParentDate } from "@/lib/parentFormat";
 import Glyph from "@/components/ui/Glyph";
+import { academicYearInCalendar } from "@pravyo/core/nepaliDate";
 
 /**
  * The child's Journey timeline (§5).
@@ -30,9 +31,13 @@ export default function JourneyTimeline({ groups }) {
     <div className="space-y-5">
       {groups.map((group) => (
         <section key={group.key}>
-          <header className="sticky top-[76px] z-10 -mx-1 mb-3 bg-surface-2 px-1 py-1.5">
+          {/* Sticks just under the app header, whatever its height (one child,
+              several children, simple mode); the shell measures it. */}
+          <header className="sticky top-[var(--parent-header-h,0px)] z-10 -mx-1 mb-3 bg-canvas px-1 py-1.5">
             <h2 className="font-semibold text-ink">
-              {group.label}
+              {group.yearStart != null
+                ? academicYearInCalendar(group.yearStart, preferences.calendarPreference) || group.label
+                : group.label}
             </h2>
             {group.subLabel ? (
               <p className="text-xs font-medium text-muted">

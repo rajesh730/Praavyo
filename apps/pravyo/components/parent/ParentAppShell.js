@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { Settings, ClipboardList } from "lucide-react";
 import { useParentApp } from "./ParentAppContext";
 import ChildSwitcher from "./ChildSwitcher";
@@ -17,6 +17,20 @@ export default function ParentAppShell({ children }) {
   const { loading, error, needsChildLink, selectedChildId, childList, selectedChild, simpleMode, t, reload, badges } = useParentApp();
   const pathname = usePathname();
   const router = useRouter();
+
+  // Publish the sticky header's real height as --parent-header-h, so sticky
+  // headings inside pages (Journey years) sit just under it. The height
+  // changes with one or several children, simple mode and the phone's notch.
+  const headerObserver = useRef(null);
+  const headerRef = useCallback((node) => {
+    headerObserver.current?.disconnect();
+    headerObserver.current = null;
+    if (!node || typeof ResizeObserver === "undefined") return;
+    const publish = () => document.documentElement.style.setProperty("--parent-header-h", `${node.offsetHeight}px`);
+    publish();
+    headerObserver.current = new ResizeObserver(publish);
+    headerObserver.current.observe(node);
+  }, []);
 
   useEffect(() => {
     if (!loading && needsChildLink && pathname !== "/parent/link") router.replace("/parent/link");
@@ -35,7 +49,7 @@ export default function ParentAppShell({ children }) {
     <div className={styles.frame}>
       <ParentNavRail badges={badges} />
       <div className={styles.workspace}>
-        <header className={`${styles.header} cas-print-hide`}>
+        <header ref={headerRef} className={`${styles.header} cas-print-hide`}>
           <div className={styles.toolbar}>
             <Link href="/parent" className={styles.brand}>
               <strong>Praavyo.</strong><span>{t("home.parentSpace")}</span>
