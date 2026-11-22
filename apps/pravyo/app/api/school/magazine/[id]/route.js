@@ -248,8 +248,8 @@ export async function PATCH(request, props) {
 
     if (!updateResult.matchedCount) {
       return NextResponse.json(
-        { message: "Article could not be updated for this school" },
-        { status: 404 }
+          { message: "Article could not be updated for this school" },
+          { status: 404 }
       );
     }
 

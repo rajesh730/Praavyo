@@ -50,7 +50,7 @@ const TABS = {
   publishing: {
     icon: BookOpen,
     title: () => "Publishing Desk",
-    description: "Student writing from the grades you are class teacher of.",
+    description: "Free writing and magazine content from the grades you are class teacher of.",
     Component: PublishingTab,
   },
   profile: {

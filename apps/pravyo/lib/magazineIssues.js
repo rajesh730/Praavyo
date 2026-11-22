@@ -71,6 +71,9 @@ export function serializeMagazineIssue(issue) {
     monthLabel: month && year ? `${getMonthName(month, year)} ${year}` : "",
     year,
     status: issue.status,
+    acceptingSubmissions: Boolean(issue.acceptingSubmissions),
+    writingOpenedAt: issue.writingOpenedAt || null,
+    writingClosedAt: issue.writingClosedAt || null,
     titleEdited: Boolean(issue.titleEdited),
     publishedAt: issue.publishedAt,
     showOnHome: Boolean(issue.showOnHome),
@@ -85,7 +88,7 @@ export function serializeMagazineIssue(issue) {
  */
 export async function listOpenMagazineIssues(schoolId) {
   if (!schoolId) return [];
-  const issues = await MagazineIssue.find({ school: schoolId, status: "DRAFT" })
+  const issues = await MagazineIssue.find({ school: schoolId, status: "DRAFT", acceptingSubmissions: true })
     .sort({ weekStart: -1, createdAt: -1 })
     .lean();
   return issues.map(serializeMagazineIssue);
@@ -94,5 +97,5 @@ export async function listOpenMagazineIssues(schoolId) {
 /** The open issue with this id at this school, or null. */
 export async function findOpenMagazineIssue(schoolId, issueId) {
   if (!schoolId || !/^[a-f\d]{24}$/i.test(String(issueId || ""))) return null;
-  return MagazineIssue.findOne({ _id: issueId, school: schoolId, status: "DRAFT" }).lean();
+  return MagazineIssue.findOne({ _id: issueId, school: schoolId, status: "DRAFT", acceptingSubmissions: true }).lean();
 }

@@ -9,6 +9,10 @@ import {
   serializeMagazineIssue,
 } from "@/lib/magazineIssues";
 import { publishWorkIndicatorsUpdate } from "@/lib/workIndicatorRealtime";
+import {
+  announceMagazineIssueCreated,
+  announceMagazineWritingOpen,
+} from "@/lib/magazineOpeningNotices";
 
 async function serializeIssueWithCount(issue) {
   const serialized = serializeMagazineIssue(issue);
@@ -110,9 +114,16 @@ export async function POST() {
 
     const issue = await getOrCreateCurrentMagazineIssue(session.user.id);
     const serializedIssue = await serializeIssueWithCount(issue);
+    // Creation is persisted before announcement so a delivery outage never
+    // makes the editor retry and accidentally create a duplicate issue.
+    await announceMagazineIssueCreated({
+      issue,
+      schoolId: session.user.id,
+      authorId: session.user.id,
+    });
 
     return NextResponse.json({
-      message: `${serializedIssue.title} is ready`,
+      message: `${serializedIssue.title} was created. Open writing when students may submit.`,
       issue: serializedIssue,
     });
   } catch (error) {
@@ -137,7 +148,7 @@ export async function PATCH(request) {
     const issueId = body.issueId;
     const action = String(body.action || "").toUpperCase();
 
-    if (!["PUBLISH", "SHOW_HOME", "HIDE_HOME", "RENAME"].includes(action)) {
+    if (!["PUBLISH", "SHOW_HOME", "HIDE_HOME", "RENAME", "OPEN_WRITING", "CLOSE_WRITING"].includes(action)) {
       return NextResponse.json(
         { message: "Invalid magazine issue action" },
         { status: 400 }
@@ -168,6 +179,28 @@ export async function PATCH(request) {
       await issue.save();
       const serializedIssue = await serializeIssueWithCount(issue);
       return NextResponse.json({ message: `Renamed to ${title}`, issue: serializedIssue });
+    }
+
+    if (action === "OPEN_WRITING" || action === "CLOSE_WRITING") {
+      if (issue.status !== "DRAFT") {
+        return NextResponse.json({ message: "Published magazines cannot be reopened for writing." }, { status: 409 });
+      }
+      const opening = action === "OPEN_WRITING";
+      const wasOpen = Boolean(issue.acceptingSubmissions);
+      issue.acceptingSubmissions = opening;
+      issue.writingOpenedAt = opening ? (issue.writingOpenedAt || new Date()) : issue.writingOpenedAt;
+      issue.writingClosedAt = opening ? null : new Date();
+      await issue.save();
+      const serializedIssue = await serializeIssueWithCount(issue);
+      // The durable state is committed first. A delivery outage must never
+      // leave the issue half-open or make the editor retry the action.
+      if (opening && !wasOpen) {
+        await announceMagazineWritingOpen({ issue, schoolId: session.user.id, authorId: session.user.id });
+      }
+      return NextResponse.json({
+        message: opening ? `${serializedIssue.title} is open for student writing` : `${serializedIssue.title} is closed for new writing`,
+        issue: serializedIssue,
+      });
     }
 
     if (action === "SHOW_HOME") {
@@ -224,6 +257,8 @@ export async function PATCH(request) {
     }
 
     issue.status = "PUBLISHED";
+    issue.acceptingSubmissions = false;
+    issue.writingClosedAt = issue.writingClosedAt || new Date();
     issue.publishedAt = issue.publishedAt || new Date();
     issue.showOnHome = true;
     issue.homeShownAt = issue.homeShownAt || issue.publishedAt || new Date();

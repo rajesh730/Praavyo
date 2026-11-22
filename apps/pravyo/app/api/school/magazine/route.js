@@ -24,7 +24,11 @@ export async function GET(request) {
     const grade = String(searchParams.get("grade") || "ALL").trim();
 
     const query = { school: session.user.id, isDeleted: { $ne: true } };
-    if (view === "approved") {
+    if (view === "magazine_candidates") {
+      query.submissionSource = "MAGAZINE";
+      query.status = { $in: ["SUBMITTED", "APPROVED"] };
+      query.classTeacherSelectedAt = { $ne: null };
+    } else if (view === "approved") {
       query.status = { $in: ["SUBMITTED", "APPROVED"] };
     } else if (view === "magazine") {
       query.isMagazinePublished = true;
@@ -66,6 +70,7 @@ export async function GET(request) {
           article.status !== "DRAFT" && article.showOnSchoolWall !== false,
         isPublished: Boolean(article.isPublished),
         isMagazinePublished: Boolean(article.isMagazinePublished),
+        classTeacherSelectedAt: article.classTeacherSelectedAt || null,
         isGlobalWallPublished: Boolean(article.isGlobalWallPublished),
         magazineIssue: serializeMagazineIssue(article.magazineIssue),
         magazineIssueAssignedAt: article.magazineIssueAssignedAt,

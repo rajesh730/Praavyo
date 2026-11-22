@@ -20,6 +20,7 @@
     "db:backfill-event-workflow": "node scripts/backfill-event-workflow-and-certificates.mjs",
     "db:backfill-article-author-era": "node scripts/backfill-article-author-era.mjs",
     "db:backfill-transferred-writing-detach": "node scripts/backfill-transferred-writing-detach.mjs",
+    "db:backfill-magazine-writing-open": "node scripts/backfill-magazine-writing-open.mjs",
     "db:remove-pulse-data": "node scripts/remove-pulse-data.mjs",
     "db:remove-support-ticket-data": "node scripts/remove-support-ticket-data.mjs",
     "media:audit": "node scripts/media-audit.mjs"

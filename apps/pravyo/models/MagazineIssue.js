@@ -51,6 +51,21 @@ const MagazineIssueSchema = new mongoose.Schema(
       default: "PUBLISHED",
       index: true,
     },
+    // A draft can be prepared privately. Only an explicitly opened draft is
+    // offered to students and accepts new magazine submissions.
+    acceptingSubmissions: {
+      type: Boolean,
+      default: false,
+      index: true,
+    },
+    writingOpenedAt: {
+      type: Date,
+      default: null,
+    },
+    writingClosedAt: {
+      type: Date,
+      default: null,
+    },
     publishedAt: {
       type: Date,
       default: null,
@@ -75,6 +90,7 @@ const MagazineIssueSchema = new mongoose.Schema(
 );
 
 MagazineIssueSchema.index({ school: 1, year: -1, month: -1, weekNumber: -1 });
+MagazineIssueSchema.index({ school: 1, status: 1, acceptingSubmissions: 1, weekStart: -1 });
 MagazineIssueSchema.index({
   status: 1,
   showOnHome: 1,

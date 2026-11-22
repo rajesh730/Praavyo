@@ -150,6 +150,19 @@ const SchoolMagazineArticleSchema = new mongoose.Schema(
       default: false,
       index: true,
     },
+    // First editorial gate for magazine submissions. A class teacher selects
+    // work from their own class; only then does it enter the school's final
+    // magazine shortlist. The school still decides what is ultimately printed.
+    classTeacherSelectedAt: {
+      type: Date,
+      default: null,
+      index: true,
+    },
+    classTeacherSelectedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      default: null,
+    },
     // Set when the school corrects the writing (title, text, type). The one
     // document is what the wall, magazine, home page and the student's
     // portfolio all read, so an edit shows everywhere at once.
@@ -271,6 +284,13 @@ SchoolMagazineArticleSchema.index({
   isDeleted: 1,
   magazinePublishedAt: 1,
   updatedAt: 1,
+});
+SchoolMagazineArticleSchema.index({
+  school: 1,
+  requestedIssue: 1,
+  classTeacherSelectedAt: 1,
+  isDeleted: 1,
+  submittedAt: -1,
 });
 SchoolMagazineArticleSchema.index({
   challenge: 1,
