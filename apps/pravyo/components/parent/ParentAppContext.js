@@ -56,7 +56,7 @@ export function ParentAppProvider({ children }) {
       // painting an error screen with no way forward: signing in again is one
       // scan or one Parent ID, so a dead end here is pure obstruction.
       if (res.status === 401) {
-        window.location.assign("/parent/login");
+        window.location.assign("/login");
         return;
       }
 

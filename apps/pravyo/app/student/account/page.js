@@ -16,7 +16,7 @@ export default function StudentAccountPage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (status === "unauthenticated") router.push("/student/login");
+    if (status === "unauthenticated") router.push("/login");
   }, [router, status]);
 
   if (status === "loading") {

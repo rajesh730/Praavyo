@@ -15,7 +15,7 @@ export const dynamic = 'force-dynamic';
  */
 export default async function TeacherExamLayout({ children }) {
   const session = await getServerSession(authOptions);
-  if (!session?.user?.id || session.error) redirect('/login?as=teacher');
+  if (!session?.user?.id || session.error) redirect('/login');
   // The school enters and manages marks in its own area.
   if (session.user.role !== 'TEACHER') redirect('/school/cas/assessment');
   return <CasLayout area="cas" audience="teacher">{children}</CasLayout>;

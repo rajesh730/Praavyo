@@ -73,7 +73,7 @@ function TeacherWorkspace() {
   const { workspace, error, reload } = useTeacherWorkspace();
 
   useEffect(() => {
-    if (status === "unauthenticated") router.replace("/login?as=teacher");
+    if (status === "unauthenticated") router.replace("/login");
   }, [status, router]);
 
   const firstName = String(session?.user?.name || "Teacher").split(" ")[0];
