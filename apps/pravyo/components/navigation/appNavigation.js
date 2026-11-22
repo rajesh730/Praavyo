@@ -65,6 +65,8 @@ export const TEACHER_NAV_LINKS = [
   { name: "Publishing Desk", href: "/teacher/dashboard?tab=publishing", icon: FaBookOpen },
   // The current school's School Wall, the same posts its students read.
   { name: "School Wall", href: "/teacher/school-wall", icon: FaSchool },
+  // The final school magazine, readable by every active teacher.
+  { name: "School Magazine", href: "/teacher/magazine", icon: FaBookOpen },
   { name: "My Profile", href: "/teacher/dashboard?tab=profile", icon: UserRound },
 ];
 

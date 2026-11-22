@@ -16,7 +16,7 @@ export const PATCH = defineRoute({ roles: ["TEACHER"], errorMessage: "Failed to 
   const article = await SchoolMagazineArticle.findOne({
     _id: params.id,
     school: scope.school,
-    authorStudent: { $in: scope.studentIds },
+    $and: [scope.writingFilter],
     submissionSource: "MAGAZINE",
     status: { $in: ["SUBMITTED", "APPROVED"] },
     isDeleted: { $ne: true },

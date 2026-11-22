@@ -3,16 +3,15 @@ import mongoose from "mongoose";
 import { defineRoute } from "@/lib/routeHandler";
 import { APIError } from "@/lib/apiResponse";
 import SchoolMagazineArticle from "@/models/SchoolMagazineArticle";
-import Student from "@/models/Student";
-import { isActiveTeacherMember } from "@pravyo/db/teacherMemberships";
 import { recordLifecycleAudit } from "@/lib/lifecycle";
 import {
   POSTED_STATUSES,
   classTeacherGrades,
   freeWritingQuery,
-  gradeValuesFor,
+  isWritingInGrades,
   validateWritingEdit,
 } from "@/lib/freeWritingDesk";
+import { getTeacherMagazineSchool } from "@/lib/teacherMagazineDesk";
 
 export const dynamic = "force-dynamic";
 
@@ -50,11 +49,7 @@ const AUDITED_FIELDS = ["showOnSchoolWall", "isPublished", "publishedAt", "isGlo
  * class grade: school wall, global wall, or a correction of the text.
  */
 export const PATCH = defineRoute({ roles: ["TEACHER"], errorMessage: "Failed to update writing" }, async ({ request, params, session }) => {
-  const school = session.user.schoolId;
-  if (!school) throw new APIError("Choose the school you are working in", 409, "SCHOOL_REQUIRED");
-  if (!await isActiveTeacherMember(session.user.id, school)) {
-    throw new APIError("You no longer have access to this school", 403, "FORBIDDEN");
-  }
+  const school = await getTeacherMagazineSchool(session);
   if (!mongoose.Types.ObjectId.isValid(params.id)) throw new APIError("Writing not found", 404, "NOT_FOUND");
 
   const article = await SchoolMagazineArticle.findOne({
@@ -64,15 +59,9 @@ export const PATCH = defineRoute({ roles: ["TEACHER"], errorMessage: "Failed to 
   });
   if (!article) throw new APIError("Writing not found", 404, "NOT_FOUND");
 
-  // The author must be a student of a grade this teacher is class teacher of.
+  // It must be written in a grade this teacher is class teacher of.
   const grades = await classTeacherGrades(session.user.id, school);
-  const fromMyClass = grades.length && article.authorStudent && await Student.exists({
-    _id: article.authorStudent,
-    school,
-    isDeleted: { $ne: true },
-    grade: { $in: gradeValuesFor(grades) },
-  });
-  if (!fromMyClass) {
+  if (!await isWritingInGrades(article, grades, school)) {
     throw new APIError("This writing is not from a grade you are class teacher of", 403, "FORBIDDEN");
   }
 

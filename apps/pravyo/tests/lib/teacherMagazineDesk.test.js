@@ -13,7 +13,7 @@ jest.mock("@pravyo/db/teacherMemberships", () => ({
 import Student from "@/models/Student";
 import TeacherTeachingAssignment from "@pravyo/db/models/TeacherTeachingAssignment";
 import { isActiveTeacherMember } from "@pravyo/db/teacherMemberships";
-import { getTeacherMagazineScope } from "@/lib/teacherMagazineDesk";
+import { getTeacherMagazineSchool, getTeacherMagazineScope } from "@/lib/teacherMagazineDesk";
 
 const teacherSession = { user: { id: "teacher-1", schoolId: "school-1" } };
 
@@ -35,11 +35,26 @@ describe("teacher magazine content boundary", () => {
 
     const scope = await getTeacherMagazineScope(teacherSession);
 
-    expect(scope).toEqual({ school: "school-1", grades: ["Grade 3"], studentIds: ["student-3"] });
+    expect(scope.school).toBe("school-1");
+    expect(scope.grades).toEqual(["Grade 3"]);
+    // Writing counts for the grade it was written in; older writing without
+    // that snapshot falls back to the author's current grade.
+    expect(scope.writingFilter.$or[0]).toEqual({
+      authorGrade: { $in: expect.arrayContaining(["Grade 3", "3"]) },
+    });
+    expect(scope.writingFilter.$or[1]).toEqual({
+      authorGrade: { $in: [null, ""] },
+      authorStudent: { $in: ["student-3"] },
+    });
     expect(Student.find).toHaveBeenCalledWith(expect.objectContaining({
       school: "school-1",
       grade: expect.objectContaining({ $in: expect.arrayContaining(["Grade 3", "3"]) }),
     }));
+  });
+
+  it("lets an active teacher read the final school magazine without requiring a class assignment", async () => {
+    await expect(getTeacherMagazineSchool(teacherSession)).resolves.toBe("school-1");
+    expect(TeacherTeachingAssignment.find).not.toHaveBeenCalled();
   });
 
   it("rejects a subject teacher with no class-teacher assignment", async () => {

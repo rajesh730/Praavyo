@@ -10,9 +10,8 @@ import { gradeSummaries } from './shared';
 
 /**
  * The class teacher's Publishing Desk: the school's Free Writing tab, limited
- * to the grades they are class teacher of (Teachers page). The server checks
- * the grade again on every read and change (/api/teacher/publishing). The
- * School Magazine stays with the school.
+ * to the grades they are class teacher of. Published School Magazine reading
+ * lives in the separate sidebar item available to every teacher.
  */
 export default function PublishingTab({ workspace }) {
   const classGrades = useMemo(
@@ -28,7 +27,7 @@ export default function PublishingTab({ workspace }) {
       <EmptyState
         icon={BookOpen}
         title="For class teachers"
-        description="Class teachers manage their grade's student writing here. Your school makes you a class teacher on its Teachers page."
+        description="Class teachers manage their grade's student writing here. Read published School Magazines from the sidebar."
       />
     );
   }
@@ -49,7 +48,7 @@ export default function PublishingTab({ workspace }) {
       </div>
 
       {activeDesk === 'magazine' ? (
-        <MagazineContentTab workspace={workspace} />
+        <MagazineContentTab />
       ) : (
         <SchoolMagazineReviewManager
           listEndpoint="/api/teacher/publishing"

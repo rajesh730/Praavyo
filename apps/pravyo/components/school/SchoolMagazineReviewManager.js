@@ -203,6 +203,7 @@ export default function SchoolMagazineReviewManager({
               ...current,
               showOnSchoolWall: payload.article.showOnSchoolWall ?? current.showOnSchoolWall,
               isPublished: payload.article.isPublished ?? current.isPublished,
+              isGlobalWallPublished: payload.article.isGlobalWallPublished ?? current.isGlobalWallPublished,
             }
           : current
       );

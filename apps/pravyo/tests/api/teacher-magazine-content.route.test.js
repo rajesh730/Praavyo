@@ -18,6 +18,7 @@ import { PATCH } from "@/app/api/teacher/magazine/[id]/route";
 const ARTICLE_ID = "507f1f77bcf86cd799439011";
 const ISSUE_ID = "507f1f77bcf86cd799439012";
 const session = { user: { id: "teacher-1", schoolId: "school-1" } };
+const WRITING_FILTER = { $or: [{ authorGrade: { $in: ["Grade 3", "3"] } }] };
 
 function article(overrides = {}) {
   return {
@@ -46,7 +47,7 @@ function request(action) {
 describe("class-teacher magazine selection", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    getTeacherMagazineScope.mockResolvedValue({ school: "school-1", grades: ["Grade 3"], studentIds: ["student-3"] });
+    getTeacherMagazineScope.mockResolvedValue({ school: "school-1", grades: ["Grade 3"], writingFilter: WRITING_FILTER });
     MagazineIssue.findOne.mockResolvedValue({ _id: ISSUE_ID, status: "DRAFT", acceptingSubmissions: true });
     SchoolMagazineArticle.updateOne.mockResolvedValue({ matchedCount: 1 });
   });
@@ -61,7 +62,7 @@ describe("class-teacher magazine selection", () => {
     expect(body.article.classTeacherSelectedAt).toBeTruthy();
     expect(SchoolMagazineArticle.findOne).toHaveBeenCalledWith(expect.objectContaining({
       school: "school-1",
-      authorStudent: { $in: ["student-3"] },
+      $and: [WRITING_FILTER],
     }));
     expect(MagazineIssue.findOne).toHaveBeenCalledWith(expect.objectContaining({
       status: "DRAFT",

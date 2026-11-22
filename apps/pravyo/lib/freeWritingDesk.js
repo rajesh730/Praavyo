@@ -49,6 +49,44 @@ function studentIdsInGrades(school, grades) {
   }).distinct("_id");
 }
 
+/**
+ * Writing belongs to the grade it was WRITTEN in (the authorGrade snapshot),
+ * not the author's grade today. Otherwise, after promotion, the Grade 3 desk
+ * would fill with last year's Grade 2 writing and lose its own, and writing
+ * by a student who later transfers out would drop off its grade's desk.
+ * Older writings without the snapshot fall back to the author's current grade.
+ * Returns a condition for `$and`.
+ */
+export async function writingGradeFilter(school, grades) {
+  return {
+    $or: [
+      { authorGrade: { $in: gradeValuesFor(grades) } },
+      { authorGrade: { $in: [null, ""] }, authorStudent: { $in: await studentIdsInGrades(school, grades) } },
+    ],
+  };
+}
+
+/** The same rule as writingGradeFilter, for one writing already loaded. */
+export async function isWritingInGrades(article, grades, school) {
+  if (!grades?.length) return false;
+  const writtenIn = String(article.authorGrade || "").trim();
+  if (writtenIn) return isGradeAllowed(writtenIn, grades);
+  if (!article.authorStudent) return false;
+  return Boolean(await Student.exists({
+    _id: article.authorStudent,
+    school,
+    isDeleted: { $ne: true },
+    grade: { $in: gradeValuesFor(grades) },
+  }));
+}
+
+/** Students who wrote Free Writing at this school whose name matches. */
+async function authorIdsMatching(school, safeSearch) {
+  const authorIds = await SchoolMagazineArticle.distinct("authorStudent", freeWritingQuery(school));
+  if (!authorIds.length) return [];
+  return Student.find({ _id: { $in: authorIds }, name: { $regex: safeSearch, $options: "i" } }).distinct("_id");
+}
+
 function serializeFreeWriting(article, { wallSeenAt, trackUnread }) {
   return {
     id: String(article._id),
@@ -107,11 +145,15 @@ export async function listFreeWriting({ school, searchParams, allowedGrades = nu
   } else if (status !== "ALL") {
     query.status = status;
   }
+  // The box says "title or student": match the title, the text, or the
+  // student's name.
   if (search) {
     const safeSearch = escapeRegex(search);
+    const matchingAuthors = await authorIdsMatching(school, safeSearch);
     query.$or = [
       { title: { $regex: safeSearch, $options: "i" } },
       { content: { $regex: safeSearch, $options: "i" } },
+      ...(matchingAuthors.length ? [{ authorStudent: { $in: matchingAuthors } }] : []),
     ];
   }
   // Academic year = the session the student wrote it in (stamped on the
@@ -137,12 +179,9 @@ export async function listFreeWriting({ school, searchParams, allowedGrades = nu
     throw new APIError("You are not the class teacher of this grade", 403, "FORBIDDEN");
   }
   // The year list covers everything this viewer may see, whatever grade is picked.
-  const scopeIds = allowedGrades ? await studentIdsInGrades(school, allowedGrades) : null;
-  if (wantsOneGrade) {
-    query.authorStudent = { $in: await studentIdsInGrades(school, [grade]) };
-  } else if (scopeIds) {
-    query.authorStudent = { $in: scopeIds };
-  }
+  const scopeFilter = allowedGrades ? await writingGradeFilter(school, allowedGrades) : null;
+  const gradeFilter = wantsOneGrade ? await writingGradeFilter(school, [grade]) : scopeFilter;
+  if (gradeFilter) query.$and = [...(query.$and || []), gradeFilter];
 
   const yearsPromise = SchoolMagazineArticle.aggregate([
     {
@@ -151,7 +190,7 @@ export async function listFreeWriting({ school, searchParams, allowedGrades = nu
         isDeleted: { $ne: true },
         submissionSource: { $ne: "MAGAZINE" },
         status: { $in: POSTED_STATUSES },
-        ...(scopeIds ? { authorStudent: { $in: scopeIds } } : {}),
+        ...(scopeFilter ? { $and: [scopeFilter] } : {}),
       },
     },
     {
