@@ -90,17 +90,21 @@ export default function NoticeManager({
   // school chooses is whether the child's guardians receive it as well, so this
   // flag means "student board", NOT "students only".
   const isStudentBoardMode = fixedAudience === "students";
+  // The school's notices to its teachers: teachers fixed, nobody else.
+  const isTeacherBoardMode = fixedAudience === "teachers";
+  const isFixedBoard = isStudentBoardMode || isTeacherBoardMode;
+  const TEACHERS_ONLY = { students: false, teachers: true, parents: false };
 
   const buildDefaultAudience = useCallback(
     () => ({
       students: isStudentBoardMode,
-      teachers: false,
+      teachers: isTeacherBoardMode,
       // Default off: adding parents is an explicit decision, and a notice
       // written for students ("bring your PE kit") is not automatically
       // something every guardian needs pushed to them.
       parents: false,
     }),
-    [isStudentBoardMode]
+    [isStudentBoardMode, isTeacherBoardMode]
   );
 
   const blankForm = useCallback(
@@ -143,6 +147,8 @@ export default function NoticeManager({
       if (!isPlatformMode && filters.grade) params.append("grade", filters.grade);
       if (!isPlatformMode && isStudentBoardMode) {
         params.append("audience", "students");
+      } else if (!isPlatformMode && isTeacherBoardMode) {
+        params.append("audience", "teachers");
       } else if (!isPlatformMode && filters.audience) {
         params.append("audience", filters.audience);
       }
@@ -171,7 +177,7 @@ export default function NoticeManager({
     } finally {
       setLoading(false);
     }
-  }, [filters, isPlatformMode, isStudentBoardMode]);
+  }, [filters, isPlatformMode, isStudentBoardMode, isTeacherBoardMode]);
 
   useEffect(() => {
     const timer = setTimeout(() => fetchNotices(1), 300);
@@ -213,7 +219,7 @@ export default function NoticeManager({
   };
 
   const saveNotice = async (status) => {
-    if (!isPlatformMode && !isStudentBoardMode) {
+    if (!isPlatformMode && !isFixedBoard) {
       const { students, teachers, parents } = noticeForm.targetAudience;
       if (!students && !teachers && !parents) {
         setFeedback({
@@ -244,6 +250,8 @@ export default function NoticeManager({
           // choice and must be carried through rather than reset.
           targetAudience: isStudentBoardMode
             ? { students: true, teachers: false, parents: Boolean(noticeForm.targetAudience.parents) }
+            : isTeacherBoardMode
+            ? TEACHERS_ONLY
             : noticeForm.targetAudience,
           scope: isPlatformMode ? "PLATFORM" : "SCHOOL",
         }),
@@ -332,7 +340,9 @@ export default function NoticeManager({
       priority: notice.priority || "NORMAL",
       status: notice.status || "PUBLISHED",
       visibility: notice.visibility || "PRIVATE",
-      targetAudience: isStudentBoardMode
+      targetAudience: isTeacherBoardMode
+        ? TEACHERS_ONLY
+        : isStudentBoardMode
         ? {
             students: true,
             teachers: false,
@@ -388,7 +398,7 @@ export default function NoticeManager({
             <DateTile value={tileDate(notice)} tone={tileTone(notice)} size="lg" />
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-1.5">
-                {!isPlatformMode && !isStudentBoardMode && <span className={`badge ${type.badge}`}>{type.label}</span>}
+                {!isPlatformMode && !isFixedBoard && <span className={`badge ${type.badge}`}>{type.label}</span>}
                 {notice.status === "DRAFT"
                   ? <span className="badge badge-neutral">Draft — not sent</span>
                   : <span className="badge badge-success">On the board</span>}
@@ -558,7 +568,7 @@ export default function NoticeManager({
                 />
               </div>
 
-              {!isPlatformMode && !isStudentBoardMode && (
+              {!isPlatformMode && !isFixedBoard && (
                 <div className="grid gap-4 sm:grid-cols-[1fr_11rem]">
                   <fieldset>
                     <legend className="label">Type</legend>
@@ -600,6 +610,11 @@ export default function NoticeManager({
               {isPlatformMode ? (
                 <p className="rounded-card border border-brand-line bg-brand-soft p-3 text-sm text-brand-strong">
                   Published platform notices appear inside every school dashboard.
+                </p>
+              ) : isTeacherBoardMode ? (
+                <p className="rounded-card border border-brand-line bg-brand-soft p-3 text-sm text-brand-strong">
+                  Sent to your teachers: their notification bell, their Notices page and their phone or laptop.
+                  Choose grades below to reach only the teachers of those grades.
                 </p>
               ) : isStudentBoardMode ? (
                 <fieldset>
@@ -797,7 +812,7 @@ export default function NoticeManager({
         </div>
         {!isPlatformMode && (
           <div className="flex gap-2">
-            {!isStudentBoardMode && (
+            {!isFixedBoard && (
               <select
                 value={filters.type}
                 onChange={(event) => setFilters({ ...filters, type: event.target.value })}
@@ -868,7 +883,7 @@ export default function NoticeManager({
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-1.5">
                         {draft && <span className="badge badge-neutral">Draft</span>}
-                        {!isPlatformMode && !isStudentBoardMode && notice.type !== "GENERAL" && (
+                        {!isPlatformMode && !isFixedBoard && notice.type !== "GENERAL" && (
                           <span className={`badge ${type.badge}`}>{type.label}</span>
                         )}
                         {notice.priority === "URGENT" && notice.type !== "URGENT" && <span className="badge badge-danger">Urgent</span>}

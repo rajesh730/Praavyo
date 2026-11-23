@@ -69,6 +69,7 @@ const SCHOOL_NAV_GROUPS = [
       "School Events",
       "Platform Events",
       "Student Notices",
+      "Teacher Notices",
       "Received Notices",
     ],
   },

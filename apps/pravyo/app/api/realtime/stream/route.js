@@ -20,6 +20,7 @@ export const dynamic = "force-dynamic";
 const LOGIN_REQUIRED_CHANNELS = new Set([
   "school-notifications",
   "student-notifications",
+  "teacher-notifications",
   "work-indicators",
 ]);
 const ADMIN_ONLY_CHANNELS = new Set(["admin-diagnostics"]);

@@ -4,6 +4,8 @@ import SchoolMagazineArticle from "@/models/SchoolMagazineArticle";
 import { sendAccountPush } from "@pravyo/core/webPush";
 import { notifyGuardians } from "@/lib/parentNotifications";
 import { pushUserNotifications, teacherIdsForGrades } from "@/lib/devicePush";
+import { notifyTeachers } from "@/lib/teacherNotifications";
+import { publishRealtimeEvent } from "@/lib/realtimeBus";
 import { getEquivalentGradeValues } from "@/lib/schoolGrades";
 
 /**
@@ -92,6 +94,8 @@ export async function notifySchoolWallShown({ articleId, schoolId, actor = {} })
       });
     }
     const created = await UserNotification.insertMany(bell);
+    publishRealtimeEvent("student-notifications", { kind: "school-wall-shown", articleId: id });
+    if (byTeacher) publishRealtimeEvent("school-notifications", { kind: "school-wall-shown", articleId: id });
 
     const delivery = {
       notificationId: `school-wall-${id}`,
@@ -114,10 +118,17 @@ export async function notifySchoolWallShown({ articleId, schoolId, actor = {} })
         { role: "STUDENT", accountIds: classmates.map(String), school: schoolId, excludeIds: [actorId] },
         { ...delivery, href: `/student/school-wall/${id}` }
       ),
-      sendAccountPush(
-        { role: "TEACHER", accountIds: teacherIds, school: schoolId, excludeIds: [actorId] },
-        { ...delivery, href: `/teacher/school-wall/${id}` }
-      ),
+      // In each grade teacher's bell, and on their devices.
+      notifyTeachers({
+        teacherIds,
+        school: schoolId,
+        category: "MAGAZINE",
+        title: delivery.title,
+        message: delivery.body,
+        href: `/teacher/school-wall/${id}`,
+        metadata: { articleId: id, action: "SHOWN_ON_SCHOOL_WALL" },
+        excludeIds: [actorId],
+      }),
     ]);
   } catch (error) {
     console.error("[schoolWall] notification failed:", error.message);

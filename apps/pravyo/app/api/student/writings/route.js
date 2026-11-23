@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { runAfterResponse } from "@/lib/afterResponse";
 import { requireApiSession } from "@/lib/authz";
 import connectDB from "@/lib/db";
 import Student from "@/models/Student";
@@ -270,12 +271,12 @@ export async function POST(request) {
         });
 
         if (requestedStatus === "SUBMITTED") {
-          await notifySchoolMagazineSubmitted({
+          runAfterResponse(() => notifySchoolMagazineSubmitted({
             article,
             student,
             schoolId: student.school,
             isResubmission: previousStatus === "REJECTED",
-          });
+          }));
         }
 
         return NextResponse.json({
@@ -329,11 +330,11 @@ export async function POST(request) {
     });
 
     if (requestedStatus === "SUBMITTED") {
-      await notifySchoolMagazineSubmitted({
+      runAfterResponse(() => notifySchoolMagazineSubmitted({
         article,
         student,
         schoolId: student.school,
-      });
+      }));
     }
 
     return NextResponse.json(

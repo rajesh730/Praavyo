@@ -16,6 +16,7 @@ import { useTeacherWorkspace } from "@/components/teacher/workspace/shared";
 import PageHeader from "@/components/ui/PageHeader";
 import LoadingState from "@/components/ui/LoadingState";
 import AlertBanner from "@/components/ui/AlertBanner";
+import TeacherNotificationCenter from "@/components/teacher/TeacherNotificationCenter";
 import { BookOpen, CalendarDays, ClipboardCheck, Presentation, UserRound, Users } from "lucide-react";
 
 /**
@@ -129,6 +130,7 @@ function TeacherWorkspace() {
           eyebrow="Teacher"
           title={tab.title(firstName)}
           description={tab.description}
+          action={<TeacherNotificationCenter />}
         />
         {body}
       </div>

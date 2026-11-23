@@ -14,6 +14,13 @@ export function publishNoticeRealtimeEvent({
     return;
   }
 
+  // Teachers' bells refresh for notices addressed to teachers or events.
+  if (targetAudience?.teachers || normalizedScope === "SCHOOL") {
+    publishRealtimeEvent("teacher-notifications", {
+      kind: isDeleted ? "teacher-notice-removed" : "teacher-notice-updated",
+    });
+  }
+
   if (targetAudience?.students && !isDeleted) {
     publishRealtimeEvent("student-notifications", {
       kind: "student-notice-updated",

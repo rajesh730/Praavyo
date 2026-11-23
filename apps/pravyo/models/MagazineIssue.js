@@ -93,6 +93,13 @@ const MagazineIssueSchema = new mongoose.Schema(
       ref: "Notice",
       default: null,
     },
+    // "New magazine is out", sent once on first publish; hidden while the
+    // issue is unpublished and shown again (not re-sent) on republish.
+    publishedNotice: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Notice",
+      default: null,
+    },
     articles: [
       {
         type: mongoose.Schema.Types.ObjectId,

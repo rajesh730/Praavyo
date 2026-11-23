@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { runAfterResponse } from "@/lib/afterResponse";
 import mongoose from "mongoose";
 import { defineRoute } from "@/lib/routeHandler";
 import { APIError } from "@/lib/apiResponse";
@@ -13,6 +14,7 @@ import {
 } from "@/lib/freeWritingDesk";
 import { getTeacherMagazineSchool } from "@/lib/teacherMagazineDesk";
 import { notifySchoolWallShown } from "@/lib/schoolWallNotifications";
+import { notifyWritingMilestone } from "@/lib/writingMilestoneNotifications";
 
 export const dynamic = "force-dynamic";
 
@@ -115,12 +117,11 @@ export const PATCH = defineRoute({ roles: ["TEACHER"], errorMessage: "Failed to 
     after,
   });
 
+  const teacherActor = { role: "TEACHER", id: session.user.id, name: session.user.name };
   if (action === "SHOW_SCHOOL_WALL") {
-    await notifySchoolWallShown({
-      articleId: article._id,
-      schoolId: school,
-      actor: { role: "TEACHER", id: session.user.id, name: session.user.name },
-    });
+    runAfterResponse(() => notifySchoolWallShown({ articleId: article._id, schoolId: school, actor: teacherActor }));
+  } else if (action === "PUBLISH_HOMEPAGE") {
+    runAfterResponse(() => notifyWritingMilestone({ articleId: article._id, schoolId: school, milestone: "ON_GLOBAL_WALL", actor: teacherActor }));
   }
 
   return NextResponse.json({

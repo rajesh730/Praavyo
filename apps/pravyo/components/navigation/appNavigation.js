@@ -43,6 +43,8 @@ export const SCHOOL_NAV_LINKS = [
   { name: "School Events", href: "/school/dashboard?tab=school-events", icon: FaCalendarAlt },
   { name: "Platform Events", href: "/school/dashboard?tab=platform-events", icon: FaGlobe },
   { name: "Student Notices", href: "/school/dashboard?tab=student-notices", icon: FaBell },
+  // Notices to the school's teachers (their bell, Notices page and devices).
+  { name: "Teacher Notices", href: "/school/dashboard?tab=teacher-notices", icon: FaBell },
   { name: "Received Notices", href: "/school/dashboard?tab=notices", icon: FaBell },
   { name: "Publishing Desk", href: "/school/dashboard?tab=magazine", icon: FaBookOpen },
   { name: "Certificates", href: "/school/certificates", icon: FaCertificate },
@@ -61,6 +63,8 @@ export const TEACHER_NAV_LINKS = [
   { name: "Exams", href: "/teacher/dashboard?tab=exams", icon: FaClipboardCheck },
   { name: "Students", href: "/teacher/dashboard?tab=students", icon: FaUsers },
   { name: "Events", href: "/teacher/dashboard?tab=events", icon: FaCalendarAlt },
+  // School notices for teachers, events of their grades, class alerts.
+  { name: "Notices", href: "/teacher/notices", icon: FaBell },
   // Class teachers manage their grade's Free Writing (others see why not).
   { name: "Publishing Desk", href: "/teacher/dashboard?tab=publishing", icon: FaBookOpen },
   // The current school's School Wall, the same posts its students read.

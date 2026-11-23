@@ -52,6 +52,8 @@ export async function pushUserNotifications(docs = []) {
         result = await sendAccountPush({ role: "STUDENT", accountIds: [idOf(row.recipientStudent)] }, delivery);
       } else if (row.targetRole === "SCHOOL_ADMIN" && (row.recipientUser || row.school)) {
         result = await sendAccountPush({ role: "SCHOOL_ADMIN", accountIds: [idOf(row.recipientUser || row.school)] }, delivery);
+      } else if (row.targetRole === "TEACHER" && row.recipientTeacher) {
+        result = await sendAccountPush({ role: "TEACHER", accountIds: [idOf(row.recipientTeacher)], school: row.school || undefined }, delivery);
       }
       sent += result.sent;
     }
@@ -88,8 +90,9 @@ async function studentIdsAtSchool(schoolId, grades = []) {
 /**
  * A Notice that has just become PUBLISHED. Platform notices ring every school;
  * school notices for students ring that school's students in the chosen
- * grades (an event notice: its eligible grades, everyone when none).
- * Parents are reached separately by publishNoticeToParents.
+ * grades (an event notice: its eligible grades, everyone when none); school
+ * notices for teachers ring the active teachers of those grades (every
+ * teacher when none). Parents are reached separately by publishNoticeToParents.
  */
 export async function pushNoticePublished(notice, { excludeIds = [] } = {}) {
   if (!notice || notice.status !== "PUBLISHED") return { sent: 0 };
@@ -108,13 +111,27 @@ export async function pushNoticePublished(notice, { excludeIds = [] } = {}) {
       );
     }
 
-    if (!notice.targetAudience?.students || !notice.school) return { sent: 0 };
-    const studentIds = await studentIdsAtSchool(notice.school, notice.grades);
+    if (!notice.school) return { sent: 0 };
     const eventId = notice.event ? idOf(notice.event) : "";
-    return sendAccountPush(
-      { role: "STUDENT", accountIds: studentIds, school: notice.school, excludeIds },
-      { ...delivery, href: eventId ? `/student/events/${eventId}` : "/student/notices" }
-    );
+    const [students, teachers] = await Promise.all([
+      notice.targetAudience?.students
+        ? studentIdsAtSchool(notice.school, notice.grades).then((ids) =>
+            sendAccountPush(
+              { role: "STUDENT", accountIds: ids, school: notice.school, excludeIds },
+              { ...delivery, href: eventId ? `/student/events/${eventId}` : "/student/notices" }
+            )
+          )
+        : { sent: 0 },
+      notice.targetAudience?.teachers
+        ? teacherIdsForGrades(notice.school, notice.grades).then((ids) =>
+            sendAccountPush(
+              { role: "TEACHER", accountIds: ids, school: notice.school, excludeIds },
+              { ...delivery, href: "/teacher/notices" }
+            )
+          )
+        : { sent: 0 },
+    ]);
+    return { sent: (students.sent || 0) + (teachers.sent || 0) };
   });
 }
 

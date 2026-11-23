@@ -1,5 +1,6 @@
 import mongoose from "mongoose";
 import { NextResponse } from "next/server";
+import { runAfterResponse } from "@/lib/afterResponse";
 import { defineRoute } from "@/lib/routeHandler";
 import { APIError } from "@/lib/apiResponse";
 import SchoolMagazineArticle from "@/models/SchoolMagazineArticle";
@@ -7,6 +8,7 @@ import MagazineIssue from "@/models/MagazineIssue";
 import { getTeacherMagazineScope } from "@/lib/teacherMagazineDesk";
 import { validateWritingEdit } from "@/lib/freeWritingDesk";
 import { recordLifecycleAudit } from "@/lib/lifecycle";
+import { notifyWritingMilestone } from "@/lib/writingMilestoneNotifications";
 
 /** A class teacher is the first editorial gate for their students' magazine
  * submissions. Issue lifecycle and final inclusion stay with the school. */
@@ -72,6 +74,15 @@ export const PATCH = defineRoute({ roles: ["TEACHER"], errorMessage: "Failed to 
     before: { classTeacherSelectedAt: article.classTeacherSelectedAt || null },
     after: { classTeacherSelectedAt: selectedAt },
   });
+  if (selected) {
+    // The school decides next; the author hears the good news.
+    runAfterResponse(() => notifyWritingMilestone({
+      articleId: article._id,
+      schoolId: scope.school,
+      milestone: "SELECTED_FOR_MAGAZINE",
+      actor: { role: "TEACHER", id: session.user.id, name: session.user.name },
+    }));
+  }
   return NextResponse.json({
     message: selected ? "Writing selected for the school magazine team" : "Writing returned to the class selection list",
     article: { id: String(article._id), classTeacherSelectedAt: selectedAt },

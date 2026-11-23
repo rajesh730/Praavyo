@@ -123,6 +123,14 @@ const SchoolSettingsHistory = dynamic(
     ),
   }
 );
+const TeacherNoticeManager = dynamic(
+  () => import("@/components/school/TeacherNoticeManager"),
+  {
+    loading: () => (
+      <LoadingState title="Loading teacher notices" message="Preparing your notice board tools." />
+    ),
+  }
+);
 const StudentNoticeManager = dynamic(
   () => import("@/components/school/StudentNoticeManager"),
   {
@@ -360,6 +368,7 @@ function SchoolDashboardContent() {
               />
             )}
             {activeTab === "student-notices" && <StudentNoticeManager />}
+            {activeTab === "teacher-notices" && <TeacherNoticeManager />}
             {activeTab === "notices" && <SchoolNoticeBoard />}
             {activeTab === "magazine" && <SchoolMagazineManager />}
           </>

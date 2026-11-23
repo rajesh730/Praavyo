@@ -25,7 +25,7 @@ const UserNotificationSchema = new mongoose.Schema(
   {
     targetRole: {
       type: String,
-      enum: ["STUDENT", "SCHOOL_ADMIN", "PARENT"],
+      enum: ["STUDENT", "SCHOOL_ADMIN", "PARENT", "TEACHER"],
       required: true,
       index: true,
     },
@@ -38,6 +38,14 @@ const UserNotificationSchema = new mongoose.Schema(
     recipientStudent: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Student",
+      default: null,
+      index: true,
+    },
+    // TEACHER notifications: the teacher's bell at `school` (a teacher can
+    // work at several schools; each school's alerts stay in its own bell).
+    recipientTeacher: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Teacher",
       default: null,
       index: true,
     },
@@ -152,7 +160,7 @@ const UserNotificationSchema = new mongoose.Schema(
         },
         userType: {
           type: String,
-          enum: ["STUDENT", "SCHOOL_ADMIN", "PARENT"],
+          enum: ["STUDENT", "SCHOOL_ADMIN", "PARENT", "TEACHER"],
         },
         readAt: {
           type: Date,
@@ -178,6 +186,13 @@ UserNotificationSchema.index({
 UserNotificationSchema.index({
   targetRole: 1,
   recipientStudent: 1,
+  isDeleted: 1,
+  publishedAt: -1,
+});
+// Teacher bell at one school.
+UserNotificationSchema.index({
+  recipientTeacher: 1,
+  school: 1,
   isDeleted: 1,
   publishedAt: -1,
 });

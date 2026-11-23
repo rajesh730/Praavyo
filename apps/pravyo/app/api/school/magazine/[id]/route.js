@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
+import { runAfterResponse } from "@/lib/afterResponse";
 import { requireApiSession } from "@/lib/authz";
 import connectDB from "@/lib/db";
 import SchoolMagazineArticle from "@/models/SchoolMagazineArticle";
 import { recordLifecycleAudit } from "@/lib/lifecycle";
 import { validateWritingEdit } from "@/lib/freeWritingDesk";
 import { notifySchoolWallShown } from "@/lib/schoolWallNotifications";
+import { notifyWritingMilestone } from "@/lib/writingMilestoneNotifications";
 import MagazineIssue from "@/models/MagazineIssue";
 import {
   getCurrentMagazineIssue,
@@ -313,12 +315,14 @@ export async function PATCH(request, props) {
       after,
     });
 
+    // Every step reaches the people it concerns (lib/*Notifications.js).
+    const schoolActor = { role: "SCHOOL_ADMIN", id: session.user.id };
     if (action === "SHOW_SCHOOL_WALL") {
-      await notifySchoolWallShown({
-        articleId: article._id,
-        schoolId: session.user.id,
-        actor: { role: "SCHOOL_ADMIN", id: session.user.id },
-      });
+      runAfterResponse(() => notifySchoolWallShown({ articleId: article._id, schoolId: session.user.id, actor: schoolActor }));
+    } else if (action === "PUBLISH_MAGAZINE") {
+      runAfterResponse(() => notifyWritingMilestone({ articleId: article._id, schoolId: session.user.id, milestone: "IN_MAGAZINE", actor: schoolActor }));
+    } else if (["PUBLISH", "PUBLISH_HOMEPAGE", "PUBLISH_GLOBAL_WALL"].includes(action)) {
+      runAfterResponse(() => notifyWritingMilestone({ articleId: article._id, schoolId: session.user.id, milestone: "ON_GLOBAL_WALL", actor: schoolActor }));
     }
 
     const messageByAction = {

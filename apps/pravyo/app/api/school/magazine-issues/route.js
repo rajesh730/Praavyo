@@ -11,6 +11,7 @@ import {
 import { publishWorkIndicatorsUpdate } from "@/lib/workIndicatorRealtime";
 import {
   announceMagazineIssueCreated,
+  announceMagazinePublished,
   announceMagazineWritingOpen,
   setMagazineNoticeActive,
 } from "@/lib/magazineOpeningNotices";
@@ -256,6 +257,8 @@ export async function PATCH(request) {
       issue.showOnHome = false;
       issue.homeShownAt = null;
       await issue.save();
+      // "New magazine is out" no longer true: hide it until republished.
+      if (issue.publishedNotice) after(() => setMagazineNoticeActive(issue.publishedNotice, false));
 
       const serializedIssue = await serializeIssueWithCount(issue);
       publishWorkIndicatorsUpdate("magazine-issue-unpublished", {
@@ -330,6 +333,18 @@ export async function PATCH(request) {
     await issue.save();
 
     withdrawMagazineNotices(issue);
+    // Tell the whole school once; a republish shows the same notice again.
+    const publishedNotice = issue.publishedNotice;
+    after(async () => {
+      if (publishedNotice) {
+        await setMagazineNoticeActive(publishedNotice, true);
+        return;
+      }
+      const notice = await announceMagazinePublished({ issue, schoolId: session.user.id, authorId: session.user.id });
+      if (notice) {
+        await MagazineIssue.updateOne({ _id: issue._id, publishedNotice: null }, { $set: { publishedNotice: notice._id } });
+      }
+    });
     const serializedIssue = await serializeIssueWithCount(issue);
     publishWorkIndicatorsUpdate("magazine-issue-published", {
       schoolId: String(session.user.id),

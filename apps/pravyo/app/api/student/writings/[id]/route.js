@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { runAfterResponse } from "@/lib/afterResponse";
 import mongoose from "mongoose";
 import connectDB from "@/lib/db";
 import Student from "@/models/Student";
@@ -236,12 +237,12 @@ export async function PATCH(request, props) {
       });
 
       if (article.status === "SUBMITTED") {
-        await notifySchoolMagazineSubmitted({
+        runAfterResponse(() => notifySchoolMagazineSubmitted({
           article,
           student,
           schoolId: student.school,
           isResubmission: previousStatus === "REJECTED",
-        });
+        }));
       }
 
       return NextResponse.json({
@@ -362,12 +363,12 @@ export async function PATCH(request, props) {
     });
 
     if (requestedStatus === "SUBMITTED") {
-      await notifySchoolMagazineSubmitted({
+      runAfterResponse(() => notifySchoolMagazineSubmitted({
         article,
         student,
         schoolId: student.school,
         isResubmission: previousStatus === "REJECTED",
-      });
+      }));
     }
 
     return NextResponse.json({

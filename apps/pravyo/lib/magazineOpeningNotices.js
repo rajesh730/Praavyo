@@ -1,8 +1,6 @@
 import Notice from "@/models/Notice";
-import TeacherMembership from "@pravyo/db/models/TeacherMembership";
 import { publishNoticeToParents } from "@/lib/notifications/service";
 import { pushNoticePublished } from "@/lib/devicePush";
-import { sendAccountPush } from "@pravyo/core/webPush";
 import { publishNoticeRealtimeEvent } from "@/lib/noticeRealtime";
 
 async function announceMagazineNotice({ issue, schoolId, authorId, title, content }) {
@@ -24,18 +22,12 @@ async function announceMagazineNotice({ issue, schoolId, authorId, title, conten
       publishedAt: new Date(),
     });
 
-    const teacherIds = await TeacherMembership.find({ school: schoolId, status: "ACTIVE" }).distinct("teacher");
-    const delivery = {
-      notificationId: `notice-${String(notice._id)}`,
-      title,
-      body: content,
-      href: "/teacher/dashboard?tab=publishing",
-    };
     publishNoticeRealtimeEvent({ scope: "SCHOOL", targetAudience: notice.targetAudience });
+    // Students and teachers (the notice is for both) ring through
+    // pushNoticePublished; guardians through publishNoticeToParents.
     await Promise.all([
       publishNoticeToParents(notice._id),
       pushNoticePublished(notice, { excludeIds: [authorId] }),
-      sendAccountPush({ role: "TEACHER", accountIds: teacherIds, school: schoolId, excludeIds: [authorId] }, delivery),
     ]);
     return notice;
   } catch (error) {
@@ -71,6 +63,21 @@ export function announceMagazineWritingOpen({ issue, schoolId, authorId }) {
     authorId,
     title: `Writing is open: ${magazineTitle}`,
     content: `Students can now submit writing for ${magazineTitle}. Open Writing and choose this magazine before sending your work.`,
+  });
+}
+
+/**
+ * A magazine issue was published: the whole school (students, teachers,
+ * parents) hears it is out, in the bell and on their devices.
+ */
+export function announceMagazinePublished({ issue, schoolId, authorId }) {
+  const magazineTitle = issue?.title || "School magazine";
+  return announceMagazineNotice({
+    issue,
+    schoolId,
+    authorId,
+    title: `New magazine is out: ${magazineTitle}`,
+    content: `${magazineTitle} is published. Open School Magazine to read your school's writing.`,
   });
 }
 

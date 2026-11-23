@@ -2,7 +2,7 @@ import UserNotification from "@/models/UserNotification";
 import { publishRealtimeEvent } from "@/lib/realtimeBus";
 import { publishWorkIndicatorsUpdate } from "@/lib/workIndicatorRealtime";
 import { pushUserNotifications } from "@/lib/devicePush";
-import { sendAccountPush } from "@pravyo/core/webPush";
+import { notifyTeachers } from "@/lib/teacherNotifications";
 import TeacherTeachingAssignment from "@pravyo/db/models/TeacherTeachingAssignment";
 import { getEquivalentGradeValues } from "@/lib/schoolGrades";
 
@@ -79,15 +79,16 @@ export async function notifySchoolMagazineSubmitted({
         assignmentType: "CLASS_TEACHER",
         grade: { $in: getEquivalentGradeValues(student.grade) },
       }).distinct("teacher");
-      await sendAccountPush(
-        { role: "TEACHER", accountIds: teacherIds, school: schoolId },
-        {
-          notificationId: `magazine-submission-${String(article?._id || "")}`,
-          title: isMagazineSubmission ? "New magazine submission" : "New school wall post",
-          body: `${student?.name || "A student"} sent ${articleTitle(article)} for class review.`,
-          href: "/teacher/dashboard?tab=publishing",
-        }
-      );
+      // In the class teacher's bell and on their devices.
+      await notifyTeachers({
+        teacherIds: teacherIds.map(String),
+        school: schoolId,
+        category: "MAGAZINE",
+        title: isMagazineSubmission ? "New magazine submission" : "New school wall post",
+        message: `${student?.name || "A student"} sent ${articleTitle(article)} for class review.`,
+        href: "/teacher/dashboard?tab=publishing",
+        metadata: { articleId: String(article?._id || ""), action: "POSTED" },
+      });
     } catch (error) {
       console.error("[magazine] class-teacher submission notification failed:", error.message);
     }
