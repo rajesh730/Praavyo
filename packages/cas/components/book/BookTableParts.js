@@ -31,24 +31,24 @@ export function bookLanguage(displayLanguage = 'en') {
 }
 
 /** Curriculum adds one narrow column for its row controls; the book has none. */
-export function BookColgroup({ withActions = false }) {
+export function BookColgroup({ withActions = false, withTools = true }) {
   return (
     <colgroup>
       <col className="cas-book-col-serial" />
       <col className="cas-book-col-outcome" />
       <col className="cas-book-col-aspect" />
-      <col className="cas-book-col-tool" />
+      {withTools && <col className="cas-book-col-tool" />}
       <col className="cas-book-col-date" />
       <col className="cas-book-col-mark" />
       <col className="cas-book-col-date" />
       <col className="cas-book-col-mark" />
-      <col className="cas-book-col-remarks" />
       {withActions && <col className="cas-book-col-actions" />}
     </colgroup>
   );
 }
 
-export function BookHead({ label, withActions = false, actionsLabel = '' }) {
+/** `withTools={false}` drops the Tools column (a theme with no tools on any row). */
+export function BookHead({ label, withActions = false, actionsLabel = '', withTools = true }) {
   return (
     <thead>
       <tr>
@@ -57,10 +57,9 @@ export function BookHead({ label, withActions = false, actionsLabel = '' }) {
         </th>
         <th rowSpan={2} scope="col">{label('Main learning outcomes', 'मुख्य सिकाइ उपलब्धि')}</th>
         <th rowSpan={2} scope="col">{label('Assessment areas', 'परीक्षण गर्ने पक्ष')}</th>
-        <th rowSpan={2} scope="col">{label('Tools', 'साधन')}</th>
+        {withTools && <th rowSpan={2} scope="col">{label('Tools', 'साधन')}</th>}
         <th colSpan={2} scope="colgroup">{label('Regular assessment', 'नियमित पढाइको मूल्याङ्कन')}</th>
         <th colSpan={2} scope="colgroup">{label('Assessment after extra support', 'थप सहायतापछिको मूल्याङ्कन')}</th>
-        <th rowSpan={2} scope="col">{label('Remarks', 'कैफियत')}</th>
         {withActions && (
           <th rowSpan={2} scope="col">
             <span className="sr-only">{actionsLabel}</span>
@@ -169,11 +168,23 @@ export function AssessmentAreaCell({ row, label, number, pick }) {
   return '—';
 }
 
-/** The "Tools" cell: the school's tools, else the ones on each indicator. */
-export function ToolsCell({ row, pick }) {
+/** The tools of one row: the school's tools, else the ones on each indicator. */
+function rowTools(row, pick) {
   const tools = pickEntries(row.assessmentTool, row.assessmentToolNe, pick);
   if (!tools.length) {
     tools.push(...new Set((row.indicators || []).map((indicator) => indicator.tool).filter(Boolean)));
   }
+  return tools;
+}
+
+/** True when at least one row names a tool, in either language. */
+export function rowsHaveTools(rows) {
+  const anyLanguage = (en, ne) => en || ne || '';
+  return rows.some((row) => rowTools(row, anyLanguage).length > 0);
+}
+
+/** The "Tools" cell: the school's tools, else the ones on each indicator. */
+export function ToolsCell({ row, pick }) {
+  const tools = rowTools(row, pick);
   return tools.length ? <EntryList items={tools} /> : '—';
 }

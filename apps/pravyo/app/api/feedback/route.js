@@ -4,6 +4,8 @@ import connectDB from "@/lib/db";
 import Feedback from "@/models/Feedback";
 import Student from "@/models/Student";
 import User from "@/models/User";
+import Teacher from "@/models/Teacher";
+import { isActiveTeacherMember } from "@pravyo/db/teacherMemberships";
 import { publishWorkIndicatorsUpdate } from "@/lib/workIndicatorRealtime";
 import { buildStudentLookupForSession } from "@/lib/studentIdentity";
 import { requireParentChild, requireParentSession } from "@/lib/parentAccess";
@@ -62,11 +64,11 @@ export async function GET(request) {
       if (["SCHOOL_ADMIN", "STUDENT"].includes(role)) query.submitterRole = role;
     } else if (session.user.role === "SCHOOL_ADMIN") {
       if (clean(searchParams.get("scope")).toLowerCase() === "inbox") {
-        // The school's inbox: everything its students and parents sent.
+        // The school's inbox: everything its students, parents and teachers sent.
         query.school = session.user.id;
-        query.submitterRole = { $in: ["STUDENT", "PARENT"] };
+        query.submitterRole = { $in: ["STUDENT", "PARENT", "TEACHER"] };
         if (["NEW", "REVIEWED", "ARCHIVED"].includes(status)) query.status = status;
-        if (["STUDENT", "PARENT"].includes(role)) query.submitterRole = role;
+        if (["STUDENT", "PARENT", "TEACHER"].includes(role)) query.submitterRole = role;
       } else {
         // What the school itself sent to Praavyo.
         query.submittedBy = session.user.id;
@@ -77,6 +79,12 @@ export async function GET(request) {
       if (parentError) return parentError;
       query.submittedBy = parent._id;
       query.submitterModel = "Parent";
+    } else if (session.user.role === "TEACHER") {
+      // What the teacher sent to the school they are working in now.
+      if (!session.user.schoolId) return NextResponse.json({ feedback: [] });
+      query.submittedBy = session.user.id;
+      query.submitterModel = "Teacher";
+      query.school = session.user.schoolId;
     } else if (session.user.role === "STUDENT") {
       const student = await getStudentProfile(session);
       if (!student) {
@@ -107,7 +115,7 @@ export async function POST(request) {
   try {
     const { session, error: authError } = await requireApiSession();
     if (authError) return authError;
-    if (!session || !["SCHOOL_ADMIN", "STUDENT", "PARENT"].includes(session.user.role)) {
+    if (!session || !["SCHOOL_ADMIN", "STUDENT", "PARENT", "TEACHER"].includes(session.user.role)) {
       return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
     }
 
@@ -179,6 +187,36 @@ export async function POST(request) {
         aboutStudent: child._id,
         aboutStudentName: child.name || "",
         grade: child.grade || "",
+      };
+    } else if (session.user.role === "TEACHER") {
+      // A teacher's feedback goes to the school they are working in now.
+      // Access follows TeacherMembership, never Teacher.school.
+      const schoolId = session.user.schoolId;
+      if (!schoolId) {
+        return NextResponse.json(
+          { message: "Choose the school you are working in first." },
+          { status: 409 }
+        );
+      }
+      if (!(await isActiveTeacherMember(session.user.id, schoolId))) {
+        return NextResponse.json(
+          { message: "You no longer have access to this school." },
+          { status: 403 }
+        );
+      }
+      const [teacher, school] = await Promise.all([
+        Teacher.findById(session.user.id).select("name email").lean(),
+        User.findById(schoolId).select("schoolName").lean(),
+      ]);
+      payload = {
+        submittedBy: session.user.id,
+        submitterModel: "Teacher",
+        submitterRole: "TEACHER",
+        submitterName: teacher?.name || session.user.name || "",
+        submitterEmail: teacher?.email || session.user.email || "",
+        school: schoolId,
+        schoolName: school?.schoolName || session.user.schoolName || "",
+        recipient: "SCHOOL",
       };
     } else {
       const school = await User.findById(session.user.id)

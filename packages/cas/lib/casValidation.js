@@ -276,6 +276,10 @@ export const sheetInput = z
     subject: objectId,
     themeKey,
     student: objectId,
+    // One remark for the whole theme page. Left out (an older client), the
+    // saved remark is not touched.
+    themeRemarks: z.string().trim().max(1000).optional(),
+    themeRemarksRevision: z.number().int().min(0).default(0),
     rows: z
       .array(
         z
@@ -286,6 +290,8 @@ export const sheetInput = z
             regularDate: z.union([day, z.literal('')]).default(''),
             remedialLevel: z.union([z.number().int().min(1).max(4), z.null()]).default(null),
             remedialDate: z.union([day, z.literal('')]).default(''),
+            // Per-outcome remarks were replaced by one theme remark; still
+            // accepted from older clients but ignored.
             remarks: z.string().trim().max(1000).default(''),
           })
           .strict()
@@ -300,9 +306,6 @@ export const sheetInput = z
             }
             if (row.remedialLevel !== null && row.regularLevel === null) {
               ctx.addIssue({ code: 'custom', path: ['regularLevel'], message: 'Record the regular assessment before extra support' });
-            }
-            if (row.remarks && row.regularLevel === null) {
-              ctx.addIssue({ code: 'custom', path: ['regularLevel'], message: 'Record the regular assessment before saving remarks' });
             }
           }),
       )

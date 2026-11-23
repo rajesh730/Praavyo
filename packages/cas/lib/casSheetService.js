@@ -8,6 +8,7 @@ import CasAssessment from '@pravyo/db/models/cas/CasAssessment';
 import CasReport from '@pravyo/db/models/cas/CasReport';
 import CasExam from '@pravyo/db/models/cas/CasExam';
 import CasThemeExam from '@pravyo/db/models/cas/CasThemeExam';
+import CasThemeRemark from '@pravyo/db/models/cas/CasThemeRemark';
 import ensureCasIndexes from './casIndexes.js';
 import { assert, sameId } from './casAccess.js';
 import { assertProgressAccess } from './casProgressAccess.js';
@@ -182,12 +183,25 @@ function serializeAssessmentRow(outcome, index, record) {
   };
 }
 
-function serializeSheet({ actor, data, year, subjectRow, allOutcomes, student, enrollment, records, locked }) {
+/**
+ * The page's one theme remark. Until one is saved, the remarks teachers wrote
+ * per outcome (before theme remarks) are offered, so nothing they wrote is lost.
+ */
+function themeRemarkText(remarkRecord, rows) {
+  if (remarkRecord) return remarkRecord.remarks || '';
+  return [...new Set(rows.map((row) => String(row.remarks || '').trim()).filter(Boolean))]
+    .join('\n')
+    .slice(0, 1000);
+}
+
+function serializeSheet({ actor, data, year, subjectRow, allOutcomes, student, enrollment, records, remarkRecord, locked }) {
   const outcomes = allOutcomes.filter((outcome) => themeIdentity(outcome) === data.themeKey);
   const byOutcome = new Map(records.map((record) => [String(record.outcome), record]));
   const rows = outcomes.map((outcome, index) =>
     serializeAssessmentRow(outcome, index, byOutcome.get(String(outcome._id))));
   return {
+    themeRemarks: themeRemarkText(remarkRecord, rows),
+    themeRemarksRevision: remarkRecord?.revision ?? 0,
     year, exam: { id: data.exam }, grade: data.grade, subject: serializeSubject(subjectRow),
     theme: groupThemes(allOutcomes, subjectRow).find((theme) => theme.key === data.themeKey),
     student: {
@@ -215,16 +229,20 @@ export async function loadStudentSheet(actor, input) {
   assert(outcomes.length, 'That theme has no learning outcomes', 404);
   assert(await CasThemeExam.exists({ school: actor.school, academicYear: year.id, grade: data.grade, subject: subjectRow._id, themeKey: data.themeKey, exam: exam._id }), 'This theme is not assigned to the selected exam', 409);
   const { student, enrollment } = await studentAndEnrollment(actor, data, year, null, subjectRow);
-  const [records, locked] = await Promise.all([
+  const [records, remarkRecord, locked] = await Promise.all([
     CasAssessment.find({
       ...reportScope(actor, year, student._id),
       grade: data.grade, subject: subjectRow._id,
       exam: exam._id,
       outcome: { $in: outcomes.map((outcome) => outcome._id) },
     }).lean(),
+    CasThemeRemark.findOne({
+      ...reportScope(actor, year, student._id),
+      exam: exam._id, grade: data.grade, subject: subjectRow._id, themeKey: data.themeKey,
+    }).lean(),
     isPublishedForExam(actor, year, student._id, exam._id),
   ]);
-  return serializeSheet({ actor, data, year, subjectRow, allOutcomes, student, enrollment, records, locked });
+  return serializeSheet({ actor, data, year, subjectRow, allOutcomes, student, enrollment, records, remarkRecord, locked });
 }
 
 /**
@@ -497,7 +515,7 @@ export async function saveSheet(actor, input) {
 
       if (!initial && row.regularLevel !== null) {
         const date = validateAssessmentDate({ value: row.regularDate, academicYear: year });
-        nextAttempts.push(makeAttempt(actor, 'INITIAL', nextAttempts.length + 1, row.regularLevel, date, row.remarks));
+        nextAttempts.push(makeAttempt(actor, 'INITIAL', nextAttempts.length + 1, row.regularLevel, date));
         attemptsChanged = true;
       }
 
@@ -521,7 +539,7 @@ export async function saveSheet(actor, input) {
               value: row.remedialDate, academicYear: year, previousAttempt: currentLatest,
             });
             nextAttempts.push(
-              makeAttempt(actor, 'REASSESSMENT', nextAttempts.length + 1, row.remedialLevel, date, row.remarks),
+              makeAttempt(actor, 'REASSESSMENT', nextAttempts.length + 1, row.remedialLevel, date),
             );
             attemptsChanged = true;
           } else if (levelChanged || dateChanged) {
@@ -545,17 +563,15 @@ export async function saveSheet(actor, input) {
             value: row.remedialDate, academicYear: year, previousAttempt: nextAttempts.at(-1),
           });
           nextAttempts.push(
-            makeAttempt(actor, 'REASSESSMENT', nextAttempts.length + 1, row.remedialLevel, date, row.remarks),
+            makeAttempt(actor, 'REASSESSMENT', nextAttempts.length + 1, row.remedialLevel, date),
           );
           attemptsChanged = true;
         }
       }
       assert(nextAttempts.length <= 20, 'Maximum attempts reached for this outcome', 409);
-      const currentRemarks = existing?.sheetRemarks ?? (initial?.remarksNe || initial?.remarksEn || '');
-      if (!attemptsChanged && row.remarks === currentRemarks) continue;
-      // An empty, untouched row does not create an assessment record.
-      if (!existing && !attemptsChanged) continue;
-      changes.push({ outcome, existing, revision, attempts: nextAttempts, attemptsChanged, remarks: row.remarks, removed });
+      // Remarks are per theme now (below), so only score changes write a row.
+      if (!attemptsChanged) continue;
+      changes.push({ outcome, existing, revision, attempts: nextAttempts, removed });
     }
 
     // A write to the same draft document serializes with publication. A plain
@@ -570,7 +586,7 @@ export async function saveSheet(actor, input) {
     }
 
     for (const change of changes) {
-      const { outcome, existing, revision, attempts, attemptsChanged, remarks, removed } = change;
+      const { outcome, existing, revision, attempts, removed } = change;
       const acceptedLevel = getAcceptedLevel(attempts);
       let saved;
       if (existing) {
@@ -580,9 +596,8 @@ export async function saveSheet(actor, input) {
           { ...recordScope, _id: existing._id, ...revisionScope },
           {
             $set: {
-              ...(attemptsChanged ? { attempts } : {}),
+              attempts,
               acceptedLevel,
-              sheetRemarks: remarks,
               revision: revision + 1,
             },
             ...(removed.length ? { $push: { removedAttempts: { $each: removed } } } : {}),
@@ -595,27 +610,62 @@ export async function saveSheet(actor, input) {
           ...recordScope, studentName: student.name,
           rollNumber: enrollment.rollNumber || student.rollNumber || '',
           subjectCode: outcome.subjectCode, outcome: outcome._id, outcomeCode: outcome.code,
-          attempts, acceptedLevel, sheetRemarks: remarks, revision: 1,
+          attempts, acceptedLevel, revision: 1,
         }], { session });
         saved = created.toObject();
       }
       recordsByOutcome.set(String(outcome._id), saved);
     }
 
+    // The theme's one remark, revision-checked like the score rows.
+    const remarkScope = {
+      ...scope, exam: exam._id, grade: data.grade, subject: subjectRow._id, themeKey: data.themeKey,
+    };
+    let remarkRecord = await CasThemeRemark.findOne(remarkScope).session(session).lean();
+    let remarkSaved = false;
+    if (data.themeRemarks !== undefined) {
+      const currentText = themeRemarkText(remarkRecord, outcomes.map((outcome, index) =>
+        serializeAssessmentRow(outcome, index, recordsByOutcome.get(String(outcome._id)))));
+      if (data.themeRemarks !== currentText) {
+        const remarkRevision = remarkRecord?.revision ?? 0;
+        assert(remarkRevision === data.themeRemarksRevision,
+          'Someone else updated this page while you were working. Reload before saving.', 409);
+        const by = {
+          updatedByModel: actor.role === 'TEACHER' ? 'Teacher' : 'User',
+          updatedBy: actor.id,
+          updatedByName: actor.name || '',
+        };
+        if (remarkRecord) {
+          remarkRecord = await CasThemeRemark.findOneAndUpdate(
+            { _id: remarkRecord._id, revision: remarkRevision },
+            { $set: { remarks: data.themeRemarks, revision: remarkRevision + 1, ...by } },
+            { returnDocument: 'after', session, runValidators: true },
+          ).lean();
+          assert(remarkRecord, 'This page changed while saving. Reload before saving.', 409);
+        } else {
+          const [created] = await CasThemeRemark.create([{
+            ...remarkScope, remarks: data.themeRemarks, revision: 1, ...by,
+          }], { session });
+          remarkRecord = created.toObject();
+        }
+        remarkSaved = true;
+      }
+    }
+
     return {
-      saved: changes.length,
+      saved: changes.length + (remarkSaved ? 1 : 0),
       sheet: serializeSheet({
         actor, data, year, subjectRow, allOutcomes, student, enrollment,
-        records: [...recordsByOutcome.values()], locked: false,
+        records: [...recordsByOutcome.values()], remarkRecord, locked: false,
       }),
     };
   });
 }
 
-function makeAttempt(actor, attemptType, attemptNumber, level, assessmentDate, remarks) {
+function makeAttempt(actor, attemptType, attemptNumber, level, assessmentDate) {
   return {
     attemptType, attemptNumber, level, assessmentDate,
-    remarksEn: '', remarksNe: remarks,
+    remarksEn: '', remarksNe: '',
     recordedByModel: actor.role === 'TEACHER' ? 'Teacher' : 'User',
     recordedBy: actor.id, recordedByName: actor.name, recordedAt: new Date(),
   };

@@ -61,10 +61,17 @@ test('a partially assessed page accepts untouched rows but never silently drops 
     { ...row(), remedialLevel: 3, remedialDate: '' },
     { ...row(), remedialDate: '2025-05-11' },
     { ...blank, remedialLevel: 3, remedialDate: '2025-05-11' },
-    { ...blank, remarks: 'Unsaved remarks' },
   ]) {
     assert.equal(sheetInput.safeParse(input({ rows: [broken] })).success, false);
   }
+});
+
+test('one theme remark is accepted without scores; per-outcome remarks are ignored', () => {
+  const blank = { ...row(), regularLevel: null, regularDate: '' };
+  assert.ok(sheetInput.safeParse(input({ rows: [blank], themeRemarks: 'Needs reading practice', themeRemarksRevision: 0 })).success);
+  assert.ok(sheetInput.safeParse(input({ rows: [{ ...blank, remarks: 'Old client remark' }] })).success);
+  assert.equal(sheetInput.parse(input({ rows: [blank] })).themeRemarks, undefined);
+  assert.equal(sheetInput.safeParse(input({ rows: [blank], themeRemarks: 'x'.repeat(1001) })).success, false);
 });
 
 test('marks outside levels 1â€“4 and malformed dates are rejected', () => {

@@ -7,21 +7,26 @@ import { acceptedRowLevel, summariseRows } from '../lib/client/sheetTotals.js';
 import { Card, Button, Alert } from './ui/Kit.js';
 import { useCas } from './CasLayout.js';
 import {
-  AssessmentAreaCell, BookColgroup, BookHead, ToolsCell, bookLanguage, nepaliDigits,
+  AssessmentAreaCell, BookColgroup, BookHead, ToolsCell, bookLanguage, nepaliDigits, rowsHaveTools,
 } from './book/BookTableParts.js';
 
 /** A score at or below this may be reassessed; mirrors canReassess on the server. */
 const REASSESS_MAX = 3;
 
+/** Draft key of the page's one theme remark (outcome keys are ObjectIds). */
+const THEME_REMARK = '_themeRemark';
+
 function makeDraft(sheet) {
-  return Object.fromEntries(sheet.rows.map((row) => [row.outcome, {
-    revision: row.revision ?? 0,
-    regularDate: row.regularDate || '',
-    regularLevel: row.regularLevel ?? null,
-    remedialDate: row.remedialDate || '',
-    remedialLevel: row.remedialLevel ?? null,
-    remarks: row.remarks || '',
-  }]));
+  return {
+    ...Object.fromEntries(sheet.rows.map((row) => [row.outcome, {
+      revision: row.revision ?? 0,
+      regularDate: row.regularDate || '',
+      regularLevel: row.regularLevel ?? null,
+      remedialDate: row.remedialDate || '',
+      remedialLevel: row.remedialLevel ?? null,
+    }])),
+    [THEME_REMARK]: { text: sheet.themeRemarks || '', revision: sheet.themeRemarksRevision ?? 0 },
+  };
 }
 
 function inputStatus(level) {
@@ -64,6 +69,8 @@ export default function AssessmentBook({
   });
   const mayReassess = sheet.rows.filter((row) => acceptedNow(row) === REASSESS_MAX);
   const assessedRows = sheet.rows.filter((row) => acceptedNow(row) != null);
+  // The Tools column only shows when some outcome in this theme names a tool.
+  const showTools = rowsHaveTools(sheet.rows);
 
   useEffect(() => {
     draftRef.current = draft;
@@ -106,6 +113,10 @@ export default function AssessmentBook({
     setError('');
   }
 
+  function updateThemeRemark(text) {
+    update(THEME_REMARK, { text });
+  }
+
   function updateRegular(row, level) {
     const current = draft[row.outcome];
     const patch = {
@@ -145,6 +156,8 @@ export default function AssessmentBook({
           themeKey: sheet.theme.key,
           student: sheet.student.id,
           rows: sheet.rows.map((row) => ({ outcome: row.outcome, ...draft[row.outcome] })),
+          themeRemarks: draft[THEME_REMARK]?.text ?? '',
+          themeRemarksRevision: draft[THEME_REMARK]?.revision ?? 0,
         },
       }, {
         successMessage: t(
@@ -263,8 +276,8 @@ export default function AssessmentBook({
               {sheet.student.name} — {pick(sheet.subject.titleEn, sheet.subject.titleNe)} —{' '}
               {pick(sheet.theme.titleEn, sheet.theme.titleNe)}
             </caption>
-            <BookColgroup />
-            <BookHead label={label} />
+            <BookColgroup withTools={showTools} />
+            <BookHead label={label} withTools={showTools} />
             <tbody>
               {sheet.rows.map((row) => {
                 const value = draft[row.outcome];
@@ -287,7 +300,7 @@ export default function AssessmentBook({
                     <td>
                       <AssessmentAreaCell row={row} label={label} number={number} pick={pick} />
                     </td>
-                    <td><ToolsCell row={row} pick={pick} /></td>
+                    {showTools && <td><ToolsCell row={row} pick={pick} /></td>}
                     <td>
                       <input
                         type="date"
@@ -348,17 +361,6 @@ export default function AssessmentBook({
                         ))}
                       </select>
                     </td>
-                    <td>
-                      <textarea
-                        className="input cas-book-input cas-book-remarks"
-                        rows={2}
-                        aria-label={`Remarks, outcome ${row.serial}`}
-                        value={value.remarks}
-                        disabled={disabled}
-                        maxLength={1000}
-                        onChange={(event) => update(row.outcome, { remarks: event.target.value })}
-                      />
-                    </td>
                   </tr>
                 );
               })}
@@ -370,25 +372,39 @@ export default function AssessmentBook({
                   {number(totals.outcomeCount)} ({label('theme full marks', 'थिमगत पूर्णाङ्क')} ={' '}
                   {number(totals.outcomeCount)} × {number(4)} = {number(totals.fullMarks)})
                 </td>
-                <th colSpan={4} scope="row">{label('Total obtained', 'जम्मा प्राप्ताङ्क')}</th>
+                <th colSpan={showTools ? 4 : 3} scope="row">{label('Total obtained', 'जम्मा प्राप्ताङ्क')}</th>
                 <td className="cas-book-total">{totals.assessedCount ? number(totals.obtained) : '—'}</td>
-                <td rowSpan={3} />
               </tr>
               <tr>
                 <td colSpan={3}>{label("Parent's signature :", 'अभिभावकको दस्तखत :')}</td>
-                <th colSpan={4} scope="row">{label('Achievement percentage', 'उपलब्धि प्रतिशत')}</th>
+                <th colSpan={showTools ? 4 : 3} scope="row">{label('Achievement percentage', 'उपलब्धि प्रतिशत')}</th>
                 <td className="cas-book-total">
                   {totals.percent === null ? '—' : number(totals.percent.toFixed(2))}
                 </td>
               </tr>
               <tr>
                 <td colSpan={3}>{label("Teacher's signature and date :", 'शिक्षकको दस्तखत र मिति :')}</td>
-                <th colSpan={4} scope="row">{label('Grade', 'ग्रेड')}</th>
+                <th colSpan={showTools ? 4 : 3} scope="row">{label('Grade', 'ग्रेड')}</th>
                 <td className="cas-book-total">{totals.grade || '—'}</td>
               </tr>
             </tfoot>
           </table>
         </div>
+        <label className="cas-book-theme-remarks" lang={lang}>
+          <span>{label('Theme remarks', 'थिमगत कैफियत')}</span>
+          <textarea
+            className="input"
+            rows={3}
+            value={draft[THEME_REMARK]?.text ?? ''}
+            disabled={disabled}
+            maxLength={1000}
+            placeholder={t(
+              'One remark for this whole theme (optional)',
+              'यो पूरै थिमका लागि एउटा कैफियत (ऐच्छिक)',
+            )}
+            onChange={(event) => updateThemeRemark(event.target.value)}
+          />
+        </label>
         <div className="cas-book-actions">
           <Button type="submit" disabled={disabled || !dirty}>
             <FaSave aria-hidden="true" />

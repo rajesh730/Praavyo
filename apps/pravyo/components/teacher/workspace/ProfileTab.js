@@ -1,15 +1,57 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { BookOpen, Repeat } from 'lucide-react';
+import { useSession } from 'next-auth/react';
+import { BookOpen, Pencil, Repeat } from 'lucide-react';
+import Input from '@/components/ui/Input';
 import { gradeSummaries } from './shared';
 import ChangePasswordCard from './ChangePasswordCard';
 import { CardHeading, Initials, TableCard, TH, THEAD } from './ui';
 
 /** Who I am at this school, and what the school has made me responsible for. */
-export default function ProfileTab({ workspace }) {
-  const { teacher, school } = workspace;
+export default function ProfileTab({ workspace, reload }) {
+  const { teacher: loaded, school } = workspace;
+  const { update: refreshSession } = useSession();
+  // Saved details show at once, before the workspace reload comes back.
+  const [saved, setSaved] = useState(null);
+  const teacher = { ...loaded, ...saved };
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({ name: '', email: '', phone: '' });
+  const [busy, setBusy] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
   const grades = gradeSummaries(workspace);
+
+  const startEditing = () => {
+    setForm({ name: teacher.name || '', email: teacher.email || '', phone: teacher.phone || '' });
+    setMessage({ type: '', text: '' });
+    setEditing(true);
+  };
+
+  const saveDetails = async (event) => {
+    event.preventDefault();
+    setBusy(true);
+    setMessage({ type: '', text: '' });
+    try {
+      const response = await fetch('/api/teacher/profile', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(form),
+      });
+      const payload = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(payload.message || 'Your details could not be saved.');
+      setSaved(payload.data?.teacher || form);
+      setEditing(false);
+      setMessage({ type: 'success', text: 'Your details are saved.' });
+      // New name in the header, and fresh workspace data.
+      await refreshSession?.({});
+      reload?.();
+    } catch (reason) {
+      setMessage({ type: 'error', text: reason.message });
+    } finally {
+      setBusy(false);
+    }
+  };
   const details = [
     ['Name', teacher.name],
     ['Username', teacher.username],
@@ -31,18 +73,44 @@ export default function ProfileTab({ workspace }) {
             </div>
           </div>
 
-          <dl className="mt-4 divide-y divide-line border-t border-line">
-            {details.map(([label, value]) => (
-              <div key={label} className="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-2 py-2.5 text-sm">
-                <dt className="text-2xs font-semibold uppercase leading-5 text-muted">{label}</dt>
-                <dd className="break-words font-semibold text-ink">{value}</dd>
+          {editing ? (
+            <form onSubmit={saveDetails} className="mt-4 space-y-3 border-t border-line pt-4">
+              <Input label="Full name" name="name" value={form.name} maxLength={120} required disabled={busy}
+                autoComplete="name" onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))} />
+              <Input label="Email" name="email" type="email" value={form.email} required disabled={busy}
+                autoComplete="email" onChange={(e) => setForm((f) => ({ ...f, email: e.target.value }))} />
+              <Input label="Phone" name="phone" type="tel" value={form.phone} maxLength={30} disabled={busy}
+                autoComplete="tel" onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value }))} />
+              {message.type === 'error' && <p className="text-sm text-danger">{message.text}</p>}
+              <div className="flex gap-2">
+                <button type="submit" disabled={busy} className="btn btn-primary btn-sm flex-1">
+                  {busy ? 'Saving...' : 'Save details'}
+                </button>
+                <button type="button" disabled={busy} onClick={() => setEditing(false)} className="btn btn-secondary btn-sm">
+                  Cancel
+                </button>
               </div>
-            ))}
-          </dl>
+            </form>
+          ) : (<>
+            <dl className="mt-4 divide-y divide-line border-t border-line">
+              {details.map(([label, value]) => (
+                <div key={label} className="grid grid-cols-[6.5rem_minmax(0,1fr)] gap-2 py-2.5 text-sm">
+                  <dt className="text-2xs font-semibold uppercase leading-5 text-muted">{label}</dt>
+                  <dd className="break-words font-semibold text-ink">{value}</dd>
+                </div>
+              ))}
+            </dl>
 
-          <p className="mt-3 rounded-control bg-surface-2 px-3 py-2 text-xs font-semibold text-muted">
-            To change these details, ask your school office.
-          </p>
+            {message.type === 'success' && (
+              <p className="mt-3 rounded-control bg-success-soft px-3 py-2 text-sm text-ink">{message.text}</p>
+            )}
+            <button type="button" onClick={startEditing} className="btn btn-secondary btn-sm mt-3 inline-flex w-full items-center justify-center gap-1.5">
+              <Pencil aria-hidden size={16} /> Edit name, email or phone
+            </button>
+            <p className="mt-3 rounded-control bg-surface-2 px-3 py-2 text-xs font-semibold text-muted">
+              Your username, designation and roles are set by your school office.
+            </p>
+          </>)}
           {workspace.canSwitchSchool && (
             <Link href="/teacher/select-school" className="btn btn-secondary btn-sm mt-3 inline-flex w-full items-center justify-center gap-1.5">
               <Repeat aria-hidden size={16} /> Switch school

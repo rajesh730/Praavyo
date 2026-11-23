@@ -100,7 +100,7 @@ export default function CurriculumThemeTable({
   const [notice, setNotice] = useState('');
   const dirty = editing && savedShape(draft) !== savedShape(makeDraft(theme, rows));
   const shownRows = editing ? draft.rows : rows;
-  const columns = editing ? 10 : 9;
+  const columns = editing ? 9 : 8;
   const themeTitle = pick(theme.titleEn, theme.titleNe);
 
   useEffect(() => {
@@ -486,7 +486,7 @@ export default function CurriculumThemeTable({
               </td>
               <th colSpan={4} scope="row">{label('Total obtained', 'जम्मा प्राप्ताङ्क')}</th>
               <td className="cas-book-total">—</td>
-              <td colSpan={columns - 8} />
+              {columns > 8 && <td colSpan={columns - 8} />}
             </tr>
           </tfoot>
         </table>
@@ -527,7 +527,6 @@ function ScoreCells() {
           <option value="">—</option>
         </select>
       </td>
-      <td><textarea className="input cas-book-input cas-book-remarks" rows={2} disabled tabIndex={-1} aria-hidden="true" /></td>
     </>
   );
 }

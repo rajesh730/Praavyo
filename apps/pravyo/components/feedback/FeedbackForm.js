@@ -25,6 +25,7 @@ const initialForm = {
  *   "school"  — the school's feedback to Praavyo
  *   "student" — a student's feedback to their school
  *   "parent"  — a parent's feedback to their child's school (needs studentId)
+ *   "teacher" — a teacher's feedback to the school they are working in
  */
 const COPY = {
   school: {
@@ -38,6 +39,10 @@ const COPY = {
   parent: {
     title: "Feedback to the school",
     text: "Tell the school what is going well or what could be better. The school reads every message.",
+  },
+  teacher: {
+    title: "Feedback to your school",
+    text: "Tell your school what is going well or what could be better. The school administration reads every message.",
   },
 };
 

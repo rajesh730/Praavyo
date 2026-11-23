@@ -8,7 +8,7 @@ import AlertBanner from "@/components/ui/AlertBanner";
 import LoadingState from "@/components/ui/LoadingState";
 
 /**
- * The school's feedback inbox: everything its students and parents sent.
+ * The school's feedback inbox: everything its students, parents and teachers sent.
  * One table, filtered by who sent it, status and grade, with a name/title
  * search. Clicking a row opens the full message; the school marks it
  * reviewed or archives it. (The school's own feedback to Praavyo is sent
@@ -33,6 +33,7 @@ function fromLine(item) {
   if (item.submitterRole === "PARENT") {
     return `Parent${item.aboutStudentName ? ` of ${item.aboutStudentName}` : ""}${item.grade ? ` · ${item.grade}` : ""}`;
   }
+  if (item.submitterRole === "TEACHER") return "Teacher";
   return `Student${item.grade ? ` · ${item.grade}` : ""}`;
 }
 
@@ -149,7 +150,7 @@ export default function SchoolFeedbackInbox() {
       <div>
         <h1 className="font-semibold text-ink">Feedback</h1>
         <p className="mt-1 text-sm text-muted">
-          What your students and parents tell the school.
+          What your students, parents and teachers tell the school.
           {newCount > 0 ? <span className="ml-1 font-semibold text-warning">{newCount} new.</span> : null}
         </p>
       </div>
@@ -158,11 +159,12 @@ export default function SchoolFeedbackInbox() {
 
       {/* filters, one line */}
       <div className="card flex flex-col gap-2 p-3 lg:flex-row lg:items-center">
-        <div role="group" aria-label="From" className="grid grid-cols-3 rounded-control border border-line bg-surface-2 p-0.5 lg:mr-auto">
+        <div role="group" aria-label="From" className="grid grid-cols-4 rounded-control border border-line bg-surface-2 p-0.5 lg:mr-auto">
           {[
             { id: "", label: "All" },
             { id: "STUDENT", label: "Students" },
             { id: "PARENT", label: "Parents" },
+            { id: "TEACHER", label: "Teachers" },
           ].map((option) => (
             <button key={option.id || "all"} type="button" aria-pressed={from === option.id} onClick={() => setFrom(option.id)}
               className={`min-h-9 rounded-control px-3 py-1 text-sm font-semibold transition-colors ${from === option.id ? "bg-surface text-ink shadow-card" : "text-muted hover:text-ink"}`}>
@@ -190,13 +192,13 @@ export default function SchoolFeedbackInbox() {
       </div>
 
       {loading ? (
-        <LoadingState title="Loading feedback" message="Collecting what students and parents sent." />
+        <LoadingState title="Loading feedback" message="Collecting what students, parents and teachers sent." />
       ) : visible.length === 0 ? (
         <div className="card px-5 py-10 text-center">
           <MessageSquareText aria-hidden className="mx-auto text-subtle" size={28} />
           <p className="mt-3 font-semibold text-ink">{items.length ? "No feedback matches these filters" : "No feedback yet"}</p>
           <p className="mt-1 text-sm text-muted">
-            {items.length ? "Try another filter." : "Students send it from their Feedback page, parents from the parent app."}
+            {items.length ? "Try another filter." : "Students and teachers send it from their Feedback page, parents from the parent app."}
           </p>
         </div>
       ) : (

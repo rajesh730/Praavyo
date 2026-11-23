@@ -5,6 +5,7 @@ import CasReport from '@pravyo/db/models/cas/CasReport';
 import CasStudentRecord from '@pravyo/db/models/cas/CasStudentRecord';
 import CasExam from '@pravyo/db/models/cas/CasExam';
 import CasThemeExam from '@pravyo/db/models/cas/CasThemeExam';
+import CasThemeRemark from '@pravyo/db/models/cas/CasThemeRemark';
 import CasExamTeacherAssignment from '@pravyo/db/models/cas/CasExamTeacherAssignment';
 
 /**
@@ -22,6 +23,7 @@ const CAS_MODELS = [
   CasStudentRecord,
   CasExam,
   CasThemeExam,
+  CasThemeRemark,
   CasExamTeacherAssignment,
 ];
 

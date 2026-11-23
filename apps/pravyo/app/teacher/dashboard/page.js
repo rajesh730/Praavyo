@@ -115,7 +115,7 @@ function TeacherWorkspace() {
         {tabKey === "overview" && (
           <UpcomingPrograms className="mb-4" manageHref="/teacher/dashboard?tab=events" />
         )}
-        <Component workspace={workspace} />
+        <Component workspace={workspace} reload={reload} />
       </>
     );
   }

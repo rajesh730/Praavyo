@@ -27,10 +27,10 @@ export async function PATCH(request, props) {
       update.reviewedBy = session.user.id;
     }
 
-    // A school may only update feedback its own students and parents sent it.
+    // A school may only update feedback its own students, parents and teachers sent it.
     const filter =
       session.user.role === "SCHOOL_ADMIN"
-        ? { _id: params.id, school: session.user.id, submitterRole: { $in: ["STUDENT", "PARENT"] } }
+        ? { _id: params.id, school: session.user.id, submitterRole: { $in: ["STUDENT", "PARENT", "TEACHER"] } }
         : { _id: params.id };
     const feedback = await Feedback.findOneAndUpdate(filter, update, {
       new: true,

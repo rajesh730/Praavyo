@@ -510,7 +510,7 @@ export const authOptions = {
             }
           }
         } else if (role === "TEACHER") {
-          const currentTeacher = await Teacher.exists({ _id: token.id });
+          const currentTeacher = await Teacher.findById(token.id).select("name email").lean();
           // A teacher choosing or switching school sends { schoolId } through
           // session.update(); it is honoured only for an ACTIVE membership.
           const requested =
@@ -523,6 +523,9 @@ export const authOptions = {
             delete token.role;
             delete token.schoolId;
           } else {
+            // A teacher can edit their own name and email (My Profile).
+            if (currentTeacher.name) token.name = currentTeacher.name;
+            if (currentTeacher.email) token.email = currentTeacher.email;
             await backfillTeacherMemberships({ _id: token.id });
             const wanted = requested ?? token.schoolId;
             if (wanted && (await isActiveTeacherMember(token.id, wanted))) {
