@@ -250,7 +250,7 @@ export async function createParentNotificationsForTargets({
     _id: { $in: documents.map((document) => document._id) },
   })
     .select(
-      "_id recipientParent recipientStudent type category title body message actionUrl href priority createdAt publishedAt"
+      "_id recipientParent recipientStudent school type category title body message actionUrl href priority createdAt publishedAt"
     )
     .lean();
 
@@ -273,6 +273,11 @@ export async function createParentNotificationsForTargets({
       createdAt: notification.createdAt || notification.publishedAt || now,
       urgent:
         notification.priority === "URGENT" || notification.priority === "ACTION",
+      // The child's school logo; Praavyo's own trainings keep the Praavyo logo.
+      schoolId:
+        (notification.type || notification.category) === "TRAINING"
+          ? null
+          : notification.school || null,
     }))
   );
 

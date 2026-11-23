@@ -87,3 +87,44 @@ it("does nothing (and never throws) when push is not configured", async () => {
   expect(result.sent).toBe(0);
   expect(PushSubscription.find).not.toHaveBeenCalled();
 });
+
+describe("notification picture", () => {
+  const SCHOOL = "64b000000000000000000001";
+  const ObjectId = class {
+    constructor(id) { this.id = id; }
+    static isValid(id) { return /^[a-f0-9]{24}$/i.test(String(id)); }
+    toString() { return this.id; }
+  };
+
+  afterEach(() => {
+    delete PushSubscription.base;
+    delete PushSubscription.db;
+  });
+
+  it("shows the school's logo for school activity and the Praavyo logo otherwise", async () => {
+    PushSubscription.base = { Types: { ObjectId } };
+    PushSubscription.db = {
+      collection: () => ({
+        find: () => ({ toArray: async () => [{ school: SCHOOL, logoUrl: "/api/media/r2/64b0000000000000000000aa" }] }),
+      }),
+    };
+    PushSubscription.find.mockReturnValue(selectedLean([device("s1", "https://push.example/a")]));
+    Student.find.mockReturnValue(selectedLean([{ _id: "s1" }]));
+
+    await sendAccountPush({ role: "STUDENT", accountIds: ["s1"], school: SCHOOL }, { title: "School notice" });
+    expect(JSON.parse(webPush.sendNotification.mock.calls[0][1]).icon).toBe("/api/media/r2/64b0000000000000000000aa");
+
+    // A platform message (no school, or schoolId: null) keeps the Praavyo logo.
+    await sendAccountPush({ role: "STUDENT", accountIds: ["s1"], school: SCHOOL }, { title: "Praavyo training", schoolId: null });
+    expect(JSON.parse(webPush.sendNotification.mock.calls[1][1]).icon).toBe("");
+  });
+
+  it("falls back to the Praavyo logo when the logo cannot be read", async () => {
+    PushSubscription.find.mockReturnValue(selectedLean([device("s1", "https://push.example/a")]));
+    Student.find.mockReturnValue(selectedLean([{ _id: "s1" }]));
+
+    const result = await sendAccountPush({ role: "STUDENT", accountIds: ["s1"], school: SCHOOL }, { title: "x" });
+    expect(result.sent).toBe(1);
+    expect(JSON.parse(webPush.sendNotification.mock.calls[0][1]).icon).toBe("");
+  });
+});

@@ -85,7 +85,8 @@ self.addEventListener("push", (event) => {
 
         await self.registration.showNotification(payload.title || "Praavyo", {
           body: payload.body || "You have a new update.",
-          icon: "/pravyo-icon.png?v=2",
+          // The school's logo for school activity, else the Praavyo logo.
+          icon: payload.icon || "/pravyo-icon.png?v=2",
           badge: "/apple-icon.png?v=2",
           // Unique per notice, so each one is its own entry in the tray.
           tag: payload.tag || `pravyo-${Date.now()}`,

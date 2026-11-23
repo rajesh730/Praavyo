@@ -52,6 +52,7 @@ async function pushEventAnnouncement({ notice, event, schoolId, authorId }) {
         { role: "SCHOOL_ADMIN", accountIds: [String(schoolId)], excludeIds },
         {
           ...delivery,
+          schoolId: String(schoolId),
           href: event?.eventScope === "PLATFORM" ? "/school/dashboard?tab=platform-events" : "/school/dashboard?tab=school-events",
         }
       ),

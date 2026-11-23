@@ -11,6 +11,7 @@ import PravyoLogo from '@/components/brand/PravyoLogo';
 import IemisReminder from '@/components/school/IemisReminder';
 import AppTabBar from '@/components/navigation/AppTabBar';
 import InstallAppButton from '@pravyo/ui/installApp';
+import TeacherNotificationCenter from '@/components/teacher/TeacherNotificationCenter';
 import { getRoleNavigationLinks, isNavLinkActive } from '@/components/navigation/appNavigation';
 
 const DEVICE_PUSH_ROLES = new Set(['STUDENT', 'TEACHER', 'SCHOOL_ADMIN']);
@@ -70,6 +71,7 @@ export default function DashboardLayout({ children }) {
   const userRole = String(session?.user?.role || 'User').replaceAll('_', ' ');
   const role = session?.user?.role || 'SCHOOL_ADMIN';
   const navLinks = getRoleNavigationLinks(role);
+  const isTeacher = role === 'TEACHER';
 
   return (
     <div className="min-h-dvh">
@@ -92,23 +94,27 @@ export default function DashboardLayout({ children }) {
       />
 
       <div className="app-main">
-        {/* Phone and tablet header */}
+        {/* Phone and tablet header; teachers keep it on desktop too, for
+            their notification bell (as the school dashboard's top bar). */}
         <header
-          className={`app-topbar transition-transform duration-200 lg:hidden ${
-            isHeaderHidden && !isNavOpen ? '-translate-y-full' : ''
+          className={`app-topbar transition-transform duration-200 ${isTeacher ? '' : 'lg:hidden'} ${
+            isHeaderHidden && !isNavOpen ? '-translate-y-full lg:translate-y-0' : ''
           }`}
         >
-          <PravyoLogo variant="icon" compact withSurface />
+          <span className={isTeacher ? 'lg:hidden' : ''}>
+            <PravyoLogo variant="icon" compact withSurface />
+          </span>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold leading-tight text-ink">{userName}</p>
             <p className="truncate text-2xs font-medium capitalize leading-tight text-muted">{userRole.toLowerCase()}</p>
           </div>
           <InstallAppButton />
+          {isTeacher && !session?.error && <TeacherNotificationCenter />}
           <button
             type="button"
             id="dashboard-mobile-nav-toggle"
             onClick={() => setIsNavOpen((prev) => !prev)}
-            className="btn-icon btn-ghost"
+            className="btn-icon btn-ghost lg:hidden"
             aria-label={isNavOpen ? 'Close navigation' : 'Open navigation'}
             aria-expanded={isNavOpen}
           >

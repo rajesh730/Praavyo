@@ -5,7 +5,6 @@ import { authOptions } from "@/lib/authOptions";
 import DashboardLayout from "@/components/DashboardLayout";
 import PageHeader from "@/components/ui/PageHeader";
 import TeacherNoticeList from "@/components/teacher/TeacherNoticeList";
-import TeacherNotificationCenter from "@/components/teacher/TeacherNotificationCenter";
 
 export const metadata = {
   title: "Notices",
@@ -27,7 +26,6 @@ export default async function TeacherNoticesPage() {
           eyebrow="Teacher"
           title="Notices"
           description="Notices your school sends to teachers, events for your grades, and updates about your classes."
-          action={<TeacherNotificationCenter />}
         />
         <TeacherNoticeList />
       </div>

@@ -46,6 +46,8 @@ export async function pushUserNotifications(docs = []) {
         body: preview(row.message || row.body),
         href: row.href || row.actionUrl,
         urgent: row.priority === "URGENT",
+        // School logo for school activity; Praavyo trainings show Praavyo's.
+        schoolId: row.category === "TRAINING" ? null : idOf(row.school) || null,
       };
       let result = { sent: 0 };
       if (row.targetRole === "STUDENT" && row.recipientStudent) {
@@ -162,7 +164,7 @@ export async function pushEventNoticePublished(notice, event, { excludeIds = [] 
         ),
         sendAccountPush(
           { role: "SCHOOL_ADMIN", accountIds: [idOf(eventDoc.school)], excludeIds },
-          { ...delivery, href: "/school/dashboard?tab=school-events" }
+          { ...delivery, schoolId: idOf(eventDoc.school), href: "/school/dashboard?tab=school-events" }
         ),
       ]);
       return { sent: students.sent + school.sent };

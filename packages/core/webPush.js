@@ -46,10 +46,47 @@ export function getWebPushPublicConfig() {
   return { enabled: Boolean(publicKey && privateKey), publicKey };
 }
 
-function payloadFor(delivery, role) {
+/**
+ * The picture beside a notification: the school's own logo when the alert
+ * comes from a school (its staff, students or families), the Praavyo logo for
+ * platform messages (owner, 2026-11-23). A delivery sets `schoolId` to show
+ * that school's logo, or `schoolId: null` to force the Praavyo logo.
+ */
+function safeIcon(value) {
+  const url = String(value || "").trim();
+  if (url.startsWith("/") && !url.startsWith("//")) return url.slice(0, 300);
+  return /^https:\/\//i.test(url) ? url.slice(0, 500) : "";
+}
+
+async function schoolLogos(schoolIds) {
+  if (!schoolIds.length) return new Map();
+  // A logo is decoration: any failure here just means the Praavyo logo.
+  try {
+    const ObjectId = PushSubscription.base?.Types?.ObjectId;
+    const collection = PushSubscription.db?.collection?.("schoolshowcaseprofiles");
+    if (!ObjectId || !collection) return new Map();
+    const ids = [...new Set(schoolIds.map((id) => String(id || "")))].filter((id) => ObjectId.isValid(id));
+    if (!ids.length) return new Map();
+    const rows = await collection
+      .find({ school: { $in: ids.map((id) => new ObjectId(id)) } }, { projection: { school: 1, logoUrl: 1, coverImageUrl: 1 } })
+      .toArray();
+    return new Map(
+      rows
+        .map((row) => [String(row.school), safeIcon(row.logoUrl || row.coverImageUrl)])
+        .filter(([, icon]) => icon)
+    );
+  } catch (error) {
+    console.error("[webPush] school logo lookup failed:", error.message);
+    return new Map();
+  }
+}
+
+function payloadFor(delivery, role, icon = "") {
   const id = String(delivery.notificationId || "");
   return JSON.stringify({
     notificationId: id,
+    // Empty means the Praavyo logo (public/sw.js).
+    icon: safeIcon(delivery.icon) || icon,
     title: String(delivery.title || "Praavyo").slice(0, 180),
     body: String(delivery.body || "You have a new update.").slice(0, 500),
     href: safeHref(delivery.href, role),
@@ -69,6 +106,10 @@ async function deliver(jobs) {
   const { publicKey, privateKey, subject } = configuration();
   webPush.setVapidDetails(subject, publicKey, privateKey);
 
+  const logos = await schoolLogos(
+    jobs.filter(({ delivery }) => !delivery.icon && delivery.schoolId).map(({ delivery }) => delivery.schoolId)
+  );
+
   let sent = 0;
   for (let index = 0; index < jobs.length; index += PUSH_CONCURRENCY) {
     const batch = jobs.slice(index, index + PUSH_CONCURRENCY);
@@ -77,7 +118,7 @@ async function deliver(jobs) {
         try {
           await webPush.sendNotification(
             { endpoint: subscription.endpoint, keys: subscription.keys },
-            payloadFor(delivery, role),
+            payloadFor(delivery, role, delivery.schoolId ? logos.get(String(delivery.schoolId)) || "" : ""),
             // High urgency for everything: a notice is the reason the app
             // exists, and "normal" lets Android hold it while the phone dozes.
             { TTL: 60 * 60 * 24 * 3, urgency: "high" }
@@ -245,7 +286,12 @@ export async function sendAccountPush(audience = {}, delivery = {}) {
         stale.push(subscription.endpoint);
         return;
       }
-      jobs.push({ subscription, delivery, role });
+      // A school audience shows that school's logo unless the delivery says otherwise.
+      jobs.push({
+        subscription,
+        delivery: delivery.schoolId === undefined ? { ...delivery, schoolId: audience.school || null } : delivery,
+        role,
+      });
     });
 
     if (stale.length) await PushSubscription.deleteMany({ endpoint: { $in: stale } });
