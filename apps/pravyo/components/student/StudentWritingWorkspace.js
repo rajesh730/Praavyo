@@ -10,7 +10,7 @@ import ImageUploadField from "@/components/media/ImageUploadField";
 import AlertBanner from "@/components/ui/AlertBanner";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import LoadingState from "@/components/ui/LoadingState";
-import WritingContent, { InlineWritingText, stripWritingMarkup } from "@/components/WritingContent";
+import WritingContent, { stripWritingMarkup } from "@/components/WritingContent";
 import RichWritingEditor from "@/components/writing/RichWritingEditor";
 import {
   getWritingBodyImages,
@@ -409,91 +409,6 @@ function WritingArt({ writing, className = "" }) {
   );
 }
 
-// Bold, italic and links, shared with every reader (components/WritingContent.js).
-const InlineFormattedText = InlineWritingText;
-
-function renderFormattedContent(content) {
-  const lines = String(content || "").split("\n");
-  const blocks = [];
-  let index = 0;
-
-  while (index < lines.length) {
-    const line = lines[index];
-
-    if (!line.trim()) {
-      blocks.push(<div key={`space-${index}`} className="h-3" />);
-      index += 1;
-      continue;
-    }
-
-    if (/^\s*-\s+/.test(line)) {
-      const items = [];
-      while (index < lines.length && /^\s*-\s+/.test(lines[index])) {
-        items.push(lines[index].replace(/^\s*-\s+/, ""));
-        index += 1;
-      }
-      blocks.push(
-        <ul key={`ul-${index}`} className="list-disc space-y-2 pl-6">
-          {items.map((item, itemIndex) => (
-            <li key={`${item}-${itemIndex}`}>
-              <InlineFormattedText text={item} />
-            </li>
-          ))}
-        </ul>
-      );
-      continue;
-    }
-
-    if (/^\s*\d+\.\s+/.test(line)) {
-      const items = [];
-      while (index < lines.length && /^\s*\d+\.\s+/.test(lines[index])) {
-        items.push(lines[index].replace(/^\s*\d+\.\s+/, ""));
-        index += 1;
-      }
-      blocks.push(
-        <ol key={`ol-${index}`} className="list-decimal space-y-2 pl-6">
-          {items.map((item, itemIndex) => (
-            <li key={`${item}-${itemIndex}`}>
-              <InlineFormattedText text={item} />
-            </li>
-          ))}
-        </ol>
-      );
-      continue;
-    }
-
-    if (/^\s*>\s?/.test(line)) {
-      const quotes = [];
-      while (index < lines.length && /^\s*>\s?/.test(lines[index])) {
-        quotes.push(lines[index].replace(/^\s*>\s?/, ""));
-        index += 1;
-      }
-      blocks.push(
-        <blockquote
-          key={`quote-${index}`}
-          className="border-l border-brand-line bg-brand-soft px-4 py-3 font-semibold text-muted"
-        >
-          {quotes.map((quote, quoteIndex) => (
-            <p key={`${quote}-${quoteIndex}`}>
-              <InlineFormattedText text={quote} />
-            </p>
-          ))}
-        </blockquote>
-      );
-      continue;
-    }
-
-    blocks.push(
-      <p key={`${index}`}>
-        <InlineFormattedText text={line} />
-      </p>
-    );
-    index += 1;
-  }
-
-  return <div className="space-y-3">{blocks}</div>;
-}
-
 function WritingEditor({
   form,
   setForm,
@@ -666,7 +581,7 @@ function WritingEditor({
             />
           ) : null}
           {form.content
-            ? renderFormattedContent(form.content)
+            ? <WritingContent content={form.content} />
             : "Your preview will appear here as you write."}
           {previewBodyImages.length ? (
             <div className="mt-5 grid gap-3 sm:grid-cols-2">

@@ -1,17 +1,25 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Bold, Italic, Link2, Unlink } from "lucide-react";
-import { editorNodeToWriting, safeWritingHref, writingToEditorHtml } from "@/lib/writingMarkup";
+import { Bold, Heading, Italic, Link2, List, ListOrdered, Unlink } from "lucide-react";
+import {
+  editorNodeToWriting,
+  pastedTextToWriting,
+  safeWritingHref,
+  writingLineToHtml,
+  writingToEditorHtml,
+} from "@/lib/writingMarkup";
 
 /**
- * A very small "like Word" editor for students: select words and press B, I or
- * Link (or Ctrl+B / Ctrl+I / Ctrl+K). What they see is what readers see.
+ * A very small "like Word" editor for students: select words and press Bold,
+ * Italic, Heading, Bullets, Numbers or Link (or Ctrl+B / Ctrl+I / Ctrl+K).
+ * What they see is what readers see.
  *
- * The value stays the plain-text markup the rest of Praavyo already stores and
- * renders safely (lib/writingMarkup.js): **bold**, _italic_, [text](url). The
- * editor only ever contains its own escaped HTML; pasted content is inserted as
- * plain text, so no outside formatting or scripts get in.
+ * The value stays the plain-text markup the rest of Praavyo stores and renders
+ * safely (lib/writingMarkup.js). Pasting from ChatGPT, Word, Google Docs or a
+ * web page keeps bold, italic, headings, lists and links (and turns leftover
+ * **, * and ### marks into real formatting); anything else is dropped, so no
+ * outside styles, images or scripts get in.
  */
 
 function exec(command, value = null) {
@@ -30,6 +38,23 @@ function normaliseUrl(value) {
   return safeWritingHref(`https://${raw}`);
 }
 
+/** Clipboard content in our markup: formatted HTML when there is some, else text. */
+function clipboardToWriting(clipboard) {
+  const html = clipboard?.getData("text/html") || "";
+  const text = clipboard?.getData("text/plain") || "";
+  if (html && /<(b|strong|i|em|a|ul|ol|li|h[1-6]|p|div|br|span)\b/i.test(html)) {
+    try {
+      const doc = new DOMParser().parseFromString(html, "text/html");
+      const fromHtml = editorNodeToWriting(doc.body, { pasted: true });
+      // Markdown copied as text inside HTML (code views, notes apps).
+      if (fromHtml.trim()) return pastedTextToWriting(fromHtml);
+    } catch {
+      // Fall back to the plain text below.
+    }
+  }
+  return pastedTextToWriting(text);
+}
+
 function ToolButton({ label, shortcut, on = false, disabled = false, onClick, children }) {
   return (
     <button
@@ -41,7 +66,7 @@ function ToolButton({ label, shortcut, on = false, disabled = false, onClick, ch
       // Keep the selection: a normal click would move focus off the words.
       onMouseDown={(event) => event.preventDefault()}
       onClick={onClick}
-      className={`inline-flex h-9 min-w-9 items-center justify-center gap-1.5 rounded-control px-2.5 text-sm font-semibold transition-colors ${
+      className={`inline-flex h-9 min-w-9 items-center justify-center gap-1.5 rounded-control px-2 text-sm font-semibold transition-colors ${
         on ? "bg-brand text-white" : "text-ink hover:bg-surface-2"
       } disabled:opacity-50`}
     >
@@ -49,6 +74,8 @@ function ToolButton({ label, shortcut, on = false, disabled = false, onClick, ch
     </button>
   );
 }
+
+const Divider = () => <span className="mx-1 h-5 w-px bg-line" aria-hidden />;
 
 export default function RichWritingEditor({
   value = "",
@@ -64,10 +91,11 @@ export default function RichWritingEditor({
   const lastValue = useRef(null);
   const savedRange = useRef(null);
   const linkInputRef = useRef(null);
-  const [active, setActive] = useState({ bold: false, italic: false, link: false });
+  const [active, setActive] = useState({ bold: false, italic: false, link: false, heading: false, bullets: false, numbers: false });
   const [linkOpen, setLinkOpen] = useState(false);
   const [linkUrl, setLinkUrl] = useState("");
   const [linkError, setLinkError] = useState("");
+  const [notice, setNotice] = useState("");
 
   // Load outside values (opening another writing, clearing after send). Our
   // own edits are skipped so the caret never jumps while typing.
@@ -98,11 +126,11 @@ export default function RichWritingEditor({
     return editorRef.current?.contains(range.commonAncestorContainer) ? range : null;
   }, []);
 
-  const linkAtSelection = useCallback(() => {
+  const ancestorAtSelection = useCallback((tags) => {
     const range = selectionInEditor();
     let node = range?.commonAncestorContainer || null;
     while (node && node !== editorRef.current) {
-      if (node.nodeType === 1 && node.tagName === "A") return node;
+      if (node.nodeType === 1 && tags.includes(node.tagName)) return node;
       node = node.parentNode;
     }
     return null;
@@ -110,12 +138,16 @@ export default function RichWritingEditor({
 
   const refreshActive = useCallback(() => {
     if (!selectionInEditor()) return;
+    const listTag = ancestorAtSelection(["UL", "OL"])?.tagName;
     setActive({
       bold: document.queryCommandState("bold"),
       italic: document.queryCommandState("italic"),
-      link: Boolean(linkAtSelection()),
+      link: Boolean(ancestorAtSelection(["A"])),
+      heading: Boolean(ancestorAtSelection(["H1", "H2", "H3", "H4", "H5", "H6"])),
+      bullets: listTag === "UL",
+      numbers: listTag === "OL",
     });
-  }, [linkAtSelection, selectionInEditor]);
+  }, [ancestorAtSelection, selectionInEditor]);
 
   useEffect(() => {
     document.addEventListener("selectionchange", refreshActive);
@@ -130,19 +162,21 @@ export default function RichWritingEditor({
     selection.addRange(range);
   };
 
-  const format = (command) => {
+  const run = (command, commandValue = null) => {
     if (disabled) return;
-    editorRef.current?.focus();
-    exec(command);
+    if (!selectionInEditor()) editorRef.current?.focus();
+    exec(command, commandValue);
     emit();
     refreshActive();
   };
+
+  const toggleHeading = () => run("formatBlock", active.heading ? "<div>" : "<h3>");
 
   const openLink = () => {
     if (disabled) return;
     if (!selectionInEditor()) editorRef.current?.focus();
     savedRange.current = selectionInEditor()?.cloneRange() || null;
-    const current = linkAtSelection();
+    const current = ancestorAtSelection(["A"]);
     setLinkUrl(current?.getAttribute("href") || "");
     setLinkError("");
     setLinkOpen(true);
@@ -167,7 +201,7 @@ export default function RichWritingEditor({
     }
     restoreSelection();
     // Caret inside an existing link: change that whole link.
-    const existing = linkAtSelection();
+    const existing = ancestorAtSelection(["A"]);
     if (existing && selectionInEditor()?.collapsed) selectNode(existing);
     const range = selectionInEditor();
     if (range && !range.collapsed) {
@@ -186,7 +220,7 @@ export default function RichWritingEditor({
 
   const removeLink = () => {
     restoreSelection();
-    const link = linkAtSelection();
+    const link = ancestorAtSelection(["A"]);
     if (link) selectNode(link);
     exec("unlink");
     setLinkOpen(false);
@@ -202,20 +236,32 @@ export default function RichWritingEditor({
       openLink();
     } else if (mod && (key === "b" || key === "i")) {
       event.preventDefault();
-      format(key === "b" ? "bold" : "italic");
+      run(key === "b" ? "bold" : "italic");
     } else if (mod && key === "u") {
       event.preventDefault(); // underline is not offered (it would not be saved)
     }
   };
 
-  // Paste as plain text only: no outside formatting, images or code.
+  // Paste keeps bold, italic, headings, lists and links; nothing else.
   const onPaste = (event) => {
     event.preventDefault();
-    const text = event.clipboardData?.getData("text/plain") || "";
+    let writing = clipboardToWriting(event.clipboardData);
+    if (!writing) return;
     const room = maxLength - (lastValue.current || "").length;
-    if (room <= 0) return;
-    exec("insertText", text.slice(0, room));
+    if (room <= 0) {
+      setNotice(`Your writing is at the ${maxLength.toLocaleString()} character limit.`);
+      return;
+    }
+    if (writing.length > room) {
+      writing = writing.slice(0, room);
+      setNotice("Only part of the pasted text fitted within the character limit.");
+    } else {
+      setNotice("");
+    }
+    const singleLine = !writing.includes("\n") && !/^(\s*[-*+•]\s|\s*\d+[.)]\s|\s*#{1,6}\s)/.test(writing);
+    exec("insertHTML", singleLine ? writingLineToHtml(writing) : writingToEditorHtml(writing));
     emit();
+    refreshActive();
   };
 
   const onBeforeInput = (event) => {
@@ -228,14 +274,24 @@ export default function RichWritingEditor({
 
   return (
     <div className={`relative ${className}`}>
-      <div className="flex flex-wrap items-center gap-1 border-b border-line bg-surface px-3 py-1.5" role="toolbar" aria-label="Text style">
-        <ToolButton disabled={disabled} label="Bold" shortcut="Ctrl+B" on={active.bold} onClick={() => format("bold")}>
+      <div className="flex flex-wrap items-center gap-0.5 border-b border-line bg-surface px-2 py-1.5" role="toolbar" aria-label="Text style">
+        <ToolButton disabled={disabled} label="Bold" shortcut="Ctrl+B" on={active.bold} onClick={() => run("bold")}>
           <Bold size={17} aria-hidden strokeWidth={2.75} />
         </ToolButton>
-        <ToolButton disabled={disabled} label="Italic" shortcut="Ctrl+I" on={active.italic} onClick={() => format("italic")}>
+        <ToolButton disabled={disabled} label="Italic" shortcut="Ctrl+I" on={active.italic} onClick={() => run("italic")}>
           <Italic size={17} aria-hidden />
         </ToolButton>
-        <span className="mx-1 h-5 w-px bg-line" aria-hidden />
+        <ToolButton disabled={disabled} label={active.heading ? "Normal text" : "Heading"} on={active.heading} onClick={toggleHeading}>
+          <Heading size={17} aria-hidden />
+        </ToolButton>
+        <Divider />
+        <ToolButton disabled={disabled} label="Bullet list" on={active.bullets} onClick={() => run("insertUnorderedList")}>
+          <List size={18} aria-hidden />
+        </ToolButton>
+        <ToolButton disabled={disabled} label="Numbered list (1, 2, 3)" on={active.numbers} onClick={() => run("insertOrderedList")}>
+          <ListOrdered size={18} aria-hidden />
+        </ToolButton>
+        <Divider />
         <ToolButton disabled={disabled} label={active.link ? "Change link" : "Add link"} shortcut="Ctrl+K" on={active.link} onClick={openLink}>
           <Link2 size={17} aria-hidden />
           <span className="hidden sm:inline">Link</span>
@@ -245,7 +301,7 @@ export default function RichWritingEditor({
             <Unlink size={17} aria-hidden />
           </ToolButton>
         )}
-        <span className="ml-auto hidden text-xs text-muted md:inline">Select words, then press B, I or Link</span>
+        <span className="ml-auto hidden text-xs text-muted lg:inline">Select words, then choose a button</span>
       </div>
 
       {linkOpen && (
@@ -270,6 +326,8 @@ export default function RichWritingEditor({
         </form>
       )}
 
+      {notice && <p className="border-b border-line bg-warning-soft px-4 py-1.5 text-xs font-semibold text-warning">{notice}</p>}
+
       <div className="relative">
         {empty && (
           <span className="pointer-events-none absolute left-5 top-4 text-base leading-8 text-subtle" aria-hidden>
@@ -290,7 +348,7 @@ export default function RichWritingEditor({
           onPaste={onPaste}
           onDrop={(event) => event.preventDefault()}
           onBeforeInput={onBeforeInput}
-          className={`block w-full whitespace-pre-wrap break-words px-5 pb-10 pt-4 text-base leading-8 text-ink outline-none [&_a]:font-semibold [&_a]:text-brand [&_a]:underline [&_mark]:rounded-control [&_mark]:bg-warning-soft [&_mark]:px-1 ${minHeightClass}`}
+          className={`block w-full whitespace-pre-wrap break-words px-5 pb-10 pt-4 text-base leading-8 text-ink outline-none [&_a]:font-semibold [&_a]:text-brand [&_a]:underline [&_mark]:rounded-control [&_mark]:bg-warning-soft [&_mark]:px-1 [&_h1]:text-[1.15em] [&_h1]:font-bold [&_h2]:text-[1.15em] [&_h2]:font-bold [&_h3]:text-[1.15em] [&_h3]:font-bold [&_ul]:list-disc [&_ul]:pl-7 [&_ol]:list-decimal [&_ol]:pl-7 ${minHeightClass}`}
         />
         <span className={`pointer-events-none absolute bottom-3 right-5 rounded-full bg-surface px-2 text-xs font-semibold ${length > maxLength ? "text-danger" : "text-muted"}`}>
           {length} / {maxLength}
