@@ -58,35 +58,18 @@ function safeIcon(value) {
   return /^https:\/\//i.test(url) ? url.slice(0, 500) : "";
 }
 
-async function schoolLogos(schoolIds) {
-  if (!schoolIds.length) return new Map();
-  // A logo is decoration: any failure here just means the Praavyo logo.
-  try {
-    const ObjectId = PushSubscription.base?.Types?.ObjectId;
-    const collection = PushSubscription.db?.collection?.("schoolshowcaseprofiles");
-    if (!ObjectId || !collection) return new Map();
-    const ids = [...new Set(schoolIds.map((id) => String(id || "")))].filter((id) => ObjectId.isValid(id));
-    if (!ids.length) return new Map();
-    const rows = await collection
-      .find({ school: { $in: ids.map((id) => new ObjectId(id)) } }, { projection: { school: 1, logoUrl: 1, coverImageUrl: 1 } })
-      .toArray();
-    return new Map(
-      rows
-        .map((row) => [String(row.school), safeIcon(row.logoUrl || row.coverImageUrl)])
-        .filter(([, icon]) => icon)
-    );
-  } catch (error) {
-    console.error("[webPush] school logo lookup failed:", error.message);
-    return new Map();
-  }
+/** The school's logo address (app/api/schools/[id]/logo); it falls back to Praavyo's. */
+function schoolLogoPath(schoolId) {
+  const id = String(schoolId || "");
+  return /^[a-f0-9]{24}$/i.test(id) ? `/api/schools/${id}/logo` : "";
 }
 
-function payloadFor(delivery, role, icon = "") {
+function payloadFor(delivery, role) {
   const id = String(delivery.notificationId || "");
   return JSON.stringify({
     notificationId: id,
     // Empty means the Praavyo logo (public/sw.js).
-    icon: safeIcon(delivery.icon) || icon,
+    icon: safeIcon(delivery.icon) || schoolLogoPath(delivery.schoolId),
     title: String(delivery.title || "Praavyo").slice(0, 180),
     body: String(delivery.body || "You have a new update.").slice(0, 500),
     href: safeHref(delivery.href, role),
@@ -106,10 +89,6 @@ async function deliver(jobs) {
   const { publicKey, privateKey, subject } = configuration();
   webPush.setVapidDetails(subject, publicKey, privateKey);
 
-  const logos = await schoolLogos(
-    jobs.filter(({ delivery }) => !delivery.icon && delivery.schoolId).map(({ delivery }) => delivery.schoolId)
-  );
-
   let sent = 0;
   for (let index = 0; index < jobs.length; index += PUSH_CONCURRENCY) {
     const batch = jobs.slice(index, index + PUSH_CONCURRENCY);
@@ -118,7 +97,7 @@ async function deliver(jobs) {
         try {
           await webPush.sendNotification(
             { endpoint: subscription.endpoint, keys: subscription.keys },
-            payloadFor(delivery, role, delivery.schoolId ? logos.get(String(delivery.schoolId)) || "" : ""),
+            payloadFor(delivery, role),
             // High urgency for everything: a notice is the reason the app
             // exists, and "normal" lets Android hold it while the phone dozes.
             { TTL: 60 * 60 * 24 * 3, urgency: "high" }
