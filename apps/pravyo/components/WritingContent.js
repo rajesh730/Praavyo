@@ -1,38 +1,39 @@
-function InlineWritingText({ text }) {
-  const pattern =
-    /(\{\{highlight\}\}.*?\{\{\/highlight\}\}|\*\*[^*]+\*\*|_[^_]+_)/g;
-  const parts = String(text || "").split(pattern).filter(Boolean);
+import { parseWritingInline, stripWritingMarkup } from "@/lib/writingMarkup";
 
-  return parts.map((part, index) => {
-    const highlight = part.match(/^\{\{highlight\}\}(.*)\{\{\/highlight\}\}$/);
-    if (highlight) {
+// Re-exported: existing imports read it from here.
+export { stripWritingMarkup };
+
+function renderNodes(nodes, keyPrefix = "w") {
+  return nodes.map((node, index) => {
+    const key = `${keyPrefix}-${index}`;
+    if (node.type === "text") return <span key={key}>{node.text}</span>;
+    const children = renderNodes(node.children, key);
+    if (node.type === "bold") return <strong key={key}>{children}</strong>;
+    if (node.type === "italic") return <em key={key}>{children}</em>;
+    if (node.type === "link") {
       return (
-        <mark
-          key={`${part}-${index}`}
-          className="rounded-control bg-warning-soft px-1 font-semibold text-ink"
+        <a
+          key={key}
+          href={node.href}
+          target="_blank"
+          rel="noopener noreferrer nofollow ugc"
+          className="font-semibold text-brand underline underline-offset-2 hover:text-brand-strong"
         >
-          {highlight[1]}
-        </mark>
+          {children}
+        </a>
       );
     }
-
-    if (part.startsWith("**") && part.endsWith("**")) {
-      return <strong key={`${part}-${index}`}>{part.slice(2, -2)}</strong>;
-    }
-
-    if (part.startsWith("_") && part.endsWith("_")) {
-      return <em key={`${part}-${index}`}>{part.slice(1, -1)}</em>;
-    }
-
-    return <span key={`${part}-${index}`}>{part}</span>;
+    return (
+      <mark key={key} className="rounded-control bg-warning-soft px-1 font-semibold text-ink">
+        {children}
+      </mark>
+    );
   });
 }
 
-export function stripWritingMarkup(content = "") {
-  return String(content || "")
-    .replace(/\{\{highlight\}\}(.*?)\{\{\/highlight\}\}/g, "$1")
-    .replace(/\*\*([^*]+)\*\*/g, "$1")
-    .replace(/_([^_]+)_/g, "$1");
+/** Bold, italic, links and highlights of one piece of writing, safely as React. */
+export function InlineWritingText({ text }) {
+  return renderNodes(parseWritingInline(text));
 }
 
 export function getWritingPreviewText(content = "", maxLength = 160, options = {}) {

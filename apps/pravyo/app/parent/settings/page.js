@@ -94,12 +94,18 @@ export default function ParentSettingsPage() {
       </section>
 
       {/* --- Notification channels ---------------------------------------- */}
+      {/* --- Permissions: what Praavyo may use on this phone ----------------- */}
+      <section className="card p-4">
+        <h2 className="font-semibold text-ink">{t("settings.permissions")}</h2>
+        <p className="mb-3 mt-1 text-sm text-muted">{t("settings.permissionsHelp")}</p>
+        <ParentPushNotifications />
+      </section>
+
       <section className="card p-4">
         <h2 className="mb-3 font-semibold text-ink">
           {t("settings.notifications")}
         </h2>
         <div className="space-y-3">
-          <ParentPushNotifications />
           <ToggleRow
             emoji="🔔"
             title="In the app"

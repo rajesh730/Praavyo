@@ -12,6 +12,7 @@ import {
   validateWritingEdit,
 } from "@/lib/freeWritingDesk";
 import { getTeacherMagazineSchool } from "@/lib/teacherMagazineDesk";
+import { notifySchoolWallShown } from "@/lib/schoolWallNotifications";
 
 export const dynamic = "force-dynamic";
 
@@ -113,6 +114,14 @@ export const PATCH = defineRoute({ roles: ["TEACHER"], errorMessage: "Failed to 
     before,
     after,
   });
+
+  if (action === "SHOW_SCHOOL_WALL") {
+    await notifySchoolWallShown({
+      articleId: article._id,
+      schoolId: school,
+      actor: { role: "TEACHER", id: session.user.id, name: session.user.name },
+    });
+  }
 
   return NextResponse.json({
     message: wallAction.message,

@@ -4,6 +4,7 @@ import connectDB from "@/lib/db";
 import SchoolMagazineArticle from "@/models/SchoolMagazineArticle";
 import { recordLifecycleAudit } from "@/lib/lifecycle";
 import { validateWritingEdit } from "@/lib/freeWritingDesk";
+import { notifySchoolWallShown } from "@/lib/schoolWallNotifications";
 import MagazineIssue from "@/models/MagazineIssue";
 import {
   getCurrentMagazineIssue,
@@ -311,6 +312,14 @@ export async function PATCH(request, props) {
       before,
       after,
     });
+
+    if (action === "SHOW_SCHOOL_WALL") {
+      await notifySchoolWallShown({
+        articleId: article._id,
+        schoolId: session.user.id,
+        actor: { role: "SCHOOL_ADMIN", id: session.user.id },
+      });
+    }
 
     const messageByAction = {
       PUBLISH: "Writing shown on the global wall",

@@ -1,6 +1,7 @@
 import Event from "@/models/Event";
 import EventSchoolInvitation from "@/models/EventSchoolInvitation";
 import User from "@/models/User";
+import { sendAccountPush } from "@pravyo/core/webPush";
 
 const ACTIVE_SCHOOL_STATUSES = ["APPROVED", "SUBSCRIBED"];
 const OPEN_INVITATION_STATUSES = ["PENDING", "APPROVED", "DISAPPROVED"];
@@ -65,7 +66,12 @@ export async function syncEventSchoolInvitations(eventOrId, options = {}) {
     return { invitedSchools: 0, withdrawnSchools: 0 };
   }
 
-  await EventSchoolInvitation.bulkWrite(
+  // Schools invited again after a system withdrawal hear about it like new ones.
+  const reinvited = await EventSchoolInvitation.find({
+    event: event._id, school: { $in: schoolIds }, status: "WITHDRAWN",
+  }).distinct("school");
+
+  const written = await EventSchoolInvitation.bulkWrite(
     schoolIds.map((schoolId) => ({
       updateOne: {
         filter: { event: event._id, school: schoolId },
@@ -93,6 +99,24 @@ export async function syncEventSchoolInvitations(eventOrId, options = {}) {
     { event: event._id, school: { $in: schoolIds }, status: "WITHDRAWN" },
     { $set: { status: "PENDING", notifiedAt: now, reason: "" } }
   );
+
+  // Ring each newly invited school once (owner, 2026-11-23: new events reach
+  // everyone they are for). Best-effort: invitations are already saved.
+  const newlyInvited = [
+    ...Object.keys(written?.upsertedIds || {}).map((index) => schoolIds[Number(index)]),
+    ...reinvited,
+  ].filter(Boolean).map(String);
+  if (newlyInvited.length) {
+    await sendAccountPush(
+      { role: "SCHOOL_ADMIN", accountIds: [...new Set(newlyInvited)] },
+      {
+        notificationId: `event-invitation-${String(event._id)}`,
+        title: `New platform competition: ${event.title || "Competition"}`,
+        body: "Your school is invited. Open Platform Events to accept or decline.",
+        href: "/school/dashboard?tab=platform-events",
+      }
+    ).catch((error) => console.error("[eventInvitations] push failed:", error.message));
+  }
 
   const withdrawn = await EventSchoolInvitation.updateMany(
     {

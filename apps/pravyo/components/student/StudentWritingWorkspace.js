@@ -10,7 +10,8 @@ import ImageUploadField from "@/components/media/ImageUploadField";
 import AlertBanner from "@/components/ui/AlertBanner";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import LoadingState from "@/components/ui/LoadingState";
-import WritingContent from "@/components/WritingContent";
+import WritingContent, { InlineWritingText, stripWritingMarkup } from "@/components/WritingContent";
+import RichWritingEditor from "@/components/writing/RichWritingEditor";
 import {
   getWritingBodyImages,
   getWritingLeadImage,
@@ -284,7 +285,7 @@ function isWaitingForSchool(writing) {
 
 
 function getWordCount(content = "") {
-  return String(content || "").trim().split(/\s+/).filter(Boolean).length;
+  return stripWritingMarkup(content).trim().split(/\s+/).filter(Boolean).length;
 }
 
 function getReadTime(content = "") {
@@ -292,7 +293,7 @@ function getReadTime(content = "") {
 }
 
 function getPreview(content = "", maxLength = 130) {
-  const text = String(content || "").replace(/\s+/g, " ").trim();
+  const text = stripWritingMarkup(content).replace(/\s+/g, " ").trim();
   if (text.length <= maxLength) return text;
   return `${text.slice(0, maxLength).trim()}...`;
 }
@@ -408,35 +409,8 @@ function WritingArt({ writing, className = "" }) {
   );
 }
 
-function InlineFormattedText({ text }) {
-  const pattern =
-    /(\{\{highlight\}\}.*?\{\{\/highlight\}\}|\*\*[^*]+\*\*|_[^_]+_)/g;
-  const parts = String(text || "").split(pattern).filter(Boolean);
-
-  return parts.map((part, index) => {
-    const highlight = part.match(/^\{\{highlight\}\}(.*)\{\{\/highlight\}\}$/);
-    if (highlight) {
-      return (
-        <mark
-          key={`${part}-${index}`}
-          className="rounded-control bg-warning-soft px-1 font-semibold text-ink"
-        >
-          {highlight[1]}
-        </mark>
-      );
-    }
-
-    if (part.startsWith("**") && part.endsWith("**")) {
-      return <strong key={`${part}-${index}`}>{part.slice(2, -2)}</strong>;
-    }
-
-    if (part.startsWith("_") && part.endsWith("_")) {
-      return <em key={`${part}-${index}`}>{part.slice(1, -1)}</em>;
-    }
-
-    return <span key={`${part}-${index}`}>{part}</span>;
-  });
-}
+// Bold, italic and links, shared with every reader (components/WritingContent.js).
+const InlineFormattedText = InlineWritingText;
 
 function renderFormattedContent(content) {
   const lines = String(content || "").split("\n");
@@ -533,6 +507,7 @@ function WritingEditor({
   portfolioOnly = false,
   titleRef = null,
 }) {
+  const setContent = useCallback((content) => setForm((current) => ({ ...current, content })), [setForm]);
   const [showCoverImage, setShowCoverImage] = useState(Boolean(form.coverImage));
   const [showTags, setShowTags] = useState(Boolean(form.tags?.length));
   const tagsInputId = useId();
@@ -671,18 +646,14 @@ function WritingEditor({
 
       {editorMode === "WRITE" ? (
         <div className="relative border-t border-line">
-          <textarea
-            placeholder="Start writing your amazing article here..."
+          {/* Select words, then B / I / Link — like Word (lib/writingMarkup.js). */}
+          <RichWritingEditor
             value={form.content}
-            onChange={(event) =>
-              setForm((current) => ({ ...current, content: event.target.value }))
-            }
+            onChange={setContent}
+            placeholder="Start writing your amazing article here..."
             maxLength={MAX_WRITING_CHARACTERS}
-            className="input block min-h-[340px] w-full resize-y rounded-none border-0 px-5 pb-10 pt-4 text-base leading-8 focus:shadow-none"
+            ariaLabel="Your writing"
           />
-          <span className="pointer-events-none absolute bottom-3 right-5 rounded-full bg-surface px-2 text-xs font-semibold text-muted">
-            {form.content.length} / {MAX_WRITING_CHARACTERS}
-          </span>
         </div>
       ) : (
         <article className="min-h-[340px] bg-surface px-5 py-5 text-base leading-8 text-ink">

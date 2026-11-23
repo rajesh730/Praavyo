@@ -1,6 +1,8 @@
 import Notice from "@/models/Notice";
 import { normalizeGradeValue } from "@/lib/schoolGrades";
 import { publishNoticeToParents } from "@/lib/notifications/service";
+import { pushNoticePublished, teacherIdsForGrades } from "@/lib/devicePush";
+import { sendAccountPush } from "@pravyo/core/webPush";
 
 /**
  * The Notice that announces an event.
@@ -22,6 +24,41 @@ import { publishNoticeToParents } from "@/lib/notifications/service";
 
 function eventIdFor(event) {
   return event ? event._id || event.id || event : null;
+}
+
+/**
+ * Ring the devices of everyone the event is for (owner, 2026-11-23): its
+ * students (eligible grades, all when none), the teachers of those grades,
+ * and the school when someone else (a teacher) created it. Guardians are
+ * reached through publishNoticeToParents. The author is never rung.
+ */
+async function pushEventAnnouncement({ notice, event, schoolId, authorId }) {
+  try {
+    const grades = Array.isArray(notice.grades) ? notice.grades : [];
+    const teacherIds = await teacherIdsForGrades(schoolId, grades);
+    const delivery = {
+      notificationId: `notice-${String(notice._id)}`,
+      title: notice.title,
+      body: String(notice.content || "").replace(/\s+/g, " ").trim().slice(0, 200),
+    };
+    const excludeIds = [String(authorId)];
+    await Promise.all([
+      pushNoticePublished(notice, { excludeIds }),
+      sendAccountPush(
+        { role: "TEACHER", accountIds: teacherIds, school: schoolId, excludeIds },
+        { ...delivery, href: "/teacher/dashboard?tab=events" }
+      ),
+      sendAccountPush(
+        { role: "SCHOOL_ADMIN", accountIds: [String(schoolId)], excludeIds },
+        {
+          ...delivery,
+          href: event?.eventScope === "PLATFORM" ? "/school/dashboard?tab=platform-events" : "/school/dashboard?tab=school-events",
+        }
+      ),
+    ]);
+  } catch (error) {
+    console.error("[eventNotices] device announcement failed:", error.message);
+  }
 }
 
 export async function ensureEventNotice({
@@ -53,14 +90,18 @@ export async function ensureEventNotice({
     ? event.eligibleGrades.map(normalizeGradeValue).filter(Boolean)
     : [];
 
+  const noticeFilter = {
+    scope: "SCHOOL",
+    school: targetSchoolId,
+    event: eventId,
+    type: "EVENT",
+    isDeleted: { $ne: true },
+  };
+  // Devices ring for a new announcement or a material change, not a re-save.
+  const announced = await Notice.exists(noticeFilter);
+
   const notice = await Notice.findOneAndUpdate(
-    {
-      scope: "SCHOOL",
-      school: targetSchoolId,
-      event: eventId,
-      type: "EVENT",
-      isDeleted: { $ne: true },
-    },
+    noticeFilter,
     {
       $set: {
         title: title || `New event: ${event.title || "Event"}`,
@@ -106,6 +147,9 @@ export async function ensureEventNotice({
   // the notification work as soon as the event response is sent.
   if (notice?._id) {
     await publishNoticeToParents(notice._id);
+    if (!announced || announceAgain) {
+      await pushEventAnnouncement({ notice, event, schoolId: targetSchoolId, authorId });
+    }
   }
 
   return notice;

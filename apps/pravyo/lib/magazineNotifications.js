@@ -69,10 +69,10 @@ export async function notifySchoolMagazineSubmitted({
     articleId: String(article?._id || ""),
   });
 
-  // Magazine submissions are also routed to the student's current class
-  // teacher. The school remains the final editor; this only tells the class
-  // teacher that a piece is waiting in their first-review desk.
-  if (isMagazineSubmission && student?.grade) {
+  // Magazine submissions and school wall posts are also routed to the
+  // student's class teacher(s), who review both on the Publishing Desk. The
+  // school remains the final editor.
+  if (student?.grade) {
     try {
       const teacherIds = await TeacherTeachingAssignment.find({
         school: schoolId,
@@ -83,7 +83,7 @@ export async function notifySchoolMagazineSubmitted({
         { role: "TEACHER", accountIds: teacherIds, school: schoolId },
         {
           notificationId: `magazine-submission-${String(article?._id || "")}`,
-          title: "New magazine submission",
+          title: isMagazineSubmission ? "New magazine submission" : "New school wall post",
           body: `${student?.name || "A student"} sent ${articleTitle(article)} for class review.`,
           href: "/teacher/dashboard?tab=publishing",
         }

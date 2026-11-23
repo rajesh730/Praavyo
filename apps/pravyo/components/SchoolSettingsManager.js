@@ -10,7 +10,7 @@ import WebsiteApiKeysPanel from "@/components/settings/WebsiteApiKeysPanel";
 import ReportCardImagesPanel from "@/components/settings/ReportCardImagesPanel";
 import IemisSettingsPanel from "@/components/settings/IemisSettingsPanel";
 import SchoolMapField from "@/components/settings/SchoolMapField";
-import DevicePushBanner from "@/components/notifications/DevicePushBanner";
+import PermissionsSection from "@/components/notifications/PermissionsSection";
 import { parseGoogleMapEmbed } from "@/lib/googleMapEmbed";
 
 const defaultConfig = {
@@ -49,6 +49,7 @@ const SETTINGS_TABS = [
   { id: "profile", label: "School Profile" },
   { id: "academic", label: "Academic Setup" },
   { id: "security", label: "Security" },
+  { id: "permissions", label: "Permissions" },
 ];
 
 function isValidEmail(value) {
@@ -553,10 +554,10 @@ export default function SchoolSettingsManager() {
       </div>
       )}
 
-      {activeSettingsTab === "academic" && (
-        <div className="max-w-3xl">
+      {activeSettingsTab === "permissions" && (
+        <div className="max-w-3xl rounded-card border border-line-strong bg-surface p-4 sm:p-5">
           {/* Turn on, check, or test phone/laptop notifications. */}
-          <DevicePushBanner role="SCHOOL_ADMIN" variant="card" />
+          <PermissionsSection role="SCHOOL_ADMIN" />
         </div>
       )}
 

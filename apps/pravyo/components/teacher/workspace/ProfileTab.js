@@ -7,6 +7,7 @@ import { BookOpen, Pencil, Repeat } from 'lucide-react';
 import Input from '@/components/ui/Input';
 import { gradeSummaries } from './shared';
 import ChangePasswordCard from './ChangePasswordCard';
+import PermissionsSection from '@/components/notifications/PermissionsSection';
 import { CardHeading, Initials, TableCard, TH, THEAD } from './ui';
 
 /** Who I am at this school, and what the school has made me responsible for. */
@@ -119,6 +120,8 @@ export default function ProfileTab({ workspace, reload }) {
         </section>
 
         <ChangePasswordCard />
+
+        <PermissionsSection role="TEACHER" className="card p-4" />
       </div>
 
       <TableCard>

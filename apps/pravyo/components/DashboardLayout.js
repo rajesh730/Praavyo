@@ -13,7 +13,7 @@ import AppTabBar from '@/components/navigation/AppTabBar';
 import InstallAppButton from '@pravyo/ui/installApp';
 import { getRoleNavigationLinks, isNavLinkActive } from '@/components/navigation/appNavigation';
 
-const DEVICE_PUSH_ROLES = new Set(['STUDENT', 'SCHOOL_ADMIN']);
+const DEVICE_PUSH_ROLES = new Set(['STUDENT', 'TEACHER', 'SCHOOL_ADMIN']);
 
 export default function DashboardLayout({ children }) {
   const { data: session } = useSession();
@@ -121,7 +121,8 @@ export default function DashboardLayout({ children }) {
             {/* Roles whose notices ring the device (lib/devicePush.js). */}
             {/* Not on the pages that show the full notifications card. */}
             {DEVICE_PUSH_ROLES.has(role) && !session?.error &&
-              pathname !== '/student/account' && currentTab !== 'settings' && <DevicePushBanner role={role} />}
+              pathname !== '/student/account' && currentTab !== 'settings' &&
+              !(pathname === '/teacher/dashboard' && currentTab === 'profile') && <DevicePushBanner role={role} />}
             {children}
           </div>
         </main>

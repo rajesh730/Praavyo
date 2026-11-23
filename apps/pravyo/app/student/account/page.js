@@ -3,15 +3,15 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
-import { KeyRound } from "lucide-react";
+import { Settings } from "lucide-react";
 import DashboardLayout from "@/components/DashboardLayout";
 import ChangePasswordCard from "@/components/teacher/workspace/ChangePasswordCard";
 import PageHeader from "@/components/ui/PageHeader";
 import LoadingState from "@/components/ui/LoadingState";
 import AlertBanner from "@/components/ui/AlertBanner";
-import DevicePushBanner from "@/components/notifications/DevicePushBanner";
+import PermissionsSection from "@/components/notifications/PermissionsSection";
 
-/** The student's own account: change the starting password (password@123). */
+/** The student's settings: change the starting password (password@123) and Permissions. */
 export default function StudentAccountPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
@@ -43,10 +43,10 @@ export default function StudentAccountPage() {
   return (
     <DashboardLayout>
       <PageHeader
-        icon={KeyRound}
+        icon={Settings}
         eyebrow="Student"
-        title="Change password"
-        description="You sign in with your IEMIS number and this password."
+        title="Settings"
+        description="Change your password (you sign in with your IEMIS number and password) and choose what Praavyo may use on this device."
       />
       <div className="max-w-md space-y-4">
         <ChangePasswordCard
@@ -54,7 +54,7 @@ export default function StudentAccountPage() {
           note="Your starting password is password@123, and it goes back to that if your school resets it. Choose your own: at least 8 characters."
         />
         {/* Turn on, check, or test phone/laptop notifications. */}
-        <DevicePushBanner role="STUDENT" variant="card" />
+        <PermissionsSection role="STUDENT" className="card p-4" />
       </div>
     </DashboardLayout>
   );

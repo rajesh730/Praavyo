@@ -205,6 +205,13 @@ const SchoolMagazineArticleSchema = new mongoose.Schema(
       default: true,
       index: true,
     },
+    // First time it went up on the school wall and its readers were notified
+    // (lib/schoolWallNotifications.js). Never cleared: showing it again later
+    // does not ring everyone a second time.
+    schoolWallAnnouncedAt: {
+      type: Date,
+      default: null,
+    },
     isGlobalWallPublished: {
       type: Boolean,
       default: false,

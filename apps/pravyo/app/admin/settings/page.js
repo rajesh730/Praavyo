@@ -4,6 +4,7 @@ import { Settings as FaCog } from "lucide-react";
 import { authOptions } from "@/lib/authOptions";
 import DashboardLayout from "@/components/DashboardLayout";
 import SuperAdminSettingsManager from "@/components/settings/SuperAdminSettingsManager";
+import PermissionsSection from "@/components/notifications/PermissionsSection";
 
 export const dynamic = "force-dynamic";
 
@@ -35,6 +36,10 @@ export default async function AdminSettingsPage() {
             Manage the global defaults and governance rules that shape every
             school workspace and platform event.
           </p>
+        </div>
+
+        <div className="mb-4 max-w-3xl rounded-card border border-line-strong bg-surface p-4 sm:p-5">
+          <PermissionsSection role="SUPER_ADMIN" />
         </div>
 
         <SuperAdminSettingsManager />

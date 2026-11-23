@@ -5,6 +5,7 @@ import { X as FaTimes } from "lucide-react";
 import { useParentApp, useParentFetch } from "./ParentAppContext";
 import { formatParentDate } from "@/lib/parentFormat";
 import { WritingCover, WritingGallery, WritingTags } from "@/components/WritingMedia";
+import WritingContent from "@/components/WritingContent";
 
 /**
  * Full-screen reader for one piece of the child's writing (§6, §7).
@@ -122,9 +123,8 @@ export default function WritingReader({ writingId, onClose }) {
 
             <WritingCover coverImage={writing.coverImage} images={writing.images} title={writing.title} className="mt-5 aspect-[16/9] max-h-[32rem]" />
             <WritingTags tags={writing.tags} className="mt-4" />
-            <div className="mt-5 whitespace-pre-wrap break-words leading-[1.75] text-ink">
-              {stripHtml(writing.content)}
-            </div>
+            {/* Bold, italic and links as the child wrote them; rendered as React, never as HTML. */}
+            <WritingContent content={stripHtml(writing.content)} className="mt-5 break-words leading-[1.75] text-ink" />
 
             {false && writing.images?.length ? (
               <div className="mt-4 grid gap-3 sm:grid-cols-2">

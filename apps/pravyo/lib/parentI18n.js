@@ -258,6 +258,8 @@ const en = {
   "settings.dataSaver": "Data saver",
   "settings.dataSaverHelp": "Load smaller images. Best on slow connections.",
   "settings.notifications": "Notifications",
+  "settings.permissions": "Permissions",
+  "settings.permissionsHelp": "What Praavyo may use on this phone. Each phone is set separately.",
   "settings.signOut": "Sign out",
 
   // --- Linking (§26) ----------------------------------------------------
@@ -504,6 +506,8 @@ const ne = {
   "settings.dataSaver": "डाटा बचत",
   "settings.dataSaverHelp": "सानो फोटो लोड गर्छ। ढिलो इन्टरनेटमा राम्रो।",
   "settings.notifications": "सूचनाहरू",
+  "settings.permissions": "अनुमतिहरू",
+  "settings.permissionsHelp": "यो फोनमा Praavyo ले के प्रयोग गर्न सक्छ। हरेक फोन छुट्टाछुट्टै मिलाइन्छ।",
   "settings.signOut": "बाहिर निस्कनुहोस्",
 
   "link.title": "आफ्नो बच्चासँग जोडिनुहोस्",

@@ -30,11 +30,12 @@ function readDismissed() {
  * - Blocked: how to allow it again in the browser's site settings.
  * - iPhone Safari: Add to Home Screen first, the only way iOS allows it.
  *
- * `variant="card"` is the always-visible version for settings pages, with a
- * test button so anyone can check their device really rings.
+ * `variant="card"` is the always-visible version for the Permissions section
+ * of every role's settings (components/notifications/PermissionsSection.js),
+ * with a test button so anyone can check their device really rings.
  */
 export default function DevicePushBanner({ role, variant = "banner" }) {
-  const [state, setState] = useState({ phase: "loading", message: "", busy: false });
+  const [state, setState] = useState({ phase: "loading", message: "", busy: false, reason: "" });
   // Nothing renders until the status loads, so reading storage here cannot
   // make the server and browser markup differ.
   const [dismissed, setDismissed] = useState(() => typeof window !== "undefined" && readDismissed());
@@ -53,7 +54,9 @@ export default function DevicePushBanner({ role, variant = "banner" }) {
         const status = await loadPushStatus(role);
         if (!active) return;
         // Shared family phones never get push (parent privacy rule).
-        if (!status.enabled || status.allowedOnDevice === false) return set({ phase: "unconfigured" });
+        if (!status.enabled || status.allowedOnDevice === false) {
+          return set({ phase: "unconfigured", reason: status.allowedOnDevice === false ? "shared" : "off" });
+        }
         setPublicKey(status.publicKey || "");
         if (Notification.permission === "denied") return set({ phase: "blocked" });
         if (Notification.permission === "granted") {
@@ -103,8 +106,9 @@ export default function DevicePushBanner({ role, variant = "banner" }) {
     setDismissed(true);
   };
 
-  const { phase, message, busy } = state;
-  if (phase === "loading" || phase === "unconfigured") return null;
+  const { phase, message, busy, reason } = state;
+  // The banner stays silent when push is unavailable; settings explain why.
+  if (phase === "loading" || (phase === "unconfigured" && variant === "banner")) return null;
 
   if (variant === "banner") {
     // The banner only asks; once on (or unsupported) it gets out of the way,
@@ -133,6 +137,13 @@ export default function DevicePushBanner({ role, variant = "banner" }) {
       icon: BellRing,
       title: "Add Praavyo to your Home Screen for notifications",
       text: "On iPhone and iPad, tap Share, then Add to Home Screen, open Praavyo from there and turn notifications on.",
+    },
+    unconfigured: {
+      icon: BellOff,
+      title: "Notifications are not available here",
+      text: reason === "shared"
+        ? "This is a shared family phone, so notifications stay off on it."
+        : "Device notifications are not switched on for Praavyo yet.",
     },
     unsupported: {
       icon: BellOff,

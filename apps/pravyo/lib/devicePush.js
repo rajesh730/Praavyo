@@ -2,6 +2,8 @@ import Student from "@/models/Student";
 import Event from "@/models/Event";
 import EventSchoolInvitation from "@/models/EventSchoolInvitation";
 import ParticipationRequest from "@/models/ParticipationRequest";
+import TeacherTeachingAssignment from "@pravyo/db/models/TeacherTeachingAssignment";
+import { teacherIdsAtSchool } from "@pravyo/db/teacherMemberships";
 import { sendAccountPush } from "@pravyo/core/webPush";
 import { getEquivalentGradeValues } from "@/lib/schoolGrades";
 
@@ -57,6 +59,22 @@ export async function pushUserNotifications(docs = []) {
   });
 }
 
+/**
+ * Active teachers of a school who teach any of `grades` (class or subject
+ * teacher). With no grades, every active teacher of the school.
+ */
+export async function teacherIdsForGrades(schoolId, grades = []) {
+  if (!schoolId) return [];
+  const active = (await teacherIdsAtSchool(schoolId)).map(String);
+  const cleanGrades = (grades || []).map((grade) => String(grade || "").trim()).filter(Boolean);
+  if (!cleanGrades.length) return active;
+  const values = [...new Set(cleanGrades.flatMap((grade) => getEquivalentGradeValues(grade)))];
+  const assigned = new Set(
+    (await TeacherTeachingAssignment.find({ school: schoolId, grade: { $in: values } }).distinct("teacher")).map(String)
+  );
+  return active.filter((id) => assigned.has(id));
+}
+
 /** Students of `schoolId` whose grade matches `grades` (all when empty). */
 async function studentIdsAtSchool(schoolId, grades = []) {
   const query = { school: schoolId, status: "ACTIVE", isDeleted: { $ne: true } };
@@ -70,7 +88,7 @@ async function studentIdsAtSchool(schoolId, grades = []) {
 /**
  * A Notice that has just become PUBLISHED. Platform notices ring every school;
  * school notices for students ring that school's students in the chosen
- * grades (an event notice reaches every student, as the bell shows it).
+ * grades (an event notice: its eligible grades, everyone when none).
  * Parents are reached separately by publishNoticeToParents.
  */
 export async function pushNoticePublished(notice, { excludeIds = [] } = {}) {
@@ -91,7 +109,7 @@ export async function pushNoticePublished(notice, { excludeIds = [] } = {}) {
     }
 
     if (!notice.targetAudience?.students || !notice.school) return { sent: 0 };
-    const studentIds = await studentIdsAtSchool(notice.school, notice.event ? [] : notice.grades);
+    const studentIds = await studentIdsAtSchool(notice.school, notice.grades);
     const eventId = notice.event ? idOf(notice.event) : "";
     return sendAccountPush(
       { role: "STUDENT", accountIds: studentIds, school: notice.school, excludeIds },

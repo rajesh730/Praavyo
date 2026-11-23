@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useState } from "react";
+import RichWritingEditor from "@/components/writing/RichWritingEditor";
 import { WRITING_CATEGORIES, getWritingCategoryLabel } from "@/lib/writingCategories";
 
 /**
@@ -17,6 +18,7 @@ export default function WritingEditForm({ article, onSaved, onCancel, endpoint =
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const set = (key) => (event) => setForm((current) => ({ ...current, [key]: event.target.value }));
+  const setContent = useCallback((content) => setForm((current) => ({ ...current, content })), []);
   const changed =
     form.title !== (article.title || "") ||
     form.category !== (article.category || "BLOG_ARTICLE") ||
@@ -61,14 +63,13 @@ export default function WritingEditForm({ article, onSaved, onCancel, endpoint =
           </select>
         </label>
       </div>
-      <label className="block">
-        <span className="flex items-center justify-between text-sm font-semibold text-ink">
-          Writing
-          <span className="text-xs font-normal text-muted">{form.content.length} / 50000</span>
-        </span>
-        <textarea className="input mt-1 min-h-[22rem] w-full resize-y leading-7" value={form.content} onChange={set("content")}
-          maxLength={50000} required />
-      </label>
+      <div className="block">
+        <span className="text-sm font-semibold text-ink">Writing</span>
+        <div className="mt-1 overflow-hidden rounded-control border border-line-strong bg-surface">
+          <RichWritingEditor value={form.content} onChange={setContent} maxLength={50000}
+            minHeightClass="min-h-[22rem]" ariaLabel="Writing" placeholder="The writing" />
+        </div>
+      </div>
       {error && <p className="rounded-control bg-danger-soft px-3 py-2 text-sm text-danger">{error}</p>}
       <div className="flex flex-wrap justify-end gap-2">
         <button type="button" onClick={onCancel} className="btn btn-ghost">Cancel</button>
