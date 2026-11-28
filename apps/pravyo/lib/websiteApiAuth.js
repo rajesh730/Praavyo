@@ -46,7 +46,9 @@ export async function requireWebsiteApiKey(request) {
   const rate = await applyRateLimit({
     key: `website-api:${apiKey._id}`,
     windowMs: 60 * 1000,
-    max: 120,
+    // A school website makes several calls per page view; its connector also
+    // caches answers for a minute (lib/websiteKit/connectors.js).
+    max: 600,
   });
   if (!rate.ok) {
     return {

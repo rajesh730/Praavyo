@@ -42,10 +42,9 @@ export const SCHOOL_NAV_LINKS = [
   { name: "Teachers", href: "/school/dashboard?tab=teachers", icon: FaChalkboardTeacher },
   { name: "School Events", href: "/school/dashboard?tab=school-events", icon: FaCalendarAlt },
   { name: "Platform Events", href: "/school/dashboard?tab=platform-events", icon: FaGlobe },
-  { name: "Student Notices", href: "/school/dashboard?tab=student-notices", icon: FaBell },
-  // Notices to the school's teachers (their bell, Notices page and devices).
-  { name: "Teacher Notices", href: "/school/dashboard?tab=teacher-notices", icon: FaBell },
-  { name: "Received Notices", href: "/school/dashboard?tab=notices", icon: FaBell },
+  // Every notice in one place: to students, teachers and/or parents (grades
+  // or chosen families), event notices, and notices received from Praavyo.
+  { name: "Notices", href: "/school/dashboard?tab=notices", icon: FaBell },
   { name: "Publishing Desk", href: "/school/dashboard?tab=magazine", icon: FaBookOpen },
   // Photo albums; public ones appear in the school website's Gallery.
   { name: "Gallery", href: "/school/dashboard?tab=gallery", icon: Images },

@@ -58,7 +58,7 @@ function downloadCsv(rows) {
   const header = [
     "Date", "Source", "Type", "Status", "Name / guardian", "Phone", "Email", "Subject",
     "Student", "Grade", "Date of birth", "Gender", "Previous school", "Relation", "Address",
-    "Academic year", "Message",
+    "Academic year", "For", "Message",
   ];
   const lines = rows.map((row) =>
     [
@@ -78,6 +78,7 @@ function downloadCsv(rows) {
       row.admission?.guardianRelation,
       row.admission?.address,
       row.admission?.academicYear,
+      row.type === "ADMISSION" ? (row.admission?.forNextYear ? "Next year" : "This year") : "",
       row.message,
     ]
       .map(csvCell)
@@ -366,6 +367,9 @@ export default function SchoolInquiryInbox() {
                         <div className="flex flex-wrap items-center gap-1.5">
                           {fresh && <span className="badge badge-brand">New</span>}
                           {inquiry.type === "ADMISSION" && <span className="badge badge-success">Admission</span>}
+                          {inquiry.admission?.forNextYear && (
+                            <span className="badge badge-warning" title="Sent while admissions were closed">Next year</span>
+                          )}
                           <span className="badge badge-neutral">
                             {inquiry.source === "WEBSITE" ? "Through website" : "Through Praavyo"}
                           </span>
@@ -465,7 +469,7 @@ function AdmissionDetails({ admission, guardian }) {
   const rows = [
     ["Student", admission.studentName],
     ["Applying for", admission.grade],
-    ["Academic year", admission.academicYear],
+    ["Academic year", admission.forNextYear ? "Next year (sent while admissions were closed)" : admission.academicYear],
     ["Date of birth", admission.dateOfBirth],
     ["Gender", admission.gender],
     ["Previous school", admission.previousSchool],

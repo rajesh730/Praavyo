@@ -9,6 +9,7 @@ import AcademicYearManager from "@/components/school/AcademicYearManager";
 import CalendarToggle from "@/components/common/CalendarToggle";
 import WebsiteApiKeysPanel from "@/components/settings/WebsiteApiKeysPanel";
 import AdmissionSettingsPanel from "@/components/settings/AdmissionSettingsPanel";
+import GradeManagementPanel from "@/components/settings/GradeManagementPanel";
 import ReportCardImagesPanel from "@/components/settings/ReportCardImagesPanel";
 import IemisSettingsPanel from "@/components/settings/IemisSettingsPanel";
 import SchoolMapField from "@/components/settings/SchoolMapField";
@@ -816,27 +817,14 @@ export default function SchoolSettingsManager() {
 
         <section className="space-y-4">
           {activeSettingsTab === "academic" && (
-          <div className="rounded-card border border-line-strong bg-surface p-4 sm:p-5">
-            <h2 className="mb-4 font-semibold text-ink">
-              Academic Snapshot
-            </h2>
-            {config.grades.length > 0 ? (
-              <div className="flex flex-wrap gap-2">
-                {config.grades.map((grade) => (
-                  <span
-                    key={grade}
-                    className="badge badge-neutral text-xs"
-                  >
-                    {grade}
-                  </span>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-muted">
-                No grade structure is available yet from registration data.
-              </p>
-            )}
-          </div>
+            // Add or remove the school's grades (Nursery–Grade 12); every
+            // grade list in Praavyo follows.
+            <GradeManagementPanel
+              onSaved={(grades) => {
+                setConfig((current) => ({ ...current, grades, totalGrades: grades.length }));
+                setSavedConfig((current) => ({ ...current, grades, totalGrades: grades.length }));
+              }}
+            />
           )}
 
           {activeSettingsTab === "security" && (
@@ -925,8 +913,11 @@ export default function SchoolSettingsManager() {
         </section>
       </div>
 
-      {/* Admission and Website save on their own; this saves the profile form. */}
-      {!["admission", "website"].includes(activeSettingsTab) && (
+      {/* Only the School Profile form uses this button; every other tab
+          (Academic Setup with Grades, Admission, Website, Security,
+          Permissions) saves its own changes, so one screen never shows two
+          save buttons. */}
+      {activeSettingsTab === "profile" && (
       <div className="flex justify-end">
         {isDirty && (
           <button

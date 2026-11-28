@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { buildGradeLabels, normalizeGradeValue } from "@/lib/schoolGrades";
+import { buildGradeLabels, normalizeGradeValue, sortGrades } from "@/lib/schoolGrades";
 import { validateEventCapacity } from "@/lib/eventCapacity";
 
 function getTodayInputValue() {
@@ -172,16 +172,12 @@ export default function EventEditorForm({
     }));
   }, [resolvedOwnerMode, schoolGrades]);
 
+  // "School Level (Nursery – Grade 9)": the school's first and last grade.
   const getGradeRangeLabel = () => {
-    const gradeNumbers = schoolGrades
-      .map((grade) => Number.parseInt(String(grade).match(/\d+/)?.[0], 10))
-      .filter(Number.isFinite);
-
-    if (gradeNumbers.length === 0) return "School Level";
-
-    return `School Level (Grade ${Math.min(...gradeNumbers)}-${Math.max(
-      ...gradeNumbers
-    )})`;
+    const ordered = sortGrades(schoolGrades);
+    if (ordered.length === 0) return "School Level";
+    if (ordered.length === 1) return `School Level (${ordered[0]})`;
+    return `School Level (${ordered[0]} – ${ordered[ordered.length - 1]})`;
   };
 
   const handleGradeChange = (grade) => {

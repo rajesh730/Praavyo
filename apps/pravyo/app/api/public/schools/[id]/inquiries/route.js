@@ -24,7 +24,7 @@ export async function POST(request, { params }) {
     const visitor = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
     const result = await receiveInquiry({ schoolId: id, body, source: "PRAAVYO", visitor });
 
-    if (result.status === 201) return successResponse(201, result.message, {});
+    if (result.status === 201) return successResponse(201, result.message, result.data || {});
     return errorResponse(result.status, result.message, result.code);
   } catch (error) {
     console.error("POST /api/public/schools/[id]/inquiries error:", error);

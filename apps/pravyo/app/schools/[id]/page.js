@@ -15,6 +15,7 @@ import ExpandableStoryText from "@/components/public/ExpandableStoryText";
 import SchoolInquiryForm from "@/components/public/SchoolInquiryForm";
 import SchoolAdmissionForm from "@/components/public/SchoolAdmissionForm";
 import { getAdmissionSeason } from "@/lib/schoolAdmission";
+import { sortGrades } from "@/lib/schoolGrades";
 import { stripWritingMarkup } from "@/components/WritingContent";
 import {
   serializeWritingImage,
@@ -82,16 +83,9 @@ function getCategoryLabel(value) {
   return label.charAt(0).toUpperCase() + label.slice(1);
 }
 
-function gradeSortValue(value) {
-  const match = String(value || "").match(/\d+/);
-  if (!match) return Number.MAX_SAFE_INTEGER;
-  return Number.parseInt(match[0], 10);
-}
-
 function formatGradeSummary(grades = []) {
-  const normalized = Array.from(
-    new Set(grades.map((grade) => String(grade || "").trim()).filter(Boolean))
-  ).sort((a, b) => gradeSortValue(a) - gradeSortValue(b) || a.localeCompare(b));
+  // Nursery, LKG, UKG, Grade 1, … in school order.
+  const normalized = sortGrades(grades);
 
   if (normalized.length === 0) return "";
   if (normalized.length === 1) return normalized[0];
@@ -141,7 +135,7 @@ async function getSchoolData(id) {
     studentCount,
     teacherCount,
     grades,
-    admission,
+    gradeSetup,
   ] =
     await Promise.all([
       SchoolShowcaseProfile.findOne({ school: id, visibility: "PUBLIC" }).lean(),
@@ -174,13 +168,15 @@ async function getSchoolData(id) {
         isDeleted: { $ne: true },
       }),
       // Settings → Admission: the form shows only while the season is open.
-      getAdmissionSeason(id).then((result) => result.season),
+      // Also gives the school's current grades (Settings → Grades).
+      getAdmissionSeason(id),
     ]);
 
   return {
     school,
     profile,
-    admission,
+    admission: gradeSetup.season,
+    offeredGrades: gradeSetup.schoolGrades,
     achievements: achievements.filter(
       (achievement) =>
         achievement.event?.eventScope === "PLATFORM" &&
@@ -413,10 +409,11 @@ function WritingCard({ writing }) {
   );
 }
 
-function AtGlance({ school, studentCount, teacherCount, grades }) {
+function AtGlance({ school, studentCount, teacherCount, grades, offeredGrades = [] }) {
   const config = school.schoolConfig || {};
+  // The school's current grades (Nursery, LKG, … as configured), first to last.
   const gradeSummary =
-    formatConfiguredGradeRange(config) || formatGradeSummary(grades);
+    formatGradeSummary(offeredGrades) || formatConfiguredGradeRange(config) || formatGradeSummary(grades);
   const schoolType =
     formatConfigLabel(config.schoolType) ||
     formatConfigLabel(config.schoolLevel?.type) ||
@@ -619,6 +616,7 @@ export default async function PublicSchoolPage({ params }) {
     school,
     profile,
     admission,
+    offeredGrades,
     achievements,
     magazines,
     studentCount,
@@ -641,12 +639,14 @@ export default async function PublicSchoolPage({ params }) {
         <div className="min-w-0 space-y-4">
         <div className="flex flex-wrap items-center justify-end gap-3 text-xs font-semibold text-muted">
           <div className="flex gap-2">
-            {admission?.isOpen && (
+            {admission && (
               <a
                 href="#admission"
-                className="inline-flex items-center gap-2 rounded-control bg-success px-3 py-2 text-white transition-colors hover:opacity-90"
+                className={`inline-flex items-center gap-2 rounded-control px-3 py-2 text-white transition-colors hover:opacity-90 ${
+                  admission.isOpen ? "bg-success" : "bg-warning"
+                }`}
               >
-                <FaGraduationCap aria-hidden /> Apply for admission
+                <FaGraduationCap aria-hidden /> {admission.isOpen ? "Apply for admission" : "Apply for next year"}
               </a>
             )}
             <a
@@ -837,6 +837,7 @@ export default async function PublicSchoolPage({ params }) {
                     studentCount={studentCount}
                     teacherCount={teacherCount}
                     grades={grades}
+                    offeredGrades={offeredGrades}
                   />
             </div>
             <ConnectCard
@@ -853,36 +854,58 @@ export default async function PublicSchoolPage({ params }) {
           </aside>
         </div>
 
-        {admission?.isOpen && (
+        {/* Always offered: while closed, families apply for next year. */}
+        {admission && (
           <section
             id="admission"
-            className="scroll-mt-28 relative left-1/2 w-screen -translate-x-1/2 border border-success-line bg-surface p-4 shadow-card sm:left-auto sm:w-auto sm:translate-x-0 sm:rounded-card sm:p-5"
+            className={`scroll-mt-28 relative left-1/2 w-screen -translate-x-1/2 border bg-surface p-4 shadow-card sm:left-auto sm:w-auto sm:translate-x-0 sm:rounded-card sm:p-5 ${
+              admission.isOpen ? "border-success-line" : "border-warning-line"
+            }`}
           >
             <div className="mb-4 flex items-start gap-3">
-              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-control bg-success-soft text-success">
+              <span
+                className={`grid h-10 w-10 shrink-0 place-items-center rounded-control ${
+                  admission.isOpen ? "bg-success-soft text-success" : "bg-warning-soft text-warning"
+                }`}
+              >
                 <FaGraduationCap aria-hidden />
               </span>
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <h2 className="text-lg font-semibold text-ink">
-                    Admissions open{admission.academicYear ? ` for ${admission.academicYear}` : ""}
+                    {admission.isOpen
+                      ? `Admissions open${admission.academicYear ? ` for ${admission.academicYear}` : ""}`
+                      : "Admission"}
                   </h2>
-                  <span className="badge badge-success">Now accepting</span>
+                  {admission.isOpen ? (
+                    <span className="badge badge-success">Now accepting</span>
+                  ) : (
+                    <span className="badge badge-warning">Closed for this year</span>
+                  )}
                 </div>
-                <p className="mt-0.5 text-sm text-muted">
-                  Apply to {school.schoolName} here. The school will contact you on the phone number you give.
-                </p>
-                <div className="mt-2 flex flex-wrap gap-1.5">
-                  {admission.grades.map((grade) => (
-                    <span key={grade} className="badge badge-neutral">{grade}</span>
-                  ))}
-                </div>
-                {admission.deadline && (
+                {admission.isOpen ? (
+                  <p className="mt-0.5 text-sm text-muted">
+                    Apply to {school.schoolName} here. The school will contact you on the phone number you give.
+                  </p>
+                ) : (
+                  <p className="mt-2 rounded-control border border-warning-line bg-warning-soft px-3 py-2 text-sm font-medium text-warning">
+                    Admissions are closed for this year. You can still apply — your application will be considered for
+                    next year&apos;s admission.
+                  </p>
+                )}
+                {admission.isOpen && (
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {admission.grades.map((grade) => (
+                      <span key={grade} className="badge badge-neutral">{grade}</span>
+                    ))}
+                  </div>
+                )}
+                {admission.isOpen && admission.deadline && (
                   <p className="mt-2 text-sm text-ink">
                     <span className="font-semibold">Last date:</span> {formatDate(admission.deadline)}
                   </p>
                 )}
-                {admission.note && (
+                {admission.isOpen && admission.note && (
                   <p className="mt-2 whitespace-pre-line text-sm text-body">{admission.note}</p>
                 )}
               </div>
@@ -890,7 +913,8 @@ export default async function PublicSchoolPage({ params }) {
             <SchoolAdmissionForm
               schoolId={String(school._id)}
               schoolName={school.schoolName}
-              grades={admission.grades}
+              grades={admission.isOpen ? admission.grades : offeredGrades}
+              closed={!admission.isOpen}
             />
           </section>
         )}

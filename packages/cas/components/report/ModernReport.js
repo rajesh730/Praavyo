@@ -1,4 +1,5 @@
 import { ECA_FIELDS, hasAttendance, hasExtraActivities } from '@pravyo/core/casSupplementary';
+import { isPrimaryLevel } from '@pravyo/core/gradeLevels';
 import {
   GRADE_SCALE,
   picker,
@@ -224,9 +225,9 @@ export default function ModernReport({ report, lang = 'en' }) {
   );
 }
 
+// Nursery, LKG, UKG and Grades 1-5 share the primary card format.
 function isPrimaryGrade(grade) {
-  const gradeNumber = Number.parseInt(String(grade || '').match(/\d+/)?.[0], 10);
-  return Number.isInteger(gradeNumber) && gradeNumber >= 1 && gradeNumber <= 5;
+  return isPrimaryLevel(grade);
 }
 
 function Detail({ label, value }) {

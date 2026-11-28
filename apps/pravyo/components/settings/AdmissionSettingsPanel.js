@@ -17,7 +17,8 @@ const toInputDate = (value) => (value ? new Date(value).toISOString().slice(0, 1
  * Settings → Admission. One switch opens or closes the admission season:
  * open = the admission form shows on the school's Praavyo profile and its
  * connected website, and applications arrive in Inquiries → Admission;
- * closed = the form disappears and new applications are refused.
+ * closed = the form stays, marked "closed for this year — apply for next
+ * year", and applications arrive marked Next year.
  */
 export default function AdmissionSettingsPanel() {
   const { data: session } = useSession();
@@ -129,8 +130,8 @@ export default function AdmissionSettingsPanel() {
             </h2>
             <p className="mt-0.5 max-w-2xl text-sm text-muted">
               {open
-                ? "Families can apply from your Praavyo public profile and your connected website. Applications arrive in Inquiries → Admission."
-                : "Turn it on to show the admission form on your public profile and your website. Turn it off to stop taking applications."}
+                ? "Families apply for this year from your Praavyo public profile and your connected website. Applications arrive in Inquiries → Admission."
+                : "The form stays on your public profile and website, clearly marked “Admissions are closed for this year — apply for next year”. Those applications arrive in Inquiries marked Next year. Turn it on to open admissions for this year."}
             </p>
             {since && (
               <p className="mt-1 text-xs text-muted">

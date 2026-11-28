@@ -9,6 +9,7 @@ import { buildPagination, escapeRegex, parsePagination } from "@/lib/pagination"
 import { publishNoticeRealtimeEvent } from "@/lib/noticeRealtime";
 import { publishNoticeToParents } from "@/lib/notifications/service";
 import { pushNoticePublished } from "@/lib/devicePush";
+import { resolveTargetStudents } from "@/lib/noticeTargets";
 
 export const GET = defineRoute(
   { roles: [], errorMessage: "Failed to fetch notices" },
@@ -81,9 +82,11 @@ export const GET = defineRoute(
     const [notices, total] = await Promise.all([
       Notice.find(query)
         .select(
-          "title content type scope priority status school author event visibility targetAudience grades expiryDate isActive publishedAt createdAt updatedAt"
+          "title content type scope priority status school author event visibility targetAudience grades targetStudents expiryDate isActive publishedAt createdAt updatedAt"
         )
         .populate("author", "name email")
+        // Chosen families: names for the school's list and edit form.
+        .populate("targetStudents", "name grade")
         .sort({ priority: -1, publishedAt: -1, createdAt: -1 })
         .skip(skip)
         .limit(limit)
@@ -118,6 +121,7 @@ export const POST = defineRoute(
       grades,
       expiryDate,
       eventId,
+      targetStudents,
     } = body;
 
     if (!title || !content) {
@@ -149,6 +153,20 @@ export const POST = defineRoute(
       return validationError("At least one target audience must be selected");
     }
 
+    // Chosen families: every ticked audience narrows to them (their parents,
+    // the students themselves, the teachers of their grades). Empty = whole
+    // grades as chosen.
+    let chosenStudents = [];
+    let noticeGrades = grades || [];
+    if (normalizedScope === "SCHOOL") {
+      const resolved = await resolveTargetStudents(targetStudents, {
+        schoolId: session.user.schoolId || session.user.id,
+      });
+      if (resolved.error) return validationError(resolved.error);
+      chosenStudents = resolved.ids;
+      if (chosenStudents.length) noticeGrades = resolved.grades;
+    }
+
     const newNotice = new Notice({
       title: title.trim(),
       content: content.trim(),
@@ -167,7 +185,8 @@ export const POST = defineRoute(
         normalizedScope === "PLATFORM"
           ? { students: false, teachers: false, parents: false }
           : targetAudience,
-      grades: grades || [],
+      grades: noticeGrades,
+      targetStudents: chosenStudents,
       expiryDate: expiryDate ? new Date(expiryDate) : null,
       attachments: [],
       isActive: true,

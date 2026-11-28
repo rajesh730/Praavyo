@@ -11,7 +11,7 @@ export default function SchoolNotificationCenter() {
       limit={15}
       title="Notifications"
       subtitle="Event notices & platform updates"
-      viewAllHref="/school/dashboard?tab=notices"
+      viewAllHref="/school/dashboard?tab=notices&section=received"
       viewAllLabel="See all notifications"
       toastMessageBuilder={(notification) =>
         notification.noticeType === "MAGAZINE"

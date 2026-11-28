@@ -16,6 +16,8 @@ jest.mock("@pravyo/db/models/cas/CasSubject", () => ({
 }));
 jest.mock("@/lib/schoolGrades", () => ({
   buildGradeLabels: () => ["Grade 1", "Grade 3"],
+  // The school's current grades (its edited list, else the signup range).
+  resolveSchoolGrades: () => ["Grade 1", "Grade 3"],
   getEquivalentGradeValues: (grade) => [grade, grade.replace("Grade ", "")],
 }));
 
@@ -68,6 +70,20 @@ describe("Manage Sections", () => {
 
     expect(res.status).toBe(409);
     expect(SchoolConfig.findOneAndUpdate).not.toHaveBeenCalled();
+  });
+
+  it("keeps the sections of a grade the school removed, so adding it back restores them", async () => {
+    // "Grade 5" was removed in Settings → Grades; its sections are still stored.
+    SchoolConfig.findOne.mockReturnValue(
+      lean({ gradeSections: [{ grade: "Grade 3", sections: ["A", "B"] }, { grade: "Grade 5", sections: ["Rose", "Lily"] }] })
+    );
+    Student.updateMany.mockResolvedValue({ modifiedCount: 0 });
+
+    const res = await DELETE(body({ grade: "Grade 3", name: "A" }));
+
+    expect(res.status).toBe(200);
+    const saved = SchoolConfig.findOneAndUpdate.mock.calls[0][1].$set.gradeSections;
+    expect(saved.find((row) => row.grade === "Grade 5").sections).toEqual(["Rose", "Lily"]);
   });
 
   it("refuses a grade the school does not have", async () => {

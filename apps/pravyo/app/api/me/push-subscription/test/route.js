@@ -8,7 +8,7 @@ const HOME = {
   PARENT: "/parent/notifications",
   STUDENT: "/student/notices",
   TEACHER: "/teacher/dashboard",
-  SCHOOL_ADMIN: "/school/dashboard?tab=notices",
+  SCHOOL_ADMIN: "/school/dashboard?tab=notices&section=received",
   SUPER_ADMIN: "/admin/dashboard",
 };
 

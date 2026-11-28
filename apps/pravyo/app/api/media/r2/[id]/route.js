@@ -57,6 +57,9 @@ export async function GET(_request, { params }) {
             { isMagazinePublished: true },
             { isPublished: true },
             { isGlobalWallPublished: true },
+            // On the school wall, which the school's own website also shows
+            // (Website API writings): its images must load there.
+            { status: { $in: ["SUBMITTED", "APPROVED"] }, showOnSchoolWall: { $ne: false } },
           ],
         }))
     );

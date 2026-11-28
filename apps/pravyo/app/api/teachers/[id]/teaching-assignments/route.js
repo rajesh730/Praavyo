@@ -1,7 +1,7 @@
 import { defineRoute } from '@/lib/routeHandler';
 import { successResponse, APIError } from '@/lib/apiResponse';
 import { loadSchoolTeacher } from '@/lib/teacherAccounts';
-import SchoolConfig from '@/models/SchoolConfig';
+import { loadSchoolGrades } from '@/lib/schoolGradeConfig';
 import CasSubject from '@pravyo/db/models/cas/CasSubject';
 import TeacherTeachingAssignment from '@pravyo/db/models/TeacherTeachingAssignment';
 
@@ -20,13 +20,13 @@ async function teacherForSchool(id, school) {
 }
 
 async function assignmentOptions(school) {
-  const [config, subjects] = await Promise.all([
-    SchoolConfig.findOne({ school }).select('grades').lean(),
+  const [grades, subjects] = await Promise.all([
+    loadSchoolGrades(school),
     CasSubject.find({ school, status: 'ACTIVE' })
       .select('grade code titleEn titleNe').sort({ grade: 1, sequence: 1, titleEn: 1 }).lean(),
   ]);
   return {
-    grades: config?.grades || [],
+    grades,
     subjects: subjects.map((subject) => ({
       id: String(subject._id), grade: subject.grade, code: subject.code,
       title: subject.titleEn || subject.titleNe || subject.code,
@@ -37,10 +37,14 @@ async function assignmentOptions(school) {
 export const GET = defineRoute({ roles: ['SCHOOL_ADMIN'] }, async ({ params, session }) => {
   const teacherId = asId(params.id, 'teacher');
   await teacherForSchool(teacherId, session.user.id);
-  const [options, assignments] = await Promise.all([
-    assignmentOptions(session.user.id),
-    TeacherTeachingAssignment.find({ school: session.user.id, teacher: teacherId }).sort({ grade: 1, assignmentType: 1 }).lean(),
-  ]);
+  const options = await assignmentOptions(session.user.id);
+  // Assignments in a grade the school no longer offers stay saved but are not
+  // shown; they come back when the grade is added again.
+  const assignments = await TeacherTeachingAssignment.find({
+    school: session.user.id,
+    teacher: teacherId,
+    grade: { $in: options.grades },
+  }).sort({ grade: 1, assignmentType: 1 }).lean();
   return successResponse(200, 'Teaching assignments loaded', {
     ...options,
     assignments: assignments.map((assignment) => ({
@@ -81,7 +85,8 @@ export const PUT = defineRoute({ roles: ['SCHOOL_ADMIN'] }, async ({ params, req
     return { school: session.user.id, teacher: teacherId, grade, assignmentType, subject: subjectId, assignedBy: session.user.id };
   });
 
-  await TeacherTeachingAssignment.deleteMany({ school: session.user.id, teacher: teacherId });
+  // Only the grades shown are replaced: assignments in a removed grade are kept.
+  await TeacherTeachingAssignment.deleteMany({ school: session.user.id, teacher: teacherId, grade: { $in: options.grades } });
   if (rows.length) await TeacherTeachingAssignment.insertMany(rows, { ordered: true });
   return successResponse(200, 'Teaching assignments saved', { assignments: rows.length });
 });

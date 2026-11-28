@@ -150,13 +150,19 @@ api.php and config.php are not needed on Node hosting.
 
 HOW THINGS APPEAR ON THE WEBSITE
 --------------------------------
-- Notices: Praavyo notices whose visibility is Public.
-- Events: your public school events.
-- Student writings: writings published on your school wall.
+- Notices: notices you tick "Also show on our school website" in Praavyo
+  → Notices.
+- Events: your school events and programs (Dashain, Tihar, sports day…).
+- Student writings: writings on your school wall (managed in the Publishing
+  Desk; hide one there and it leaves the website too), plus writings in your
+  published magazines.
 - School magazine: published magazine issues and their articles.
 - Gallery: albums you make Public in Praavyo → Gallery.
-- Admission: turn the admission season on or off in Praavyo → Settings →
-  Admission. The website shows the form only while it is open.
+- Admission: the form is always on the website. Open or close the season in
+  Praavyo → Settings → Admission. While closed, the form says admissions are
+  closed for this year and applications are taken for next year.
+- Contact: General inquiry and Admission inquiry. Everything sent arrives in
+  Praavyo → Inquiries, marked "Through website".
 Changes in Praavyo show on the website within about a minute.
 
 
@@ -173,20 +179,30 @@ FOR DEVELOPERS
 Website API: ${apiUrl}
 Authorization: Bearer <API key>   (server side only)
 
-GET  /school          school profile, logo, contact, admissionOpen
+GET  /school          school profile, logo, contact, admission status
 GET  /notices         ?page=1&limit=12 (max 25)   GET /notices/<id>
-GET  /events          GET /events/<id>
+GET  /events          competitions and programs    GET /events/<id>
 GET  /writings        GET /writings/<id>   (blocks = formatted text)
 GET  /magazines       GET /magazines/<id>  (issue with its articles)
 GET  /gallery         GET /gallery/<id>    (album with its photos)
 GET  /achievements
-GET  /admission       isOpen, academicYear, grades, deadline, note, form
+GET  /forms           the two forms, field by field:
+                      { general: { fields }, admission: { status, notice, fields } }
+                      Each field: name, label, type (text, email, tel,
+                      date-text, select, textarea), required, minLength,
+                      maxLength, options (select), placeholder, help.
+                      Build your forms from this, so they always match.
+GET  /admission       status OPEN|CLOSED, acceptingFor THIS_YEAR|NEXT_YEAR,
+                      notice (show it), academicYear, grades, deadline, note,
+                      form (same as /forms admission)
 POST /inquiries       { "type": "GENERAL", name, email, phone, subject, message }
                       { "type": "ADMISSION", studentName, grade, guardianName,
                         phone, dateOfBirth?, gender?, previousSchool?,
                         guardianRelation?, email?, address?, message? }
+                      Leave the hidden field "website" empty (spam trap).
                       Send the visitor's IP in the X-Visitor-IP header.
-                      A closed admission season answers 409 ADMISSION_CLOSED.
+                      While admissions are closed, applications are still
+                      accepted and answer { data: { forNextYear: true } }.
 `;
 }
 

@@ -20,7 +20,10 @@ import {
   CircleAlert,
   Clock,
   Eye,
+  Globe,
+  UsersRound,
 } from "lucide-react";
+import NoticeFamilyPicker from "@/components/notices/NoticeFamilyPicker";
 import { buildGradeLabels, normalizeGradeValue } from "@/lib/schoolGrades";
 import useCalendarPreference from "@/lib/client/useCalendarPreference";
 import { formatDate, formatRelativeDateTime, formatWeekday } from "@/lib/nepaliDate";
@@ -61,11 +64,22 @@ function endOfDayIso(iso) {
 
 const isUrgent = (notice) => notice.type === "URGENT" || notice.priority === "URGENT";
 
+// Chosen families arrive populated ({ _id, name, grade }) or as bare ids.
+const familiesOf = (notice) =>
+  (notice.targetStudents || []).map((student) =>
+    typeof student === "object" && student
+      ? { id: String(student._id || student.id), name: student.name || "Student", grade: student.grade || "" }
+      : { id: String(student), name: "Student", grade: "" }
+  );
+
 export default function NoticeManager({
   scopeMode = "school",
   title = "Notice Board",
   subtitle = "Manage and publish notices for your school",
   fixedAudience = null,
+  // Opens the list filtered to one audience ("students" | "teachers" |
+  // "parents"), e.g. when an old Student Notices link is followed.
+  initialAudience = "",
 }) {
   const { calendar } = useCalendarPreference();
   const nepali = calendar === "BS";
@@ -80,6 +94,14 @@ export default function NoticeManager({
     `notices:${scopeMode}:${fixedAudience || "all"}:filters`,
     EMPTY_FILTERS
   );
+  useEffect(() => {
+    if (!initialAudience) return undefined;
+    const timer = setTimeout(
+      () => setFilters((current) => ({ ...current, audience: initialAudience })),
+      0
+    );
+    return () => clearTimeout(timer);
+  }, [initialAudience, setFilters]);
   const [pagination, setPagination] = useState({ page: 1, totalPages: 1, totalItems: 0, limit: 20 });
   const [feedback, setFeedback] = useState(null);
   const [deleteTarget, setDeleteTarget] = useState(null);
@@ -117,6 +139,10 @@ export default function NoticeManager({
       visibility: "PRIVATE",
       targetAudience: buildDefaultAudience(),
       grades: [],
+      // Parents: "GRADES" = every guardian of the chosen grades;
+      // "CHOSEN" = only the guardians of `targetStudents`.
+      parentScope: "GRADES",
+      targetStudents: [],
       // An AD day, "YYYY-MM-DD"; the notice stops showing after it.
       expiryDate: "",
     }),
@@ -218,6 +244,11 @@ export default function NoticeManager({
     setShowForm(true);
   };
 
+  // The all-audiences board narrowed to "Chosen families": every ticked
+  // audience is narrowed to them (their parents, the children themselves,
+  // the teachers of their grades).
+  const choosingFamilies = !isPlatformMode && !isFixedBoard && noticeForm.parentScope === "CHOSEN";
+
   const saveNotice = async (status) => {
     if (!isPlatformMode && !isFixedBoard) {
       const { students, teachers, parents } = noticeForm.targetAudience;
@@ -229,22 +260,42 @@ export default function NoticeManager({
         });
         return;
       }
+      if (choosingFamilies && noticeForm.targetStudents.length === 0) {
+        setFeedback({
+          type: "warning",
+          title: "Choose the families",
+          message: "Tick at least one family, or choose \"Everyone in the grades below\" instead.",
+        });
+        return;
+      }
     }
 
     try {
       setSaving(true);
       setFeedback(null);
       const isEditing = Boolean(editingNoticeId);
+      const { parentScope: _parentScope, targetStudents: chosenFamilies, ...formFields } = noticeForm;
       const res = await fetch(isEditing ? `/api/notices/${editingNoticeId}` : "/api/notices", {
         method: isEditing ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          ...noticeForm,
+          ...formFields,
           status,
-          // A grade since removed from the school is dropped rather than kept.
-          grades: gradeOptions.length
-            ? noticeForm.grades.filter((grade) => gradeOptions.includes(normalizeGradeValue(grade)))
-            : noticeForm.grades,
+          // Chosen families reach their guardians whatever their grade, so
+          // grades are cleared (the parent list would otherwise also require
+          // a grade match).
+          grades: choosingFamilies
+            ? []
+            : gradeOptions.length
+              ? noticeForm.grades.filter((grade) => gradeOptions.includes(normalizeGradeValue(grade)))
+              : noticeForm.grades,
+          // Only the all-audiences board manages chosen families; the fixed
+          // boards leave the field out so an existing choice is untouched.
+          ...(!isPlatformMode && !isFixedBoard
+            ? { targetStudents: choosingFamilies ? chosenFamilies.map((family) => family.id) : [] }
+            : {}),
+          // A notice for a few families is never shown publicly.
+          visibility: choosingFamilies ? "PRIVATE" : noticeForm.visibility,
           expiryDate: noticeForm.expiryDate ? endOfDayIso(noticeForm.expiryDate) : null,
           // Students are fixed on this board; `parents` is the school's
           // choice and must be carried through rather than reset.
@@ -269,9 +320,9 @@ export default function NoticeManager({
             ? "Nobody sees a draft until you publish it."
             : isEditing && noticeForm.status !== "DRAFT"
               ? "The board shows your changes. Anyone already told is not notified again."
-              : noticeForm.targetAudience.parents
-                ? "Students and their parents are being notified now."
-                : "It is on the board now.",
+              : isPlatformMode
+                ? "It is on every school dashboard now."
+                : `${audienceText({ ...noticeForm, grades: choosingFamilies ? [] : noticeForm.grades, targetStudents: choosingFamilies ? noticeForm.targetStudents : [] })} — being notified now.`,
       });
       closeForm();
       fetchNotices();
@@ -352,6 +403,8 @@ export default function NoticeManager({
           }
         : notice.targetAudience || buildDefaultAudience(),
       grades: Array.isArray(notice.grades) ? notice.grades : [],
+      parentScope: notice.targetStudents?.length ? "CHOSEN" : "GRADES",
+      targetStudents: familiesOf(notice),
       expiryDate: notice.expiryDate ? isoOfDate(new Date(notice.expiryDate)) : "",
     });
     setShowForm(true);
@@ -371,14 +424,19 @@ export default function NoticeManager({
   const tileTone = (notice) => (notice.status === "DRAFT" ? "muted" : isUrgent(notice) ? "danger" : "brand");
   const tileDate = (notice) => notice.publishedAt || notice.updatedAt || notice.createdAt;
   const audienceText = (notice) => {
-    const grades = notice.grades?.length ? notice.grades.join(", ") : "All grades";
     if (isPlatformMode) return "All schools";
     const who = [
       notice.targetAudience?.students && "Students",
       notice.targetAudience?.teachers && "Teachers",
       notice.targetAudience?.parents && "Parents",
     ].filter(Boolean);
-    return `${who.join(" + ") || "No audience"} · ${grades}`;
+    const families = notice.targetStudents?.length || 0;
+    const reach = families
+      ? `${families} chosen ${families === 1 ? "family" : "families"}`
+      : notice.grades?.length
+        ? notice.grades.join(", ")
+        : "All grades";
+    return `${who.join(" + ") || "No audience"} · ${reach}`;
   };
 
   const filtersActive = Object.entries(filters).some(([key, value]) => key !== "status" && value);
@@ -434,10 +492,28 @@ export default function NoticeManager({
                   </div>
                 )}
               </div>
-              {!isPlatformMode && (
+              {!isPlatformMode && (notice.targetStudents?.length ? (
+                <div>
+                  <p className="eyebrow">Chosen families</p>
+                  <ul className="mt-1.5 max-h-48 space-y-0.5 overflow-y-auto text-sm text-ink">
+                    {familiesOf(notice).map((family) => (
+                      <li key={family.id}>
+                        {family.name}
+                        {family.grade ? <span className="text-muted"> · {family.grade}</span> : null}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : (
                 <div>
                   <p className="eyebrow">Grades</p>
                   <p className="mt-1.5 text-sm text-ink">{notice.grades?.length ? notice.grades.join(", ") : "All grades"}</p>
+                </div>
+              ))}
+              {!isPlatformMode && notice.visibility === "PUBLIC" && (
+                <div>
+                  <p className="eyebrow">Public</p>
+                  <p className="mt-1.5 flex items-center gap-1.5 text-sm text-ink"><Globe aria-hidden /> Also on your school website</p>
                 </div>
               )}
               <div>
@@ -652,37 +728,101 @@ export default function NoticeManager({
                   </div>
                 </fieldset>
               ) : (
-                <fieldset>
-                  <legend className="label">Who receives it? <span className="font-normal text-muted">(choose at least one)</span></legend>
+                <fieldset className="space-y-3">
+                  <legend className="label">Who receives it? <span className="font-normal text-muted">(tick one or more)</span></legend>
                   <div className="flex flex-wrap gap-2">
                     {[
-                      { key: "students", label: "Students", icon: FaUserGraduate },
-                      { key: "teachers", label: "Teachers", icon: FaChalkboardTeacher },
-                      { key: "parents", label: "Parents", icon: FaUserFriends },
+                      { key: "students", label: "Students", icon: FaUserGraduate, note: "Student notice board" },
+                      { key: "teachers", label: "Teachers", icon: FaChalkboardTeacher, note: "Teacher bell and Notices page" },
+                      { key: "parents", label: "Parents", icon: FaUserFriends, note: "Parent App, with read receipts" },
                     ].map((option) => {
                       const Icon = option.icon;
                       const active = Boolean(noticeForm.targetAudience[option.key]);
                       return (
-                        <button
+                        <label
                           key={option.key}
-                          type="button"
-                          aria-pressed={active}
-                          onClick={() =>
-                            setField("targetAudience", { ...noticeForm.targetAudience, [option.key]: !active })
-                          }
-                          className={`btn rounded-full border ${
-                            active ? "border-brand bg-brand-soft text-brand-strong" : "border-line-strong bg-surface text-body hover:bg-surface-2"
+                          className={`flex min-w-[10rem] flex-1 cursor-pointer items-start gap-2.5 rounded-card border p-3 transition-colors sm:flex-none ${
+                            active ? "border-brand bg-brand-soft" : "border-line-strong bg-surface hover:border-brand-line"
                           }`}
                         >
-                          <Icon aria-hidden /> {option.label}
-                        </button>
+                          <input
+                            type="checkbox"
+                            checked={active}
+                            onChange={() =>
+                              setField("targetAudience", { ...noticeForm.targetAudience, [option.key]: !active })
+                            }
+                            className="mt-0.5 shrink-0"
+                          />
+                          <span className="min-w-0">
+                            <span className="flex items-center gap-1.5 text-sm font-semibold text-ink">
+                              <Icon className="text-brand-strong" aria-hidden /> {option.label}
+                            </span>
+                            <span className="mt-0.5 block text-2xs text-muted">{option.note}</span>
+                          </span>
+                        </label>
                       );
                     })}
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => setField("targetAudience", { students: true, teachers: true, parents: true })}
+                    className="btn btn-ghost btn-sm"
+                  >
+                    <UsersRound aria-hidden /> Everyone — students, teachers and parents
+                  </button>
+
+                  {(noticeForm.targetAudience.students || noticeForm.targetAudience.teachers || noticeForm.targetAudience.parents) && (
+                    <div className="space-y-2 rounded-card border border-line p-3">
+                      <p className="text-sm font-semibold text-ink">Which ones?</p>
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        {[
+                          {
+                            value: "GRADES",
+                            label: "Everyone in the grades below",
+                            note: "All ticked groups, in the chosen grades (or all grades).",
+                          },
+                          {
+                            value: "CHOSEN",
+                            label: "Chosen families only",
+                            note: "Tick children. Students: only these children. Parents: their guardians. Teachers: of their grades.",
+                          },
+                        ].map((option) => {
+                          const active = noticeForm.parentScope === option.value;
+                          return (
+                            <label
+                              key={option.value}
+                              className={`flex cursor-pointer items-start gap-3 rounded-card border p-3 transition-colors ${
+                                active ? "border-brand bg-brand-soft" : "border-line-strong bg-surface hover:border-brand-line"
+                              }`}
+                            >
+                              <input
+                                type="radio"
+                                name="notice-parent-scope"
+                                checked={active}
+                                onChange={() => setField("parentScope", option.value)}
+                                className="mt-0.5 shrink-0"
+                              />
+                              <span className="min-w-0">
+                                <span className="block text-sm font-semibold text-ink">{option.label}</span>
+                                <span className="mt-0.5 block text-xs text-muted">{option.note}</span>
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </div>
+                      {choosingFamilies && (
+                        <NoticeFamilyPicker
+                          value={noticeForm.targetStudents}
+                          onChange={(families) => setField("targetStudents", families)}
+                          gradeOptions={gradeOptions}
+                        />
+                      )}
+                    </div>
+                  )}
                 </fieldset>
               )}
 
-              {!isPlatformMode && (
+              {!isPlatformMode && !choosingFamilies && (
                 <fieldset>
                   <legend className="label">Grades</legend>
                   <div className="flex flex-wrap gap-1.5">
@@ -738,6 +878,25 @@ export default function NoticeManager({
                 <p className="mt-1 text-xs text-muted">After this day it leaves the board by itself.</p>
               </div>
 
+              {!isPlatformMode && !choosingFamilies && (
+                <label className="flex cursor-pointer items-start gap-3 rounded-card border border-line p-3">
+                  <input
+                    type="checkbox"
+                    checked={noticeForm.visibility === "PUBLIC"}
+                    onChange={(event) => setField("visibility", event.target.checked ? "PUBLIC" : "PRIVATE")}
+                    className="mt-0.5 shrink-0"
+                  />
+                  <span className="min-w-0">
+                    <span className="flex items-center gap-1.5 text-sm font-semibold text-ink">
+                      <Globe className="text-brand-strong" aria-hidden /> Also show on our school website
+                    </span>
+                    <span className="mt-0.5 block text-xs text-muted">
+                      Anyone visiting your connected website sees it under Notices (Settings → Website).
+                    </span>
+                  </span>
+                </label>
+              )}
+
               <div className="flex flex-wrap gap-2 border-t border-line pt-4">
                 <button type="submit" disabled={saving} className="btn btn-primary">
                   <Send aria-hidden />
@@ -770,7 +929,11 @@ export default function NoticeManager({
                 <p className="mt-2 text-2xs text-muted">
                   {isPlatformMode
                     ? "Every school dashboard"
-                    : audienceText({ ...noticeForm, targetAudience: isStudentBoardMode ? { ...noticeForm.targetAudience, students: true } : noticeForm.targetAudience })}
+                    : audienceText({
+                        ...noticeForm,
+                        targetAudience: isStudentBoardMode ? { ...noticeForm.targetAudience, students: true } : noticeForm.targetAudience,
+                        targetStudents: choosingFamilies ? noticeForm.targetStudents : [],
+                      })}
                   {noticeForm.expiryDate && <span lang={nepali ? "ne" : undefined}> · {untilLabel(dateOfIso(noticeForm.expiryDate))}</span>}
                 </p>
               </div>
@@ -811,7 +974,20 @@ export default function NoticeManager({
           />
         </div>
         {!isPlatformMode && (
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            {!isFixedBoard && (
+              <select
+                value={filters.audience}
+                onChange={(event) => setFilters({ ...filters, audience: event.target.value })}
+                aria-label="Recipients"
+                className="input min-w-0 flex-1 lg:w-40"
+              >
+                <option value="">All recipients</option>
+                <option value="students">Student notices</option>
+                <option value="teachers">Teacher notices</option>
+                <option value="parents">Parent notices</option>
+              </select>
+            )}
             {!isFixedBoard && (
               <select
                 value={filters.type}

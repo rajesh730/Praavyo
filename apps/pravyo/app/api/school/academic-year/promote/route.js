@@ -21,6 +21,9 @@ import {
   nextAcademicYear,
 } from "@/lib/academicYear";
 import { sectionIsValid } from "@/lib/gradeSections";
+import PromotionRun from "@/models/PromotionRun";
+import { stateFingerprint, studentState } from "@/lib/promotionUndo";
+import { academicYearDisplayLabel } from "@pravyo/core/nepaliDate";
 
 async function resolveOrderedGrades(schoolId) {
   const [config, distinctGrades] = await Promise.all([
@@ -92,10 +95,12 @@ export async function GET() {
   }
 }
 
-// POST — commit the rollover. Body: { retainStudentIds: string[], confirm: true }
+// POST — commit the rollover. Body: { retainStudentIds: string[], confirm: true,
+// confirmYear: "<the next year, as typed by the school>" }
 // Students not in retainStudentIds promote to the next grade; those in the top
 // grade graduate (status ALUMNI). Retained students stay in the same grade for
-// the new session.
+// the new session. Each student's state from just before is saved in a
+// PromotionRun, so the whole promotion can be undone (undo-promotion route).
 export async function POST(req) {
   try {
     const { session, error } = await requireApiSession(["SCHOOL_ADMIN"]);
@@ -127,6 +132,20 @@ export async function POST(req) {
     const schoolNameSnapshot =
       session.user.schoolName || session.user.name || "";
 
+    // Typed confirmation: the school types the next year, so a stray click
+    // can never promote the whole school.
+    const typed = String(body.confirmYear || "").trim().toLowerCase();
+    const accepted = [
+      String(nextYear.yearStart),
+      nextYear.year,
+      academicYearDisplayLabel(nextYear.year, { yearStart: nextYear.yearStart, calendar: nextYear.calendar }),
+    ]
+      .filter(Boolean)
+      .map((value) => String(value).trim().toLowerCase());
+    if (!typed || !accepted.includes(typed)) {
+      return errorResponse(400, "Type the new school year exactly as shown to confirm the promotion.", "CONFIRM_YEAR");
+    }
+
     // Process highest grade first so target grades are vacated before incoming
     // students arrive (avoids roll-number collisions in the common case). Sort
     // numerically in JS — a Mongo string sort would place "Grade 9" after
@@ -143,8 +162,11 @@ export async function POST(req) {
     const { gradeSections = [] } = (await SchoolConfig.findOne({ school: schoolId }).select("gradeSections").lean()) || {};
     const summary = { promoted: 0, retained: 0, graduated: 0 };
     const failures = [];
+    const snapshots = [];
+    const summaryBefore = current.summary ? { ...(current.summary.toObject?.() || current.summary) } : {};
 
     for (const student of students) {
+      const before = studentState(student);
       try {
         const isRetained = retainSet.has(String(student._id));
         const nextGrade = getNextGrade(student.grade, orderedGrades);
@@ -194,6 +216,13 @@ export async function POST(req) {
         // Only count outcomes that actually persisted — a failed save (e.g. a
         // roll-number conflict) is recorded as a failure below, not in the summary.
         summary[outcome] += 1;
+        snapshots.push({
+          student: student._id,
+          name: student.name,
+          outcome,
+          before,
+          afterFingerprint: stateFingerprint(studentState(student)),
+        });
       } catch (studentError) {
         failures.push({
           id: String(student._id),
@@ -211,6 +240,7 @@ export async function POST(req) {
     // Close the current session (record the summary) and open the next as one
     // atomic step — so the school is never left without an ACTIVE year if the
     // second write fails.
+    let newYearCreated = false;
     const dbSession = await mongoose.startSession();
     try {
       await dbSession.withTransaction(async () => {
@@ -229,7 +259,7 @@ export async function POST(req) {
           { session: dbSession }
         );
 
-        await AcademicYear.updateOne(
+        const opened = await AcademicYear.updateOne(
           { school: schoolId, yearStart: nextYear.yearStart },
           {
             $setOnInsert: {
@@ -243,10 +273,22 @@ export async function POST(req) {
           },
           { upsert: true, session: dbSession }
         );
+        newYearCreated = Boolean(opened.upsertedCount);
       });
     } finally {
       await dbSession.endSession();
     }
+
+    // What "Undo last promotion" needs to put everything back.
+    const openedYear = await AcademicYear.findOne({ school: schoolId, yearStart: nextYear.yearStart }).select("_id").lean();
+    await PromotionRun.create({
+      school: schoolId,
+      fromYear: { id: current._id, year: current.year, summaryBefore },
+      toYear: { id: openedYear?._id || null, year: nextYear.year, yearStart: nextYear.yearStart, created: newYearCreated },
+      students: snapshots,
+      summary,
+      createdBy: session.user.id,
+    });
 
     return successResponse(
       200,

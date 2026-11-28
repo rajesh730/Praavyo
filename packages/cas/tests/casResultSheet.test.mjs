@@ -144,13 +144,15 @@ test('unassessed outcomes, themes and subjects are left out rather than scored z
   assert.equal(finalResult([untouched]).gpa, null);
 });
 
-test('the step-wise result applies to Grades 1-5 only', () => {
-  for (const grade of ['Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'कक्षा ५', '3']) {
+test('the step-wise result applies to Nursery, LKG, UKG and Grades 1-5 only', () => {
+  // Nursery/LKG/UKG are below Grade 6 and use the same CAS method and format
+  // as Grades 1-5 (owner, 2026-11-28).
+  for (const grade of ['Nursery', 'LKG', 'UKG', 'l.k.g', 'Grade 1', 'Grade 2', 'Grade 3', 'Grade 4', 'Grade 5', 'कक्षा ५', '3']) {
     assert.equal(usesResultSheet(grade), true, grade);
   }
-  // Grades 6-10 will be graded by rules not yet agreed; names without a
-  // number are not assumed to be primary grades.
-  for (const grade of ['Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'कक्षा १०', 'Nursery', '', null]) {
+  // Grades 6-10 will be graded by rules not yet agreed; other names without
+  // a number are not assumed to be primary grades.
+  for (const grade of ['Grade 6', 'Grade 7', 'Grade 8', 'Grade 9', 'Grade 10', 'Grade 12', 'कक्षा १०', 'Playgroup', '', null]) {
     assert.equal(usesResultSheet(grade), false, String(grade));
   }
   assert.equal(gradeNumber('Grade 10'), 10);

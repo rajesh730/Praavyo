@@ -6,7 +6,7 @@ import SchoolConfig from '@/models/SchoolConfig';
 import User from '@/models/User';
 import Student from '@/models/Student';
 import CasSubject from '@pravyo/db/models/cas/CasSubject';
-import { buildGradeLabels, getEquivalentGradeValues } from '@/lib/schoolGrades';
+import { getEquivalentGradeValues, resolveSchoolGrades } from '@/lib/schoolGrades';
 
 /**
  * Manage Sections — the single source of truth for which sections each grade
@@ -29,9 +29,9 @@ const same = (a, b) => String(a).toLocaleLowerCase() === String(b).toLocaleLower
 async function loadState(school) {
   const [user, config] = await Promise.all([
     User.findById(school).select('schoolConfig').lean(),
-    SchoolConfig.findOne({ school }).select('gradeSections').lean(),
+    SchoolConfig.findOne({ school }).select('gradeSections grades gradesCustomized').lean(),
   ]);
-  const grades = buildGradeLabels(user?.schoolConfig);
+  const grades = resolveSchoolGrades(user?.schoolConfig, config);
   const stored = config?.gradeSections || [];
   return {
     grades,
@@ -50,12 +50,22 @@ function studentsIn(school, grade, section) {
   };
 }
 
+// Sections of grades the school no longer offers are kept, so adding the
+// grade back brings its sections back.
+function withRemovedGrades(next, stored, grades) {
+  return [...next, ...stored.filter((row) => !grades.includes(row.grade))];
+}
+
 async function saveGrade(school, grades, stored, grade, sections) {
   const next = grades.map((label) => ({
     grade: label,
     sections: label === grade ? sections : stored.find((row) => row.grade === label)?.sections || [],
   }));
-  await SchoolConfig.findOneAndUpdate({ school }, { $set: { gradeSections: next } }, { upsert: true, runValidators: true });
+  await SchoolConfig.findOneAndUpdate(
+    { school },
+    { $set: { gradeSections: withRemovedGrades(next, stored, grades) } },
+    { upsert: true, runValidators: true },
+  );
 }
 
 function cleanName(value) {
@@ -102,7 +112,15 @@ export const GET = defineRoute({ roles: ['SCHOOL_ADMIN'] }, async ({ session }) 
   if (changed) {
     await SchoolConfig.findOneAndUpdate(
       { school },
-      { $set: { gradeSections: state.grades.map((grade) => ({ grade, sections: lists.get(grade) })) } },
+      {
+        $set: {
+          gradeSections: withRemovedGrades(
+            state.grades.map((grade) => ({ grade, sections: lists.get(grade) })),
+            state.stored,
+            state.grades,
+          ),
+        },
+      },
       { upsert: true, runValidators: true },
     );
   }

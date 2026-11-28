@@ -1,4 +1,5 @@
 import { calculateGpa, gradeFor, gradeForGpa } from '@pravyo/core/casGrading';
+import { isPrimaryLevel } from '@pravyo/core/gradeLevels';
 import { summariseRows } from './client/sheetTotals.js';
 
 /**
@@ -27,6 +28,10 @@ import { summariseRows } from './client/sheetTotals.js';
  * for them CAS records and shows continuous assessment but computes no
  * percentage, grade or GPA — showing a primary-school figure there would be
  * a wrong number presented as a real one.
+ *
+ * Nursery, LKG and UKG (owner, 2026-11-28) are below Grade 6, so they use CAS
+ * and this same method and format as Grades 1-5 (packages/core/gradeLevels.js
+ * isPrimaryLevel). There is no default curriculum for them yet.
  */
 export const RESULT_SHEET_MAX_GRADE = 5;
 
@@ -39,10 +44,9 @@ export function gradeNumber(grade) {
   return match ? Number(match[0]) : null;
 }
 
-/** Whether a grade's results are calculated by this step-wise sheet. */
+/** Whether a grade's results are calculated by this step-wise sheet: Nursery, LKG, UKG and Grades 1-5. */
 export function usesResultSheet(grade) {
-  const n = gradeNumber(grade);
-  return n !== null && n >= 1 && n <= RESULT_SHEET_MAX_GRADE;
+  return isPrimaryLevel(grade);
 }
 
 export const RESULT_SHEET_UNAVAILABLE =

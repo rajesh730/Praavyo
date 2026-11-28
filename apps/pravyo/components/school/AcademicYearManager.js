@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { CircleArrowUp as FiArrowUpCircle, Calendar as FiCalendar, CircleCheck as FiCheckCircle, Clock as FiClock, Save as FiSave } from "lucide-react";
+import { CircleArrowUp as FiArrowUpCircle, Calendar as FiCalendar, CircleCheck as FiCheckCircle, Clock as FiClock, Save as FiSave, Undo2 } from "lucide-react";
 import AlertBanner from "@/components/ui/AlertBanner";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import AppDate from "@/components/common/AppDate";
@@ -38,15 +38,26 @@ export default function AcademicYearManager() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [promoting, setPromoting] = useState(false);
   const [promoteResult, setPromoteResult] = useState(null);
+  // Typed confirmation: the new year, exactly as shown.
+  const [confirmText, setConfirmText] = useState("");
+  // Undo the last promotion (lib/promotionUndo.js).
+  const [undoInfo, setUndoInfo] = useState(null);
+  const [undoOpen, setUndoOpen] = useState(false);
+  const [undoing, setUndoing] = useState(false);
 
   const load = useCallback(async () => {
     try {
       setLoading(true);
-      const res = await fetch("/api/school/academic-year", { cache: "no-store" });
+      const [res, undoRes] = await Promise.all([
+        fetch("/api/school/academic-year", { cache: "no-store" }),
+        fetch("/api/school/academic-year/undo-promotion", { cache: "no-store" }),
+      ]);
       const json = await res.json();
       if (!res.ok) throw new Error(json.message || "Failed to load academic year");
       setData(json.data);
       setCalendar(json.data?.calendar || "AD");
+      const undoJson = await undoRes.json().catch(() => ({}));
+      setUndoInfo(undoRes.ok ? undoJson.data : null);
     } catch (error) {
       setFeedback({ type: "error", title: "Could not load", message: error.message });
     } finally {
@@ -131,6 +142,7 @@ export default function AcademicYearManager() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           confirm: true,
+          confirmYear: confirmText,
           retainStudentIds: Array.from(retained),
         }),
       });
@@ -143,6 +155,34 @@ export default function AcademicYearManager() {
       setFeedback({ type: "error", title: "Promotion failed", message: error.message });
     } finally {
       setPromoting(false);
+    }
+  };
+
+  const nextYearLabel = displayYear(preview?.nextYear) || String(preview?.nextYear?.yearStart || "");
+  const confirmMatches =
+    Boolean(confirmText.trim()) &&
+    [nextYearLabel, preview?.nextYear?.year, String(preview?.nextYear?.yearStart || "")]
+      .filter(Boolean)
+      .some((value) => String(value).trim().toLowerCase() === confirmText.trim().toLowerCase());
+
+  const undoPromotion = async () => {
+    try {
+      setUndoing(true);
+      const res = await fetch("/api/school/academic-year/undo-promotion", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ confirm: true }),
+      });
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(json.message || "The promotion could not be undone.");
+      setFeedback({ type: "success", title: "Promotion undone", message: json.message });
+      setUndoOpen(false);
+      await load();
+    } catch (error) {
+      setFeedback({ type: "error", title: "Undo failed", message: error.message });
+      setUndoOpen(false);
+    } finally {
+      setUndoing(false);
     }
   };
 
@@ -229,6 +269,32 @@ export default function AcademicYearManager() {
             {savingCalendar ? "Saving..." : "Save"}
           </button>
         </div>
+
+        {undoInfo?.run?.status === "COMPLETED" && (
+          <div className="card mt-5 flex flex-wrap items-center justify-between gap-3 border-warning-line bg-warning-soft p-4">
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-ink">
+                Last promotion: {displayYear(undoInfo.run.fromYear) || undoInfo.run.fromYear.year} →{" "}
+                {displayYear(undoInfo.run.toYear) || undoInfo.run.toYear.year}
+              </p>
+              <p className="mt-1 text-xs text-muted">
+                <AppDate value={undoInfo.run.createdAt} mode="dateTime" /> · {undoInfo.run.summary?.promoted || 0} promoted,{" "}
+                {undoInfo.run.summary?.retained || 0} retained, {undoInfo.run.summary?.graduated || 0} graduated.
+                {undoInfo.available
+                  ? ` Pressed by mistake? Undo puts every student and the school year back as they were (within ${undoInfo.windowDays} days).`
+                  : ` ${undoInfo.blocker}`}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setUndoOpen(true)}
+              disabled={!undoInfo.available || undoing}
+              className="btn btn-secondary inline-flex items-center justify-center gap-2 font-semibold"
+            >
+              <Undo2 aria-hidden /> Undo last promotion
+            </button>
+          </div>
+        )}
 
         <div className="card mt-5 flex flex-wrap items-center justify-between gap-3 p-4">
           <div>
@@ -494,7 +560,10 @@ export default function AcademicYearManager() {
                 </p>
                 <button
                   type="button"
-                  onClick={() => setConfirmOpen(true)}
+                  onClick={() => {
+                    setConfirmText("");
+                    setConfirmOpen(true);
+                  }}
                   disabled={promoting}
                   className="btn btn-primary inline-flex items-center gap-2 font-semibold transition-colors"
                 >
@@ -521,13 +590,40 @@ export default function AcademicYearManager() {
 
       <ConfirmDialog
         open={confirmOpen}
-        title={`Promote to ${displayYear(preview?.nextYear) || "next year"}?`}
-        message={`This will advance the academic year and move ${promoteCounts.promote} students up, keep ${promoteCounts.retain} repeating, and graduate ${promoteCounts.graduate}. This cannot be undone.`}
+        title={`Promote to ${nextYearLabel || "next year"}?`}
+        message={`This advances the school year, moves ${promoteCounts.promote} students up, keeps ${promoteCounts.retain} repeating and graduates ${promoteCounts.graduate}. If it was a mistake, "Undo last promotion" puts everything back within 30 days, as long as nothing has been recorded in the new year.`}
         confirmLabel="Yes, promote"
         tone="warning"
         busy={promoting}
+        confirmDisabled={!confirmMatches}
         onClose={() => setConfirmOpen(false)}
         onConfirm={runPromotion}
+      >
+        <label className="mt-3 block text-sm text-ink">
+          Type <strong className="font-semibold">{nextYearLabel}</strong> to confirm
+          <input
+            value={confirmText}
+            onChange={(event) => setConfirmText(event.target.value)}
+            autoComplete="off"
+            aria-label={`Type ${nextYearLabel} to confirm`}
+            className="input mt-1.5 w-full"
+          />
+        </label>
+      </ConfirmDialog>
+
+      <ConfirmDialog
+        open={undoOpen}
+        title="Undo the last promotion?"
+        message={`Every student goes back to the grade, section, roll number and status they had before the promotion, ${
+          undoInfo?.run ? displayYear(undoInfo.run.fromYear) || undoInfo.run.fromYear.year : "the previous year"
+        } becomes the current year again, and ${
+          undoInfo?.run ? displayYear(undoInfo.run.toYear) || undoInfo.run.toYear.year : "the new year"
+        } is removed. Graduated students return to the roll.`}
+        confirmLabel="Yes, undo promotion"
+        tone="warning"
+        busy={undoing}
+        onClose={() => setUndoOpen(false)}
+        onConfirm={undoPromotion}
       />
     </div>
   );

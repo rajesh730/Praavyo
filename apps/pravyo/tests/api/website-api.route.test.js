@@ -81,6 +81,35 @@ describe("Website API", () => {
     const json = await res.json();
     expect(json.data).toMatchObject({ isOpen: true, grades: ["Grade 1"], form: { type: "ADMISSION" } });
     expect(json.data.form.fields.find((field) => field.name === "grade").options).toEqual(["Grade 1"]);
+    expect(json.data).toMatchObject({ status: "OPEN", acceptingFor: "THIS_YEAR", notice: "Admissions are open for 2083." });
+  });
+
+  it("keeps the admission form while closed, for next year, with a clear notice and every grade", async () => {
+    getAdmissionSeason.mockResolvedValue({
+      season: { isOpen: false, academicYear: "", grades: ["Grade 1"], deadline: null, note: "", openedAt: null },
+      schoolGrades: ["Nursery", "Grade 1", "Grade 2"],
+    });
+    const json = await (await call(GET, "GET", "admission")).json();
+    expect(json.data).toMatchObject({ status: "CLOSED", acceptingFor: "NEXT_YEAR", grades: ["Nursery", "Grade 1", "Grade 2"] });
+    expect(json.data.notice).toMatch(/closed for this year/i);
+    expect(json.data.notice).toMatch(/next year/i);
+    expect(json.data.form.fields.length).toBeGreaterThan(5);
+  });
+
+  it("describes both forms field by field at GET /forms", async () => {
+    getAdmissionSeason.mockResolvedValue({ season: { isOpen: true, grades: ["Grade 1"] }, schoolGrades: ["Grade 1"] });
+    const res = await call(GET, "GET", "forms");
+    expect(res.headers.get("cache-control")).toBe("no-store");
+    const { data } = await res.json();
+    expect(data.general.fields.map((field) => field.name)).toEqual(["name", "email", "phone", "subject", "message"]);
+    expect(data.admission.fields.map((field) => field.name)).toEqual([
+      "studentName", "grade", "dateOfBirth", "gender", "previousSchool", "guardianName",
+      "guardianRelation", "phone", "email", "address", "message",
+    ]);
+    for (const field of [...data.general.fields, ...data.admission.fields]) {
+      expect(field).toEqual(expect.objectContaining({ name: expect.any(String), label: expect.any(String), type: expect.any(String), required: expect.any(Boolean) }));
+    }
+    expect(data.general.honeypot.name).toBe("website");
   });
 
   it("answers 404 for unknown resources and unknown detail types", async () => {

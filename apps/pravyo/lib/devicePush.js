@@ -80,8 +80,12 @@ export async function teacherIdsForGrades(schoolId, grades = []) {
 }
 
 /** Students of `schoolId` whose grade matches `grades` (all when empty). */
-async function studentIdsAtSchool(schoolId, grades = []) {
+async function studentIdsAtSchool(schoolId, grades = [], onlyStudents = []) {
   const query = { school: schoolId, status: "ACTIVE", isDeleted: { $ne: true } };
+  // A notice for chosen families rings only those students.
+  if (Array.isArray(onlyStudents) && onlyStudents.length) {
+    query._id = { $in: onlyStudents.map((id) => id?._id || id) };
+  }
   const cleanGrades = (grades || []).map((grade) => String(grade || "").trim()).filter(Boolean);
   if (cleanGrades.length) {
     query.grade = { $in: [...new Set(cleanGrades.flatMap((grade) => getEquivalentGradeValues(grade)))] };
@@ -109,7 +113,7 @@ export async function pushNoticePublished(notice, { excludeIds = [] } = {}) {
     if (notice.scope === "PLATFORM") {
       return sendAccountPush(
         { role: "SCHOOL_ADMIN", excludeIds },
-        { ...delivery, href: "/school/dashboard?tab=notices" }
+        { ...delivery, href: "/school/dashboard?tab=notices&section=received" }
       );
     }
 
@@ -117,7 +121,7 @@ export async function pushNoticePublished(notice, { excludeIds = [] } = {}) {
     const eventId = notice.event ? idOf(notice.event) : "";
     const [students, teachers] = await Promise.all([
       notice.targetAudience?.students
-        ? studentIdsAtSchool(notice.school, notice.grades).then((ids) =>
+        ? studentIdsAtSchool(notice.school, notice.grades, notice.targetStudents).then((ids) =>
             sendAccountPush(
               { role: "STUDENT", accountIds: ids, school: notice.school, excludeIds },
               { ...delivery, href: eventId ? `/student/events/${eventId}` : "/student/notices" }

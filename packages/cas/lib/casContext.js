@@ -7,6 +7,7 @@ import SchoolConfig from '@pravyo/db/models/SchoolConfig';
 import { assert, sameId } from './casAccess.js';
 import { sectionsForGrade } from './casSections.js';
 import { LIBRARY_GRADES } from '@pravyo/core/themeLibrary';
+import { resolveSchoolGrades } from '@pravyo/core/gradeLevels';
 
 /**
  * Everything CAS reads out of Pravyo.
@@ -32,11 +33,11 @@ export async function loadSchool(actor) {
       calendar: actor.calendar || 'BS', grades: LIBRARY_GRADES, gradeSections: [], library: true,
     };
   }
-  const school = await User.findById(actor.school).select(SCHOOL_FIELDS).lean();
+  const school = await User.findById(actor.school).select(`${SCHOOL_FIELDS} schoolConfig`).lean();
   assert(school, 'School record unavailable', 404);
 
   const config = await SchoolConfig.findOne({ school: actor.school })
-    .select('grades gradeSections academicCalendar schoolCode iemisNumber city state')
+    .select('grades gradesCustomized gradeSections academicCalendar schoolCode iemisNumber city state')
     .lean();
 
   return {
@@ -52,9 +53,10 @@ export async function loadSchool(actor) {
     website: school.website || '',
     establishedYear: school.establishedYear || '',
     calendar: school.calendarPreference || config?.academicCalendar || 'BS',
-    // Grades come from the school's own Pravyo configuration, so the Grade
-    // dropdown is never a hard-coded list.
-    grades: config?.grades || [],
+    // Grades come from the school's own Pravyo configuration (its edited list,
+    // else the signup range), so the Grade dropdown is never a hard-coded list.
+    // CAS screens keep the primary ones (Nursery–Grade 5) via usesResultSheet.
+    grades: config ? resolveSchoolGrades(school.schoolConfig, config) : [],
     gradeSections: config?.gradeSections || [],
   };
 }

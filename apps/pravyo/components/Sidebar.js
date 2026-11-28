@@ -20,7 +20,7 @@ const HREF_INDICATOR_KEYS = {
   "/school/dashboard?tab=student-transfers": "school.studentTransfers",
   "/school/dashboard?tab=school-events": "school.schoolEvents",
   "/school/dashboard?tab=platform-events": "school.platformEvents",
-  "/school/dashboard?tab=student-notices": "school.studentNotices",
+  // Notices: the badge counts unread notices in its Received section.
   "/school/dashboard?tab=notices": "school.receivedNotices",
   "/school/dashboard?tab=magazine": "school.magazine",
   "/school/dashboard?tab=inquiries": "school.inquiries",
@@ -68,9 +68,7 @@ const SCHOOL_NAV_GROUPS = [
       "Teachers",
       "School Events",
       "Platform Events",
-      "Student Notices",
-      "Teacher Notices",
-      "Received Notices",
+      "Notices",
     ],
   },
   {

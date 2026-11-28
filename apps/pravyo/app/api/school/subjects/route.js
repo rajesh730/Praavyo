@@ -4,7 +4,7 @@ import { successResponse, APIError } from '@/lib/apiResponse';
 import User from '@/models/User';
 import Student from '@/models/Student';
 import SchoolConfig from '@/models/SchoolConfig';
-import { buildGradeLabels } from '@/lib/schoolGrades';
+import { resolveSchoolGrades } from '@/lib/schoolGrades';
 import CasSubject from '@pravyo/db/models/cas/CasSubject';
 import CasExamTeacherAssignment from '@pravyo/db/models/cas/CasExamTeacherAssignment';
 import TeacherTeachingAssignment from '@pravyo/db/models/TeacherTeachingAssignment';
@@ -36,9 +36,9 @@ function rethrow(error) {
 async function gradeContext(school) {
   const [user, config] = await Promise.all([
     User.findById(school).select('schoolConfig').lean(),
-    SchoolConfig.findOne({ school }).select('gradeSections').lean(),
+    SchoolConfig.findOne({ school }).select('gradeSections grades gradesCustomized').lean(),
   ]);
-  const grades = buildGradeLabels(user?.schoolConfig);
+  const grades = resolveSchoolGrades(user?.schoolConfig, config);
   const sectionsFor = (grade) => config?.gradeSections?.find((row) => row.grade === grade)?.sections || [];
   return { grades, sectionsFor };
 }

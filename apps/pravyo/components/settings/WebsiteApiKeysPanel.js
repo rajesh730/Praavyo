@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Copy as FiCopy, Download, Globe, Key as FiKey, Plus as FiPlus, Trash2 as FiTrash2 } from "lucide-react";
+import { GENERAL_INQUIRY_FIELDS, HONEYPOT_FIELD, admissionFields } from "@/lib/inquiryForms";
 
 // What a school website can read (GET) — mirrors lib/websiteApi.js.
 const RESOURCES = [
@@ -13,9 +14,63 @@ const RESOURCES = [
   ["Gallery albums", "gallery", true],
   ["Public achievements", "achievements", false],
   ["Admission season and form", "admission", false],
+  ["Form fields (general inquiry + admission)", "forms", false],
 ];
 
 const SITE_PAGES = ["Home", "About", "School life: Events, Notices, Student writings, School magazine, Gallery", "Admission", "Contact (General inquiry / Admission inquiry)"];
+
+/** One line per field for the copied guide. */
+function fieldGuide(fields) {
+  return fields
+    .map((field) => {
+      const rules = [
+        field.type,
+        field.required ? "required" : "optional",
+        field.maxLength ? `max ${field.maxLength}` : "",
+        field.options ? `options: ${field.options.join(" / ")}` : "",
+      ].filter(Boolean);
+      return `- ${field.name} — ${field.label} (${rules.join(", ")})`;
+    })
+    .join("\n");
+}
+
+function FieldTable({ title, fields }) {
+  return (
+    <div className="mt-4 overflow-hidden rounded-card border border-line-strong">
+      <p className="border-b border-line-strong bg-surface px-4 py-2 text-sm font-semibold text-ink">{title}</p>
+      <div className="table-wrap">
+        <table className="w-full text-left text-xs">
+          <thead className="bg-surface-2 text-muted">
+            <tr>
+              <th className="px-3 py-2 font-semibold">Field</th>
+              <th className="px-3 py-2 font-semibold">Label</th>
+              <th className="px-3 py-2 font-semibold">Type</th>
+              <th className="px-3 py-2 font-semibold">Required</th>
+              <th className="px-3 py-2 font-semibold">Rules</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-line">
+            {fields.map((field) => (
+              <tr key={field.name}>
+                <td className="px-3 py-2"><code className="text-ink">{field.name}</code></td>
+                <td className="px-3 py-2 text-ink">{field.label}</td>
+                <td className="px-3 py-2 text-body">{field.type}</td>
+                <td className="px-3 py-2 text-body">{field.required ? "Yes" : "No"}</td>
+                <td className="px-3 py-2 text-muted">
+                  {[
+                    field.minLength ? `min ${field.minLength}` : "",
+                    field.maxLength ? `max ${field.maxLength}` : "",
+                    field.options ? field.options.join(" / ") : "",
+                  ].filter(Boolean).join(" · ")}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+}
 
 export default function WebsiteApiKeysPanel() {
   const [keys, setKeys] = useState([]);
@@ -84,10 +139,12 @@ await fetch(\`\${process.env.PRAAVYO_API_URL}/inquiries\`, {
   }),
 });
 
-// Admission (only while GET /admission says isOpen: true):
+// Admission (always accepted; while closed it is for next year and the
+// answer is { data: { forNextYear: true } }):
 // { type: "ADMISSION", studentName, grade, guardianName, phone,
 //   dateOfBirth?, gender?, previousSchool?, guardianRelation?,
-//   email?, address?, message? }`;
+//   email?, address?, message? }
+// Build both forms from GET /forms so the fields always match.`;
 
   const fullGuide = `PRAAVYO WEBSITE API
 
@@ -103,15 +160,27 @@ Writings and magazine articles include "blocks": formatted text as data
 (heading, paragraph, bullets, numbers; inline bold/italic/link). Render as text.
 Images are absolute URLs.
 
+Forms (GET /forms): { general: { fields }, admission: { status, acceptingFor, notice, fields } }
+Each field: name, label, type (text, email, tel, date-text, select, textarea),
+required, minLength, maxLength, options (select), placeholder, help.
+Build your forms from it so they always match what Praavyo accepts.
+
+General inquiry fields:
+${fieldGuide(GENERAL_INQUIRY_FIELDS)}
+
+Admission fields (grade options come from GET /forms):
+${fieldGuide(admissionFields(["<your grades>"]))}
+
+Hidden spam trap: a field named "${HONEYPOT_FIELD}", hidden and left empty.
+
 Send (POST):
-- POST /inquiries  { type: "GENERAL", name, email, phone, subject, message }
-- POST /inquiries  { type: "ADMISSION", studentName, grade, guardianName, phone,
-                     dateOfBirth?, gender?, previousSchool?, guardianRelation?,
-                     email?, address?, message? }
-  Send the visitor's IP in X-Visitor-IP. A closed admission season answers
-  409 ADMISSION_CLOSED; GET /admission tells you whether to show the form and
-  which grades are open. Inquiries arrive in Praavyo → Inquiries, marked
-  "Through website".
+- POST /inquiries  { type: "GENERAL", ...general fields }
+- POST /inquiries  { type: "ADMISSION", ...admission fields }
+  Send the visitor's IP in X-Visitor-IP. Admissions OPEN: grades taking
+  applications. Admissions CLOSED: the form stays on the website; show the
+  notice from GET /admission ("closed for this year, apply for next year");
+  applications are accepted for next year and answer { data: { forNextYear: true } }.
+  Everything arrives in Praavyo → Inquiries, marked "Through website".
 
 .env
 ${envExample}
@@ -412,6 +481,17 @@ ${inquiryExample}`;
             code={javascriptExample}
             onCopy={() => copyText(javascriptExample, "JavaScript example copied.")}
           />
+          <FieldTable title="General inquiry form (GET /forms → general)" fields={GENERAL_INQUIRY_FIELDS} />
+          <FieldTable
+            title="Admission form (GET /forms → admission; grade options are your school's grades)"
+            fields={admissionFields(["Your grades"])}
+          />
+          <p className="mt-2 text-xs text-muted">
+            Also send a hidden field named <code>{HONEYPOT_FIELD}</code>, left empty (spam trap). While admissions are
+            closed the form stays on the website with the notice from <code>GET /admission</code>, and applications are
+            taken for next year.
+          </p>
+
           <CodeBlock
             title="4. Send an inquiry or admission application"
             code={inquiryExample}

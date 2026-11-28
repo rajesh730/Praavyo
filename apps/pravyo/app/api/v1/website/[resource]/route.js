@@ -35,7 +35,7 @@ export async function GET(request, { params }) {
     return NextResponse.json(
       { success: true, data },
       // Admission must switch off promptly; the rest may be cached briefly.
-      { headers: { "Cache-Control": resource === "admission" ? "no-store" : "private, max-age=60" } }
+      { headers: { "Cache-Control": ["admission", "forms"].includes(resource) ? "no-store" : "private, max-age=60" } }
     );
   } catch (error) {
     console.error("GET website API error:", error);
@@ -72,7 +72,7 @@ export async function POST(request, { params }) {
     });
 
     if (result.status === 201) {
-      return NextResponse.json({ success: true, message: result.message, data: {} }, { status: 201 });
+      return NextResponse.json({ success: true, message: result.message, data: result.data || {} }, { status: 201 });
     }
     return fail(result.status, result.code || "ERROR", result.message);
   } catch (error) {

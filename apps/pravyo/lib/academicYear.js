@@ -1,4 +1,4 @@
-import { normalizeGradeValue } from "./schoolGrades.js";
+import { catalogGrade, gradeRank, nextCatalogGrade, sortGrades } from "@pravyo/core/gradeLevels";
 
 // Academic-year + grade-progression helpers.
 //
@@ -57,20 +57,18 @@ export function nextAcademicYear({ yearStart, calendar = "AD" }) {
 
 // ── Grade progression ─────────────────────────────────────────────────────
 
+// A grade's place in the school ladder: Nursery -2, LKG -1, UKG 0,
+// Grade N → N (packages/core/gradeLevels.js); null when unknown. Used to
+// group, sort and compare grades, so pre-primary levels stay apart.
 export function getGradeNumber(grade) {
-  const match = normalizeGradeValue(grade).match(/\d+/);
-  return match ? Number.parseInt(match[0], 10) : null;
+  return gradeRank(grade);
 }
 
-// Ordered, de-duplicated "Grade N" list ascending. Falls back to numeric order
-// when a school has not configured an explicit grade list.
+// Ordered, de-duplicated grade list ascending: Nursery, LKG, UKG, Grade 1, …
 export function getOrderedGrades(schoolGrades = []) {
-  const numbers = (Array.isArray(schoolGrades) ? schoolGrades : [])
-    .map((grade) => getGradeNumber(grade))
-    .filter((value) => Number.isFinite(value));
-
-  const unique = Array.from(new Set(numbers)).sort((a, b) => a - b);
-  return unique.map((number) => `Grade ${number}`);
+  return sortGrades(
+    (Array.isArray(schoolGrades) ? schoolGrades : []).map((grade) => catalogGrade(grade)).filter(Boolean)
+  );
 }
 
 export function getMaxGradeNumber(schoolGrades = []) {
@@ -79,8 +77,9 @@ export function getMaxGradeNumber(schoolGrades = []) {
   return getGradeNumber(ordered[ordered.length - 1]);
 }
 
-// The next grade up, or null when this is the school's highest grade (→ a
-// student promoted out of the top grade graduates instead of moving up).
+// The next grade up (Nursery → LKG → UKG → Grade 1 → …), or null when this is
+// the school's highest grade (→ a student promoted out of the top grade
+// graduates instead of moving up).
 export function getNextGrade(grade, schoolGrades = []) {
   const current = getGradeNumber(grade);
   if (!Number.isFinite(current)) return null;
@@ -88,7 +87,7 @@ export function getNextGrade(grade, schoolGrades = []) {
   const max = getMaxGradeNumber(schoolGrades);
   if (Number.isFinite(max) && current >= max) return null;
 
-  return `Grade ${current + 1}`;
+  return nextCatalogGrade(grade);
 }
 
 export function isTopGrade(grade, schoolGrades = []) {

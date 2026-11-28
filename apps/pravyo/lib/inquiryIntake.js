@@ -16,9 +16,9 @@ const HOUR = 60 * 60 * 1000;
  *
  * Guards: a honeypot field (`website`) people never see and bots fill in;
  * a per-visitor limit (5 an hour by default) and a per-school limit (60 an
- * hour); only
- * approved schools; admission applications only while the season is open and
- * only for grades taking applications. Nothing about the inquiry is returned.
+ * hour); only approved schools. Admission applications are taken whether the
+ * season is open (grades taking applications) or closed (any grade, marked
+ * for next year). Nothing about the inquiry is returned.
  *
  * Returns `{ status, message, code? }` for the route to send.
  */
@@ -61,23 +61,24 @@ export async function receiveInquiry({ schoolId, body, source, visitor, visitorM
   if (!school) return { status: 404, message: "School not found.", code: "SCHOOL_NOT_FOUND" };
 
   if (type === "ADMISSION") {
-    const { season } = await getAdmissionSeason(schoolId);
-    const parsed = parseAdmissionApplication(body, season);
-    if (parsed.error) {
-      return {
-        status: parsed.code === "ADMISSION_CLOSED" ? 409 : 400,
-        message: parsed.error,
-        code: parsed.code,
-      };
-    }
+    const { season, schoolGrades } = await getAdmissionSeason(schoolId);
+    const parsed = parseAdmissionApplication(body, season, { schoolGrades });
+    if (parsed.error) return { status: 400, message: parsed.error, code: parsed.code };
     data = parsed.data;
   }
 
   const inquiry = await SchoolInquiry.create({ ...data, source, school: schoolId });
   runAfterResponse(() => pushSchoolInquiry(inquiry));
 
+  const forNextYear = Boolean(data.admission?.forNextYear);
   return {
     status: 201,
-    message: type === "ADMISSION" ? "Admission application sent" : "Inquiry sent",
+    message:
+      type !== "ADMISSION"
+        ? "Inquiry sent"
+        : forNextYear
+          ? "Application received for next year's admission (admissions are closed for this year)."
+          : "Admission application sent",
+    data: type === "ADMISSION" ? { forNextYear } : {},
   };
 }

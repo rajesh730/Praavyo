@@ -60,6 +60,20 @@ wrappers around `packages/cas`.
   (`PRV-P-XXXXXX`) are credentials — never log them.
 - `AcademicYear` has `yearStart` (number) but no real calendar dates.
 - `SchoolConfig` holds grades, sections, schoolCode, and the school's IEMIS number.
+  **Grades are editable** (since 2026-11-28, Settings → Academic Setup →
+  Grades, `GET/PUT /api/school/grade-structure`): catalogue Nursery, LKG,
+  UKG, Grade 1–12 (`packages/core/gradeLevels.js`). Until a school edits them
+  its grades are the signup range (`User.schoolConfig.schoolLevel`), copied
+  into `SchoolConfig.grades`; once edited, `gradesCustomized: true` and that
+  list is the source of truth — read it via `resolveSchoolGrades` /
+  `lib/schoolGradeConfig.js`, never `buildGradeLabels` (signup range only).
+  A grade with students on the roll cannot be removed; removing never
+  touches records, and removing then re-adding a grade restores its sections,
+  teacher assignments and admission choice. Promotion runs Nursery → LKG →
+  UKG → Grade 1; it needs the new year typed, and "Undo last promotion"
+  (`api/school/academic-year/undo-promotion`, `PromotionRun`,
+  `lib/promotionUndo.js`) restores it within 30 days if nothing was recorded
+  in the new year.
 - **IEMIS is the government identity** for students and schools: compulsory,
   unique, the same across schools. Students sign in with it; parent links and
   transfer records carry copies. All IEMIS rules and lookups live in
@@ -127,6 +141,18 @@ Auth: `packages/auth/authOptions.js` — one credentials setup, JWT session,
   messaging, notices with delivery receipts, notifications, web push.
 - **Notices, messages, notifications, realtime** — `lib/realtimeBus.js`
   (Upstash Redis streams, in-memory fallback), `app/api/realtime/stream`.
+- **One Notices screen for the school** (since 2026-11-28) — sidebar
+  "Notices" = `?tab=notices` → `components/school/SchoolNoticeCenter.js`,
+  two sections: `school` (NoticeManager: Students / Teachers / Parents in any
+  mix, grades, or chosen families via `Notice.targetStudents` — every ticked
+  group narrows to them: the children, their guardians, teachers of their
+  grades, grades set from the children; `lib/noticeTargets.js`; "also on
+  school website" = visibility PUBLIC; event announcements = type Event) and
+  `received` (SchoolNoticeBoard inbox; inbox links carry `&section=received`).
+  Schools no longer manage EventNotice records: the event page's Notices tab
+  is hidden for SCHOOL_ADMIN (teachers, super admin and students keep it;
+  existing event notices stay visible). Old `?tab=student-notices|teacher-notices`
+  redirect. Parent Messages (chat + group messages) untouched.
 - **Media** — browser compresses to WebP → `POST /api/media/upload` → R2;
   served via `/api/media/r2/[id]`; `MediaAsset` keeps metadata.
 - **Website API** (extended 2026-11-27) — every approved school can connect
@@ -145,9 +171,18 @@ Auth: `packages/auth/authOptions.js` — one credentials setup, JWT session,
   as PRAAVYO/GENERAL). Both doors go through `lib/inquiryIntake.js` (honeypot,
   rate limits, push to the school via `pushSchoolInquiry`). Settings →
   Admission (`SchoolAdmission`, `lib/schoolAdmission.js`, `api/school/admission`)
-  opens/closes the season; while open the profile (`#admission`) and website
-  show the form, closed = 409 ADMISSION_CLOSED. Inbox filters: Through website /
-  Through Praavyo × General / Admission, CSV download.
+  opens/closes the season. The admission form is ALWAYS offered (profile
+  `#admission`, websites, API): open = this year's grades; closed = "closed for
+  this year — apply for next year", any grade, stored `admission.forNextYear`
+  (inbox badge "Next year"). Both forms' fields are defined once in
+  `lib/inquiryForms.js` and published by `GET /forms` (and `/admission`), which
+  the generated website renders from. Inbox filters: Through website / Through
+  Praavyo × General / Admission, CSV download.
+  Website writings = the school-wall rule (SUBMITTED|APPROVED + showOnSchoolWall)
+  plus publicly published ones (`writingFilter`); events include
+  PerformancePrograms; `/school` returns the profile whatever its Praavyo
+  visibility; key limit 600/min and the kit connectors cache 15–60 s and serve
+  stale on outages.
 - **Gallery** — `SchoolGalleryAlbum` (DRAFT/PUBLIC, ≤60 photos, MediaAsset
   purpose `GALLERY_IMAGE`, public bucket), dashboard `?tab=gallery`,
   `api/school/gallery*`. Public albums feed the website's Gallery; removing
@@ -155,7 +190,7 @@ Auth: `packages/auth/authOptions.js` — one credentials setup, JWT session,
 
 ## 6. CAS (Continuous Assessment System)
 
-**Phases.** Phase 1 = Grades 1–5 (built). Phase 2 = Grades 6–10, different
+**Phases.** Phase 1 = Grades 1–5 (built), plus Nursery/LKG/UKG with the same CAS method and formats (`isPrimaryLevel`; no default library content for them). Phase 2 = Grades 6–10, different
 exam/assessment process (not designed). Today, Grades 6–10 can record
 assessment levels, but result calculation and report generation are blocked
 on purpose (`usesResultSheet`, `RESULT_SHEET_MAX_GRADE = 5` in

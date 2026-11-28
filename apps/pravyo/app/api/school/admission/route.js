@@ -36,9 +36,10 @@ export const GET = defineRoute(
 
 /**
  * PUT { isOpen, academicYear, grades[], deadline, note } — open or close the
- * admission season and set what families see. Opening shows the admission
- * form on the public profile and the connected website; closing hides it and
- * refuses new applications. Applications already received are kept.
+ * admission season and set what families see. Open: applications for this
+ * year. Closed: the form stays on the public profile and website, marked
+ * "closed for this year — apply for next year", and applications arrive
+ * marked for next year. Applications already received are kept.
  */
 export const PUT = defineRoute(
   { roles: ["SCHOOL_ADMIN"], errorMessage: "Failed to save admission settings" },
@@ -50,7 +51,13 @@ export const PUT = defineRoute(
     if (error) return validationError(error);
 
     const now = new Date();
-    const update = { ...data, updatedBy: session.user.id };
+    // Grades the school removed keep their place in the list, so adding the
+    // grade back brings back its admission setting too.
+    // (Only when specific grades are chosen: an empty list means every grade.)
+    const removedGrades = data.grades.length
+      ? (existing?.grades || []).filter((grade) => !schoolGrades.includes(grade))
+      : [];
+    const update = { ...data, grades: [...data.grades, ...removedGrades], updatedBy: session.user.id };
     if (data.isOpen && !existing?.isOpen) update.openedAt = now;
     if (!data.isOpen && existing?.isOpen) update.closedAt = now;
 
@@ -72,7 +79,7 @@ export const PUT = defineRoute(
         ? "Admission settings saved."
         : "Admission season is open. Families can apply now."
       : existing?.isOpen
-        ? "Admission season is closed. The form is no longer shown."
+        ? "Admission season is closed. The form now says “closed for this year — apply for next year”."
         : "Admission settings saved.";
     return successResponse(200, message, settingsPayload(row, schoolGrades));
   }

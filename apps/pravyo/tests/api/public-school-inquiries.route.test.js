@@ -108,11 +108,15 @@ describe("public school inquiry route", () => {
     );
   });
 
-  it("refuses an admission application once the season is closed", async () => {
-    getAdmissionSeason.mockResolvedValue({ season: { isOpen: false, grades: [] } });
+  it("takes an application while the season is closed, for next year", async () => {
+    getAdmissionSeason.mockResolvedValue({ season: { isOpen: false, grades: [] }, schoolGrades: ["Grade 3", "Grade 4"] });
     const res = await send(application);
-    expect(res.status).toBe(409);
-    expect((await res.json()).code).toBe("ADMISSION_CLOSED");
-    expect(SchoolInquiry.create).not.toHaveBeenCalled();
+    expect(res.status).toBe(201);
+    const json = await res.json();
+    expect(json.data).toEqual({ forNextYear: true });
+    expect(json.message).toMatch(/next year/);
+    expect(SchoolInquiry.create).toHaveBeenCalledWith(
+      expect.objectContaining({ admission: expect.objectContaining({ forNextYear: true, grade: "Grade 3" }) })
+    );
   });
 });

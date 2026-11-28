@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { Archive as FaArchive, Bell as FaBell, BadgeCheck as FaCertificate, ClipboardList as FaClipboardList, SquarePen as FaEdit, Globe as FaGlobe, Layers as FaLayerGroup, Users as FaUsers } from "lucide-react";
 import RoundsTab from "./RoundsTab";
 import EventOverviewTab from "./EventOverviewTab";
@@ -22,6 +23,7 @@ export default function ManagementTabs({
   onEdit,
   onArchive,
 }) {
+  const router = useRouter();
   // Enrolled participants only — registration enrolls students directly, so the
   // roster is just who is in the event (no pending/approved/rejected review).
   const allRequests = [
@@ -36,6 +38,11 @@ export default function ManagementTabs({
     currentUserRole === "SUPER_ADMIN" && isPlatformCompetition;
   const canControlEventOperations =
     !isPlatformCompetition || canManagePlatformOperations;
+  // A school writes every notice, event announcements included, in
+  // Dashboard → Notices → School notices. Teachers running the event, the
+  // super admin (platform events) and students (read only) keep this tab.
+  const schoolManagesNoticesCentrally = currentUserRole === "SCHOOL_ADMIN";
+  const eventNoticesHref = "/school/dashboard?tab=notices&section=school";
   const isCompletedEvent =
     event.resultsPublished ||
     ["COMPLETED", "ARCHIVED"].includes(
@@ -60,7 +67,7 @@ export default function ManagementTabs({
       count: null,
       icon: FaLayerGroup,
     },
-    canControlEventOperations && {
+    canControlEventOperations && !schoolManagesNoticesCentrally && {
       id: "notices",
       label: "Notices",
       count: null,
@@ -187,7 +194,11 @@ export default function ManagementTabs({
               event={event}
               requests={allRequests}
               readOnly={isReadOnly}
-              onAddNotice={() => setActiveTab("notices")}
+              onAddNotice={() =>
+                schoolManagesNoticesCentrally
+                  ? router.push(eventNoticesHref)
+                  : setActiveTab("notices")
+              }
               onEventStarted={onDataChange}
               onCompetitionClosed={async () => {
                 await onDataChange?.();

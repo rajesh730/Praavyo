@@ -138,7 +138,14 @@ const StudentSchema = new mongoose.Schema(
       set: function(name) {
         if (!name) return name;
         const lower = name.toLowerCase().trim();
-        
+
+        // Pre-primary levels keep their names (same spellings as
+        // packages/core/gradeLevels.js canonicalPrePrimary). Checked first so
+        // the word map below cannot misread them.
+        if (/^(nursery|nur\.?|pre[\s-]?primary|pre[\s-]?school)$/.test(lower)) return 'Nursery';
+        if (/^(l\.?\s?k\.?\s?g\.?|lower\s*k\.?g\.?|lower\s*kindergarten|junior\s*k\.?g\.?)$/.test(lower)) return 'LKG';
+        if (/^(u\.?\s?k\.?\s?g\.?|upper\s*k\.?g\.?|upper\s*kindergarten|senior\s*k\.?g\.?)$/.test(lower)) return 'UKG';
+
         // Word map
         const wordMap = {
             'one': 1, 'first': 1, 'two': 2, 'second': 2, 'three': 3, 'third': 3,

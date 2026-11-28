@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import connectDB from "@/lib/db";
 import { getSessionSchoolId, requireApiSession } from "@/lib/authz";
-import { buildGradeLabels, normalizeGradeValue } from "@/lib/schoolGrades";
+import { normalizeGradeValue, resolveSchoolGrades } from "@/lib/schoolGrades";
 import { sectionIsValid } from "@/lib/gradeSections";
 import mongoose from "mongoose";
 import SchoolConfig from "@/models/SchoolConfig";
@@ -28,9 +28,9 @@ export async function POST(request) {
     await connectDB();
     const [user, schoolConfig] = await Promise.all([
       User.findById(schoolId).select("schoolConfig").lean(),
-      SchoolConfig.findOne({ school: schoolId }).select("gradeSections").lean(),
+      SchoolConfig.findOne({ school: schoolId }).select("gradeSections grades gradesCustomized").lean(),
     ]);
-    const grades = buildGradeLabels(user?.schoolConfig);
+    const grades = resolveSchoolGrades(user?.schoolConfig, schoolConfig);
     if (!grades.includes(normalizedGrade)) {
       return NextResponse.json({ message: "This grade is not configured for your school." }, { status: 400 });
     }

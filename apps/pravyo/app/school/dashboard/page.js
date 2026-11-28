@@ -8,7 +8,6 @@ import Sidebar from "@/components/Sidebar";
 import AppTabBar from "@/components/navigation/AppTabBar";
 import { getRoleNavigationLinks, isNavLinkActive } from "@/components/navigation/appNavigation";
 import SchoolNotificationCenter from "@/components/school/SchoolNotificationCenter";
-import SchoolNoticeBoard from "@/components/school/SchoolNoticeBoard";
 import AlertBanner from "@/components/ui/AlertBanner";
 import LoadingState from "@/components/ui/LoadingState";
 import PageHeader from "@/components/ui/PageHeader";
@@ -132,19 +131,14 @@ const SchoolSettingsHistory = dynamic(
     ),
   }
 );
-const TeacherNoticeManager = dynamic(
-  () => import("@/components/school/TeacherNoticeManager"),
+// Every notice in one place: school notices (students / teachers / parents),
+// event notices and received notices. Replaced Student Notices, Teacher
+// Notices and Received Notices (old links redirect below).
+const SchoolNoticeCenter = dynamic(
+  () => import("@/components/school/SchoolNoticeCenter"),
   {
     loading: () => (
-      <LoadingState title="Loading teacher notices" message="Preparing your notice board tools." />
-    ),
-  }
-);
-const StudentNoticeManager = dynamic(
-  () => import("@/components/school/StudentNoticeManager"),
-  {
-    loading: () => (
-      <LoadingState title="Loading student notices" message="Preparing your notice board tools." />
+      <LoadingState title="Loading notices" message="Preparing your notice board tools." />
     ),
   }
 );
@@ -183,6 +177,13 @@ function SchoolDashboardContent() {
       ? "school-events"
       : tabParam;
   const [isNavOpen, setIsNavOpen] = useState(false);
+
+  // The old separate notice screens now live in Notices; bookmarks and
+  // links saved before keep working.
+  useEffect(() => {
+    const audience = { "student-notices": "students", "teacher-notices": "teachers" }[tabParam];
+    if (audience) router.replace(`/school/dashboard?tab=notices&section=school&audience=${audience}`);
+  }, [tabParam, router]);
 
   useEffect(() => {
     if (!isNavOpen) return;
@@ -377,9 +378,7 @@ function SchoolDashboardContent() {
                 trainings={<SchoolTrainings />}
               />
             )}
-            {activeTab === "student-notices" && <StudentNoticeManager />}
-            {activeTab === "teacher-notices" && <TeacherNoticeManager />}
-            {activeTab === "notices" && <SchoolNoticeBoard />}
+            {activeTab === "notices" && <SchoolNoticeCenter />}
             {activeTab === "magazine" && <SchoolMagazineManager />}
           </>
         )}

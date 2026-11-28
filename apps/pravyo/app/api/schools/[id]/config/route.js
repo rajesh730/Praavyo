@@ -2,7 +2,8 @@ import connectDB from "../../../../../lib/db";
 import User from "../../../../../models/User";
 import SchoolConfig from "../../../../../models/SchoolConfig";
 import { successResponse, errorResponse } from "../../../../../lib/apiResponse";
-import { buildGradeLabels } from "../../../../../lib/schoolGrades";
+import { resolveSchoolGrades } from "../../../../../lib/schoolGrades";
+import { gradesFromRecords } from "../../../../../lib/schoolGradeConfig";
 import {
   getSessionSchoolId,
   requireApiSession,
@@ -28,14 +29,14 @@ export async function GET(req, { params }) {
       return errorResponse(404, "School not found");
     }
 
-    const grades = buildGradeLabels(school.schoolConfig);
+    // Student registration's grade list: the school's current grades.
     let schoolConfigDoc = await SchoolConfig.findOne({ school: id });
-
+    let grades;
     if (!schoolConfigDoc) {
+      grades = resolveSchoolGrades(school.schoolConfig, null);
       schoolConfigDoc = await SchoolConfig.create({ school: id, grades });
-    } else if (JSON.stringify(schoolConfigDoc.grades || []) !== JSON.stringify(grades)) {
-      schoolConfigDoc.grades = grades;
-      await schoolConfigDoc.save();
+    } else {
+      grades = await gradesFromRecords(school, schoolConfigDoc);
     }
 
     return successResponse(200, "School config fetched", {

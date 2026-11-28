@@ -109,6 +109,7 @@ a.card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
 .date-tile span { font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
 .stack { display: grid; gap: 14px; }
 .panel { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 24px; }
+.notice-closed { background: var(--warn-soft); border-color: #ecd3a4; }
 .two-col { display: grid; gap: 24px; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); align-items: start; }
 @media (max-width: 860px) { .two-col { grid-template-columns: minmax(0, 1fr); } }
 .facts { display: grid; gap: 12px; }
@@ -151,7 +152,7 @@ details.article-item[open] summary { margin-bottom: 12px; }
 .tabs button { font: inherit; font-weight: 600; border: 0; background: transparent; padding: 9px 16px; border-radius: 9px; cursor: pointer; color: var(--body); }
 .tabs button[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 3px rgba(0, 0, 0, .08); }
 .tabs button[disabled] { opacity: .55; cursor: not-allowed; }
-.form { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
+.form { display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
 .form .full { grid-column: 1 / -1; }
 @media (max-width: 640px) { .form { grid-template-columns: minmax(0, 1fr); } }
 .field { display: grid; gap: 6px; }

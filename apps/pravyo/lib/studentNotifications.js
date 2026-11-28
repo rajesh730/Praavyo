@@ -6,6 +6,7 @@ import UserNotification from "@/models/UserNotification";
 import UserSurfaceSeenState from "@/models/UserSurfaceSeenState";
 import { getEquivalentGradeValues } from "@/lib/schoolGrades";
 import { buildStudentLookupForSession } from "@/lib/studentIdentity";
+import { excludedByChosenFamilies } from "@/lib/noticeTargets";
 
 export function buildStudentLookup(session) {
   return {
@@ -85,7 +86,7 @@ export async function getStudentNotificationPayload(session, limit = 20) {
       "targetAudience.students": true,
       $or: [{ expiryDate: null }, { expiryDate: { $gte: new Date() } }],
     })
-      .select("title content type event grades publishedAt createdAt readBy")
+      .select("title content type event grades targetStudents publishedAt createdAt readBy")
       .sort({ publishedAt: -1, createdAt: -1 })
       .limit(Math.max(limit, 50))
       .lean(),
@@ -113,6 +114,8 @@ export async function getStudentNotificationPayload(session, limit = 20) {
   );
 
   const schoolNotifications = schoolNotices
+    // A notice for chosen families reaches only those students.
+    .filter((notice) => !excludedByChosenFamilies(notice, student._id))
     .filter(
       (notice) => notice.event || matchesStudentGradeFilter(notice, eligibleGradeValues)
     )

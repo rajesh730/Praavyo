@@ -11,7 +11,15 @@ jest.mock("@/models/SchoolConfig", () => ({
 }));
 jest.mock("@/models/AcademicYear", () => ({
   __esModule: true,
-  default: { updateOne: jest.fn().mockResolvedValue({}) },
+  default: {
+    updateOne: jest.fn().mockResolvedValue({ upsertedCount: 1 }),
+    findOne: jest.fn(() => ({ select: () => ({ lean: () => Promise.resolve({ _id: "ay2" }) }) })),
+  },
+}));
+// Each run is kept so the school can undo it.
+jest.mock("@/models/PromotionRun", () => ({
+  __esModule: true,
+  default: { create: jest.fn().mockResolvedValue({}) },
 }));
 // Real makeEnrollmentEntry / closeCurrentEnrollments; only stub the year lookup.
 jest.mock("@/lib/studentEnrollment", () => {
@@ -42,6 +50,7 @@ import { getServerSession } from "next-auth";
 import Student from "@/models/Student";
 import SchoolConfig from "@/models/SchoolConfig";
 import AcademicYear from "@/models/AcademicYear";
+import PromotionRun from "@/models/PromotionRun";
 import { POST } from "@/app/api/school/academic-year/promote/route";
 
 const GRADES = ["Grade 8", "Grade 9", "Grade 10"];
@@ -92,6 +101,19 @@ describe("academic-year promote — guards", () => {
     const res = await POST(postReq({ confirm: false }));
     expect(res.status).toBe(400);
   });
+
+  it("requires the new year to be typed, so a stray click promotes nobody", async () => {
+    asSchool();
+    mockGrades();
+    const student = makeStu("gr9", "Grade 9");
+    Student.find.mockResolvedValue([student]);
+    for (const confirmYear of [undefined, "", "2025", "yes"]) {
+      const res = await POST(postReq({ confirm: true, confirmYear }));
+      expect(res.status).toBe(400);
+    }
+    expect(student.save).not.toHaveBeenCalled();
+    expect(AcademicYear.updateOne).not.toHaveBeenCalled();
+  });
 });
 
 describe("academic-year promote — rollover", () => {
@@ -106,7 +128,7 @@ describe("academic-year promote — rollover", () => {
     Student.find.mockResolvedValue([promoting, graduating, retained]);
 
     const res = await POST(
-      postReq({ confirm: true, retainStudentIds: ["gr8"] })
+      postReq({ confirm: true, confirmYear: "2026", retainStudentIds: ["gr8"] })
     );
     const json = await res.json();
 
@@ -155,6 +177,14 @@ describe("academic-year promote — rollover", () => {
       }),
       expect.objectContaining({ upsert: true })
     );
+
+    // Kept for "Undo last promotion": each student's state from before.
+    const run = PromotionRun.create.mock.calls[0][0];
+    expect(run.fromYear).toMatchObject({ id: "ay1" });
+    expect(run.toYear).toMatchObject({ id: "ay2", yearStart: 2026, created: true });
+    const promotedRow = run.students.find((row) => row.student === "gr9");
+    expect(promotedRow).toMatchObject({ outcome: "promoted", before: expect.objectContaining({ grade: "Grade 9", status: "ACTIVE" }) });
+    expect(run.students.find((row) => row.student === "gr10").before.status).toBe("ACTIVE");
   });
 
   it("records a roll-number conflict as a failure instead of throwing", async () => {
@@ -164,7 +194,7 @@ describe("academic-year promote — rollover", () => {
     clashing.save = jest.fn().mockRejectedValue({ code: 11000 });
     Student.find.mockResolvedValue([clashing]);
 
-    const res = await POST(postReq({ confirm: true }));
+    const res = await POST(postReq({ confirm: true, confirmYear: "2026" }));
     const json = await res.json();
 
     expect(res.status).toBe(200);

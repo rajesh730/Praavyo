@@ -29,6 +29,9 @@ const admissionSchema = new mongoose.Schema(
     address: { type: String, trim: true, maxlength: 200, default: "" },
     // The admission season's academic year when the application was sent.
     academicYear: { type: String, trim: true, maxlength: 40, default: "" },
+    // Sent while the school's admission season was closed: the family was
+    // told it is for next year's admission.
+    forNextYear: { type: Boolean, default: false },
   },
   { _id: false }
 );

@@ -10,7 +10,11 @@ export const SITE_JS = String.raw`/* School website connected to Praavyo.
 
   var API = "api.php";
   var app = document.getElementById("app");
-  var state = { school: null, admission: null };
+  // forms = { general, admission } from the API: the fields and the
+  // admission season (status OPEN / CLOSED, notice) — never hard-coded here.
+  var state = { school: null, forms: null };
+  function admission() { return (state.forms && state.forms.admission) || null; }
+  function admissionOpen() { var a = admission(); return Boolean(a && a.status === "OPEN"); }
 
   // ── helpers ─────────────────────────────────────────────────────────────
   function h(tag, attrs) {
@@ -51,7 +55,7 @@ export const SITE_JS = String.raw`/* School website connected to Praavyo.
           error.status = res.status;
           throw error;
         }
-        return json.data;
+        return options && options.full ? json : json.data;
       });
     });
   }
@@ -131,7 +135,10 @@ export const SITE_JS = String.raw`/* School website connected to Praavyo.
         h("div", { class: "row-card" }, dateTile(item.date),
           h("div", { class: "stack", style: "gap:6px" },
             h("h3", { text: item.title }),
-            h("div", { class: "meta" }, item.type ? h("span", { class: "badge", text: label(item.type) }) : null, item.status === "COMPLETED" ? h("span", { text: "Completed" }) : null),
+            h("div", { class: "meta" },
+              h("span", { class: "badge", text: item.kind === "PROGRAM" ? "Program" : label(item.type || "Event") }),
+              item.venue ? h("span", { text: item.venue }) : null,
+              item.status === "COMPLETED" ? h("span", { text: "Completed" }) : null),
             h("p", { text: item.excerpt || "" }))));
     },
     notices: function (item) {
@@ -214,7 +221,7 @@ export const SITE_JS = String.raw`/* School website connected to Praavyo.
         show.tagline ? h("p", { text: show.tagline }) : null,
         show.motto ? h("p", { class: "motto", text: "“" + show.motto + "”" }) : null,
         h("div", { class: "actions" },
-          state.admission && state.admission.isOpen ? link("admission", { class: "btn btn-light" }, "Apply for admission") : null,
+          admission() ? link("admission", { class: "btn btn-light" }, admissionOpen() ? "Apply for admission" : "Apply for next year") : null,
           link("contact", { class: "btn btn-ghost", style: "color:#fff;border-color:rgba(255,255,255,.5)" }, "Contact us"))));
     if (s.bannerUrl) hero.style.backgroundImage = "url(\"" + s.bannerUrl.replace(/"/g, "%22") + "\")";
 
@@ -269,7 +276,10 @@ export const SITE_JS = String.raw`/* School website connected to Praavyo.
   function eventDetail(item) {
     return h("article", { class: "article" },
       h("h1", { text: item.title }),
-      h("div", { class: "meta" }, h("span", { text: fmtDate(item.date) }), item.type ? h("span", { class: "badge", text: label(item.type) }) : null),
+      h("div", { class: "meta" },
+        h("span", { text: fmtDate(item.date) }),
+        h("span", { class: "badge", text: item.kind === "PROGRAM" ? "Program" : label(item.type || "Event") }),
+        item.venue ? h("span", { text: item.venue }) : null),
       h("div", { class: "prose", style: "margin-top:20px" }, paragraphs(item.description)),
       item.eligibleGrades && item.eligibleGrades.length ? h("p", { class: "meta", text: "For: " + item.eligibleGrades.join(", ") }) : null,
       item.registrationDeadline ? h("p", { class: "meta", text: "Register by " + fmtDate(item.registrationDeadline) }) : null);
@@ -342,53 +352,38 @@ export const SITE_JS = String.raw`/* School website connected to Praavyo.
   }
 
   // ── forms ───────────────────────────────────────────────────────────────
-  function field(name, text, opts) {
-    opts = opts || {};
-    var id = "f-" + name;
+  // Built from the API's form definitions (GET /forms): the same fields on
+  // every school website, and they follow Praavyo when it adds one.
+  function field(spec) {
+    var id = "f-" + spec.name;
     var control;
-    if (opts.options) {
-      control = h("select", { id: id, name: name, required: opts.required },
-        h("option", { value: "", text: opts.placeholder || "Choose…" }),
-        opts.options.map(function (option) { return h("option", { value: option, text: option }); }));
-    } else if (opts.textarea) {
-      control = h("textarea", { id: id, name: name, rows: 5, required: opts.required, maxlength: opts.max || 2000, placeholder: opts.placeholder || "" });
+    if (spec.type === "select") {
+      control = h("select", { id: id, name: spec.name, required: spec.required },
+        h("option", { value: "", text: "Choose…" }),
+        (spec.options || []).map(function (option) { return h("option", { value: option, text: option }); }));
+    } else if (spec.type === "textarea") {
+      control = h("textarea", { id: id, name: spec.name, rows: 5, required: spec.required, minlength: spec.minLength || null, maxlength: spec.maxLength || 2000, placeholder: spec.placeholder || "" });
     } else {
-      control = h("input", { id: id, name: name, type: opts.type || "text", required: opts.required, maxlength: opts.max || 160, placeholder: opts.placeholder || "", autocomplete: opts.autocomplete || null });
+      var type = spec.type === "email" || spec.type === "tel" ? spec.type : "text";
+      control = h("input", { id: id, name: spec.name, type: type, required: spec.required, minlength: spec.minLength || null, maxlength: spec.maxLength || 160, placeholder: spec.placeholder || "", autocomplete: spec.autocomplete || null });
     }
-    return h("div", { class: "field" + (opts.full ? " full" : "") },
-      h("label", { for: id }, text, opts.required ? null : h("small", { text: " (optional)" })), control);
+    var wide = spec.type === "textarea" || spec.name === "address" || spec.name === "previousSchool";
+    return h("div", { class: "field" + (wide ? " full" : "") },
+      h("label", { for: id }, spec.label, spec.required ? null : h("small", { text: " (optional)" })),
+      control,
+      spec.help ? h("small", { class: "meta", text: spec.help }) : null);
   }
 
   function inquiryForm(type) {
-    var admission = state.admission || {};
-    var form = h("form", { class: "form", novalidate: false });
+    var spec = type === "ADMISSION" ? admission() : state.forms && state.forms.general;
+    if (!spec) return h("div", { class: "error-box", text: "This form could not be loaded. Please try again later." });
+    var form = h("form", { class: "form" });
     var status = h("div", { class: "full" });
-    if (type === "ADMISSION") {
-      append(form, [
-        field("studentName", "Student's full name", { required: true, max: 80 }),
-        field("grade", "Applying for grade", { required: true, options: admission.grades || [] }),
-        field("dateOfBirth", "Date of birth", { max: 30, placeholder: "e.g. 2075-04-12 BS" }),
-        field("gender", "Gender", { options: ["Male", "Female", "Other"] }),
-        field("previousSchool", "Previous school", { max: 150, full: true }),
-        field("guardianName", "Parent / guardian name", { required: true, max: 80, autocomplete: "name" }),
-        field("guardianRelation", "Relation to the student", { options: ["Father", "Mother", "Guardian", "Other"] }),
-        field("phone", "Phone number", { required: true, type: "tel", max: 20, placeholder: "98XXXXXXXX", autocomplete: "tel" }),
-        field("email", "Email", { type: "email", max: 160, autocomplete: "email" }),
-        field("address", "Address", { max: 200, full: true, autocomplete: "street-address" }),
-        field("message", "Anything else we should know", { textarea: true, full: true })
-      ]);
-    } else {
-      append(form, [
-        field("name", "Your name", { required: true, max: 80, autocomplete: "name" }),
-        field("email", "Email", { required: true, type: "email", max: 160, autocomplete: "email" }),
-        field("phone", "Phone number", { required: true, type: "tel", max: 20, placeholder: "98XXXXXXXX", autocomplete: "tel" }),
-        field("subject", "Subject", { required: true, max: 150 }),
-        field("message", "Message", { required: true, textarea: true, full: true, placeholder: "How can we help?" })
-      ]);
-    }
+    append(form, spec.fields.map(field));
     // Hidden from people; bots that fill it are ignored.
-    append(form, h("div", { class: "hp", "aria-hidden": "true" }, h("label", { for: "f-website", text: "Website" }), h("input", { id: "f-website", name: "website", tabindex: "-1", autocomplete: "off" })));
-    var submit = h("button", { class: "btn btn-primary", type: "submit" }, type === "ADMISSION" ? "Send application" : "Send inquiry");
+    var trap = (spec.honeypot && spec.honeypot.name) || "website";
+    append(form, h("div", { class: "hp", "aria-hidden": "true" }, h("label", { for: "f-" + trap, text: "Leave empty" }), h("input", { id: "f-" + trap, name: trap, tabindex: "-1", autocomplete: "off" })));
+    var submit = h("button", { class: "btn btn-primary", type: "submit" }, type === "ADMISSION" ? (admissionOpen() ? "Send application" : "Apply for next year") : "Send inquiry");
     append(form, [status, h("div", { class: "full" }, submit)]);
 
     form.addEventListener("submit", function (event) {
@@ -398,10 +393,15 @@ export const SITE_JS = String.raw`/* School website connected to Praavyo.
       Array.prototype.forEach.call(form.elements, function (el) { if (el.name) body[el.name] = el.value; });
       submit.disabled = true;
       status.textContent = "";
-      request("inquiries", { body: body }).then(function () {
+      request("inquiries", { body: body, full: true }).then(function (json) {
+        var nextYear = Boolean(json && json.data && json.data.forNextYear);
         var done = h("div", { class: "form-success" },
-          h("h3", { text: type === "ADMISSION" ? "Application received" : "Thank you" }),
-          h("p", { text: type === "ADMISSION" ? "We have received the admission application and will contact you on the phone number you gave." : "Your message has reached the school. We will reply soon." }));
+          h("h3", { text: type === "ADMISSION" ? (nextYear ? "Application received for next year" : "Application received") : "Thank you" }),
+          h("p", { text: type === "ADMISSION"
+            ? (nextYear
+              ? "Admissions are closed for this year, so your application will be considered for next year's admission. The school will contact you on the phone number you gave."
+              : "We have received the admission application and will contact you on the phone number you gave.")
+            : "Your message has reached the school. We will reply soon." }));
         form.replaceWith(done);
       }).catch(function (error) {
         submit.disabled = false;
@@ -412,41 +412,38 @@ export const SITE_JS = String.raw`/* School website connected to Praavyo.
   }
 
   function admissionInfo() {
-    var a = state.admission || {};
-    return h("div", { class: "panel stack" },
-      h("h3", { text: "Admissions open" + (a.academicYear ? " for " + a.academicYear : "") }),
-      a.grades && a.grades.length ? h("div", { class: "meta" }, a.grades.map(function (g) { return h("span", { class: "chip", text: g }); })) : null,
-      a.deadline ? h("p", { style: "margin:0" }, h("strong", { text: "Last date: " }), fmtDate(a.deadline)) : null,
-      a.note ? h("div", { class: "prose" }, paragraphs(a.note)) : null);
+    var a = admission() || {};
+    var open = admissionOpen();
+    var grades = (a.fields || []).filter(function (f) { return f.name === "grade"; })[0];
+    return h("div", { class: "panel stack" + (open ? "" : " notice-closed") },
+      h("h3", { text: open ? "Admissions open" : "Closed for this year" }),
+      h("p", { style: "margin:0", text: a.notice || "" }),
+      open && grades && grades.options.length ? h("div", { class: "meta" }, grades.options.map(function (g) { return h("span", { class: "chip", text: g }); })) : null,
+      open && state.season && state.season.deadline ? h("p", { style: "margin:0" }, h("strong", { text: "Last date: " }), fmtDate(state.season.deadline)) : null,
+      open && state.season && state.season.note ? h("div", { class: "prose" }, paragraphs(state.season.note)) : null);
   }
 
   function admissionPage() {
-    var a = state.admission || {};
-    if (!a.isOpen) {
-      return [pageHead("Admission", "Admissions are closed at the moment."),
-        h("section", { class: "section", style: "padding-top:16px" }, h("div", { class: "container" },
-          h("div", { class: "panel" }, h("p", { text: "Our admission season is not open right now. You can still send us a question and we will get back to you." }),
-            link("contact", { class: "btn btn-primary" }, "Ask a question"))))];
-    }
-    return [pageHead("Admission", "Fill in the form below and the school will contact you."),
+    var open = admissionOpen();
+    return [pageHead("Admission", open ? "Fill in the form below and the school will contact you." : "Admissions are closed for this year — apply now for next year."),
       h("section", { class: "section", style: "padding-top:16px" }, h("div", { class: "container two-col" },
         h("div", { class: "panel" }, inquiryForm("ADMISSION")), admissionInfo()))];
   }
 
   function contactPage(initialType) {
     var s = state.school || {};
-    var open = Boolean(state.admission && state.admission.isOpen);
-    var type = initialType === "ADMISSION" && open ? "ADMISSION" : "GENERAL";
+    var open = admissionOpen();
+    var type = initialType === "ADMISSION" ? "ADMISSION" : "GENERAL";
     var holder = h("div");
     var tabs = h("div", { class: "tabs", role: "tablist", "aria-label": "Inquiry type" });
-    function tab(value, text, disabled) {
-      return h("button", { type: "button", role: "tab", "aria-selected": String(type === value), disabled: disabled, title: disabled ? "Admissions are closed" : null,
-        onclick: function () { type = value; draw(); } }, text);
+    function tab(value, text) {
+      return h("button", { type: "button", role: "tab", "aria-selected": String(type === value), onclick: function () { type = value; draw(); } }, text);
     }
     function draw() {
       tabs.textContent = "";
-      append(tabs, [tab("GENERAL", "General inquiry"), tab("ADMISSION", open ? "Admission inquiry" : "Admission inquiry (closed)", !open)]);
+      append(tabs, [tab("GENERAL", "General inquiry"), tab("ADMISSION", open ? "Admission inquiry" : "Admission inquiry (next year)")]);
       holder.textContent = "";
+      if (type === "ADMISSION" && !open && admission()) append(holder, h("p", { class: "form-error", style: "background:var(--warn-soft);color:var(--ink)", text: admission().notice }));
       append(holder, inquiryForm(type));
     }
     draw();
@@ -525,12 +522,12 @@ export const SITE_JS = String.raw`/* School website connected to Praavyo.
     var brandLogo = document.getElementById("brand-logo");
     if (s.logoUrl) { brandLogo.src = s.logoUrl; brandLogo.alt = ""; brandLogo.hidden = false; }
     if (s.name) document.getElementById("brand-name").textContent = s.name;
-    var open = Boolean(state.admission && state.admission.isOpen);
+    var open = admissionOpen();
     document.getElementById("nav-admission").classList.toggle("cta", open);
     var ribbon = document.getElementById("ribbon");
     ribbon.textContent = "";
     if (open) {
-      append(ribbon, ["Admissions are open" + (state.admission.academicYear ? " for " + state.admission.academicYear : "") + ".", link("admission", null, "Apply now →")]);
+      append(ribbon, [admission().notice + " ", link("admission", null, "Apply now →")]);
       ribbon.hidden = false;
     } else {
       ribbon.hidden = true;
@@ -551,10 +548,13 @@ export const SITE_JS = String.raw`/* School website connected to Praavyo.
   render(loading());
   Promise.all([
     get("school").catch(function (error) { if (window.console) console.error("[school website] school profile:", error); return null; }),
-    get("admission").catch(function () { return { isOpen: false, grades: [] }; })
+    get("forms").catch(function (error) { if (window.console) console.error("[school website] forms:", error); return null; }),
+    get("admission").catch(function () { return null; })
   ]).then(function (results) {
     state.school = results[0];
-    state.admission = results[1];
+    state.forms = results[1];
+    // Deadline and instructions for the admission page.
+    state.season = results[2];
     if (!state.school) {
       render(h("div", { class: "container section" }, h("div", { class: "error-box", text: "The website could not connect to the school's data. If you manage this site, open api.php?path=school to see the error." })));
       return;

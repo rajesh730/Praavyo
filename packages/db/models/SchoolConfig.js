@@ -42,9 +42,18 @@ const SchoolConfigSchema = new mongoose.Schema({
         type: Boolean,
         default: false,
     },
+    // The school's grades. Until `gradesCustomized`, this is a copy of the
+    // signup range (Grade min–max) that the app keeps in sync; once the
+    // school edits its grades (Settings → Academic Setup → Grades) this list
+    // is the source of truth and is never overwritten. See
+    // packages/core/gradeLevels.js resolveSchoolGrades.
     grades: {
         type: [String],
         default: [],
+    },
+    gradesCustomized: {
+        type: Boolean,
+        default: false,
     },
     gradeSections: {
         type: [{ _id: false, grade: { type: String, required: true }, sections: { type: [String], default: [] } }],
@@ -150,5 +159,15 @@ SchoolConfigSchema.pre("validate", function () {
         );
     }
 });
+
+// A long-running server (the dev server above all) keeps the first compiled
+// model for the whole process. If that model predates a field added here, it
+// silently drops the field on every save — that is how `gradesCustomized`
+// was lost on 2026-11-28 and a school's edited grades reverted to the signup
+// range. Rebuild the model when the cached one is missing any field.
+const cachedSchoolConfig = mongoose.models.SchoolConfig;
+if (cachedSchoolConfig && Object.keys(SchoolConfigSchema.paths).some((path) => !cachedSchoolConfig.schema.path(path))) {
+    mongoose.deleteModel('SchoolConfig');
+}
 
 export default mongoose.models.SchoolConfig || mongoose.model('SchoolConfig', SchoolConfigSchema);

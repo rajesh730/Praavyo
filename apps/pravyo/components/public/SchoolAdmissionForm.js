@@ -30,9 +30,9 @@ const EMPTY = {
  * to that school's Inquiries → Admission, marked "Through Praavyo"; the
  * family's phone and email are never shown publicly.
  */
-export default function SchoolAdmissionForm({ schoolId, schoolName, grades = [] }) {
+export default function SchoolAdmissionForm({ schoolId, schoolName, grades = [], closed = false }) {
   const [form, setForm] = useState(EMPTY);
-  const [state, setState] = useState({ sending: false, error: "", sent: false });
+  const [state, setState] = useState({ sending: false, error: "", sent: false, nextYear: false });
   const set = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.value }));
 
   async function submit(event) {
@@ -47,9 +47,9 @@ export default function SchoolAdmissionForm({ schoolId, schoolName, grades = [] 
       const data = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(data.message || "Your application could not be sent. Please try again.");
       setForm(EMPTY);
-      setState({ sending: false, error: "", sent: true });
+      setState({ sending: false, error: "", sent: true, nextYear: Boolean(data.data?.forNextYear) });
     } catch (error) {
-      setState({ sending: false, error: error.message, sent: false });
+      setState({ sending: false, error: error.message, sent: false, nextYear: false });
     }
   }
 
@@ -58,12 +58,16 @@ export default function SchoolAdmissionForm({ schoolId, schoolName, grades = [] 
       <div className="flex flex-col items-center gap-3 rounded-card border border-success-line bg-success-soft p-6 text-center" role="status">
         <CircleCheck className="h-10 w-10 text-success" aria-hidden />
         <div>
-          <p className="text-lg font-semibold text-ink">Application received</p>
+          <p className="text-lg font-semibold text-ink">
+            {state.nextYear ? "Application received for next year" : "Application received"}
+          </p>
           <p className="mt-1 max-w-md text-sm text-body">
-            {schoolName} has received your admission application and will contact you on the phone number you gave.
+            {state.nextYear
+              ? `Admissions are closed for this year, so ${schoolName} will consider your application for next year's admission and contact you on the phone number you gave.`
+              : `${schoolName} has received your admission application and will contact you on the phone number you gave.`}
           </p>
         </div>
-        <button type="button" onClick={() => setState({ sending: false, error: "", sent: false })} className="btn btn-secondary btn-sm">
+        <button type="button" onClick={() => setState({ sending: false, error: "", sent: false, nextYear: false })} className="btn btn-secondary btn-sm">
           Apply for another student
         </button>
       </div>
@@ -147,7 +151,7 @@ export default function SchoolAdmissionForm({ schoolId, schoolName, grades = [] 
       <div className="flex flex-col gap-2 sm:col-span-2 sm:flex-row sm:items-center sm:justify-between">
         <p className="text-xs text-muted">Only {schoolName} sees your phone number and email.</p>
         <button type="submit" disabled={state.sending} className="btn btn-primary">
-          <Send aria-hidden /> {state.sending ? "Sending…" : "Send application"}
+          <Send aria-hidden /> {state.sending ? "Sending…" : closed ? "Apply for next year" : "Send application"}
         </button>
       </div>
     </form>

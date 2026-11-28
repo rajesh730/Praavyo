@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRememberedState } from "@pravyo/ui/rememberedState";
 import Link from "next/link";
-import { Ban as FaBan, Bell as FaBell, CalendarDays as FaCalendarAlt, CircleCheck as FaCheckCircle, Circle as FaCircle, SquarePen as FaEdit, Plus as FaPlus, Trash2 as FaTrash, Trophy as FaTrophy, Undo2 as FaUndo, Users as FaUsers } from "lucide-react";
+import { Ban as FaBan, CalendarDays as FaCalendarAlt, CircleCheck as FaCheckCircle, Circle as FaCircle, SquarePen as FaEdit, Plus as FaPlus, Trash2 as FaTrash, Trophy as FaTrophy, Undo2 as FaUndo, Users as FaUsers } from "lucide-react";
 import { useSession } from "next-auth/react";
 import EventEditorForm from "./EventEditorForm";
 import EmptyState from "@/components/EmptyState";
@@ -648,13 +648,6 @@ export default function SchoolOwnedEventsManager({
                             Edit Event
                           </button>
                         )}
-                        <Link
-                          href={`/school/events/${event._id}/manage?tab=notices`}
-                          className="btn btn-ghost btn-sm inline-flex items-center gap-2 transition-colors"
-                        >
-                          <FaBell />
-                          Event Notices
-                        </Link>
                         </div>
                     </div>
 

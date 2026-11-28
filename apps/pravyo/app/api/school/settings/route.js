@@ -6,7 +6,7 @@ import SchoolConfig from "@/models/SchoolConfig";
 import SchoolShowcaseProfile from "@/models/SchoolShowcaseProfile";
 import Student from "@/models/Student";
 import TeacherMembership from "@pravyo/db/models/TeacherMembership";
-import { buildGradeLabels } from "@/lib/schoolGrades";
+import { buildGradeLabels, resolveSchoolGrades } from "@/lib/schoolGrades";
 import { checkSchoolIemis } from "@/lib/iemisRegistry";
 import { recordSettingsAudit } from "@/lib/settingsAudit";
 import { parseGoogleMapEmbed } from "@/lib/googleMapEmbed";
@@ -102,14 +102,13 @@ export async function GET() {
         city: config.city || "",
         state: config.state || "",
         pincode: config.pincode || "",
-        grades: (config.grades || []).length > 0 ? config.grades : derivedGrades,
+        grades: resolveSchoolGrades(user.schoolConfig, config),
       },
       stats: {
         totalStudents,
         totalTeachers,
         totalGrades:
-          ((config.grades || []).length > 0 ? config.grades : derivedGrades)
-            .length || 0,
+          resolveSchoolGrades(user.schoolConfig, config).length || 0,
       },
     };
 

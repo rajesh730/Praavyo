@@ -43,6 +43,18 @@ foreach (array('page', 'limit') as $name) {
 }
 $url = rtrim($config['api_url'], '/') . '/' . $path . ($query ? '?' . http_build_query($query) : '');
 
+// Answers are kept for a short while, so a busy website makes few calls to
+// Praavyo, and the last good answer is shown if Praavyo cannot be reached.
+$section = explode('/', $path);
+$ttl = in_array($section[0], array('admission', 'forms', 'school'), true) ? 15 : 60;
+$cacheFile = rtrim(sys_get_temp_dir(), '/\\') . DIRECTORY_SEPARATOR . 'praavyo_' . md5($url . '|' . $config['api_key']) . '.json';
+if ($method === 'GET' && is_file($cacheFile) && (time() - filemtime($cacheFile)) < $ttl) {
+    header('Cache-Control: public, max-age=' . $ttl);
+    header('X-Praavyo-Cache: HIT');
+    readfile($cacheFile);
+    exit;
+}
+
 $headers = array('Authorization: Bearer ' . $config['api_key'], 'Accept: application/json');
 $body = null;
 if ($method === 'POST') {
@@ -77,13 +89,24 @@ if (function_exists('curl_init')) {
     }
 }
 
-if ($response === false || $response === '' || $status === 0) {
+if ($response === false || $response === '' || $status === 0 || ($status >= 500 && $method === 'GET')) {
+    // Praavyo unreachable: show the last good answer when there is one.
+    if ($method === 'GET' && is_file($cacheFile)) {
+        header('Cache-Control: no-store');
+        header('X-Praavyo-Cache: STALE');
+        readfile($cacheFile);
+        exit;
+    }
     praavyo_fail(502, 'Praavyo could not be reached. Please try again.');
 }
 
 http_response_code($status);
-$cacheable = $method === 'GET' && $status === 200 && $path !== 'admission';
-header('Cache-Control: ' . ($cacheable ? 'public, max-age=60' : 'no-store'));
+if ($method === 'GET' && $status === 200) {
+    @file_put_contents($cacheFile, $response, LOCK_EX);
+    header('Cache-Control: public, max-age=' . $ttl);
+} else {
+    header('Cache-Control: no-store');
+}
 echo $response;
 `;
 
@@ -128,6 +151,7 @@ try {
 const API_URL = String(process.env.PRAAVYO_API_URL || "").replace(/\/+$/, "");
 const API_KEY = String(process.env.PRAAVYO_API_KEY || "");
 const PORT = Number(process.env.PORT) || 3000;
+const CACHE = new Map();
 const TYPES = { ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png", ".jpg": "image/jpeg", ".webp": "image/webp", ".ico": "image/x-icon" };
 
 function send(res, status, body, type, extra) {
@@ -169,12 +193,29 @@ async function proxy(req, res, url) {
     headers["Content-Type"] = "application/json";
     headers["X-Visitor-IP"] = String(req.headers["x-forwarded-for"] || req.socket.remoteAddress || "").split(",")[0].trim();
   }
+  // Answers are kept for a short while, so a busy website makes few calls to
+  // Praavyo, and the last good answer is shown if Praavyo cannot be reached.
+  const upstreamUrl = API_URL + "/" + target + (query.toString() ? "?" + query : "");
+  const ttl = ["admission", "forms", "school"].includes(target.split("/")[0]) ? 15000 : 60000;
+  const cached = CACHE.get(upstreamUrl);
+  if (req.method === "GET" && cached && Date.now() - cached.at < ttl) {
+    return send(res, 200, cached.body, null, { "Cache-Control": "public, max-age=" + ttl / 1000, "X-Praavyo-Cache": "HIT" });
+  }
   try {
-    const upstream = await fetch(API_URL + "/" + target + (query.toString() ? "?" + query : ""), { method: req.method, headers: headers, body: body });
+    const upstream = await fetch(upstreamUrl, { method: req.method, headers: headers, body: body });
     const text = await upstream.text();
-    const cacheable = req.method === "GET" && upstream.status === 200 && target !== "admission";
-    send(res, upstream.status, text, null, { "Cache-Control": cacheable ? "public, max-age=60" : "no-store" });
+    if (req.method === "GET" && upstream.status >= 500 && cached) {
+      return send(res, 200, cached.body, null, { "Cache-Control": "no-store", "X-Praavyo-Cache": "STALE" });
+    }
+    if (req.method === "GET" && upstream.status === 200) {
+      CACHE.set(upstreamUrl, { body: text, at: Date.now() });
+      if (CACHE.size > 500) CACHE.delete(CACHE.keys().next().value);
+    }
+    send(res, upstream.status, text, null, { "Cache-Control": req.method === "GET" && upstream.status === 200 ? "public, max-age=" + ttl / 1000 : "no-store" });
   } catch (error) {
+    if (req.method === "GET" && cached) {
+      return send(res, 200, cached.body, null, { "Cache-Control": "no-store", "X-Praavyo-Cache": "STALE" });
+    }
     fail(res, 502, "Praavyo could not be reached. Please try again.");
   }
 }

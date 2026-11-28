@@ -71,14 +71,14 @@ function toNotification(item, options = {}, session) {
         }
       : null,
     // Inside the dashboard, never the public event page: the school's own
-    // event opens its notices; a platform event opens the Platform Events list
-    // (it may not be joined yet).
+    // event opens that event; a platform event opens the Platform Events
+    // list (it may not be joined yet).
     href:
       options.noticeType === "EVENT" && item.event?._id
         ? item.event.eventScope === "SCHOOL"
-          ? `/school/events/${item.event._id}/manage?tab=notices`
+          ? `/school/events/${item.event._id}/manage`
           : "/school/dashboard?tab=platform-events"
-        : "/school/dashboard?tab=notices",
+        : "/school/dashboard?tab=notices&section=received",
     isRead: isReadForUser(
       item,
       session,
@@ -184,7 +184,7 @@ export async function getSchoolNotificationPayload(session, limit = 20) {
       message: notification.message || "",
       publishedAt: notification.publishedAt || notification.createdAt,
       event: null,
-      href: notification.href || "/school/dashboard?tab=notices",
+      href: notification.href || "/school/dashboard?tab=notices&section=received",
       isRead: isReadForUser(
         notification,
         session,

@@ -42,7 +42,28 @@ it("rings every school for a published platform notice", async () => {
   );
   expect(sendAccountPush).toHaveBeenCalledWith(
     { role: "SCHOOL_ADMIN", excludeIds: ["admin1"] },
-    expect.objectContaining({ title: "Holiday", href: "/school/dashboard?tab=notices" })
+    expect.objectContaining({ title: "Holiday", href: "/school/dashboard?tab=notices&section=received" })
+  );
+});
+
+it("rings only the chosen families' students for a chosen-families notice", async () => {
+  Student.find.mockReturnValue(distinct(["s7"]));
+  await pushNoticePublished({
+    _id: "y",
+    status: "PUBLISHED",
+    scope: "SCHOOL",
+    school: "school1",
+    grades: ["Grade 3"],
+    targetStudents: ["s7"],
+    targetAudience: { students: true },
+    title: "Meeting",
+    content: "Friday",
+  });
+  const query = Student.find.mock.calls[0][0];
+  expect(query._id).toEqual({ $in: ["s7"] });
+  expect(sendAccountPush).toHaveBeenCalledWith(
+    expect.objectContaining({ role: "STUDENT", accountIds: ["s7"] }),
+    expect.anything()
   );
 });
 

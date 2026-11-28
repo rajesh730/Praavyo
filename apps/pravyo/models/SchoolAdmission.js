@@ -5,8 +5,10 @@ import mongoose from "mongoose";
  *
  * While `isOpen` is true the school's public profile and its connected
  * website show the admission form, and applications arrive in Inquiries as
- * ADMISSION inquiries. Turning it off closes the season: the form disappears
- * and new applications are refused. Applications already received stay.
+ * ADMISSION inquiries. Turning it off closes the season: the form stays,
+ * marked "closed for this year — apply for next year", and applications are
+ * taken for next year (SchoolInquiry admission.forNextYear). Applications
+ * already received stay.
  *
  * Kept apart from SchoolConfig so config clean-ups never touch it.
  */

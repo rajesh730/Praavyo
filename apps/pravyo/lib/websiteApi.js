@@ -7,6 +7,8 @@ import SchoolMagazineArticle from "@/models/SchoolMagazineArticle";
 import MagazineIssue from "@/models/MagazineIssue";
 import SchoolShowcaseProfile from "@/models/SchoolShowcaseProfile";
 import SchoolGalleryAlbum from "@/models/SchoolGalleryAlbum";
+import PerformanceProgram from "@/models/PerformanceProgram";
+import { admissionForm, admissionNotice, generalInquiryForm } from "@/lib/inquiryForms";
 import { getAdmissionSeason } from "@/lib/schoolAdmission";
 import { serializeAlbumForWebsite } from "@/lib/schoolGallery";
 import { parseWritingBlocks, parseWritingInline, stripWritingMarkup } from "@/lib/writingMarkup";
@@ -31,7 +33,8 @@ export const WEBSITE_RESOURCES = [
   { resource: "magazines", label: "School magazines", detail: true },
   { resource: "gallery", label: "Gallery albums", detail: true },
   { resource: "achievements", label: "Public achievements", detail: false },
-  { resource: "admission", label: "Admission season", detail: false },
+  { resource: "admission", label: "Admission season and form", detail: false },
+  { resource: "forms", label: "Inquiry and admission form fields", detail: false },
 ];
 
 /** The origin that image URLs are made absolute with. */
@@ -69,7 +72,9 @@ export async function websiteSchool(schoolId, { origin }) {
         "schoolName principalName schoolLocation province district municipality ward tole streetAddress postalCode schoolPhone website establishedYear email"
       )
       .lean(),
-    SchoolShowcaseProfile.findOne({ school: schoolId, visibility: "PUBLIC" })
+    // The API key is the school's own, so its profile is served to its own
+    // website whether or not the Praavyo public profile is switched on.
+    SchoolShowcaseProfile.findOne({ school: schoolId })
       .select(
         "tagline summary logoUrl coverImageUrl bannerImageUrl websiteUrl motto contactEmail contactPhone socialLinks highlightMetrics publicHighlights"
       )
@@ -101,6 +106,11 @@ export async function websiteSchool(schoolId, { origin }) {
     bannerUrl: absolute(origin, profile?.bannerImageUrl),
     praavyoProfileUrl: `${origin}/schools/${school._id}`,
     admissionOpen: admission.season.isOpen,
+    admission: {
+      status: admission.season.isOpen ? "OPEN" : "CLOSED",
+      acceptingFor: admission.season.isOpen ? "THIS_YEAR" : "NEXT_YEAR",
+      notice: admissionNotice(admission.season),
+    },
     showcase: profile
       ? {
           tagline: profile.tagline || "",
@@ -184,31 +194,73 @@ const eventOut = (row, full) => ({
   eligibleGrades: row.eligibleGrades || [],
 });
 
-export function websiteEvents(schoolId, { request }) {
-  return page(
-    Event,
-    eventFilter(schoolId),
-    { request, select: EVENT_FIELDS, sort: { date: -1 } },
-    (row) => eventOut(row, false)
-  );
+// School programs (Dashain, Tihar, sports day...): performances, no competition.
+const PROGRAM_FIELDS = "title description venue date certificatesPublishedAt";
+
+const programOut = (row, full) => ({
+  id: String(row._id),
+  title: row.title,
+  description: row.description || "",
+  ...(full ? {} : { excerpt: excerpt(row.description) }),
+  date: row.date,
+  type: "PROGRAM",
+  kind: "PROGRAM",
+  venue: row.venue || "",
+  status: row.date && new Date(row.date) < new Date() ? "COMPLETED" : "ACTIVE",
+  registrationDeadline: null,
+  resultsPublished: Boolean(row.certificatesPublishedAt),
+  eligibleGrades: [],
+});
+
+/** Competitions and programs together, newest first. */
+export async function websiteEvents(schoolId, { request }) {
+  const { page: current, limit, skip } = websitePagination(request, 12);
+  const take = skip + limit;
+  const [events, programs, eventTotal, programTotal] = await Promise.all([
+    Event.find(eventFilter(schoolId)).select(EVENT_FIELDS).sort({ date: -1 }).limit(take).lean(),
+    PerformanceProgram.find({ school: schoolId }).select(PROGRAM_FIELDS).sort({ date: -1 }).limit(take).lean(),
+    Event.countDocuments(eventFilter(schoolId)),
+    PerformanceProgram.countDocuments({ school: schoolId }),
+  ]);
+  const items = [
+    ...events.map((row) => ({ ...eventOut(row, false), kind: "COMPETITION", venue: "" })),
+    ...programs.map((row) => programOut(row, false)),
+  ]
+    .sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0))
+    .slice(skip, skip + limit);
+  return paginatedData(items, eventTotal + programTotal, current, limit);
 }
 
 export async function websiteEvent(schoolId, id) {
   if (!validId(id)) return null;
   const row = await Event.findOne({ ...eventFilter(schoolId), _id: id }).select(EVENT_FIELDS).lean();
-  return row ? eventOut(row, true) : null;
+  if (row) return { ...eventOut(row, true), kind: "COMPETITION", venue: "" };
+  const program = await PerformanceProgram.findOne({ _id: id, school: schoolId }).select(PROGRAM_FIELDS).lean();
+  return program ? programOut(program, true) : null;
 }
 
-// ── writings (the school wall) ───────────────────────────────────────────
+// ── writings ─────────────────────────────────────────────────────────────
 
-const writingFilter = (schoolId) => ({
+/**
+ * Student writings a school website shows: what is on the school wall (the
+ * same rule as the wall itself, curated by teachers and the school in the
+ * Publishing Desk — hide a writing there and it leaves the website too), plus
+ * anything published publicly (approved, in a published magazine, or on the
+ * Praavyo wall).
+ */
+export const writingFilter = (schoolId) => ({
   school: schoolId,
-  status: "APPROVED",
-  isPublished: true,
   isDeleted: { $ne: true },
+  $or: [
+    { status: { $in: ["SUBMITTED", "APPROVED"] }, showOnSchoolWall: { $ne: false } },
+    { status: "APPROVED", isPublished: true },
+    { isMagazinePublished: true },
+    { isGlobalWallPublished: true },
+  ],
 });
 
-const WRITING_FIELDS = "title content category authorStudent authorGrade publishedAt isFeatured coverImage images tags";
+const WRITING_FIELDS =
+  "title content category authorStudent authorGrade publishedAt submittedAt magazinePublishedAt isFeatured coverImage images tags";
 
 /**
  * Writing as structured blocks, so a website renders bold, italic, links,
@@ -255,7 +307,7 @@ function writingOut(row, origin, full) {
     tags: row.tags || [],
     authorName: row.authorStudent?.name || "Student",
     authorGrade: row.authorGrade || "",
-    publishedAt: row.publishedAt,
+    publishedAt: row.publishedAt || row.magazinePublishedAt || row.submittedAt || null,
     featured: Boolean(row.isFeatured),
     coverImageUrl: absolute(origin, row.coverImage?.url || images[0]?.url),
     ...(full
@@ -278,7 +330,7 @@ export function websiteWritings(schoolId, { request, origin }) {
     {
       request,
       select: WRITING_FIELDS,
-      sort: { publishedAt: -1 },
+      sort: { submittedAt: -1, publishedAt: -1, createdAt: -1 },
       populate: ["authorStudent", "name"],
     },
     (row) => writingOut(row, origin, false)
@@ -388,31 +440,28 @@ export function websiteAchievements(schoolId, { request }) {
 // ── admission ────────────────────────────────────────────────────────────
 
 /**
- * The admission season and the form a website should show. When `isOpen` is
- * false, hide the form (POST would answer 409 ADMISSION_CLOSED).
+ * The admission season and its form. The form is always offered: while open
+ * for the grades taking applications; while closed for every grade, with
+ * `notice` telling families it is for next year (applications arrive marked
+ * "Next year").
  */
 export async function websiteAdmission(schoolId) {
-  const { season } = await getAdmissionSeason(schoolId);
+  const { season, schoolGrades } = await getAdmissionSeason(schoolId);
+  const form = admissionForm(season, schoolGrades);
   return {
     ...season,
-    form: {
-      submitTo: "POST /inquiries",
-      type: "ADMISSION",
-      fields: [
-        { name: "studentName", label: "Student's full name", required: true },
-        { name: "grade", label: "Applying for grade", required: true, options: season.grades },
-        { name: "dateOfBirth", label: "Date of birth", required: false },
-        { name: "gender", label: "Gender", required: false, options: ["Male", "Female", "Other"] },
-        { name: "previousSchool", label: "Previous school", required: false },
-        { name: "guardianName", label: "Parent / guardian name", required: true },
-        { name: "guardianRelation", label: "Relation", required: false, options: ["Father", "Mother", "Guardian", "Other"] },
-        { name: "phone", label: "Phone number", required: true },
-        { name: "email", label: "Email", required: false },
-        { name: "address", label: "Address", required: false },
-        { name: "message", label: "Anything else", required: false },
-      ],
-    },
+    grades: form.fields.find((field) => field.name === "grade").options,
+    status: form.status,
+    acceptingFor: form.acceptingFor,
+    notice: form.notice,
+    form,
   };
+}
+
+/** Both forms a website shows: general inquiry and admission. */
+export async function websiteForms(schoolId) {
+  const { season, schoolGrades } = await getAdmissionSeason(schoolId);
+  return { general: generalInquiryForm(), admission: admissionForm(season, schoolGrades) };
 }
 
 /** List endpoints by resource name. */
@@ -425,6 +474,7 @@ export const WEBSITE_LISTS = {
   gallery: websiteGallery,
   achievements: websiteAchievements,
   admission: (schoolId) => websiteAdmission(schoolId),
+  forms: (schoolId) => websiteForms(schoolId),
 };
 
 /** Detail endpoints (`/<resource>/<id>`) by resource name. */

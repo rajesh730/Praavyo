@@ -116,15 +116,15 @@ export function parseInquiry(body) {
 }
 
 /**
- * Parse an admission application against the school's open season
- * (`season` = serializeAdmission output, with `grades` already resolved to the
- * grades taking applications). Returns `{ data }` shaped for SchoolInquiry,
- * or `{ error, code }`.
+ * Parse an admission application against the school's season (`season` =
+ * serializeAdmission output). While open, only the grades taking
+ * applications are accepted; while closed the application is still taken —
+ * for next year — for any grade the school runs (`schoolGrades`), and
+ * marked `forNextYear`. Returns `{ data }` shaped for SchoolInquiry, or
+ * `{ error, code }`.
  */
-export function parseAdmissionApplication(body, season) {
-  if (!season?.isOpen) {
-    return { error: "Admissions are closed at the moment.", code: "ADMISSION_CLOSED" };
-  }
+export function parseAdmissionApplication(body, season, { schoolGrades } = {}) {
+  const open = Boolean(season?.isOpen);
   const result = admissionInput.safeParse({
     studentName: body?.studentName ?? "",
     grade: body?.grade ?? "",
@@ -141,10 +141,13 @@ export function parseAdmissionApplication(body, season) {
   if (!result.success) return { error: firstIssue(result), code: "VALIDATION_ERROR" };
 
   const input = result.data;
-  const grades = season.grades || [];
+  const grades = (open ? season?.grades : schoolGrades || season?.grades) || [];
   const grade = grades.find((option) => option.toLowerCase() === input.grade.toLowerCase());
   if (grades.length && !grade) {
-    return { error: `Admissions are open for ${grades.join(", ")} only.`, code: "GRADE_NOT_OPEN" };
+    return {
+      error: open ? `Admissions are open for ${grades.join(", ")} only.` : `Choose one of: ${grades.join(", ")}.`,
+      code: "GRADE_NOT_OPEN",
+    };
   }
   const gradeLabel = grade || input.grade;
 
@@ -154,7 +157,7 @@ export function parseAdmissionApplication(body, season) {
       name: input.name,
       email: input.email,
       phone: input.phone,
-      subject: `Admission: ${input.studentName} (${gradeLabel})`.slice(0, INQUIRY_LIMITS.subject),
+      subject: `Admission${open ? "" : " (next year)"}: ${input.studentName} (${gradeLabel})`.slice(0, INQUIRY_LIMITS.subject),
       message: input.message,
       admission: {
         studentName: input.studentName,
@@ -164,7 +167,9 @@ export function parseAdmissionApplication(body, season) {
         previousSchool: input.previousSchool,
         guardianRelation: input.guardianRelation,
         address: input.address,
-        academicYear: season.academicYear || "",
+        academicYear: open ? season.academicYear || "" : "",
+        // Sent while the season was closed: for next year's admission.
+        forNextYear: !open,
       },
     },
   };
@@ -196,6 +201,7 @@ export function serializeInquiry(row) {
           guardianRelation: row.admission.guardianRelation || "",
           address: row.admission.address || "",
           academicYear: row.admission.academicYear || "",
+          forNextYear: Boolean(row.admission.forNextYear),
         }
       : null,
     status: row.status,

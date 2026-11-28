@@ -1,7 +1,5 @@
-import User from "@/models/User";
-import SchoolConfig from "@/models/SchoolConfig";
 import SchoolAdmission from "@/models/SchoolAdmission";
-import { buildGradeLabels } from "@/lib/schoolGrades";
+import { loadSchoolGrades } from "@/lib/schoolGradeConfig";
 
 /**
  * A school's admission season (Settings → Admission): open or closed, which
@@ -13,15 +11,9 @@ import { buildGradeLabels } from "@/lib/schoolGrades";
 export const ADMISSION_NOTE_MAX = 1500;
 export const ADMISSION_YEAR_MAX = 40;
 
-/** The grades the school runs: its configured list, else the registration range. */
-export async function loadSchoolGrades(schoolId) {
-  const [config, user] = await Promise.all([
-    SchoolConfig.findOne({ school: schoolId }).select("grades").lean(),
-    User.findById(schoolId).select("schoolConfig").lean(),
-  ]);
-  if (Array.isArray(config?.grades) && config.grades.length) return config.grades.map(String);
-  return buildGradeLabels(user?.schoolConfig || {});
-}
+// The grades the school runs come from lib/schoolGradeConfig (its own list
+// once edited in Settings, else the signup range).
+export { loadSchoolGrades };
 
 /**
  * The season as everyone outside Settings sees it. `grades` is the list

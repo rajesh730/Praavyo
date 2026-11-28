@@ -87,8 +87,25 @@ describe("parseAdmissionApplication", () => {
     });
   });
 
-  it("refuses when the season is closed", () => {
-    expect(parseAdmissionApplication(application, { ...season, isOpen: false })).toMatchObject({ code: "ADMISSION_CLOSED" });
+  it("still takes an application while closed — for next year, any grade the school runs", () => {
+    const closed = { ...season, isOpen: false };
+    const { data, error } = parseAdmissionApplication({ ...application, grade: "Grade 5" }, closed, {
+      schoolGrades: ["Grade 1", "Grade 2", "Grade 5"],
+    });
+    expect(error).toBeUndefined();
+    expect(data.admission).toMatchObject({ grade: "Grade 5", forNextYear: true, academicYear: "" });
+    expect(data.subject).toBe("Admission (next year): Aarav Thapa (Grade 5)");
+  });
+
+  it("while closed, still only grades the school runs", () => {
+    const closed = { ...season, isOpen: false };
+    expect(parseAdmissionApplication({ ...application, grade: "Grade 9" }, closed, { schoolGrades: ["Grade 1"] })).toMatchObject({
+      code: "GRADE_NOT_OPEN",
+    });
+  });
+
+  it("marks applications sent while open as this year's", () => {
+    expect(parseAdmissionApplication(application, season).data.admission.forNextYear).toBe(false);
   });
 
   it("refuses a grade that is not taking applications", () => {

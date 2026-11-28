@@ -3,7 +3,7 @@ import SchoolConfig from "@/models/SchoolConfig";
 import User from "@/models/User";
 import { successResponse, errorResponse } from "@/lib/apiResponse";
 import { requireApiSession } from "@/lib/authz";
-import { buildGradeLabels } from "@/lib/schoolGrades";
+import { gradesFromRecords } from "@/lib/schoolGradeConfig";
 
 export async function GET(req) {
   try {
@@ -23,15 +23,7 @@ export async function GET(req) {
       SchoolConfig.findOne({ school: schoolId }),
     ]);
 
-    const grades = buildGradeLabels(school?.schoolConfig);
-
-    if (
-      schoolConfig &&
-      JSON.stringify(schoolConfig.grades || []) !== JSON.stringify(grades)
-    ) {
-      schoolConfig.grades = grades;
-      await schoolConfig.save();
-    }
+    const grades = await gradesFromRecords(school, schoolConfig);
 
     return successResponse(200, "Grades fetched successfully", {
       grades,

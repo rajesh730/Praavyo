@@ -11,6 +11,7 @@ import { requireApiSession } from "@/lib/authz";
 import { publishNoticeRealtimeEvent } from "@/lib/noticeRealtime";
 import { publishNoticeToParents } from "@/lib/notifications/service";
 import { pushNoticePublished } from "@/lib/devicePush";
+import { resolveTargetStudents } from "@/lib/noticeTargets";
 
 function canManageNotice(session, notice) {
   if (!session?.user?.id || !notice) return false;
@@ -83,6 +84,15 @@ export async function PATCH(request, props) {
     }
     if (body.grades !== undefined && notice.scope === "SCHOOL") {
       notice.grades = Array.isArray(body.grades) ? body.grades : [];
+    }
+    // Chosen families: only changed when sent, so older screens that never
+    // send it leave an existing choice alone. With families chosen, the
+    // grades follow them (the teachers of their grades receive it).
+    if (body.targetStudents !== undefined && notice.scope === "SCHOOL") {
+      const resolved = await resolveTargetStudents(body.targetStudents, { schoolId: notice.school });
+      if (resolved.error) return validationError(resolved.error);
+      notice.targetStudents = resolved.ids;
+      if (resolved.ids.length) notice.grades = resolved.grades;
     }
     if (body.expiryDate !== undefined) {
       notice.expiryDate = body.expiryDate ? new Date(body.expiryDate) : null;

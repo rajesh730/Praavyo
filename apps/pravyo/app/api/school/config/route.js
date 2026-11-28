@@ -4,7 +4,8 @@ import SchoolConfig from "@/models/SchoolConfig";
 import User from "@/models/User";
 import Student from "@/models/Student";
 import TeacherMembership from "@pravyo/db/models/TeacherMembership";
-import { buildGradeLabels } from "@/lib/schoolGrades";
+import { gradesFromRecords } from "@/lib/schoolGradeConfig";
+import { resolveSchoolGrades } from "@/lib/schoolGrades";
 import {
   successResponse,
   errorResponse,
@@ -22,29 +23,17 @@ export async function GET(req) {
     await connectDB();
 
     const user = await User.findById(session.user.id).select("schoolConfig");
-    const grades = buildGradeLabels(user?.schoolConfig);
 
+    // The school's grades: its own list once edited, else the signup range
+    // (kept in sync here). Never overwrites a school's edited list.
     let config = await SchoolConfig.findOne({ school: session.user.id });
     if (!config) {
       config = await SchoolConfig.create({
         school: session.user.id,
-        grades,
+        grades: resolveSchoolGrades(user?.schoolConfig, null),
       });
     } else {
-      let changed = false;
-
-      if (grades.length > 0) {
-        const hasDifferentGrades =
-          JSON.stringify(config.grades || []) !== JSON.stringify(grades);
-        if (hasDifferentGrades) {
-          config.grades = grades;
-          changed = true;
-        }
-      }
-
-      if (changed) {
-        await config.save();
-      }
+      await gradesFromRecords(user, config);
     }
 
     const [totalStudents, totalTeachers] = await Promise.all([

@@ -27,6 +27,8 @@ export default function ConfirmDialog({
   cancelLabel = "Cancel",
   tone = "danger",
   busy = false,
+  // Keeps the confirm button off until the caller is satisfied (e.g. a typed confirmation).
+  confirmDisabled = false,
   onConfirm,
   onClose,
   children,
@@ -72,7 +74,7 @@ export default function ConfirmDialog({
           <Button variant="secondary" disabled={busy} onClick={onClose}>
             {cancelLabel}
           </Button>
-          <Button variant={styles.confirmVariant} disabled={busy} loading={busy} onClick={onConfirm}>
+          <Button variant={styles.confirmVariant} disabled={busy || confirmDisabled} loading={busy} onClick={onConfirm}>
             {busy ? "Working..." : confirmLabel}
           </Button>
         </div>
