@@ -13,6 +13,8 @@ import PublicExplorePanel from "@/components/public/PublicExplorePanel";
 import PublicShareButton from "@/components/public/PublicShareButton";
 import ExpandableStoryText from "@/components/public/ExpandableStoryText";
 import SchoolInquiryForm from "@/components/public/SchoolInquiryForm";
+import SchoolAdmissionForm from "@/components/public/SchoolAdmissionForm";
+import { getAdmissionSeason } from "@/lib/schoolAdmission";
 import { stripWritingMarkup } from "@/components/WritingContent";
 import {
   serializeWritingImage,
@@ -139,6 +141,7 @@ async function getSchoolData(id) {
     studentCount,
     teacherCount,
     grades,
+    admission,
   ] =
     await Promise.all([
       SchoolShowcaseProfile.findOne({ school: id, visibility: "PUBLIC" }).lean(),
@@ -170,11 +173,14 @@ async function getSchoolData(id) {
         status: "ACTIVE",
         isDeleted: { $ne: true },
       }),
+      // Settings → Admission: the form shows only while the season is open.
+      getAdmissionSeason(id).then((result) => result.season),
     ]);
 
   return {
     school,
     profile,
+    admission,
     achievements: achievements.filter(
       (achievement) =>
         achievement.event?.eventScope === "PLATFORM" &&
@@ -612,6 +618,7 @@ export default async function PublicSchoolPage({ params }) {
   const {
     school,
     profile,
+    admission,
     achievements,
     magazines,
     studentCount,
@@ -634,6 +641,14 @@ export default async function PublicSchoolPage({ params }) {
         <div className="min-w-0 space-y-4">
         <div className="flex flex-wrap items-center justify-end gap-3 text-xs font-semibold text-muted">
           <div className="flex gap-2">
+            {admission?.isOpen && (
+              <a
+                href="#admission"
+                className="inline-flex items-center gap-2 rounded-control bg-success px-3 py-2 text-white transition-colors hover:opacity-90"
+              >
+                <FaGraduationCap aria-hidden /> Apply for admission
+              </a>
+            )}
             <a
               href="#inquiry"
               className="inline-flex items-center gap-2 rounded-control bg-brand px-3 py-2 text-white transition-colors hover:bg-brand-strong"
@@ -837,6 +852,48 @@ export default async function PublicSchoolPage({ params }) {
             />
           </aside>
         </div>
+
+        {admission?.isOpen && (
+          <section
+            id="admission"
+            className="scroll-mt-28 relative left-1/2 w-screen -translate-x-1/2 border border-success-line bg-surface p-4 shadow-card sm:left-auto sm:w-auto sm:translate-x-0 sm:rounded-card sm:p-5"
+          >
+            <div className="mb-4 flex items-start gap-3">
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-control bg-success-soft text-success">
+                <FaGraduationCap aria-hidden />
+              </span>
+              <div className="min-w-0">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h2 className="text-lg font-semibold text-ink">
+                    Admissions open{admission.academicYear ? ` for ${admission.academicYear}` : ""}
+                  </h2>
+                  <span className="badge badge-success">Now accepting</span>
+                </div>
+                <p className="mt-0.5 text-sm text-muted">
+                  Apply to {school.schoolName} here. The school will contact you on the phone number you give.
+                </p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
+                  {admission.grades.map((grade) => (
+                    <span key={grade} className="badge badge-neutral">{grade}</span>
+                  ))}
+                </div>
+                {admission.deadline && (
+                  <p className="mt-2 text-sm text-ink">
+                    <span className="font-semibold">Last date:</span> {formatDate(admission.deadline)}
+                  </p>
+                )}
+                {admission.note && (
+                  <p className="mt-2 whitespace-pre-line text-sm text-body">{admission.note}</p>
+                )}
+              </div>
+            </div>
+            <SchoolAdmissionForm
+              schoolId={String(school._id)}
+              schoolName={school.schoolName}
+              grades={admission.grades}
+            />
+          </section>
+        )}
 
         <section
           id="inquiry"

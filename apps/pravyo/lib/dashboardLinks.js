@@ -177,9 +177,12 @@ export function dashboardHrefForPublicPath(path, { role, userId, hash = "" } = {
       return ROLE_MAGAZINE[role];
     case "schools":
       // The school's own public page is managed in Public Profile; questions
-      // sent from it arrive in Inquiries.
+      // sent from it arrive in Inquiries; its admission form is switched on
+      // and off in Settings → Admission.
       if (role === "SCHOOL_ADMIN" && id && userId && decodeURIComponent(id) === String(userId)) {
-        return hash === "#inquiry" ? "/school/dashboard?tab=inquiries" : "/school/dashboard?tab=showcase";
+        if (hash === "#inquiry") return "/school/dashboard?tab=inquiries";
+        if (hash === "#admission") return "/school/dashboard?tab=settings&section=admission";
+        return "/school/dashboard?tab=showcase";
       }
       return home;
     default:

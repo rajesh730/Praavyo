@@ -1,33 +1,25 @@
 import { NextResponse } from "next/server";
-import User from "@/models/User";
-import Notice from "@/models/Notice";
-import Event from "@/models/Event";
-import Achievement from "@/models/Achievement";
-import SchoolMagazineArticle from "@/models/SchoolMagazineArticle";
-import MagazineIssue from "@/models/MagazineIssue";
-import SchoolShowcaseProfile from "@/models/SchoolShowcaseProfile";
-import {
-  paginatedData,
-  requireWebsiteApiKey,
-  websitePagination,
-} from "@/lib/websiteApiAuth";
+import { requireWebsiteApiKey } from "@/lib/websiteApiAuth";
+import { WEBSITE_LISTS, websiteOrigin } from "@/lib/websiteApi";
+import { receiveInquiry } from "@/lib/inquiryIntake";
 
 export const dynamic = "force-dynamic";
 
-function response(data) {
-  return NextResponse.json(
-    { success: true, data },
-    { headers: { "Cache-Control": "private, max-age=60" } }
-  );
-}
+/**
+ * The Website API: a school's own website reads its public Praavyo content
+ * and sends inquiries back. Authenticated with the school's API key
+ * (`Authorization: Bearer prv_school_live_…`), which also decides the school.
+ * The key belongs on the website's server, never in browser code.
+ *
+ * GET  /api/v1/website/<resource>   school | notices | events | writings |
+ *                                   magazines | gallery | achievements | admission
+ * POST /api/v1/website/inquiries    a general inquiry or an admission application
+ *
+ * Content lives in lib/websiteApi.js; details are at /<resource>/<id>.
+ */
 
-async function list(query, request, map, defaultLimit = 12) {
-  const { page, limit, skip } = websitePagination(request, defaultLimit);
-  const [rows, total] = await Promise.all([
-    query.find.sort(query.sort).skip(skip).limit(limit).lean(),
-    query.model.countDocuments(query.filter),
-  ]);
-  return response(paginatedData(rows.map(map), total, page, limit));
+function fail(status, code, message) {
+  return NextResponse.json({ success: false, code, message }, { status });
 }
 
 export async function GET(request, { params }) {
@@ -35,209 +27,56 @@ export async function GET(request, { params }) {
     const access = await requireWebsiteApiKey(request);
     if (access.error) return access.error;
     const { resource } = await params;
-    const schoolId = access.schoolId;
+    const load = WEBSITE_LISTS[resource];
+    if (!load) return fail(404, "RESOURCE_NOT_FOUND", "Unknown website resource");
 
-    if (resource === "school") {
-      const [school, profile] = await Promise.all([
-        User.findOne({
-          _id: schoolId,
-          role: "SCHOOL_ADMIN",
-          status: { $in: ["APPROVED", "SUBSCRIBED"] },
-        })
-          .select(
-            "schoolName schoolLocation province district municipality ward tole streetAddress postalCode schoolPhone website establishedYear"
-          )
-          .lean(),
-        SchoolShowcaseProfile.findOne({ school: schoolId, visibility: "PUBLIC" })
-          .select(
-            "tagline summary logoUrl coverImageUrl websiteUrl motto contactEmail contactPhone socialLinks highlightMetrics publicHighlights"
-          )
-          .lean(),
-      ]);
-      if (!school) {
-        return NextResponse.json(
-          { success: false, code: "SCHOOL_NOT_FOUND", message: "School not found" },
-          { status: 404 }
-        );
-      }
-      return response({
-        name: school.schoolName || "School",
-        location: school.schoolLocation || "",
-        address: {
-          province: school.province || "",
-          district: school.district || "",
-          municipality: school.municipality || "",
-          ward: school.ward || "",
-          tole: school.tole || "",
-          street: school.streetAddress || "",
-          postalCode: school.postalCode || "",
-        },
-        phone: profile?.contactPhone || school.schoolPhone || "",
-        website: profile?.websiteUrl || school.website || "",
-        establishedYear: school.establishedYear || null,
-        showcase: profile
-          ? {
-              tagline: profile.tagline || "",
-              summary: profile.summary || "",
-              motto: profile.motto || "",
-              logoUrl: profile.logoUrl || profile.coverImageUrl || "",
-              // Kept for clients on the original public API contract.
-              coverImageUrl: profile.logoUrl || profile.coverImageUrl || "",
-              contactEmail: profile.contactEmail || "",
-              socialLinks: profile.socialLinks || {},
-              highlights: profile.publicHighlights || [],
-              metrics: profile.highlightMetrics || {},
-            }
-          : null,
-      });
-    }
-
-    if (resource === "notices") {
-      const now = new Date();
-      const filter = {
-        school: schoolId,
-        status: "PUBLISHED",
-        visibility: "PUBLIC",
-        isActive: true,
-        isDeleted: { $ne: true },
-        $or: [{ expiryDate: null }, { expiryDate: { $gt: now } }],
-      };
-      return list(
-        {
-          model: Notice,
-          filter,
-          find: Notice.find(filter).select("title content type priority publishedAt expiryDate"),
-          sort: { publishedAt: -1 },
-        },
-        request,
-        (row) => ({
-          id: String(row._id),
-          title: row.title,
-          content: row.content,
-          type: row.type,
-          priority: row.priority,
-          publishedAt: row.publishedAt,
-          expiryDate: row.expiryDate,
-        })
-      );
-    }
-
-    if (resource === "events") {
-      const filter = {
-        school: schoolId,
-        eventScope: "SCHOOL",
-        status: "APPROVED",
-        visibility: "PUBLIC",
-        lifecycleStatus: { $ne: "ARCHIVED" },
-      };
-      return list(
-        {
-          model: Event,
-          filter,
-          find: Event.find(filter).select(
-            "title description date eventType lifecycleStatus registrationDeadline resultsPublished"
-          ),
-          sort: { date: -1 },
-        },
-        request,
-        (row) => ({
-          id: String(row._id),
-          title: row.title,
-          description: row.description,
-          date: row.date,
-          type: row.eventType,
-          status: row.lifecycleStatus,
-          registrationDeadline: row.registrationDeadline,
-          resultsPublished: Boolean(row.resultsPublished),
-        })
-      );
-    }
-
-    if (resource === "writings") {
-      const filter = {
-        school: schoolId,
-        status: "APPROVED",
-        isPublished: true,
-        isDeleted: { $ne: true },
-      };
-      const find = SchoolMagazineArticle.find(filter)
-        .select("title content category authorStudent authorGrade publishedAt isFeatured")
-        .populate("authorStudent", "name");
-      return list(
-        { model: SchoolMagazineArticle, filter, find, sort: { publishedAt: -1 } },
-        request,
-        (row) => ({
-          id: String(row._id),
-          title: row.title,
-          content: row.content,
-          category: row.category,
-          authorName: row.authorStudent?.name || "Student",
-          authorGrade: row.authorGrade || "",
-          publishedAt: row.publishedAt,
-          featured: Boolean(row.isFeatured),
-        })
-      );
-    }
-
-    if (resource === "achievements") {
-      const filter = { school: schoolId, isPublic: true };
-      const find = Achievement.find(filter)
-        .select(
-          "student recipientType teamName title description level placement certificateRecipientName awardedAt"
-        )
-        .populate("student", "name");
-      return list(
-        { model: Achievement, filter, find, sort: { awardedAt: -1 } },
-        request,
-        (row) => ({
-          id: String(row._id),
-          title: row.title,
-          description: row.description || "",
-          recipientType: row.recipientType,
-          recipientName:
-            row.certificateRecipientName || row.teamName || row.student?.name || "Student",
-          level: row.level,
-          placement: row.placement,
-          awardedAt: row.awardedAt,
-        })
-      );
-    }
-
-    if (resource === "magazines") {
-      const filter = { school: schoolId, status: "PUBLISHED" };
-      return list(
-        {
-          model: MagazineIssue,
-          filter,
-          find: MagazineIssue.find(filter).select(
-            "title weekStart weekEnd weekNumber month year publishedAt articles"
-          ),
-          sort: { publishedAt: -1, weekStart: -1 },
-        },
-        request,
-        (row) => ({
-          id: String(row._id),
-          title: row.title,
-          weekStart: row.weekStart,
-          weekEnd: row.weekEnd,
-          weekNumber: row.weekNumber,
-          month: row.month,
-          year: row.year,
-          publishedAt: row.publishedAt,
-          articleCount: row.articles?.length || 0,
-        })
-      );
-    }
-
+    const data = await load(access.schoolId, { request, origin: websiteOrigin(request) });
+    if (!data) return fail(404, "SCHOOL_NOT_FOUND", "School not found");
     return NextResponse.json(
-      { success: false, code: "RESOURCE_NOT_FOUND", message: "Unknown website resource" },
-      { status: 404 }
+      { success: true, data },
+      // Admission must switch off promptly; the rest may be cached briefly.
+      { headers: { "Cache-Control": resource === "admission" ? "no-store" : "private, max-age=60" } }
     );
   } catch (error) {
     console.error("GET website API error:", error);
-    return NextResponse.json(
-      { success: false, code: "INTERNAL_SERVER_ERROR", message: "Website API request failed" },
-      { status: 500 }
-    );
+    return fail(500, "INTERNAL_SERVER_ERROR", "Website API request failed");
+  }
+}
+
+/**
+ * POST /api/v1/website/inquiries — from the website's contact or admission
+ * form. Body: `{ type: "GENERAL" | "ADMISSION", ... }` (fields in the guide /
+ * GET /admission). Stored with source WEBSITE, so the school can filter
+ * "Through website" in Inquiries. Send the visitor's IP in `X-Visitor-IP` so
+ * the 5-an-hour limit applies per visitor; without it, the whole website
+ * shares 60 an hour.
+ */
+export async function POST(request, { params }) {
+  try {
+    const { resource } = await params;
+    if (resource !== "inquiries") {
+      return fail(405, "METHOD_NOT_ALLOWED", "Only /inquiries accepts POST");
+    }
+    const access = await requireWebsiteApiKey(request);
+    if (access.error) return access.error;
+
+    const body = await request.json().catch(() => null);
+    const visitorIp = String(request.headers.get("x-visitor-ip") || "").split(",")[0].trim().slice(0, 64);
+    const keyId = String(access.apiKey._id);
+    const result = await receiveInquiry({
+      schoolId: access.schoolId,
+      body,
+      source: "WEBSITE",
+      visitor: visitorIp ? `website:${keyId}:${visitorIp}` : `website:${keyId}`,
+      visitorMax: visitorIp ? 5 : 60,
+    });
+
+    if (result.status === 201) {
+      return NextResponse.json({ success: true, message: result.message, data: {} }, { status: 201 });
+    }
+    return fail(result.status, result.code || "ERROR", result.message);
+  } catch (error) {
+    console.error("POST website API error:", error);
+    return fail(500, "INTERNAL_SERVER_ERROR", "The inquiry could not be sent");
   }
 }

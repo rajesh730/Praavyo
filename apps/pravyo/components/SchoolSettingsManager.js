@@ -2,11 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useSession } from "next-auth/react";
+import { useSearchParams } from "next/navigation";
 import { signOutAndForgetDevice } from "@pravyo/ui/signOutDevice";
 import { CircleAlert as FiAlertCircle, BookOpen as FiBookOpen, CircleCheck as FiCheckCircle, Lock as FiLock, Mail as FiMail, RotateCcw as FiRotateCcw, Save as FiSave, Settings as FiSettings } from "lucide-react";
 import AcademicYearManager from "@/components/school/AcademicYearManager";
 import CalendarToggle from "@/components/common/CalendarToggle";
 import WebsiteApiKeysPanel from "@/components/settings/WebsiteApiKeysPanel";
+import AdmissionSettingsPanel from "@/components/settings/AdmissionSettingsPanel";
 import ReportCardImagesPanel from "@/components/settings/ReportCardImagesPanel";
 import IemisSettingsPanel from "@/components/settings/IemisSettingsPanel";
 import SchoolMapField from "@/components/settings/SchoolMapField";
@@ -48,6 +50,10 @@ function StatCard({ label, value, description }) {
 const SETTINGS_TABS = [
   { id: "profile", label: "School Profile" },
   { id: "academic", label: "Academic Setup" },
+  // Opens/closes the admission season (public profile + connected website).
+  { id: "admission", label: "Admission" },
+  // Website API keys, developer guide and the generated school website.
+  { id: "website", label: "Website" },
   { id: "security", label: "Security" },
   { id: "permissions", label: "Permissions" },
 ];
@@ -131,7 +137,12 @@ export default function SchoolSettingsManager() {
   const [passwordMessage, setPasswordMessage] = useState({ type: "", text: "" });
   const [config, setConfig] = useState(defaultConfig);
   const [savedConfig, setSavedConfig] = useState(defaultConfig);
-  const [activeSettingsTab, setActiveSettingsTab] = useState("profile");
+  // `?tab=settings&section=admission` opens a section directly.
+  const searchParams = useSearchParams();
+  const requestedSection = searchParams?.get("section");
+  const [activeSettingsTab, setActiveSettingsTab] = useState(
+    SETTINGS_TABS.some((tab) => tab.id === requestedSection) ? requestedSection : "profile"
+  );
   const [reportCard, setReportCard] = useState({ logoUrl: "", imageUrl: "" });
   const [isDirty, setIsDirty] = useState(false);
   const [passwordForm, setPasswordForm] = useState({
@@ -561,6 +572,18 @@ export default function SchoolSettingsManager() {
         </div>
       )}
 
+      {activeSettingsTab === "admission" && (
+        <div id="settings-panel-admission" role="tabpanel" aria-labelledby="settings-tab-admission">
+          <AdmissionSettingsPanel />
+        </div>
+      )}
+
+      {activeSettingsTab === "website" && (
+        <div id="settings-panel-website" role="tabpanel" aria-labelledby="settings-tab-website">
+          <WebsiteApiKeysPanel />
+        </div>
+      )}
+
       {message.text && (
         <div
           className={`flex items-center gap-3 rounded-card border p-4 text-sm ${
@@ -897,12 +920,13 @@ export default function SchoolSettingsManager() {
               </div>
             </div>
             </div>
-            <WebsiteApiKeysPanel />
           </>
           )}
         </section>
       </div>
 
+      {/* Admission and Website save on their own; this saves the profile form. */}
+      {!["admission", "website"].includes(activeSettingsTab) && (
       <div className="flex justify-end">
         {isDirty && (
           <button
@@ -923,6 +947,7 @@ export default function SchoolSettingsManager() {
           {saving ? "Saving..." : "Save school settings"}
         </button>
       </div>
+      )}
     </div>
   );
 }

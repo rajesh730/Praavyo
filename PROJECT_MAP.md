@@ -129,8 +129,29 @@ Auth: `packages/auth/authOptions.js` — one credentials setup, JWT session,
   (Upstash Redis streams, in-memory fallback), `app/api/realtime/stream`.
 - **Media** — browser compresses to WebP → `POST /api/media/upload` → R2;
   served via `/api/media/r2/[id]`; `MediaAsset` keeps metadata.
-- **Website API** — schools get API keys to show public data on their own
-  sites (`app/api/v1/website/[resource]`).
+- **Website API** (extended 2026-11-27) — every approved school can connect
+  its own website: API keys in Settings → Website (`Bearer prv_school_live_…`,
+  the key decides the school). `GET /api/v1/website/<resource>` (school,
+  notices, events, writings, magazines, gallery, achievements, admission) and
+  `/<resource>/<id>`; `POST /api/v1/website/inquiries` (GENERAL or ADMISSION).
+  Content in `lib/websiteApi.js`; writings come back as safe `blocks`.
+  Settings → Website → "Download website" zips a ready site
+  (`lib/websiteKit/*`, `lib/zipStore.js`; route `api/school/settings/website-kit`):
+  School life menu (Events, Notices, Student writings, School magazine,
+  Gallery), Admission, Contact with General/Admission inquiry; the key lives
+  only in its `api.php`+`config.php` (PHP/cPanel) or `server.js`+`.env` (Node).
+- **Inquiries & admission** — `SchoolInquiry` has `type` (GENERAL/ADMISSION)
+  and `source` (PRAAVYO = public profile, WEBSITE = Website API; old rows count
+  as PRAAVYO/GENERAL). Both doors go through `lib/inquiryIntake.js` (honeypot,
+  rate limits, push to the school via `pushSchoolInquiry`). Settings →
+  Admission (`SchoolAdmission`, `lib/schoolAdmission.js`, `api/school/admission`)
+  opens/closes the season; while open the profile (`#admission`) and website
+  show the form, closed = 409 ADMISSION_CLOSED. Inbox filters: Through website /
+  Through Praavyo × General / Admission, CSV download.
+- **Gallery** — `SchoolGalleryAlbum` (DRAFT/PUBLIC, ≤60 photos, MediaAsset
+  purpose `GALLERY_IMAGE`, public bucket), dashboard `?tab=gallery`,
+  `api/school/gallery*`. Public albums feed the website's Gallery; removing
+  photos/albums deletes their assets through `lib/mediaCleanup.js`.
 
 ## 6. CAS (Continuous Assessment System)
 

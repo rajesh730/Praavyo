@@ -1,4 +1,4 @@
-import { Bell as FaBell, BookOpen as FaBookOpen, Megaphone as FaBullhorn, Target as FaBullseye, CalendarDays as FaCalendarAlt, Presentation as FaChalkboardTeacher, PieChart as FaChartPie, CircleCheck as FaCheckCircle, ClipboardCheck as FaClipboardCheck, BadgeCheck as FaCertificate, Settings as FaCog, MessageSquareText as FaCommentDots, Feather as FaFeatherAlt, ArrowLeftRight as FaExchangeAlt, Globe as FaGlobe, GraduationCap as FaGraduationCap, HeartPulse as FaHeartbeat, History as FaHistory, House as FaHome, School as FaSchool, Trophy as FaTrophy, Users as FaUsers, ShieldUser as FaUserShield, LayoutGrid as FaThLarge, Inbox as FaInbox, UserRound } from "lucide-react";
+import { Bell as FaBell, BookOpen as FaBookOpen, Megaphone as FaBullhorn, Target as FaBullseye, CalendarDays as FaCalendarAlt, Presentation as FaChalkboardTeacher, PieChart as FaChartPie, CircleCheck as FaCheckCircle, ClipboardCheck as FaClipboardCheck, BadgeCheck as FaCertificate, Settings as FaCog, MessageSquareText as FaCommentDots, Feather as FaFeatherAlt, ArrowLeftRight as FaExchangeAlt, Globe as FaGlobe, GraduationCap as FaGraduationCap, HeartPulse as FaHeartbeat, History as FaHistory, House as FaHome, School as FaSchool, Trophy as FaTrophy, Users as FaUsers, ShieldUser as FaUserShield, LayoutGrid as FaThLarge, Inbox as FaInbox, Images, UserRound } from "lucide-react";
 
 export const PUBLIC_NAV_LINKS = [
   { label: "Home", href: "/", key: "home", icon: FaHome },
@@ -47,6 +47,8 @@ export const SCHOOL_NAV_LINKS = [
   { name: "Teacher Notices", href: "/school/dashboard?tab=teacher-notices", icon: FaBell },
   { name: "Received Notices", href: "/school/dashboard?tab=notices", icon: FaBell },
   { name: "Publishing Desk", href: "/school/dashboard?tab=magazine", icon: FaBookOpen },
+  // Photo albums; public ones appear in the school website's Gallery.
+  { name: "Gallery", href: "/school/dashboard?tab=gallery", icon: Images },
   { name: "Certificates", href: "/school/certificates", icon: FaCertificate },
   { name: "Public Profile", href: "/school/dashboard?tab=showcase", icon: FaSchool },
   { name: "Feedback", href: "/school/dashboard?tab=feedback", icon: FaCommentDots },

@@ -9,6 +9,7 @@ const MAX_BYTES_BY_PURPOSE = {
   SCHOOL_COVER: 1_500_000,
   REPORT_CARD_IMAGE: 800_000,
   WRITING_IMAGE: 1_200_000,
+  GALLERY_IMAGE: 1_200_000,
 };
 
 export default function ImageUploadField({

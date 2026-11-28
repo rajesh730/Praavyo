@@ -181,3 +181,32 @@ export async function pushEventNoticePublished(notice, event, { excludeIds = [] 
     );
   });
 }
+
+/**
+ * A new inquiry or admission application has arrived (from the school's
+ * Praavyo profile or its own website): ring the school's devices. Inquiries
+ * are listed in Dashboard → Inquiries, so that is where the alert opens.
+ */
+export async function pushSchoolInquiry(inquiry) {
+  if (!inquiry?.school) return { sent: 0 };
+  return safely("inquiry", async () => {
+    const admission = inquiry.type === "ADMISSION";
+    const where = inquiry.source === "WEBSITE" ? "your website" : "Praavyo";
+    const title = admission
+      ? `New admission application (${where})`
+      : `New inquiry (${where})`;
+    const body = admission
+      ? `${inquiry.admission?.studentName || "A student"} · ${inquiry.admission?.grade || ""} · ${inquiry.name}`.replace(/ · $/, "")
+      : `${inquiry.name}: ${inquiry.subject}`;
+    return sendAccountPush(
+      { role: "SCHOOL_ADMIN", accountIds: [idOf(inquiry.school)] },
+      {
+        notificationId: `inquiry-${idOf(inquiry._id)}`,
+        title,
+        body: preview(body),
+        href: `/school/dashboard?tab=inquiries${admission ? "&type=ADMISSION" : ""}`,
+        schoolId: idOf(inquiry.school),
+      }
+    );
+  });
+}

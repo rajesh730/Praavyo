@@ -84,6 +84,10 @@ describe("dashboardLinks — signed-in people never see the public site", () => 
   it("sends the school's own public page to Public Profile, and its inquiry form to Inquiries", () => {
     expect(resolve(`/schools/${SCHOOL_ID}`)).toEqual({ action: "navigate", href: "/school/dashboard?tab=showcase" });
     expect(resolve(`/schools/${SCHOOL_ID}#inquiry`)).toEqual({ action: "navigate", href: "/school/dashboard?tab=inquiries" });
+    expect(resolve(`/schools/${SCHOOL_ID}#admission`)).toEqual({
+      action: "navigate",
+      href: "/school/dashboard?tab=settings&section=admission",
+    });
     expect(resolve("/schools/another-school")).toEqual({ action: "navigate", href: "/school/dashboard" });
     expect(resolve("/schools", "STUDENT")).toEqual({ action: "navigate", href: "/student/dashboard" });
   });

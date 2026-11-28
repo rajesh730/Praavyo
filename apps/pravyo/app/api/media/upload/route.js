@@ -13,6 +13,8 @@ const PURPOSES = {
   // Printed on the right of every report card; guardians load it too.
   REPORT_CARD_IMAGE: { role: "SCHOOL_ADMIN", visibility: "PUBLIC", maxBytes: 800_000 },
   WRITING_IMAGE: { role: "STUDENT", visibility: "PRIVATE", maxBytes: 1_200_000 },
+  // School Gallery photos, served to the school's own website.
+  GALLERY_IMAGE: { role: "SCHOOL_ADMIN", visibility: "PUBLIC", maxBytes: 1_200_000 },
 };
 
 function uploadFailureResponse(error) {

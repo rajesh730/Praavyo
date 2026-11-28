@@ -66,6 +66,15 @@ const SchoolTrainings = dynamic(
     ),
   }
 );
+// Photo albums; public ones feed the school website's Gallery.
+const SchoolGalleryManager = dynamic(
+  () => import("@/components/school/SchoolGalleryManager"),
+  {
+    loading: () => (
+      <LoadingState title="Loading gallery" message="Collecting your school's albums." />
+    ),
+  }
+);
 // Questions visitors send from the school's public page.
 const SchoolInquiryInbox = dynamic(
   () => import("@/components/school/SchoolInquiryInbox"),
@@ -343,6 +352,7 @@ function SchoolDashboardContent() {
             {activeTab === "showcase" && <ShowcaseProfileManager />}
             {activeTab === "feedback" && <SchoolFeedbackInbox />}
             {activeTab === "inquiries" && <SchoolInquiryInbox />}
+            {activeTab === "gallery" && <SchoolGalleryManager />}
             {activeTab === "praavyo-feedback" && <FeedbackForm audience="school" />}
             {activeTab === "register-student" && (
               <EnhancedStudentRegistration

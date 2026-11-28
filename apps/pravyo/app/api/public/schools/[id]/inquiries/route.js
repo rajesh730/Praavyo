@@ -1,21 +1,16 @@
 import mongoose from "mongoose";
 import connectDB from "@/lib/db";
-import User from "@/models/User";
-import SchoolInquiry from "@/models/SchoolInquiry";
-import { applyRateLimit } from "@/lib/rateLimit";
-import { parseInquiry } from "@/lib/schoolInquiries";
-import { errorResponse, internalServerError, successResponse, validationError } from "@/lib/apiResponse";
+import { receiveInquiry } from "@/lib/inquiryIntake";
+import { errorResponse, internalServerError, successResponse } from "@/lib/apiResponse";
 
 export const dynamic = "force-dynamic";
 
 /**
- * POST — a visitor (not signed in) sends an inquiry to a school from its
- * public profile. Public by design, so it is guarded instead by:
- *   - a honeypot field (`website`) that people never see and bots fill in;
- *   - a per-visitor limit (5 an hour) and a per-school limit (60 an hour);
- *   - only approved schools receive inquiries.
- * Nothing about the inquiry is ever returned, so the route cannot be used to
- * read anyone's details back.
+ * POST — a visitor (not signed in) sends a general inquiry or, while the
+ * school's admission season is open, an admission application
+ * (`type: "ADMISSION"`) from the school's public profile. Stored with source
+ * PRAAVYO. Guards and validation live in lib/inquiryIntake.js, shared with the
+ * school-website door (POST /api/v1/website/inquiries).
  */
 export async function POST(request, { params }) {
   try {
@@ -25,42 +20,12 @@ export async function POST(request, { params }) {
     }
 
     const body = await request.json().catch(() => null);
-    if (!body || typeof body !== "object") {
-      return validationError("Fill in the form and try again.");
-    }
-
-    // A bot filled the hidden field: answer as if it worked, store nothing.
-    if (String(body.website || "").trim()) {
-      return successResponse(201, "Inquiry sent", {});
-    }
-
-    const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-    const [perVisitor, perSchool] = await Promise.all([
-      applyRateLimit({ key: `inquiry:ip:${ip}`, windowMs: 60 * 60 * 1000, max: 5 }),
-      applyRateLimit({ key: `inquiry:school:${id}`, windowMs: 60 * 60 * 1000, max: 60 }),
-    ]);
-    if (!perVisitor.ok || !perSchool.ok) {
-      const retryAfter = Math.max(perVisitor.retryAfter || 0, perSchool.retryAfter || 0);
-      return errorResponse(
-        429,
-        `Too many inquiries were sent just now. Please try again in ${Math.ceil(retryAfter / 60) || 1} minutes.`
-      );
-    }
-
-    const { data, error } = parseInquiry(body);
-    if (error) return validationError(error);
-
     await connectDB();
-    const school = await User.exists({
-      _id: id,
-      role: "SCHOOL_ADMIN",
-      status: { $in: ["APPROVED", "SUBSCRIBED"] },
-    });
-    if (!school) return errorResponse(404, "School not found.");
+    const visitor = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+    const result = await receiveInquiry({ schoolId: id, body, source: "PRAAVYO", visitor });
 
-    await SchoolInquiry.create({ ...data, school: id });
-
-    return successResponse(201, "Inquiry sent", {});
+    if (result.status === 201) return successResponse(201, result.message, {});
+    return errorResponse(result.status, result.message, result.code);
   } catch (error) {
     console.error("POST /api/public/schools/[id]/inquiries error:", error);
     return internalServerError("Your inquiry could not be sent. Please try again.");

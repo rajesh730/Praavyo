@@ -75,7 +75,7 @@ const SCHOOL_NAV_GROUPS = [
   },
   {
     title: "Public Showcase",
-    names: ["Publishing Desk", "Certificates", "Public Profile"],
+    names: ["Publishing Desk", "Gallery", "Certificates", "Public Profile"],
   },
   {
     title: "Platform",

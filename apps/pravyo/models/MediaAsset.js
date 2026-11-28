@@ -17,7 +17,7 @@ const MediaAssetSchema = new mongoose.Schema(
     },
     purpose: {
       type: String,
-      enum: ["SCHOOL_LOGO", "SCHOOL_COVER", "REPORT_CARD_IMAGE", "WRITING_IMAGE"],
+      enum: ["SCHOOL_LOGO", "SCHOOL_COVER", "REPORT_CARD_IMAGE", "WRITING_IMAGE", "GALLERY_IMAGE"],
       required: true,
       index: true,
     },
