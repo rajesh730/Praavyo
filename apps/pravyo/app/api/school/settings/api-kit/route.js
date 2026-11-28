@@ -1,9 +1,8 @@
 import { defineRoute } from "@/lib/routeHandler";
 import User from "@/models/User";
-import SchoolShowcaseProfile from "@/models/SchoolShowcaseProfile";
 import SchoolWebsiteApiKey from "@/models/SchoolWebsiteApiKey";
 import { createWebsiteApiKey, hashWebsiteApiKey } from "@/lib/websiteApiAuth";
-import { buildWebsiteKit } from "@/lib/websiteKit";
+import { buildWebsiteApiKit } from "@/lib/websiteApiKit";
 import { websiteOrigin } from "@/lib/websiteApi";
 import { errorResponse } from "@/lib/apiResponse";
 
@@ -12,14 +11,14 @@ export const dynamic = "force-dynamic";
 const MAX_ACTIVE_KEYS = 5;
 
 /**
- * POST { apiKey? } — download the school's generated website (.zip), already
- * connected to Praavyo. With `apiKey` (one of the school's active keys, e.g.
- * just created in the same screen) that key is written into the website's
- * server files; otherwise a new key named "Generated website (<date>)" is
- * created for it and appears in the key list, where it can be revoked.
+ * POST { apiKey? } — download the Website API developer kit (.zip): manual,
+ * OpenAPI spec, .env and example clients. With `apiKey` (one of the school's
+ * active keys, e.g. just created on the same screen) that key is written into
+ * the kit; otherwise a new key named "Developer kit (<date>)" is created for
+ * it and appears in the key list, where it can be revoked.
  */
 export const POST = defineRoute(
-  { roles: ["SCHOOL_ADMIN"], errorMessage: "Failed to generate the website" },
+  { roles: ["SCHOOL_ADMIN"], errorMessage: "Failed to prepare the API kit" },
   async ({ request, session }) => {
     const schoolId = session.user.id;
     const body = await request.json().catch(() => ({}));
@@ -46,7 +45,7 @@ export const POST = defineRoute(
       const generated = createWebsiteApiKey();
       await SchoolWebsiteApiKey.create({
         school: schoolId,
-        name: `Generated website (${new Date().toISOString().slice(0, 10)})`,
+        name: `Developer kit (${new Date().toISOString().slice(0, 10)})`,
         keyHash: generated.keyHash,
         prefix: generated.prefix,
         lastFour: generated.lastFour,
@@ -55,14 +54,9 @@ export const POST = defineRoute(
       apiKey = generated.rawKey;
     }
 
-    const [school, profile] = await Promise.all([
-      User.findById(schoolId).select("schoolName").lean(),
-      SchoolShowcaseProfile.findOne({ school: schoolId }).select("tagline").lean(),
-    ]);
-
-    const { fileName, zip } = buildWebsiteKit({
+    const school = await User.findById(schoolId).select("schoolName").lean();
+    const { fileName, zip } = buildWebsiteApiKit({
       schoolName: school?.schoolName || "School",
-      description: profile?.tagline || "",
       apiUrl: `${websiteOrigin(request)}/api/v1/website`,
       apiKey,
     });

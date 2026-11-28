@@ -33,8 +33,8 @@ async function readJson(res, fallback) {
 
 /**
  * Gallery — the school's photo albums. Public albums appear on the school's
- * own website (Website API /gallery, "Gallery" in the generated website);
- * drafts stay here. Photos are compressed to WebP in the browser first.
+ * own website (Website API /gallery); drafts stay here.
+ * Photos are compressed to WebP in the browser first.
  */
 export default function SchoolGalleryManager() {
   const [albums, setAlbums] = useState([]);

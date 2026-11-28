@@ -10,8 +10,8 @@ import {
  * application — defined once. The same definitions drive:
  *   - the Website API (`GET /forms`, `GET /admission`), so every school
  *     website builds the same fields instead of guessing them;
- *   - the generated school website (lib/websiteKit), which renders its forms
- *     from the API;
+ *   - the Website API manual (lib/websiteApiGuide.js), which documents them
+ *     field by field;
  *   - the server's limits (schoolInquiryLimits.js), so what a form allows is
  *     exactly what the server accepts.
  *

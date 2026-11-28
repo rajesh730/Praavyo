@@ -1,6 +1,6 @@
 /**
  * A minimal ZIP writer (STORE method, no compression) for small generated
- * downloads such as the school website starter. No dependency; the files are
+ * downloads such as the Website API developer kit. No dependency; the files are
  * a few dozen kilobytes of text, so compression would save little.
  *
  * buildZip([{ name: "index.html", content: "..." | Buffer }]) → Buffer

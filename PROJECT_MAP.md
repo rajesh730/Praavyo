@@ -161,11 +161,12 @@ Auth: `packages/auth/authOptions.js` — one credentials setup, JWT session,
   notices, events, writings, magazines, gallery, achievements, admission) and
   `/<resource>/<id>`; `POST /api/v1/website/inquiries` (GENERAL or ADMISSION).
   Content in `lib/websiteApi.js`; writings come back as safe `blocks`.
-  Settings → Website → "Download website" zips a ready site
-  (`lib/websiteKit/*`, `lib/zipStore.js`; route `api/school/settings/website-kit`):
-  School life menu (Events, Notices, Student writings, School magazine,
-  Gallery), Admission, Contact with General/Admission inquiry; the key lives
-  only in its `api.php`+`config.php` (PHP/cPanel) or `server.js`+`.env` (Node).
+  Praavyo ships NO website (the generated website kit was removed
+  2026-11-28): the school's developer builds it. Settings → Website →
+  "Download API kit" (route `api/school/settings/api-kit`, `lib/websiteApiKit.js`,
+  `lib/zipStore.js`) zips README.md (manual), openapi.json, .env (URL + key) and
+  examples (PHP, Node, cURL). Manual + OpenAPI live in `lib/websiteApiGuide.js`
+  (also the screen's "Copy complete guide"); keep it in step with the routes.
 - **Inquiries & admission** — `SchoolInquiry` has `type` (GENERAL/ADMISSION)
   and `source` (PRAAVYO = public profile, WEBSITE = Website API; old rows count
   as PRAAVYO/GENERAL). Both doors go through `lib/inquiryIntake.js` (honeypot,
@@ -176,12 +177,12 @@ Auth: `packages/auth/authOptions.js` — one credentials setup, JWT session,
   this year — apply for next year", any grade, stored `admission.forNextYear`
   (inbox badge "Next year"). Both forms' fields are defined once in
   `lib/inquiryForms.js` and published by `GET /forms` (and `/admission`), which
-  the generated website renders from. Inbox filters: Through website / Through
+  websites build their forms from. Inbox filters: Through website / Through
   Praavyo × General / Admission, CSV download.
   Website writings = the school-wall rule (SUBMITTED|APPROVED + showOnSchoolWall)
   plus publicly published ones (`writingFilter`); events include
   PerformancePrograms; `/school` returns the profile whatever its Praavyo
-  visibility; key limit 600/min and the kit connectors cache 15–60 s and serve
+  visibility; key limit 600/min; the kit's example clients cache 60 s and serve
   stale on outages.
 - **Gallery** — `SchoolGalleryAlbum` (DRAFT/PUBLIC, ≤60 photos, MediaAsset
   purpose `GALLERY_IMAGE`, public bucket), dashboard `?tab=gallery`,

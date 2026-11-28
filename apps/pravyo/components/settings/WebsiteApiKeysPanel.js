@@ -3,36 +3,14 @@
 import { useCallback, useEffect, useState } from "react";
 import { Copy as FiCopy, Download, Globe, Key as FiKey, Plus as FiPlus, Trash2 as FiTrash2 } from "lucide-react";
 import { GENERAL_INQUIRY_FIELDS, HONEYPOT_FIELD, admissionFields } from "@/lib/inquiryForms";
+import { KEY_PLACEHOLDER, WEBSITE_API_ENDPOINTS, websiteApiGuide } from "@/lib/websiteApiGuide";
 
-// What a school website can read (GET) — mirrors lib/websiteApi.js.
-const RESOURCES = [
-  ["School profile", "school", false],
-  ["Public notices", "notices", true],
-  ["Public events", "events", true],
-  ["Student writings", "writings", true],
-  ["School magazines", "magazines", true],
-  ["Gallery albums", "gallery", true],
-  ["Public achievements", "achievements", false],
-  ["Admission season and form", "admission", false],
-  ["Form fields (general inquiry + admission)", "forms", false],
+// Step by step, what the school does to connect its own website.
+const CONNECT_STEPS = [
+  ["Create an API key", "One key per website, below. Praavyo shows it only once."],
+  ["Download the API kit", "Manual, OpenAPI spec, .env with the key and example code (PHP, Node.js, cURL)."],
+  ["Send it to your developer privately", "Never in a public group or post. They build the website; you keep publishing here."],
 ];
-
-const SITE_PAGES = ["Home", "About", "School life: Events, Notices, Student writings, School magazine, Gallery", "Admission", "Contact (General inquiry / Admission inquiry)"];
-
-/** One line per field for the copied guide. */
-function fieldGuide(fields) {
-  return fields
-    .map((field) => {
-      const rules = [
-        field.type,
-        field.required ? "required" : "optional",
-        field.maxLength ? `max ${field.maxLength}` : "",
-        field.options ? `options: ${field.options.join(" / ")}` : "",
-      ].filter(Boolean);
-      return `- ${field.name} — ${field.label} (${rules.join(", ")})`;
-    })
-    .join("\n");
-}
 
 function FieldTable({ title, fields }) {
   return (
@@ -106,7 +84,7 @@ export default function WebsiteApiKeysPanel() {
   }, [load]);
 
   const apiBase = `${origin || "https://www.praavyo.com"}/api/v1/website`;
-  const exampleKey = newKey || "YOUR_API_KEY";
+  const exampleKey = newKey || KEY_PLACEHOLDER;
   const envExample = `PRAAVYO_API_URL=${apiBase}\nPRAAVYO_API_KEY=${exampleKey}`;
   const curlExample = `curl "${apiBase}/notices?page=1&limit=10" \\\n  -H "Authorization: Bearer ${exampleKey}"`;
   const javascriptExample = `const response = await fetch(
@@ -146,53 +124,7 @@ await fetch(\`\${process.env.PRAAVYO_API_URL}/inquiries\`, {
 //   email?, address?, message? }
 // Build both forms from GET /forms so the fields always match.`;
 
-  const fullGuide = `PRAAVYO WEBSITE API
-
-Base URL: ${apiBase}
-Authentication header: Authorization: Bearer ${exampleKey}
-Keep the key on the website's server. Never put it in browser code.
-
-Read (GET):
-${RESOURCES.map(([label, resource, detail]) => `- ${label}: GET /${resource}${detail ? `  and  GET /${resource}/<id>` : ""}`).join("\n")}
-
-Lists: ?page=1&limit=12 (maximum 25). Response: { success, data: { items, pagination } }
-Writings and magazine articles include "blocks": formatted text as data
-(heading, paragraph, bullets, numbers; inline bold/italic/link). Render as text.
-Images are absolute URLs.
-
-Forms (GET /forms): { general: { fields }, admission: { status, acceptingFor, notice, fields } }
-Each field: name, label, type (text, email, tel, date-text, select, textarea),
-required, minLength, maxLength, options (select), placeholder, help.
-Build your forms from it so they always match what Praavyo accepts.
-
-General inquiry fields:
-${fieldGuide(GENERAL_INQUIRY_FIELDS)}
-
-Admission fields (grade options come from GET /forms):
-${fieldGuide(admissionFields(["<your grades>"]))}
-
-Hidden spam trap: a field named "${HONEYPOT_FIELD}", hidden and left empty.
-
-Send (POST):
-- POST /inquiries  { type: "GENERAL", ...general fields }
-- POST /inquiries  { type: "ADMISSION", ...admission fields }
-  Send the visitor's IP in X-Visitor-IP. Admissions OPEN: grades taking
-  applications. Admissions CLOSED: the form stays on the website; show the
-  notice from GET /admission ("closed for this year, apply for next year");
-  applications are accepted for next year and answer { data: { forNextYear: true } }.
-  Everything arrives in Praavyo → Inquiries, marked "Through website".
-
-.env
-${envExample}
-
-cURL
-${curlExample}
-
-Server-side JavaScript (read)
-${javascriptExample}
-
-Server-side JavaScript (send an inquiry)
-${inquiryExample}`;
+  const fullGuide = websiteApiGuide({ apiBase, apiKey: exampleKey });
 
   const create = async () => {
     setBusy(true);
@@ -237,24 +169,24 @@ ${inquiryExample}`;
     }
   };
 
-  // The generated website, already connected: uses the key created just now,
-  // or asks the server to create one for it.
-  const downloadWebsite = async () => {
+  // The developer kit: manual, OpenAPI spec, .env and example clients. Uses
+  // the key created just now, or asks the server to create one for it.
+  const downloadKit = async () => {
     setDownloading(true);
     setMessage("");
     try {
-      const response = await fetch("/api/school/settings/website-kit", {
+      const response = await fetch("/api/school/settings/api-kit", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newKey ? { apiKey: newKey } : {}),
       });
       if (!response.ok) {
         const json = await response.json().catch(() => ({}));
-        throw new Error(json.message || "The website could not be generated.");
+        throw new Error(json.message || "The API kit could not be prepared.");
       }
       const blob = await response.blob();
       const disposition = response.headers.get("Content-Disposition") || "";
-      const fileName = disposition.match(/filename="([^"]+)"/)?.[1] || "school-website.zip";
+      const fileName = disposition.match(/filename="([^"]+)"/)?.[1] || "praavyo-api.zip";
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -265,8 +197,8 @@ ${inquiryExample}`;
       setTimeout(() => URL.revokeObjectURL(url), 1000);
       setMessage(
         newKey
-          ? "Website downloaded with the key you just created. Follow README.txt inside to put it online."
-          : "Website downloaded. A key named \"Generated website\" was created for it. Follow README.txt inside to put it online."
+          ? "API kit downloaded with the key you just created. Send it to your website developer privately."
+          : "API kit downloaded. A key named \"Developer kit\" was created for it. Send the kit to your website developer privately."
       );
       if (!newKey) await load();
     } catch (error) {
@@ -287,7 +219,7 @@ ${inquiryExample}`;
 
   return (
     <div className="space-y-4">
-      {/* The generated website */}
+      {/* Connect the school's own website through the API */}
       <section className="card p-4 sm:p-5">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="flex min-w-0 items-start gap-3.5">
@@ -295,26 +227,26 @@ ${inquiryExample}`;
               <Globe aria-hidden />
             </span>
             <div className="min-w-0">
-              <h2 className="text-lg font-semibold text-ink">Your school website</h2>
+              <h2 className="text-lg font-semibold text-ink">Connect your school website</h2>
               <p className="mt-0.5 max-w-2xl text-sm text-muted">
-                Download a complete website for your school, already connected to Praavyo. It shows what you
-                publish here and sends its contact and admission forms to Inquiries, marked “Through website”.
-                Upload it to any hosting (cPanel/PHP or Node.js); README.txt inside explains each step.
+                Your website developer connects through the Praavyo API with two things: the API URL and a secret
+                API key. The website then shows what you publish here and sends its contact and admission forms to
+                Inquiries, marked “Through website”.
               </p>
             </div>
           </div>
-          <button type="button" onClick={downloadWebsite} disabled={downloading} className="btn btn-primary shrink-0">
-            <Download aria-hidden /> {downloading ? "Preparing…" : "Download website"}
+          <button type="button" onClick={downloadKit} disabled={downloading} className="btn btn-primary shrink-0">
+            <Download aria-hidden /> {downloading ? "Preparing…" : "Download API kit"}
           </button>
         </div>
-        <ul className="mt-4 grid gap-2 text-sm text-body sm:grid-cols-2">
-          {SITE_PAGES.map((page) => (
-            <li key={page} className="rounded-control border border-line bg-surface-2 px-3 py-2">{page}</li>
+        <ol className="mt-4 grid gap-2 text-sm sm:grid-cols-3">
+          {CONNECT_STEPS.map(([step, detail], index) => (
+            <li key={step} className="rounded-control border border-line bg-surface-2 px-3 py-2">
+              <p className="font-semibold text-ink">{index + 1}. {step}</p>
+              <p className="mt-0.5 text-xs text-muted">{detail}</p>
+            </li>
           ))}
-        </ul>
-        <p className="mt-3 text-xs text-muted">
-          Already have a website? Give your developer an API key and the guide below instead.
-        </p>
+        </ol>
       </section>
 
       <section className="rounded-card border border-line-strong bg-surface p-4 sm:p-5">
@@ -363,7 +295,7 @@ ${inquiryExample}`;
                 <FiCopy />
               </button>
             </div>
-            <p className="mt-2 text-xs text-muted">“Download website” will use this key.</p>
+            <p className="mt-2 text-xs text-muted">“Download API kit” will include this key.</p>
           </div>
         ) : null}
 
@@ -435,7 +367,7 @@ ${inquiryExample}`;
                 Add <code>?page=1&amp;limit=12</code> to list endpoints. Maximum 25.
               </p>
             </div>
-            {RESOURCES.map(([label, resource, detail]) => {
+            {WEBSITE_API_ENDPOINTS.map(([resource, label, detail]) => {
               const endpoint = `${apiBase}/${resource}`;
               return (
                 <div
